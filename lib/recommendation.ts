@@ -11,39 +11,39 @@ export function generateRecommendation({
 }: RecommendationInput) {
   if (pain) {
     return {
-      title: "Pause progression and review this phase",
+      title: "Pain logged, pause progression for now",
       description:
-        "Note what hurt, keep the load steady, and consider a lighter day or exercise swap before the next session."
+        "Keep the load steady and review what hurt before the next workout."
     };
   }
 
   if (!completed) {
     return {
-      title: "Repeat the workout before changing phases",
+      title: "Workout incomplete, repeat this session",
       description:
-        "Stay with this phase for now and note what got in the way."
+        "Stay with this workout next time and note what got in the way."
     };
   }
 
   if (effort === "Too easy") {
     return {
-      title: "Stay in phase and watch for a progression opening",
+      title: "Workout felt easy, review progression soon",
       description:
-        "If this keeps feeling easy with clean technique and no pain, you may be ready for more load or the next phase."
+        "If this keeps feeling easy with clean technique and no pain, you may be ready for a small step up."
     };
   }
 
   if (effort === "Too hard") {
     return {
-      title: "Hold the current phase and monitor recovery",
+      title: "Tough workout, repeat before progressing",
       description:
-        "Hold off on progressing. If the next session also feels too hard, review volume, load, or rest."
+        "Hold off on progressing and give this workout another clean pass."
     };
   }
 
   return {
-    title: "Keep building in the current phase",
+    title: "Successful workout, keep going with this plan",
     description:
-      "This landed in the right range. Keep stacking clean, pain-free reps until your advance criteria are met."
+      "This landed in the right range. Keep stacking clean, pain-free reps."
   };
 }

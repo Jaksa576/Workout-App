@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { generateRecommendation } from "@/lib/recommendation";
+import { getTodayDateString } from "@/lib/validation";
 import type { WorkoutTemplate } from "@/lib/types";
 
 const effortOptions = ["Too easy", "Appropriate", "Too hard"] as const;
@@ -15,6 +16,7 @@ export function CheckInForm({ workout }: { workout: WorkoutTemplate }) {
     "Appropriate"
   );
   const [notes, setNotes] = useState("");
+  const [completedOn, setCompletedOn] = useState(getTodayDateString());
   const [completedExerciseIds, setCompletedExerciseIds] = useState<string[]>([]);
   const [status, setStatus] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -52,6 +54,7 @@ export function CheckInForm({ workout }: { workout: WorkoutTemplate }) {
         },
         body: JSON.stringify({
           workoutTemplateId: workout.id,
+          completedOn,
           completed,
           painOccurred: pain,
           perceivedDifficulty:
@@ -61,7 +64,6 @@ export function CheckInForm({ workout }: { workout: WorkoutTemplate }) {
                 ? "too_hard"
                 : "appropriate",
           notes,
-          recommendation: recommendation.title,
           completedExerciseIds
         })
       });
@@ -90,11 +92,22 @@ export function CheckInForm({ workout }: { workout: WorkoutTemplate }) {
         <p className="font-semibold text-ink">{workout.name}</p>
         <p className="mt-2 leading-6">
           {completedExerciseIds.length} of {workout.exercises.length} exercises
-          checked off today.
+          checked off.
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
+        <label className="block rounded-3xl bg-white/70 p-4 md:col-span-2">
+          <span className="text-sm font-semibold text-ink">Workout date</span>
+          <input
+            type="date"
+            value={completedOn}
+            max={getTodayDateString()}
+            onChange={(event) => setCompletedOn(event.target.value)}
+            className="mt-3 w-full rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+          />
+        </label>
+
         <fieldset className="rounded-3xl bg-white/70 p-4">
           <legend className="text-sm font-semibold text-ink">
             Did you finish the workout?

@@ -6,10 +6,23 @@ import type { WorkoutTemplate } from "@/lib/types";
 type WorkoutChecklistProps = {
   workout: WorkoutTemplate;
   storageKey?: string;
+  checkedExerciseIds?: string[];
+  onCheckedExerciseIdsChange?: (checkedExerciseIds: string[]) => void;
 };
 
-export function WorkoutChecklist({ workout, storageKey }: WorkoutChecklistProps) {
-  const [checked, setChecked] = useState<string[]>([]);
+export function WorkoutChecklist({
+  workout,
+  storageKey,
+  checkedExerciseIds,
+  onCheckedExerciseIdsChange
+}: WorkoutChecklistProps) {
+  const [internalChecked, setInternalChecked] = useState<string[]>([]);
+  const checked = checkedExerciseIds ?? internalChecked;
+  const setChecked = onCheckedExerciseIdsChange ?? setInternalChecked;
+
+  function setNextChecked(nextChecked: string[]) {
+    setChecked(nextChecked);
+  }
 
   useEffect(() => {
     if (!storageKey) {
@@ -22,7 +35,7 @@ export function WorkoutChecklist({ workout, storageKey }: WorkoutChecklistProps)
     }
 
     try {
-      setChecked(JSON.parse(rawValue) as string[]);
+      setNextChecked(JSON.parse(rawValue) as string[]);
     } catch {
       window.sessionStorage.removeItem(storageKey);
     }
@@ -73,10 +86,10 @@ export function WorkoutChecklist({ workout, storageKey }: WorkoutChecklistProps)
                 className="mt-1 h-5 w-5 accent-[#ff6a3d]"
                 checked={active}
                 onChange={() =>
-                  setChecked((current) =>
+                  setNextChecked(
                     active
-                      ? current.filter((id) => id !== exercise.id)
-                      : [...current, exercise.id]
+                      ? checked.filter((id) => id !== exercise.id)
+                      : [...checked, exercise.id]
                   )
                 }
               />

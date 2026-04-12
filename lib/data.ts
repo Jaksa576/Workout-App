@@ -5,7 +5,9 @@ import {
   type ExerciseEntry,
   type PlanPhase,
   type Profile,
+  type WorkoutPageData,
   type WorkoutPlan,
+  type WorkoutProgressSummary,
   type WorkoutSession,
   type WorkoutTemplate
 } from "@/lib/types";
@@ -53,6 +55,7 @@ type ExerciseRow = {
 type SessionRow = {
   id: string;
   workout_template_id: string;
+  created_at: string;
   completed_on: string;
   completed: boolean;
   pain_occurred: boolean;
@@ -60,6 +63,8 @@ type SessionRow = {
   notes: string;
   recommendation: string;
 };
+
+const progressHistoryDays = 90;
 
 function mapPhase(row: PhaseRow): PlanPhase {
   return {
@@ -103,6 +108,30 @@ function deriveReadiness(session?: SessionRow) {
   return "Ready";
 }
 
+function mapSession(row: SessionRow): WorkoutSession {
+  return {
+    id: row.id,
+    workoutTemplateId: row.workout_template_id,
+    createdAt: row.created_at,
+    completedOn: row.completed_on,
+    completed: row.completed,
+    painOccurred: row.pain_occurred,
+    perceivedDifficulty: row.perceived_difficulty,
+    notes: row.notes,
+    recommendation: row.recommendation
+  };
+}
+
+function sortSessionsByLatest(a: SessionRow, b: SessionRow) {
+  const dateComparison = b.completed_on.localeCompare(a.completed_on);
+
+  if (dateComparison !== 0) {
+    return dateComparison;
+  }
+
+  return b.created_at.localeCompare(a.created_at);
+}
+
 function mapWorkout(
   workout: WorkoutRow,
   exercises: ExerciseRow[],
@@ -121,7 +150,7 @@ function mapWorkout(
   };
 }
 
-async function getPlanBundle(userId: string) {
+async function getPlanBundle(userId: string, sessionSince?: string) {
   const supabase = await getSupabaseServerClient();
 
   const { data: plansData, error: plansError } = await supabase
@@ -174,26 +203,39 @@ async function getPlanBundle(userId: string) {
 
   const workoutIds = (workoutsResult.data ?? []).map((workout) => workout.id);
 
-  const [exercisesResult, sessionsResult] = await Promise.all([
-    workoutIds.length
-      ? supabase
-          .from("exercise_entries")
-          .select(
-            "id, workout_template_id, name, sets, reps, rest, coaching_note, video_url, sort_order"
-          )
-          .in("workout_template_id", workoutIds)
-          .order("sort_order", { ascending: true })
-      : Promise.resolve({ data: [], error: null }),
-    workoutIds.length
-      ? supabase
+  const exercisesQuery = workoutIds.length
+    ? supabase
+        .from("exercise_entries")
+        .select(
+          "id, workout_template_id, name, sets, reps, rest, coaching_note, video_url, sort_order"
+        )
+        .in("workout_template_id", workoutIds)
+        .order("sort_order", { ascending: true })
+    : Promise.resolve({ data: [], error: null });
+
+  const sessionsQuery = workoutIds.length
+    ? (() => {
+        let query = supabase
           .from("workout_sessions")
           .select(
-            "id, workout_template_id, completed_on, completed, pain_occurred, perceived_difficulty, notes, recommendation"
+            "id, workout_template_id, created_at, completed_on, completed, pain_occurred, perceived_difficulty, notes, recommendation"
           )
           .eq("user_id", userId)
           .in("workout_template_id", workoutIds)
           .order("completed_on", { ascending: false })
-      : Promise.resolve({ data: [], error: null })
+          .order("created_at", { ascending: false });
+
+        if (sessionSince) {
+          query = query.gte("completed_on", sessionSince);
+        }
+
+        return query;
+      })()
+    : Promise.resolve({ data: [], error: null });
+
+  const [exercisesResult, sessionsResult] = await Promise.all([
+    exercisesQuery,
+    sessionsQuery
   ]);
 
   if (exercisesResult.error) {
@@ -209,7 +251,7 @@ async function getPlanBundle(userId: string) {
     phases: (phasesData ?? []) as PhaseRow[],
     workouts: (workoutsResult.data ?? []) as WorkoutRow[],
     exercises: (exercisesResult.data ?? []) as ExerciseRow[],
-    sessions: (sessionsResult.data ?? []) as SessionRow[]
+    sessions: ((sessionsResult.data ?? []) as SessionRow[]).sort(sortSessionsByLatest)
   };
 }
 
@@ -291,6 +333,7 @@ function computeMetrics(
     (session) => new Date(session.completed_on) >= lastSevenDays
   );
   const painCount = recentSessions.filter((session) => session.pain_occurred).length;
+  const painFlagLabel = painCount === 1 ? "1 pain flag" : `${painCount} pain flags`;
   const advanceReady = recentSessions.filter(
     (session) =>
       session.completed &&
@@ -306,7 +349,7 @@ function computeMetrics(
     },
     {
       label: "Pain status",
-      value: painCount === 0 ? "Stable" : `${painCount} pain flags`,
+      value: painCount === 0 ? "Stable" : painFlagLabel,
       detail:
         painCount === 0
           ? "No recent pain flags detected."
@@ -321,6 +364,82 @@ function computeMetrics(
           : "Stay in the current phase until more consistent successful sessions are logged."
     }
   ];
+}
+
+function toDateString(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function getDaysAgoDateString(daysAgo: number) {
+  const date = new Date();
+  date.setUTCHours(0, 0, 0, 0);
+  date.setUTCDate(date.getUTCDate() - daysAgo);
+  return toDateString(date);
+}
+
+function getMondayStart(date: Date) {
+  const nextDate = new Date(date);
+  nextDate.setUTCHours(0, 0, 0, 0);
+  const day = nextDate.getUTCDay();
+  const daysFromMonday = day === 0 ? 6 : day - 1;
+  nextDate.setUTCDate(nextDate.getUTCDate() - daysFromMonday);
+  return nextDate;
+}
+
+function formatWeekLabel(date: Date) {
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC"
+  });
+}
+
+function computeProgressSummary(
+  sessions: SessionRow[],
+  weeklyTarget = 3
+): WorkoutProgressSummary {
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+  const currentWeekStart = getMondayStart(today);
+  const weekStarts = [3, 2, 1, 0].map((weeksAgo) => {
+    const date = new Date(currentWeekStart);
+    date.setUTCDate(date.getUTCDate() - weeksAgo * 7);
+    return date;
+  });
+
+  const completedSessions = sessions.filter((session) => session.completed);
+  const completedThisWeek = completedSessions.filter(
+    (session) => new Date(`${session.completed_on}T00:00:00.000Z`) >= currentWeekStart
+  ).length;
+  const cleanSessions = sessions.filter(
+    (session) =>
+      session.completed &&
+      !session.pain_occurred &&
+      session.perceived_difficulty !== "too_hard"
+  ).length;
+  const painFlags = sessions.filter((session) => session.pain_occurred).length;
+
+  const weeklyBars = weekStarts.map((weekStart) => {
+    const weekEnd = new Date(weekStart);
+    weekEnd.setUTCDate(weekEnd.getUTCDate() + 7);
+
+    return {
+      label: formatWeekLabel(weekStart),
+      completed: completedSessions.filter((session) => {
+        const completedOn = new Date(`${session.completed_on}T00:00:00.000Z`);
+        return completedOn >= weekStart && completedOn < weekEnd;
+      }).length
+    };
+  });
+
+  return {
+    weeklyTarget,
+    completedThisWeek,
+    cleanSessions,
+    painFlags,
+    latestRecommendation: sessions[0]?.recommendation ?? "Log a workout to get a suggested next step.",
+    weeklyBars
+  };
 }
 
 export async function getProfile(): Promise<Profile | null> {
@@ -405,11 +524,12 @@ export async function getLatestSessionForWorkout(
   const { data, error } = await supabase
     .from("workout_sessions")
     .select(
-      "id, workout_template_id, completed_on, completed, pain_occurred, perceived_difficulty, notes, recommendation"
+      "id, workout_template_id, created_at, completed_on, completed, pain_occurred, perceived_difficulty, notes, recommendation"
     )
     .eq("user_id", user.id)
     .eq("workout_template_id", workoutTemplateId)
     .order("completed_on", { ascending: false })
+    .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
 
@@ -424,12 +544,68 @@ export async function getLatestSessionForWorkout(
   return {
     id: data.id,
     workoutTemplateId: data.workout_template_id,
+    createdAt: data.created_at,
     completedOn: data.completed_on,
     completed: data.completed,
     painOccurred: data.pain_occurred,
     perceivedDifficulty: data.perceived_difficulty,
     notes: data.notes,
     recommendation: data.recommendation
+  };
+}
+
+export async function getWorkoutPageData(
+  selectedWorkoutId?: string
+): Promise<WorkoutPageData> {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    return {
+      activePlan: null,
+      workouts: [],
+      selectedWorkout: null,
+      recentSessions: [],
+      latestSessionForSelectedWorkout: null,
+      progressSummary: computeProgressSummary([], 3)
+    };
+  }
+
+  const supabase = await getSupabaseServerClient();
+  const sessionSince = getDaysAgoDateString(progressHistoryDays);
+  const [bundle, profileResult] = await Promise.all([
+    getPlanBundle(user.id, sessionSince),
+    supabase
+      .from("profiles")
+      .select("days_per_week")
+      .eq("id", user.id)
+      .maybeSingle()
+  ]);
+
+  if (profileResult.error) {
+    throw new Error(profileResult.error.message);
+  }
+
+  const mappedPlans = bundle.plans.map((plan) =>
+    mapPlanFromBundle(plan, bundle.phases, bundle.workouts, bundle.exercises, bundle.sessions)
+  );
+  const activePlan = mappedPlans.find((plan) => plan.isActive) ?? mappedPlans[0] ?? null;
+  const workouts = activePlan?.workouts ?? [];
+  const selectedWorkout =
+    workouts.find((workout) => workout.id === selectedWorkoutId) ?? workouts[0] ?? null;
+  const recentSessions = bundle.sessions.map(mapSession);
+
+  return {
+    activePlan,
+    workouts,
+    selectedWorkout,
+    recentSessions,
+    latestSessionForSelectedWorkout: selectedWorkout
+      ? recentSessions.find((session) => session.workoutTemplateId === selectedWorkout.id) ?? null
+      : null,
+    progressSummary: computeProgressSummary(
+      bundle.sessions,
+      profileResult.data?.days_per_week ?? 3
+    )
   };
 }
 

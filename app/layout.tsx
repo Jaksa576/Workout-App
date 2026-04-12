@@ -6,7 +6,11 @@ import { getCurrentUser } from "@/lib/auth";
 export const metadata: Metadata = {
   title: "Workout App",
   description: "Personal workout planning and progression tracking on your phone.",
-  manifest: "/manifest.webmanifest"
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/icon-192.svg",
+    apple: "/icon-192.svg"
+  }
 };
 
 export const viewport: Viewport = {

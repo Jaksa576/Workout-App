@@ -1,15 +1,15 @@
 # Workout App
 
-Workout App is a mobile-first workout planner built as a Progressive Web App with Next.js, Tailwind CSS, and Supabase. It is designed for personal training use first: create a plan, run today's workout, check off exercises, and log how the session felt so progression decisions stay grounded in actual results.
+Workout App is a mobile-first workout planner built as a Progressive Web App with Next.js, Tailwind CSS, and Supabase. It is designed for personal training use first: create a plan, run a workout, check off exercises, and log how the session felt so progression decisions stay grounded in actual results.
 
 ## Current state
 
-- Mobile-first app shell with dashboard, plans, plan detail, today's workout, workout check-in, settings, and login screens
+- Mobile-first app shell with dashboard, plans, plan detail, workout, settings, and login screens
 - Supabase email authentication with protected app routes
 - Supabase-backed plan, phase, workout, exercise, profile, session, and exercise-result data
 - Plan creation flow that saves one plan, one phase, one workout, and ordered exercises
-- Today's workout view with a checklist, rest timer, exercise video links, and session handoff
-- Workout check-in flow that saves completion, pain, difficulty, notes, and completed exercise results
+- Connected workout flow with a checklist, rest timer, same-page check-in, exercise video links, and saved completion summary
+- Workout logging that saves completion date, pain, difficulty, notes, and completed exercise results
 - Recommendation helper for whether to progress, repeat, review, or deload
 - SQL schema, profile creation trigger, updated-at triggers, and row-level security policies for private user data
 - User-facing copy pass that removes developer/prototype language from normal app screens

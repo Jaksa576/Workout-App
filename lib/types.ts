@@ -62,8 +62,23 @@ export type DashboardData = {
   metrics: DashboardMetric[];
 };
 
+export type ProgressBarPoint = {
+  label: string;
+  completed: number;
+};
+
+export type WorkoutProgressSummary = {
+  weeklyTarget: number;
+  completedThisWeek: number;
+  cleanSessions: number;
+  painFlags: number;
+  latestRecommendation: string;
+  weeklyBars: ProgressBarPoint[];
+};
+
 export type WorkoutSession = {
   id: string;
+  createdAt: string;
   completedOn: string;
   completed: boolean;
   painOccurred: boolean;
@@ -75,12 +90,26 @@ export type WorkoutSession = {
 
 export type WorkoutSessionInput = {
   workoutTemplateId: string;
+  completedOn: string;
   completed: boolean;
   painOccurred: boolean;
   perceivedDifficulty: "too_easy" | "appropriate" | "too_hard";
   notes: string;
-  recommendation: string;
   completedExerciseIds: string[];
+};
+
+export type SavedWorkoutSession = WorkoutSession & {
+  completedExerciseCount: number;
+  workoutName: string;
+};
+
+export type WorkoutPageData = {
+  activePlan: WorkoutPlan | null;
+  workouts: WorkoutTemplate[];
+  selectedWorkout: WorkoutTemplate | null;
+  recentSessions: WorkoutSession[];
+  latestSessionForSelectedWorkout: WorkoutSession | null;
+  progressSummary: WorkoutProgressSummary;
 };
 
 export type PlanFormInput = {

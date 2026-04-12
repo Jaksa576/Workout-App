@@ -1,25 +1,8 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
-import type { WorkoutSessionInput } from "@/lib/types";
-
-function isWorkoutSessionInput(value: unknown): value is WorkoutSessionInput {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-
-  const input = value as Partial<WorkoutSessionInput>;
-
-  return (
-    typeof input.workoutTemplateId === "string" &&
-    typeof input.completed === "boolean" &&
-    typeof input.painOccurred === "boolean" &&
-    typeof input.perceivedDifficulty === "string" &&
-    typeof input.notes === "string" &&
-    typeof input.recommendation === "string" &&
-    Array.isArray(input.completedExerciseIds)
-  );
-}
+import { generateRecommendation } from "@/lib/recommendation";
+import { isWorkoutSessionInput } from "@/lib/validation";
 
 export async function POST(request: Request) {
   const user = await getCurrentUser();
@@ -31,10 +14,30 @@ export async function POST(request: Request) {
   const body = await request.json();
 
   if (!isWorkoutSessionInput(body)) {
-    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Check the workout date and required fields, then try again." },
+      { status: 400 }
+    );
   }
 
   const supabase = await getSupabaseServerClient();
+
+  const { data: workout, error: workoutError } = await supabase
+    .from("workout_templates")
+    .select("id, name")
+    .eq("id", body.workoutTemplateId)
+    .maybeSingle();
+
+  if (workoutError) {
+    return NextResponse.json({ error: workoutError.message }, { status: 500 });
+  }
+
+  if (!workout) {
+    return NextResponse.json(
+      { error: "This workout is not available for your account." },
+      { status: 404 }
+    );
+  }
 
   const { data: exercises, error: exercisesError } = await supabase
     .from("exercise_entries")
@@ -45,18 +48,29 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: exercisesError.message }, { status: 500 });
   }
 
+  const recommendation = generateRecommendation({
+    completed: body.completed,
+    pain: body.painOccurred,
+    effort:
+      body.perceivedDifficulty === "too_easy"
+        ? "Too easy"
+        : body.perceivedDifficulty === "too_hard"
+          ? "Too hard"
+          : "Appropriate"
+  });
   const { data: session, error: sessionError } = await supabase
     .from("workout_sessions")
     .insert({
       user_id: user.id,
       workout_template_id: body.workoutTemplateId,
+      completed_on: body.completedOn,
       completed: body.completed,
       pain_occurred: body.painOccurred,
       perceived_difficulty: body.perceivedDifficulty,
       notes: body.notes.trim(),
-      recommendation: body.recommendation
+      recommendation: recommendation.title
     })
-    .select("id")
+    .select("id, workout_template_id, created_at, completed_on, completed, pain_occurred, perceived_difficulty, notes, recommendation")
     .single();
 
   if (sessionError || !session) {
@@ -77,8 +91,24 @@ export async function POST(request: Request) {
   );
 
   if (resultsError) {
+    await supabase.from("workout_sessions").delete().eq("id", session.id).eq("user_id", user.id);
+
     return NextResponse.json({ error: resultsError.message }, { status: 500 });
   }
 
-  return NextResponse.json({ id: session.id });
+  return NextResponse.json({
+    session: {
+      id: session.id,
+      createdAt: session.created_at,
+      workoutTemplateId: session.workout_template_id,
+      workoutName: workout.name,
+      completedOn: session.completed_on,
+      completed: session.completed,
+      painOccurred: session.pain_occurred,
+      perceivedDifficulty: session.perceived_difficulty,
+      notes: session.notes,
+      recommendation: session.recommendation,
+      completedExerciseCount: validExerciseIds.size
+    }
+  });
 }
