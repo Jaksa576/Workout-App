@@ -6,12 +6,26 @@ import { getTodayWorkout } from "@/lib/data";
 export default async function TodayPage() {
   const workout = await getTodayWorkout();
 
+  if (!workout) {
+    return (
+      <SectionCard
+        title="No workout scheduled yet"
+        eyebrow="Today"
+        description="Create a plan first, then today&apos;s workout will appear here."
+      >
+        <p className="text-sm leading-6 text-slate">
+          Start with one repeatable workout and a simple weekly schedule.
+        </p>
+      </SectionCard>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-sm uppercase tracking-[0.24em] text-slate">
-            Today&apos;s workout
+            Today&apos;s Workout
           </p>
           <h1 className="mt-2 font-display text-4xl text-ink">
             {workout.name}
@@ -24,15 +38,25 @@ export default async function TodayPage() {
 
       <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
         <SectionCard
-          title="Workout checklist"
+          title="Exercises"
           eyebrow={workout.focus}
-          description="Check off each exercise block as you go, then log how the session felt."
+          description="Check off each exercise as you go, then log how the session felt."
         >
-          <WorkoutChecklist workout={workout} />
+          <div className="space-y-5">
+            <WorkoutChecklist
+              workout={workout}
+              storageKey={`workout-checklist:${workout.id}`}
+            />
+            <a
+              href={`/check-in?workoutId=${workout.id}`}
+              className="inline-flex rounded-full bg-coral px-5 py-3 text-sm font-semibold text-white"
+            >
+              Finish Workout
+            </a>
+          </div>
         </SectionCard>
         <TimerCard />
       </section>
     </div>
   );
 }
-

@@ -16,6 +16,8 @@ export default async function PlanDetailPage({
     notFound();
   }
 
+  const previewWorkout = plan.workouts[0] ?? null;
+
   return (
     <div className="space-y-6">
       <section className="rounded-[32px] bg-white/80 p-6 shadow-card">
@@ -43,7 +45,7 @@ export default async function PlanDetailPage({
         <SectionCard
           title="Phase progression"
           eyebrow="Rules"
-          description="Keep the reason for progressing obvious. Nothing advances silently."
+          description="Use these signals to decide when to progress, repeat, or deload."
         >
           <div className="space-y-4">
             <div className="rounded-3xl bg-white/70 p-4">
@@ -73,13 +75,25 @@ export default async function PlanDetailPage({
           </div>
         </SectionCard>
 
-        <SectionCard
-          title={plan.workouts[0].name}
-          eyebrow="Example workout"
-          description={plan.workouts[0].focus}
-        >
-          <WorkoutChecklist workout={plan.workouts[0]} />
-        </SectionCard>
+        {previewWorkout ? (
+          <SectionCard
+            title={previewWorkout.name}
+            eyebrow="Workout"
+            description={previewWorkout.focus}
+          >
+            <WorkoutChecklist workout={previewWorkout} />
+          </SectionCard>
+        ) : (
+          <SectionCard
+            title="No workouts in this phase yet"
+            eyebrow="Workout detail"
+            description="Add a workout to make this phase ready to run."
+          >
+            <p className="text-sm leading-6 text-slate">
+              Once the workout is added, its exercises will appear here.
+            </p>
+          </SectionCard>
+        )}
       </section>
 
       <section className="grid gap-4 lg:grid-cols-2">
@@ -106,4 +120,3 @@ export default async function PlanDetailPage({
     </div>
   );
 }
-

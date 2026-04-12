@@ -13,7 +13,7 @@ export function generateRecommendation({
     return {
       title: "Pause progression and review this phase",
       description:
-        "Log the pain details, avoid automatic load increases, and consider a deload or exercise substitution before the next session."
+        "Note what hurt, keep the load steady, and consider a lighter day or exercise swap before the next session."
     };
   }
 
@@ -21,15 +21,15 @@ export function generateRecommendation({
     return {
       title: "Repeat the workout before changing phases",
       description:
-        "Treat this as incomplete data. Keep the current phase active and identify what prevented completion."
+        "Stay with this phase for now and note what got in the way."
     };
   }
 
   if (effort === "Too easy") {
     return {
-      title: "Stay in phase, but mark the plan for a progression check",
+      title: "Stay in phase and watch for a progression opening",
       description:
-        "If this rating repeats across the week with clean technique and no pain, the next phase or a load increase may be appropriate."
+        "If this keeps feeling easy with clean technique and no pain, you may be ready for more load or the next phase."
     };
   }
 
@@ -37,14 +37,13 @@ export function generateRecommendation({
     return {
       title: "Hold the current phase and monitor recovery",
       description:
-        "Do not progress yet. If the next session is also too hard, review volume, load, or rest before moving forward."
+        "Hold off on progressing. If the next session also feels too hard, review volume, load, or rest."
     };
   }
 
   return {
     title: "Keep building in the current phase",
     description:
-      "The session landed where it should. Continue collecting clean, pain-free reps until the advancement criteria are met."
+      "This landed in the right range. Keep stacking clean, pain-free reps until your advance criteria are met."
   };
 }
-

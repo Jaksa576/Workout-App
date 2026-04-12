@@ -1,7 +1,9 @@
 import { SectionCard } from "@/components/section-card";
-import { profile } from "@/lib/mock-data";
+import { getProfile } from "@/lib/data";
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const profile = await getProfile();
+
   return (
     <div className="space-y-6">
       <section>
@@ -17,35 +19,41 @@ export default function SettingsPage() {
         <SectionCard
           title="Training profile"
           eyebrow="Inputs"
-          description="These values should become form fields once the backend is connected."
+          description="These details help personalize your workout plans."
         >
-          <div className="space-y-4 text-sm text-slate">
-            <p>
-              <span className="font-semibold text-ink">Goal:</span>{" "}
-              {profile.goal}
+          {profile ? (
+            <div className="space-y-4 text-sm text-slate">
+              <p>
+                <span className="font-semibold text-ink">Goal:</span>{" "}
+                {profile.goal}
+              </p>
+              <p>
+                <span className="font-semibold text-ink">Available days:</span>{" "}
+                {profile.daysPerWeek} per week
+              </p>
+              <p>
+                <span className="font-semibold text-ink">Equipment:</span>{" "}
+                {profile.equipment.length > 0 ? profile.equipment.join(", ") : "Not set yet"}
+              </p>
+              <p>
+                <span className="font-semibold text-ink">Session length:</span>{" "}
+                {profile.sessionMinutes} minutes
+              </p>
+            </div>
+          ) : (
+            <p className="text-sm leading-6 text-slate">
+              Your profile details will appear here after your account is ready.
             </p>
-            <p>
-              <span className="font-semibold text-ink">Available days:</span>{" "}
-              {profile.daysPerWeek} per week
-            </p>
-            <p>
-              <span className="font-semibold text-ink">Equipment:</span>{" "}
-              {profile.equipment.join(", ")}
-            </p>
-            <p>
-              <span className="font-semibold text-ink">Session length:</span>{" "}
-              {profile.sessionMinutes} minutes
-            </p>
-          </div>
+          )}
         </SectionCard>
 
         <SectionCard
-          title="Future enhancements"
-          eyebrow="Roadmap"
-          description="These are already accounted for in the project shape."
+          title="Coming Soon"
+          eyebrow="Up next"
+          description="Useful additions to make planning easier over time."
         >
           <ul className="space-y-3 text-sm leading-6 text-slate">
-            <li>AI-generated workout drafts saved as reviewable plan suggestions</li>
+            <li>AI-assisted workout plan drafts</li>
             <li>YouTube video links on each exercise entry</li>
             <li>Read-only plan sharing for friends</li>
             <li>Exercise substitutions when pain or equipment changes</li>

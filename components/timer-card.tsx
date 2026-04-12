@@ -26,7 +26,7 @@ export function TimerCard() {
     <SectionCard
       title="Rest timer"
       eyebrow="Built in"
-      description="Keep the timer in the workout flow so you do not need to bounce between apps."
+      description="Time your rest without leaving the workout."
     >
       <div className="rounded-[28px] bg-ink p-6 text-white">
         <p className="text-xs uppercase tracking-[0.22em] text-white/60">
@@ -56,4 +56,3 @@ export function TimerCard() {
     </SectionCard>
   );
 }
-

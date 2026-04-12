@@ -1,10 +1,40 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { WorkoutTemplate } from "@/lib/types";
 
-export function WorkoutChecklist({ workout }: { workout: WorkoutTemplate }) {
+type WorkoutChecklistProps = {
+  workout: WorkoutTemplate;
+  storageKey?: string;
+};
+
+export function WorkoutChecklist({ workout, storageKey }: WorkoutChecklistProps) {
   const [checked, setChecked] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!storageKey) {
+      return;
+    }
+
+    const rawValue = window.sessionStorage.getItem(storageKey);
+    if (!rawValue) {
+      return;
+    }
+
+    try {
+      setChecked(JSON.parse(rawValue) as string[]);
+    } catch {
+      window.sessionStorage.removeItem(storageKey);
+    }
+  }, [storageKey]);
+
+  useEffect(() => {
+    if (!storageKey) {
+      return;
+    }
+
+    window.sessionStorage.setItem(storageKey, JSON.stringify(checked));
+  }, [checked, storageKey]);
 
   const completion = useMemo(() => {
     if (workout.exercises.length === 0) {
@@ -56,7 +86,7 @@ export function WorkoutChecklist({ workout }: { workout: WorkoutTemplate }) {
                     {exercise.name}
                   </p>
                   <p className="text-xs uppercase tracking-[0.2em] text-slate">
-                    {exercise.sets} sets • {exercise.reps}
+                    {exercise.sets} sets - {exercise.reps}
                   </p>
                 </div>
                 <p className="mt-2 text-sm leading-6 text-slate">
@@ -67,9 +97,14 @@ export function WorkoutChecklist({ workout }: { workout: WorkoutTemplate }) {
                     Rest {exercise.rest}
                   </span>
                   {exercise.videoUrl ? (
-                    <span className="rounded-full bg-mist px-3 py-2">
-                      Video linked
-                    </span>
+                    <a
+                      href={exercise.videoUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-full bg-mist px-3 py-2 transition hover:text-coral"
+                    >
+                      Watch demo
+                    </a>
                   ) : null}
                 </div>
               </div>
@@ -80,4 +115,3 @@ export function WorkoutChecklist({ workout }: { workout: WorkoutTemplate }) {
     </div>
   );
 }
-

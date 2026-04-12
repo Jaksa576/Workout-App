@@ -8,6 +8,46 @@ export default async function HomePage() {
   const activePlan = dashboard.activePlan;
   const nextWorkout = dashboard.todayWorkout;
 
+  if (!activePlan || !nextWorkout) {
+    return (
+      <div className="space-y-6">
+        <section className="rounded-[32px] bg-ink px-6 py-8 text-white shadow-card">
+          <p className="text-sm uppercase tracking-[0.24em] text-white/70">
+            Workout App
+          </p>
+          <h1 className="mt-3 max-w-xl font-display text-4xl leading-tight text-balance sm:text-5xl">
+            Let&apos;s build your first workout plan.
+          </h1>
+          <p className="mt-4 max-w-2xl text-sm leading-6 text-white/78 sm:text-base">
+            Add one repeatable workout, set simple progression rules, and start
+            tracking your sessions.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link
+              href="/plans/new"
+              className="rounded-full bg-coral px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#f95a2b]"
+            >
+              Create My First Plan
+            </Link>
+          </div>
+        </section>
+
+        <section className="grid gap-4 md:grid-cols-3">
+          {dashboard.metrics.map((metric) => (
+            <SectionCard
+              key={metric.label}
+              title={metric.value}
+              eyebrow={metric.label}
+              compact
+            >
+              <p className="text-sm leading-6 text-slate">{metric.detail}</p>
+            </SectionCard>
+          ))}
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <section className="rounded-[32px] bg-ink px-6 py-8 text-white shadow-card">
@@ -15,24 +55,24 @@ export default async function HomePage() {
           Workout App
         </p>
         <h1 className="mt-3 max-w-xl font-display text-4xl leading-tight text-balance sm:text-5xl">
-          Build a plan you can actually follow on your Pixel.
+          Build a plan you can actually follow on your phone.
         </h1>
         <p className="mt-4 max-w-2xl text-sm leading-6 text-white/78 sm:text-base">
-          Start with one structured plan, keep each phase goal visible, and
-          track exactly when to progress, repeat, or deload.
+          Keep today&apos;s workout, phase goals, and progression decisions in one
+          place.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link
             href="/today"
             className="rounded-full bg-coral px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#f95a2b]"
           >
-            Open today&apos;s workout
+            Start Today&apos;s Workout
           </Link>
           <Link
             href="/plans"
             className="rounded-full border border-white/20 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
           >
-            Manage plans
+            View My Plans
           </Link>
         </div>
       </section>
@@ -77,7 +117,7 @@ export default async function HomePage() {
         <SectionCard
           title="Today at a glance"
           eyebrow="Session"
-          description="Open the workout, keep your rest timer in the same app, and log how your body responded."
+          description="Start the workout, use the rest timer, and log how your body responded."
         >
           <div className="space-y-4">
             <div className="rounded-3xl bg-white/70 p-4">
@@ -96,12 +136,12 @@ export default async function HomePage() {
                 {nextWorkout.summary}
               </p>
             </div>
-            <Link
-              href="/check-in"
+            <a
+              href={`/check-in?workoutId=${nextWorkout.id}`}
               className="inline-flex rounded-full border border-ink/10 bg-white px-5 py-3 text-sm font-semibold text-ink transition hover:border-coral hover:text-coral"
             >
-              Log last session response
-            </Link>
+              Log Workout
+            </a>
           </div>
         </SectionCard>
       </section>

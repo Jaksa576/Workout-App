@@ -7,6 +7,11 @@ export type Profile = {
   sessionMinutes: number;
 };
 
+export type UserSummary = {
+  id: string;
+  email: string | null;
+};
+
 export type ExerciseEntry = {
   id: string;
   name: string;
@@ -52,8 +57,48 @@ export type DashboardMetric = {
 };
 
 export type DashboardData = {
-  activePlan: WorkoutPlan;
-  todayWorkout: WorkoutTemplate;
+  activePlan: WorkoutPlan | null;
+  todayWorkout: WorkoutTemplate | null;
   metrics: DashboardMetric[];
 };
 
+export type WorkoutSession = {
+  id: string;
+  completedOn: string;
+  completed: boolean;
+  painOccurred: boolean;
+  perceivedDifficulty: "too_easy" | "appropriate" | "too_hard";
+  notes: string;
+  recommendation: string;
+  workoutTemplateId: string;
+};
+
+export type WorkoutSessionInput = {
+  workoutTemplateId: string;
+  completed: boolean;
+  painOccurred: boolean;
+  perceivedDifficulty: "too_easy" | "appropriate" | "too_hard";
+  notes: string;
+  recommendation: string;
+  completedExerciseIds: string[];
+};
+
+export type PlanFormInput = {
+  name: string;
+  description: string;
+  scheduleSummary: string;
+  phaseGoal: string;
+  advanceCriteria: string;
+  deloadCriteria: string;
+  workoutName: string;
+  workoutFocus: string;
+  workoutSummary: string;
+  exercises: Array<{
+    name: string;
+    sets: number;
+    reps: string;
+    rest: string;
+    coachingNote: string;
+    videoUrl?: string;
+  }>;
+};

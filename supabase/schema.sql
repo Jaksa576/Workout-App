@@ -16,7 +16,9 @@ create table if not exists public.workout_plans (
   user_id uuid not null references auth.users(id) on delete cascade,
   name text not null,
   description text not null default '',
+  schedule_summary text not null default '',
   is_active boolean not null default false,
+  current_phase_id uuid,
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
 );
@@ -83,6 +85,73 @@ create table if not exists public.exercise_results (
   pain_flag boolean not null default false
 );
 
+alter table public.workout_plans
+  add column if not exists schedule_summary text not null default '';
+
+alter table public.workout_plans
+  add column if not exists current_phase_id uuid;
+
+alter table public.workout_plans
+  alter column schedule_summary set default '';
+
+alter table public.workout_plans
+  drop constraint if exists workout_plans_current_phase_id_fkey;
+
+alter table public.workout_plans
+  add constraint workout_plans_current_phase_id_fkey
+  foreign key (current_phase_id)
+  references public.plan_phases(id)
+  on delete set null;
+
+create or replace function public.handle_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = timezone('utc', now());
+  return new;
+end;
+$$;
+
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.profiles (id, goal, injuries, equipment, days_per_week, session_minutes)
+  values (
+    new.id,
+    'Build a sustainable routine.',
+    '{}',
+    '{}',
+    3,
+    45
+  )
+  on conflict (id) do nothing;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists profiles_set_updated_at on public.profiles;
+create trigger profiles_set_updated_at
+before update on public.profiles
+for each row
+execute function public.handle_updated_at();
+
+drop trigger if exists workout_plans_set_updated_at on public.workout_plans;
+create trigger workout_plans_set_updated_at
+before update on public.workout_plans
+for each row
+execute function public.handle_updated_at();
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
+
 alter table public.profiles enable row level security;
 alter table public.workout_plans enable row level security;
 alter table public.plan_phases enable row level security;
@@ -92,18 +161,21 @@ alter table public.exercise_entries enable row level security;
 alter table public.workout_sessions enable row level security;
 alter table public.exercise_results enable row level security;
 
+drop policy if exists "profiles are private to owner" on public.profiles;
 create policy "profiles are private to owner"
   on public.profiles
   for all
   using (auth.uid() = id)
   with check (auth.uid() = id);
 
+drop policy if exists "plans are private to owner" on public.workout_plans;
 create policy "plans are private to owner"
   on public.workout_plans
   for all
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
+drop policy if exists "phases follow plan ownership" on public.plan_phases;
 create policy "phases follow plan ownership"
   on public.plan_phases
   for all
@@ -124,6 +196,7 @@ create policy "phases follow plan ownership"
     )
   );
 
+drop policy if exists "progression rules follow phase ownership" on public.progression_rules;
 create policy "progression rules follow phase ownership"
   on public.progression_rules
   for all
@@ -146,6 +219,7 @@ create policy "progression rules follow phase ownership"
     )
   );
 
+drop policy if exists "templates follow phase ownership" on public.workout_templates;
 create policy "templates follow phase ownership"
   on public.workout_templates
   for all
@@ -168,6 +242,7 @@ create policy "templates follow phase ownership"
     )
   );
 
+drop policy if exists "exercises follow template ownership" on public.exercise_entries;
 create policy "exercises follow template ownership"
   on public.exercise_entries
   for all
@@ -192,12 +267,14 @@ create policy "exercises follow template ownership"
     )
   );
 
+drop policy if exists "sessions are private to owner" on public.workout_sessions;
 create policy "sessions are private to owner"
   on public.workout_sessions
   for all
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
+drop policy if exists "exercise results follow session ownership" on public.exercise_results;
 create policy "exercise results follow session ownership"
   on public.exercise_results
   for all
@@ -217,4 +294,3 @@ create policy "exercise results follow session ownership"
         and sessions.user_id = auth.uid()
     )
   );
-

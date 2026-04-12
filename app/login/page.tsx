@@ -1,17 +1,19 @@
 import { LoginForm } from "@/components/login-form";
 import { SectionCard } from "@/components/section-card";
+import { redirectIfAuthenticated } from "@/lib/auth";
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  await redirectIfAuthenticated();
+
   return (
     <div className="mx-auto max-w-md pt-6">
       <SectionCard
         title="Welcome back"
         eyebrow="Sign in"
-        description="Use Supabase email login for your personal account. This screen is wired for the expected flow and is ready for your project keys."
+        description="Sign in to access your workout plans, track sessions, and review your progress."
       >
         <LoginForm />
       </SectionCard>
     </div>
   );
 }
-
