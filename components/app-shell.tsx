@@ -1,15 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import type { Route } from "next";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
 
 const navItems = [
-  { href: "/", label: "Dashboard" },
-  { href: "/plans", label: "Plans" },
-  { href: "/today", label: "Today" },
-  { href: "/check-in", label: "Check-in" },
-  { href: "/settings", label: "Settings" }
+  { href: "/" as Route, label: "Dashboard" },
+  { href: "/plans" as Route, label: "Plans" },
+  { href: "/today" as Route, label: "Today" },
+  { href: "/check-in" as Route, label: "Check-in" },
+  { href: "/settings" as Route, label: "Settings" }
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -30,6 +31,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </p>
             </div>
           </Link>
+
           <nav className="flex flex-wrap gap-2">
             {navItems.map((item) => {
               const active =
