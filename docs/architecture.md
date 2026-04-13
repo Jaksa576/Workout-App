@@ -1,56 +1,93 @@
 # Architecture
 
-This app is a mobile-first workout planner built with Next.js, Supabase, and Vercel.
+This app is a mobile-first adaptive training planner built with Next.js, Supabase, and Vercel.
 
-## Next.js
+The product is evolving from a recovery-first phased workout app into a broader goal-based adaptive training platform. The architecture should broaden the product framing while preserving the existing engine where practical.
 
-Next.js runs the web app. It handles:
+## Current State
 
-- Pages such as the dashboard, plans, workout flow, settings, and login.
-- API routes such as plan creation and workout session saving.
-- Server-rendered data loading for protected app pages.
+### App Platform
 
-The app uses the Next.js App Router, so routes live under `app/`.
+- Next.js App Router powers the pages and API routes under `app/`.
+- Supabase provides email authentication, Postgres storage, and row-level security.
+- Vercel deploys the app from GitHub.
+- Protected routes use `proxy.ts` plus server-side auth helpers.
+- Data loading lives mostly in `lib/data.ts`.
+- Writes generally flow through API route handlers, validation helpers, and the authenticated Supabase server client.
 
-## Supabase
+### Current Domain Engine
 
-Supabase provides:
+The current database and app model is:
 
-- Email authentication.
-- A Postgres database.
-- Row-level security policies that keep each user's data private.
+1. `profiles`
+2. `workout_plans`
+3. `plan_phases`
+4. `workout_templates`
+5. `exercise_entries`
+6. `workout_sessions`
+7. `exercise_results`
 
-The main tables are:
+This model is still the right core engine:
 
-- `profiles`
-- `workout_plans`
-- `plan_phases`
-- `workout_templates`
-- `exercise_entries`
-- `workout_sessions`
-- `exercise_results`
+- A plan/program groups a longer training effort.
+- A phase is the stored DB concept for a progressive training segment.
+- The UI/product language is moving toward "Block", but the database still uses `plan_phases`.
+- Workouts belong to a phase/Block.
+- Exercises belong to workouts.
+- Sessions/check-ins record what happened and keep history snapshots.
+- Progression logic uses recent sessions, completion, pain flags, effort, and phase snapshots to recommend advance, repeat, review, or deload/adjust decisions.
 
-The schema and RLS policies live in `supabase/schema.sql`.
-Incremental database changes also live in `supabase/migrations/`.
+### Current Product Capabilities
 
-## Vercel
+Already implemented:
 
-Vercel deploys the app from GitHub. It reads environment variables for Supabase:
+- first-user onboarding
+- guided starter plan generation without LLM calls
+- manual structured plan creation
+- multiple phases and workouts per plan
+- active-phase workout recommendations
+- workout check-ins and exercise completion tracking
+- server-side progression evaluation after session save
+- explicit phase movement and plan completion actions
+- plan activation, archive, and plan structure cleanup
+- YouTube demo links on exercises
+- history snapshots for workout and exercise names
+- Slice 1 foundation for broader goal-based architecture
 
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+## Target Direction
 
-Pushing to the connected GitHub branch should trigger a new Vercel deployment.
+The target product is a goal-based adaptive training platform that supports:
 
-## Routing And Auth
+- recovery / rehab
+- general fitness
+- strength
+- hypertrophy
+- running
+- sport performance
+- consistency / habit building
 
-- Protected app routes use `proxy.ts` plus server auth helpers.
-- Signed-out users are redirected to `/login`.
-- Backward-compatible routes like `/today` and `/check-in` redirect into the newer `/workout` flow.
+The engine should remain structured and adaptive. The app should not become a generic workout logger.
+
+### Concepts To Preserve
+
+- **Plans/programs:** Keep `workout_plans` as the top-level structure.
+- **Blocks:** Use "Block" in product/UI framing for progressive training segments, while keeping `plan_phases` in the DB for compatibility.
+- **Workouts:** Keep `workout_templates` as reusable planned sessions within a Block.
+- **Exercises:** Keep `exercise_entries` as the saved exercise prescription for a workout.
+- **Sessions/check-ins:** Keep `workout_sessions` and `exercise_results` as the history and progression signal source.
+- **Progression logic:** Keep server-side progression evaluation and explicit user-confirmed plan movement.
+
+### New Concepts Being Introduced
+
+- **Goal tracks:** Plan and profile metadata can describe recovery, general fitness, strength, hypertrophy, running, sport performance, or consistency.
+- **Progression modes:** Plans can use symptom-based, adherence-based, performance-based, or hybrid progression. The database field `workout_plans.progression_mode` is nullable and should be set by app code when enough context is available.
+- **Richer profile data:** The profile model is expanding beyond a single goal string to include durable training context such as age, weight, experience, activity level, training environment, exercise preferences/dislikes, sports/interests, and limitations detail.
+- **Plan drafting abstraction:** Plan drafts should flow through `lib/plan-drafting/plan-draft-provider.ts`. The current enabled path is template-based; LLM drafting remains disabled.
+- **Catalog traceability:** Catalog-backed exercises can use `source_exercise_id` so future catalog and substitution work can reason about where an exercise came from.
 
 ## Data Flow
 
-Most writes follow this pattern:
+Most current writes should continue to follow this pattern:
 
 1. A user fills out a form in a React component.
 2. The component sends data to a Next.js API route.
@@ -59,15 +96,44 @@ Most writes follow this pattern:
 5. Supabase writes the data using the authenticated server client.
 6. A page reload or refresh reads updated data through `lib/data.ts`.
 
-## Major App Systems
+Plan creation should continue to save through `createStructuredPlanForUser` in `lib/plan-write.ts` so manual, template-generated, and future LLM-generated drafts share one persistence path.
 
-- Onboarding: collects goal, limitations, equipment, schedule, and first-plan choice before a new user reaches the dashboard.
-- Plan creation: creates a structured plan with phases, workouts, scheduled days, exercises, and preset progression rules.
-- Plan detail: shows phase rules and workout exercises.
-- Workout flow: selects a workout, checks off exercises, saves check-in data, evaluates progression, and shows progress.
-- Dashboard: shows the next session, current plan, and quick progress metrics.
-- Settings: shows profile inputs and upcoming roadmap items.
+## Current Vs Target Boundaries
 
-## AI Draft Boundary
+### Current
 
-AI plan drafting is intentionally disabled by default. The app has a provider boundary for future AI drafts, but the first-user flow currently uses the guided starter plan generator so no paid token calls happen silently.
+- Onboarding still contains some plan-start decisions.
+- The UI still often says "phase".
+- The starter exercise catalog is static TypeScript data.
+- Progression is still mostly recovery/symptom-aware with clean-session rules.
+- The template draft provider exists and LLM provider behavior is intentionally unavailable.
+
+### Target
+
+- Onboarding collects durable profile information.
+- `/plans/new` handles goal-specific plan setup and draft creation.
+- Product UI uses "Block" for progressive plan segments.
+- Goal-aware draft templates improve exercise selection and plan structure.
+- Progression modes handle symptom-based, adherence-based, performance-based, and hybrid logic.
+
+### Deferred / Future
+
+- LLM-assisted plan drafting.
+- Exercise substitutions.
+- Read-only plan sharing.
+- Richer history and trend views.
+- Admin-editable exercise catalog.
+
+## LLM Boundary
+
+LLM support is deferred and must not be required for the app to work.
+
+When added later:
+
+- The LLM should plug into plan creation, not onboarding.
+- The LLM should act as a structured plan-drafting assistant.
+- The LLM should return an editable `StructuredPlanInput`-style draft.
+- The user must review before saving.
+- The app must validate draft output before persistence.
+- Supabase tables remain the system of record.
+- API keys and provider details must stay server-side.

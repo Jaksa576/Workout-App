@@ -1,8 +1,19 @@
 export type Profile = {
   id: string;
   goal: string;
+  goalNotes?: string | null;
+  primaryGoalType?: TrainingGoalType | null;
   injuries: string[];
+  limitationsDetail?: string | null;
   equipment: string[];
+  age?: number | null;
+  weight?: number | null;
+  trainingExperience?: TrainingExperience | null;
+  activityLevel?: ActivityLevel | null;
+  trainingEnvironment?: TrainingEnvironment | null;
+  exercisePreferences?: string[];
+  exerciseDislikes?: string[];
+  sportsInterests?: string[];
   daysPerWeek: number;
   sessionMinutes: number;
   onboardingCompletedAt: string | null;
@@ -24,6 +35,39 @@ export type ExerciseEntry = {
 };
 
 export type Weekday = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
+
+export type TrainingGoalType =
+  | "recovery"
+  | "general_fitness"
+  | "strength"
+  | "hypertrophy"
+  | "running"
+  | "sport_performance"
+  | "consistency";
+
+export type ProgressionMode =
+  | "symptom_based"
+  | "adherence_based"
+  | "performance_based"
+  | "hybrid";
+
+export type TrainingExperience =
+  | "new"
+  | "returning"
+  | "intermediate"
+  | "advanced";
+
+export type ActivityLevel =
+  | "mostly_sedentary"
+  | "lightly_active"
+  | "moderately_active"
+  | "very_active";
+
+export type TrainingEnvironment =
+  | "home"
+  | "gym"
+  | "outdoors"
+  | "mixed";
 
 export type ProgressionDecision = "advance" | "repeat" | "review" | "deload";
 
@@ -68,6 +112,9 @@ export type WorkoutPlan = {
   id: string;
   name: string;
   description: string;
+  goalType?: TrainingGoalType | null;
+  progressionMode?: ProgressionMode | null;
+  creationSource?: PlanCreationSource | null;
   isActive: boolean;
   scheduleSummary: string;
   weeklySchedule: Weekday[];
@@ -191,7 +238,7 @@ export type StructuredExerciseInput = {
   rest: string;
   coachingNote: string;
   videoUrl?: string;
-  sourceExerciseId?: string;
+  sourceExerciseId?: string | null;
 };
 
 export type StructuredWorkoutInput = {
@@ -215,6 +262,9 @@ export type StructuredPlanInput = {
   version: "structured-v1";
   name: string;
   description: string;
+  goalType?: TrainingGoalType | null;
+  progressionMode?: ProgressionMode | null;
+  creationSource?: PlanCreationSource;
   weeklySchedule: Weekday[];
   phases: StructuredPhaseInput[];
 };
@@ -223,13 +273,75 @@ export type PlanCreationInput = PlanFormInput | StructuredPlanInput;
 
 export type PlanSetupChoice = "manual" | "guided" | "ai";
 
-export type OnboardingInput = {
-  goal: string;
-  goalNotes: string;
-  injuries: string[];
-  equipment: string[];
+export type PlanCreationSource = "manual" | "guided_template" | "llm_draft";
+
+export type PlanDraftStrategy = "template" | "llm";
+
+export type PlanPreferredSplit =
+  | "full_body"
+  | "upper_lower"
+  | "push_pull_legs"
+  | "run_strength"
+  | "mobility_strength"
+  | "flexible";
+
+export type PlanSetupInput = {
+  goalType: TrainingGoalType;
+  objectiveSummary?: string;
   daysPerWeek: number;
   sessionMinutes: number;
   weeklySchedule: Weekday[];
+  preferredSplit: PlanPreferredSplit;
+  focusAreas: string[];
+  currentConstraints: string[];
+  progressionModeOverride?: ProgressionMode | null;
+};
+
+export type PlanDraftProfileContext = {
+  primaryGoalType?: TrainingGoalType | null;
+  injuries: string[];
+  limitationsDetail?: string | null;
+  equipment: string[];
+  trainingExperience?: TrainingExperience | null;
+  activityLevel?: ActivityLevel | null;
+  trainingEnvironment?: TrainingEnvironment | null;
+  exercisePreferences?: string[];
+  exerciseDislikes?: string[];
+  sportsInterests?: string[];
+  daysPerWeek?: number;
+  sessionMinutes?: number;
+};
+
+export type PlanDraftInput = {
+  setup: PlanSetupInput;
+  profile?: PlanDraftProfileContext | null;
+};
+
+export type PlanDraftResult = {
+  plan: StructuredPlanInput;
+  source: PlanCreationSource;
+  strategy: PlanDraftStrategy;
+};
+
+export type ProfileSetupInput = {
+  age?: number | null;
+  weight?: number | null;
+  trainingExperience?: TrainingExperience | null;
+  activityLevel?: ActivityLevel | null;
+  trainingEnvironment?: TrainingEnvironment | null;
+  limitationsDetail?: string;
+  injuries: string[];
+  equipment: string[];
+  exercisePreferences?: string[];
+  exerciseDislikes?: string[];
+  sportsInterests?: string[];
+  daysPerWeek: number;
+  sessionMinutes: number;
+  weeklySchedule: Weekday[];
+};
+
+export type OnboardingInput = ProfileSetupInput & {
+  goal: string;
+  goalNotes: string;
   planSetupChoice: PlanSetupChoice;
 };

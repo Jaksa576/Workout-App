@@ -1,7 +1,17 @@
-import { PlanBuilderForm } from "@/components/plan-builder-form";
+import { PlanSetupWizard } from "@/components/plan-setup-wizard";
 import { SectionCard } from "@/components/section-card";
+import { requireUser } from "@/lib/auth";
+import { getProfile } from "@/lib/data";
 
-export default function NewPlanPage() {
+export default async function NewPlanPage({
+  searchParams
+}: {
+  searchParams: Promise<{ mode?: string }>;
+}) {
+  await requireUser();
+  const [profile, params] = await Promise.all([getProfile(), searchParams]);
+  const initialMode = params.mode === "manual" ? "manual" : "guided";
+
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <section>
@@ -9,16 +19,20 @@ export default function NewPlanPage() {
           Create Plan
         </p>
         <h1 className="mt-2 font-display text-4xl text-ink">
-          Build the program, phases, and workouts in one guided flow.
+          Set up the plan you want to train for right now.
         </h1>
+        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate">
+          Use your profile as context, choose a goal track for this plan, generate a draft,
+          then edit the structure before saving.
+        </p>
       </section>
 
       <SectionCard
-        title="Create a Workout Plan"
-        eyebrow="Guided builder"
-        description="Start with structure first, then choose exercises from the starter library and adjust the details."
+        title="Create a goal-based plan"
+        eyebrow="Plan setup"
+        description="Guided setup is the default path. Manual building is still available for advanced edits."
       >
-        <PlanBuilderForm />
+        <PlanSetupWizard profile={profile} initialMode={initialMode} />
       </SectionCard>
     </div>
   );

@@ -12,8 +12,12 @@ export default async function HomePage() {
   const exerciseCount = nextWorkout?.exercises.length ?? 0;
   const exerciseLabel = exerciseCount === 1 ? "1 exercise" : `${exerciseCount} exercises`;
 
-  if (!profile?.onboardingCompletedAt || !activePlan || !nextWorkout) {
+  if (!profile?.onboardingCompletedAt) {
     redirect("/onboarding" as Route);
+  }
+
+  if (!activePlan || !nextWorkout) {
+    redirect("/plans/new" as Route);
   }
 
   return (

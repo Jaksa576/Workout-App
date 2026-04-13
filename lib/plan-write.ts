@@ -1,4 +1,5 @@
 import { getSupabaseServerClient } from "@/lib/supabase-server";
+import { selectDefaultProgressionMode } from "@/lib/progression-mode";
 import type {
   PlanFormInput,
   StructuredExerciseInput,
@@ -91,7 +92,8 @@ function validateExercise(exercise: StructuredExerciseInput) {
     reps: exercise.reps.trim(),
     rest: exercise.rest.trim(),
     coachingNote: exercise.coachingNote.trim(),
-    videoUrl
+    videoUrl,
+    sourceExerciseId: exercise.sourceExerciseId?.trim() || null
   };
 }
 
@@ -153,6 +155,8 @@ export async function createStructuredPlanForUser({
     .limit(1);
 
   const hasExistingActivePlan = Boolean(existingPlans?.some((plan) => plan.is_active));
+  const progressionMode =
+    input.progressionMode ?? selectDefaultProgressionMode(input.goalType ?? null);
 
   const { data: plan, error: planError } = await supabase
     .from("workout_plans")
@@ -160,6 +164,9 @@ export async function createStructuredPlanForUser({
       user_id: userId,
       name: input.name.trim(),
       description: input.description.trim(),
+      goal_type: input.goalType ?? null,
+      progression_mode: progressionMode,
+      creation_source: input.creationSource ?? "manual",
       schedule_summary: formatWeeklySchedule(input.weeklySchedule),
       weekly_schedule: input.weeklySchedule,
       is_active: !hasExistingActivePlan
@@ -224,6 +231,7 @@ export async function createStructuredPlanForUser({
           rest: exercise.rest,
           coaching_note: exercise.coachingNote,
           video_url: exercise.videoUrl || null,
+          source_exercise_id: exercise.sourceExerciseId,
           sort_order: exerciseIndex + 1
         }))
       );

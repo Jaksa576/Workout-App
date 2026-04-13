@@ -22,6 +22,9 @@ type PlanRow = {
   id: string;
   name: string;
   description: string;
+  goal_type: WorkoutPlan["goalType"];
+  progression_mode: WorkoutPlan["progressionMode"];
+  creation_source: WorkoutPlan["creationSource"];
   is_active: boolean;
   schedule_summary: string;
   weekly_schedule: Weekday[] | null;
@@ -184,7 +187,7 @@ async function getPlanBundle(userId: string, sessionSince?: string) {
   const { data: plansData, error: plansError } = await supabase
     .from("workout_plans")
     .select(
-      "id, name, description, is_active, schedule_summary, weekly_schedule, current_phase_id, completed_at, archived_at"
+      "id, name, description, goal_type, progression_mode, creation_source, is_active, schedule_summary, weekly_schedule, current_phase_id, completed_at, archived_at"
     )
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
@@ -328,6 +331,9 @@ function mapPlanFromBundle(
     id: plan.id,
     name: plan.name,
     description: plan.description,
+    goalType: plan.goal_type,
+    progressionMode: plan.progression_mode,
+    creationSource: plan.creation_source,
     isActive: plan.is_active,
     scheduleSummary: plan.schedule_summary,
     weeklySchedule: plan.weekly_schedule ?? [],
@@ -514,7 +520,9 @@ export async function getProfile(): Promise<Profile | null> {
   const supabase = await getSupabaseServerClient();
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, goal, injuries, equipment, days_per_week, session_minutes, onboarding_completed_at")
+    .select(
+      "id, goal, primary_goal_type, injuries, limitations_detail, equipment, age, weight, training_experience, activity_level, training_environment, exercise_preferences, exercise_dislikes, sports_interests, days_per_week, session_minutes, onboarding_completed_at"
+    )
     .eq("id", user.id)
     .maybeSingle();
 
@@ -529,8 +537,18 @@ export async function getProfile(): Promise<Profile | null> {
   return {
     id: data.id,
     goal: data.goal,
+    primaryGoalType: data.primary_goal_type,
     injuries: data.injuries ?? [],
+    limitationsDetail: data.limitations_detail,
     equipment: data.equipment ?? [],
+    age: data.age,
+    weight: data.weight,
+    trainingExperience: data.training_experience,
+    activityLevel: data.activity_level,
+    trainingEnvironment: data.training_environment,
+    exercisePreferences: data.exercise_preferences ?? [],
+    exerciseDislikes: data.exercise_dislikes ?? [],
+    sportsInterests: data.sports_interests ?? [],
     daysPerWeek: data.days_per_week,
     sessionMinutes: data.session_minutes,
     onboardingCompletedAt: data.onboarding_completed_at

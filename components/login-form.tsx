@@ -4,6 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 
+const defaultSiteUrl = "https://workout-app-seven-delta.vercel.app";
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? defaultSiteUrl).replace(/\/$/, "");
+
 export function LoginForm() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -19,20 +22,27 @@ export function LoginForm() {
 
     try {
       const supabase = getSupabaseBrowserClient();
-      const { error } =
+      const { data, error } =
         mode === "sign-in"
           ? await supabase.auth.signInWithPassword({ email, password })
-          : await supabase.auth.signUp({ email, password });
+          : await supabase.auth.signUp({
+              email,
+              password,
+              options: {
+                emailRedirectTo: `${siteUrl}/`
+              }
+            });
 
       if (error) {
         throw error;
       }
 
-      setStatus(
-        mode === "sign-up"
-          ? "Account created. Taking you to your dashboard..."
-          : "Signed in. Taking you to your dashboard..."
-      );
+      if (mode === "sign-up" && !data.session) {
+        setStatus("Account created. Check your email to confirm it, then sign in.");
+        return;
+      }
+
+      setStatus("Signed in. Taking you to your dashboard...");
       router.push("/");
       router.refresh();
     } catch (error) {

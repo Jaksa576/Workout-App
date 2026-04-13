@@ -12,7 +12,7 @@ export default async function WorkoutPage({
   const data = await getWorkoutPageData(workoutId);
 
   if (!data.activePlan || !data.selectedWorkout) {
-    redirect("/onboarding" as Route);
+    redirect("/plans/new" as Route);
   }
 
   return (

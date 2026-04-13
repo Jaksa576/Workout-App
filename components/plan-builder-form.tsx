@@ -8,10 +8,13 @@ import { exerciseCatalog, exerciseCategories, toPlanExercise } from "@/lib/exerc
 import type {
   AdvancementPreset,
   DeloadPreset,
+  PlanCreationSource,
+  ProgressionMode,
   StructuredExerciseInput,
   StructuredPhaseInput,
   StructuredPlanInput,
   StructuredWorkoutInput,
+  TrainingGoalType,
   Weekday
 } from "@/lib/types";
 
@@ -104,15 +107,35 @@ function Field({
   );
 }
 
-export function PlanBuilderForm() {
+type PlanBuilderFormProps = {
+  initialPlan?: StructuredPlanInput;
+  submitLabel?: string;
+};
+
+export function PlanBuilderForm({
+  initialPlan,
+  submitLabel = "Save Workout Plan"
+}: PlanBuilderFormProps) {
   const router = useRouter();
   const [stepIndex, setStepIndex] = useState(0);
-  const [name, setName] = useState("Starter Workout Plan");
+  const [name, setName] = useState(initialPlan?.name ?? "Starter Workout Plan");
   const [description, setDescription] = useState(
-    "A clear plan with phases, repeatable workouts, and simple progression rules."
+    initialPlan?.description ??
+      "A clear plan with phases, repeatable workouts, and simple progression rules."
   );
-  const [weeklySchedule, setWeeklySchedule] = useState<Weekday[]>(["mon", "wed", "fri"]);
-  const [phases, setPhases] = useState<StructuredPhaseInput[]>([makePhase()]);
+  const [goalType] = useState<TrainingGoalType | null>(initialPlan?.goalType ?? null);
+  const [progressionMode] = useState<ProgressionMode | null>(
+    initialPlan?.progressionMode ?? null
+  );
+  const [creationSource] = useState<PlanCreationSource>(
+    initialPlan?.creationSource ?? "manual"
+  );
+  const [weeklySchedule, setWeeklySchedule] = useState<Weekday[]>(
+    () => initialPlan?.weeklySchedule ?? ["mon", "wed", "fri"]
+  );
+  const [phases, setPhases] = useState<StructuredPhaseInput[]>(() =>
+    initialPlan?.phases ? structuredClone(initialPlan.phases) : [makePhase()]
+  );
   const [exerciseSearch, setExerciseSearch] = useState("");
   const [exerciseCategory, setExerciseCategory] = useState("all");
   const [status, setStatus] = useState<string | null>(null);
@@ -223,6 +246,9 @@ export function PlanBuilderForm() {
       version: "structured-v1",
       name,
       description,
+      goalType,
+      progressionMode,
+      creationSource,
       weeklySchedule,
       phases
     };
@@ -714,7 +740,7 @@ export function PlanBuilderForm() {
             disabled={saving}
             className="w-full rounded-full bg-coral px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#f95a2b] disabled:opacity-60 sm:w-auto"
           >
-            {saving ? "Saving..." : "Save Workout Plan"}
+            {saving ? "Saving..." : submitLabel}
           </button>
         </div>
       ) : null}

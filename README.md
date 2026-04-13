@@ -80,11 +80,18 @@ The app expects these environment variables:
 ```
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
+NEXT_PUBLIC_SITE_URL=https://workout-app-seven-delta.vercel.app
 ```
 
 For local development, place them in `.env.local`.
 
 For Vercel, add them in the Vercel project's Environment Variables settings.
+
+In Supabase Auth URL Configuration, set the Site URL and add this redirect URL for email confirmations:
+
+```
+https://workout-app-seven-delta.vercel.app/
+```
 
 ## Database Schema
 
@@ -164,7 +171,7 @@ Before deploying, confirm:
 
 - `package.json` uses Next.js 16.2.3 or newer
 - `package-lock.json` is committed after dependency updates
-- Vercel has the same Supabase environment variables: `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- Vercel has the same Supabase environment variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `NEXT_PUBLIC_SITE_URL`
 - The GitHub repo points to the correct project root
 
 Commit and push:

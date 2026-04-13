@@ -2,55 +2,96 @@
 
 ## Goal
 
-Move the app from “user builds everything from scratch” toward a first-user-ready flow:
+Implement Slice 3 of the goal-based adaptive training refactor: `/plans/new` goal-specific plan setup.
 
-- New users complete lightweight onboarding instead of landing on an empty dashboard.
-- Users can create a guided starter plan without AI or paid token usage.
-- Plan creation supports multiple phases and multiple workouts per phase.
-- Phase progression uses structured presets, not free-text rules.
-- The workout page recommends the right active-phase workout and lets users choose other current-phase workouts.
-- Phase advancement is explicit and user-confirmed instead of silent.
-- Users can clean up plan mistakes by deleting draft or saved phases, workouts, and exercises.
-- Users can choose which incomplete plan is active.
+`/plans/new` should become the primary place users choose what they want to train for right now, generate a structured draft through the template draft provider, review and edit the draft, then save through the existing plans API.
 
-## Requirements
+## Current Context
 
-- Add `profiles.onboarding_completed_at` and route users without onboarding or a usable active plan into `/onboarding`.
-- Keep existing users with an active plan on the dashboard after migration backfill.
-- Keep the existing Plan -> Phase -> Workout -> Exercise table model.
-- Add structured schedule and progression fields while keeping old text fields for compatibility.
-- Use a static starter exercise catalog for v1.
-- Keep AI draft architecture disabled by default and fall back to the guided starter plan.
-- Evaluate progression server-side after check-in, but do not update `current_phase_id` automatically.
-- Show phase progress with clean sessions, pain flags, and next/previous phase actions.
-- Let users mark a final completed plan as complete without deleting it.
-- Keep saved workout history readable when a saved phase/workout/exercise is deleted from the live plan structure.
-- Keep manual phase movement on the plan page. The workout page should only prompt users to review the plan when advancement criteria are met.
-- Scope phase progress to sessions completed in that exact phase, not older sessions from prior phases.
+Slice 1 and Slice 2 are implemented locally:
 
-## Assumptions
+- richer profile and plan metadata columns
+- nullable `workout_plans.progression_mode`
+- `exercise_entries.source_exercise_id`
+- AI-neutral plan draft provider
+- onboarding/profile separation for durable profile data
+- profile data mapped through `lib/data.ts`
+- tests for draft foundations and onboarding profile validation
 
-- The database migration must be applied before testing the deployed app.
-- Static catalog exercises are acceptable for v1.
-- Phase changes now happen through a focused action route; session save no longer silently advances phases.
-- Whole-plan delete is a soft archive; phase/workout/exercise deletes are real deletes from the plan structure.
-- Workout and exercise names are snapshotted onto history rows so old logs can remain useful after structure cleanup.
-- Old session phase snapshots are backfilled from the current workout template link when possible.
+The app should continue to work without any LLM provider.
 
-## Test Plan
+## Scope
 
-- Run `npm run typecheck`.
-- Run `npm run build`.
-- Test a new user with no onboarding and no plan.
-- Test an existing user with an active plan after migration.
-- Create a guided starter plan from onboarding.
-- Create a manual structured plan with multiple phases and workouts.
-- Save a workout check-in and confirm the progression recommendation/reason is visible.
-- Confirm AI draft stays unavailable and does not call any provider.
-- Confirm `/workout` shows recommended and other active-phase workouts.
-- Confirm move next, move anyway, return previous, and mark complete workflows.
-- Confirm draft delete buttons work and the last phase/workout/exercise cannot be deleted.
-- Confirm saved exercise/workout/phase deletes work and past history remains available.
-- Confirm `Make Active Plan` switches the dashboard/workout source.
-- Confirm phase progress percent appears on dashboard and plan detail.
-- Confirm moving to a new phase starts progress at 0% until that phase has its own completed sessions.
+Slice 3 should:
+
+- add a small plan setup input model for goal-specific plan creation
+- make guided setup the default `/plans/new` path
+- keep manual plan creation available as an advanced secondary path
+- generate drafts through `lib/plan-drafting/plan-draft-provider.ts` with the template strategy only
+- return generated drafts for review and editing before save
+- save plans through the existing `/api/plans` write path
+- use profile data as defaults/context without asking users to re-enter durable onboarding data
+- redirect onboarding to `/plans/new` instead of auto-saving guided plans
+- update `docs/agent-handoff.md` after implementation
+
+Plan setup fields should stay intentionally small:
+
+- `goalType`
+- optional `objectiveSummary`
+- `daysPerWeek`
+- `sessionMinutes`
+- `weeklySchedule`
+- `preferredSplit`
+- `focusAreas`
+- `currentConstraints`
+- optional advanced `progressionModeOverride`
+
+## Likely Files Touched
+
+- `app/plans/new/page.tsx`
+- `components/plan-setup-wizard.tsx`
+- `components/plan-builder-form.tsx`
+- `app/api/plan-drafts/route.ts`
+- `app/api/onboarding/route.ts`
+- `app/onboarding/page.tsx`
+- `app/page.tsx`
+- `lib/types.ts`
+- `lib/validation.ts`
+- `lib/plan-drafting/plan-draft-provider.ts`
+- `lib/starter-plan-generator.ts`
+- `lib/__tests__/plan-drafting-foundation.test.ts`
+- `docs/current-task.md`
+- `docs/agent-handoff.md`
+
+## Constraints
+
+- Do not add LLM/provider integration.
+- Do not redesign onboarding.
+- Do not perform the full Phase-to-Block terminology sweep.
+- Do not expand progression algorithms.
+- Do not do a broad exercise catalog overhaul.
+- Do not make database schema changes for this slice.
+- Do not weaken Supabase auth or RLS assumptions.
+- Keep changes migration-safe and scoped.
+
+## Acceptance Criteria
+
+- `/plans/new` supports a small guided goal-based setup flow.
+- Manual plan creation still works from `/plans/new?mode=manual` and from the guided page toggle.
+- Guided draft creation uses the template draft provider.
+- Draft generation does not auto-save plans.
+- Generated drafts can be reviewed and edited before saving.
+- Saved plans still persist through `/api/plans`.
+- Onboarding saves profile data and redirects to `/plans/new`.
+- The app remains functional without LLM configuration.
+- `npm run test`, `npm run typecheck`, and `npm run build` pass for code changes.
+- Logged-in browser testing notes are added to `docs/agent-handoff.md`.
+
+## Non-Goals
+
+- No LLM/provider integration.
+- No broad catalog overhaul.
+- No progression behavior expansion.
+- No full Phase-to-Block terminology pass.
+- No read-only plan sharing.
+- No exercise substitutions.

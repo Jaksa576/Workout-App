@@ -3,8 +3,39 @@ create extension if not exists "pgcrypto";
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   goal text not null,
+  goal_notes text,
+  primary_goal_type text check (
+    primary_goal_type is null or
+    primary_goal_type in (
+      'recovery',
+      'general_fitness',
+      'strength',
+      'hypertrophy',
+      'running',
+      'sport_performance',
+      'consistency'
+    )
+  ),
   injuries text[] not null default '{}',
+  limitations_detail text,
   equipment text[] not null default '{}',
+  age integer check (age is null or (age between 13 and 120)),
+  weight numeric(6,2) check (weight is null or weight > 0),
+  training_experience text check (
+    training_experience is null or
+    training_experience in ('new', 'returning', 'intermediate', 'advanced')
+  ),
+  activity_level text check (
+    activity_level is null or
+    activity_level in ('mostly_sedentary', 'lightly_active', 'moderately_active', 'very_active')
+  ),
+  training_environment text check (
+    training_environment is null or
+    training_environment in ('home', 'gym', 'outdoors', 'mixed')
+  ),
+  exercise_preferences text[] not null default '{}',
+  exercise_dislikes text[] not null default '{}',
+  sports_interests text[] not null default '{}',
   days_per_week integer not null check (days_per_week between 1 and 7),
   session_minutes integer not null check (session_minutes between 10 and 180),
   onboarding_completed_at timestamptz,
@@ -17,6 +48,26 @@ create table if not exists public.workout_plans (
   user_id uuid not null references auth.users(id) on delete cascade,
   name text not null,
   description text not null default '',
+  goal_type text check (
+    goal_type is null or
+    goal_type in (
+      'recovery',
+      'general_fitness',
+      'strength',
+      'hypertrophy',
+      'running',
+      'sport_performance',
+      'consistency'
+    )
+  ),
+  progression_mode text check (
+    progression_mode is null or
+    progression_mode in ('symptom_based', 'adherence_based', 'performance_based', 'hybrid')
+  ),
+  creation_source text check (
+    creation_source is null or
+    creation_source in ('manual', 'guided_template', 'llm_draft')
+  ),
   schedule_summary text not null default '',
   weekly_schedule text[] not null default '{}',
   is_active boolean not null default false,
@@ -67,6 +118,7 @@ create table if not exists public.exercise_entries (
   rest text not null,
   coaching_note text not null default '',
   video_url text,
+  source_exercise_id text,
   sort_order integer not null default 1
 );
 
@@ -108,8 +160,87 @@ alter table public.workout_plans
 alter table public.profiles
   add column if not exists onboarding_completed_at timestamptz;
 
+alter table public.profiles
+  add column if not exists goal_notes text;
+
+alter table public.profiles
+  add column if not exists primary_goal_type text check (
+    primary_goal_type is null or
+    primary_goal_type in (
+      'recovery',
+      'general_fitness',
+      'strength',
+      'hypertrophy',
+      'running',
+      'sport_performance',
+      'consistency'
+    )
+  );
+
+alter table public.profiles
+  add column if not exists limitations_detail text;
+
+alter table public.profiles
+  add column if not exists age integer check (age is null or (age between 13 and 120));
+
+alter table public.profiles
+  add column if not exists weight numeric(6,2) check (weight is null or weight > 0);
+
+alter table public.profiles
+  add column if not exists training_experience text check (
+    training_experience is null or
+    training_experience in ('new', 'returning', 'intermediate', 'advanced')
+  );
+
+alter table public.profiles
+  add column if not exists activity_level text check (
+    activity_level is null or
+    activity_level in ('mostly_sedentary', 'lightly_active', 'moderately_active', 'very_active')
+  );
+
+alter table public.profiles
+  add column if not exists training_environment text check (
+    training_environment is null or
+    training_environment in ('home', 'gym', 'outdoors', 'mixed')
+  );
+
+alter table public.profiles
+  add column if not exists exercise_preferences text[] not null default '{}';
+
+alter table public.profiles
+  add column if not exists exercise_dislikes text[] not null default '{}';
+
+alter table public.profiles
+  add column if not exists sports_interests text[] not null default '{}';
+
 alter table public.workout_plans
   add column if not exists weekly_schedule text[] not null default '{}';
+
+alter table public.workout_plans
+  add column if not exists goal_type text check (
+    goal_type is null or
+    goal_type in (
+      'recovery',
+      'general_fitness',
+      'strength',
+      'hypertrophy',
+      'running',
+      'sport_performance',
+      'consistency'
+    )
+  );
+
+alter table public.workout_plans
+  add column if not exists progression_mode text check (
+    progression_mode is null or
+    progression_mode in ('symptom_based', 'adherence_based', 'performance_based', 'hybrid')
+  );
+
+alter table public.workout_plans
+  add column if not exists creation_source text check (
+    creation_source is null or
+    creation_source in ('manual', 'guided_template', 'llm_draft')
+  );
 
 alter table public.workout_plans
   add column if not exists completed_at timestamptz;
@@ -137,6 +268,9 @@ alter table public.plan_phases
 
 alter table public.workout_templates
   add column if not exists scheduled_days text[] not null default '{}';
+
+alter table public.exercise_entries
+  add column if not exists source_exercise_id text;
 
 alter table public.workout_sessions
   add column if not exists phase_id_at_completion uuid references public.plan_phases(id) on delete set null;
@@ -197,6 +331,36 @@ where onboarding_completed_at is null
     from public.workout_plans plans
     where plans.user_id = profiles.id
       and plans.is_active = true
+  );
+
+update public.profiles
+set primary_goal_type = case
+  when lower(goal) ~ '\m(rehab|prehab|recover|recovery|injury|pain)\M'
+    then 'recovery'
+  when lower(goal) ~ '\m(run|running|runner|5k|10k|marathon)\M'
+    then 'running'
+  when lower(goal) ~ '\m(hypertrophy|muscle|bodybuilding)\M'
+    then 'hypertrophy'
+  when lower(goal) ~ '\m(strength|strong|powerlifting)\M'
+    then 'strength'
+  when lower(goal) ~ '\m(sport|sports|athletic|athlete|performance)\M'
+    then 'sport_performance'
+  when lower(goal) ~ '\m(consistency|consistent)\M'
+    then 'consistency'
+  when lower(goal) like '%general fitness%' or lower(goal) ~ '\mfitness\M'
+    then 'general_fitness'
+  else primary_goal_type
+end
+where primary_goal_type is null
+  and (
+    lower(goal) ~ '\m(rehab|prehab|recover|recovery|injury|pain)\M' or
+    lower(goal) ~ '\m(run|running|runner|5k|10k|marathon)\M' or
+    lower(goal) ~ '\m(hypertrophy|muscle|bodybuilding)\M' or
+    lower(goal) ~ '\m(strength|strong|powerlifting)\M' or
+    lower(goal) ~ '\m(sport|sports|athletic|athlete|performance)\M' or
+    lower(goal) ~ '\m(consistency|consistent)\M' or
+    lower(goal) like '%general fitness%' or
+    lower(goal) ~ '\mfitness\M'
   );
 
 alter table public.workout_plans

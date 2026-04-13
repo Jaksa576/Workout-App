@@ -1,10 +1,27 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { getPlanDraftProvider } from "@/lib/ai/plan-draft-provider";
-import { createStructuredPlanForUser } from "@/lib/plan-write";
-import { createGuidedStarterPlan } from "@/lib/starter-plan-generator";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
-import { isOnboardingInput, normalizeWeekdays } from "@/lib/validation";
+import { isOnboardingInput } from "@/lib/validation";
+
+function keepExistingString(existingValue: string | null | undefined, nextValue: string | undefined) {
+  const trimmedValue = nextValue?.trim();
+  return trimmedValue || existingValue || null;
+}
+
+function keepExistingArray(existingValue: string[] | null | undefined, nextValue: string[] | undefined) {
+  if (nextValue && nextValue.length > 0) {
+    return nextValue;
+  }
+
+  return existingValue ?? [];
+}
+
+function keepExistingNullableValue<T>(
+  existingValue: T | null | undefined,
+  nextValue: T | null | undefined
+) {
+  return nextValue ?? existingValue ?? null;
+}
 
 export async function POST(request: Request) {
   const user = await getCurrentUser();
@@ -23,14 +40,44 @@ export async function POST(request: Request) {
   }
 
   const supabase = await getSupabaseServerClient();
-  const weeklySchedule = normalizeWeekdays(body.weeklySchedule);
-  const goal = [body.goal, body.goalNotes].filter(Boolean).join(": ");
+  const { data: existingProfile, error: profileReadError } = await supabase
+    .from("profiles")
+    .select(
+      "goal, injuries, equipment, limitations_detail, age, weight, training_experience, activity_level, training_environment, exercise_preferences, exercise_dislikes, sports_interests"
+    )
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profileReadError) {
+    return NextResponse.json({ error: profileReadError.message }, { status: 500 });
+  }
 
   const { error: profileError } = await supabase.from("profiles").upsert({
     id: user.id,
-    goal: goal || "Build a sustainable routine.",
-    injuries: body.injuries,
-    equipment: body.equipment,
+    goal: existingProfile?.goal || body.goal.trim() || "Build a sustainable routine.",
+    injuries: keepExistingArray(existingProfile?.injuries, body.injuries),
+    limitations_detail: keepExistingString(
+      existingProfile?.limitations_detail,
+      body.limitationsDetail
+    ),
+    equipment: keepExistingArray(existingProfile?.equipment, body.equipment),
+    age: keepExistingNullableValue(existingProfile?.age, body.age),
+    weight: keepExistingNullableValue(existingProfile?.weight, body.weight),
+    training_experience: keepExistingNullableValue(
+      existingProfile?.training_experience,
+      body.trainingExperience
+    ),
+    activity_level: keepExistingNullableValue(existingProfile?.activity_level, body.activityLevel),
+    training_environment: keepExistingNullableValue(
+      existingProfile?.training_environment,
+      body.trainingEnvironment
+    ),
+    exercise_preferences: keepExistingArray(
+      existingProfile?.exercise_preferences,
+      body.exercisePreferences
+    ),
+    exercise_dislikes: keepExistingArray(existingProfile?.exercise_dislikes, body.exerciseDislikes),
+    sports_interests: keepExistingArray(existingProfile?.sports_interests, body.sportsInterests),
     days_per_week: body.daysPerWeek,
     session_minutes: body.sessionMinutes,
     onboarding_completed_at: new Date().toISOString()
@@ -41,32 +88,8 @@ export async function POST(request: Request) {
   }
 
   if (body.planSetupChoice === "manual") {
-    return NextResponse.json({ redirectTo: "/plans/new" });
+    return NextResponse.json({ redirectTo: "/plans/new?mode=manual" });
   }
 
-  if (body.planSetupChoice === "ai") {
-    const provider = getPlanDraftProvider();
-
-    if (!provider.isConfigured()) {
-      return NextResponse.json(
-        { error: "AI draft unavailable. Use guided starter plan instead." },
-        { status: 400 }
-      );
-    }
-  }
-
-  try {
-    const plan = await createStructuredPlanForUser({
-      supabase,
-      userId: user.id,
-      input: createGuidedStarterPlan({ ...body, weeklySchedule })
-    });
-
-    return NextResponse.json({ redirectTo: `/plans/${plan.id}` });
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Unable to create starter plan." },
-      { status: 400 }
-    );
-  }
+  return NextResponse.json({ redirectTo: "/plans/new" });
 }
