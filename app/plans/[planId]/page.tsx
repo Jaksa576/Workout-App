@@ -3,6 +3,10 @@ import { SectionCard } from "@/components/section-card";
 import { getPlanById } from "@/lib/data";
 import { ProgressBadge } from "@/components/progress-badge";
 import { WorkoutChecklist } from "@/components/workout-checklist";
+import { ExerciseVideoLinkEditor } from "@/components/exercise-video-link-editor";
+import { PhaseProgressPanel } from "@/components/phase-progress-panel";
+import { PlanManagementActions } from "@/components/plan-management-actions";
+import { getWorkoutPageData } from "@/lib/data";
 
 export default async function PlanDetailPage({
   params
@@ -10,23 +14,28 @@ export default async function PlanDetailPage({
   params: Promise<{ planId: string }>;
 }) {
   const { planId } = await params;
-  const plan = await getPlanById(planId);
+  const [plan, workoutData] = await Promise.all([
+    getPlanById(planId),
+    getWorkoutPageData()
+  ]);
 
   if (!plan) {
     notFound();
   }
 
   const previewWorkout = plan.workouts[0] ?? null;
+  const activePhaseProgress =
+    workoutData.activePlan?.id === plan.id ? workoutData.phaseProgress : null;
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-[32px] bg-white/80 p-6 shadow-card">
-        <p className="text-sm uppercase tracking-[0.22em] text-slate">
+    <div className="space-y-5 sm:space-y-6">
+      <section className="rounded-[24px] bg-white/80 p-5 shadow-card sm:rounded-[32px] sm:p-6">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate sm:tracking-[0.22em]">
           Plan detail
         </p>
         <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h1 className="font-display text-4xl text-ink">{plan.name}</h1>
+            <h1 className="font-display text-3xl leading-tight text-ink sm:text-4xl">{plan.name}</h1>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate">
               {plan.description}
             </p>
@@ -87,7 +96,7 @@ export default async function PlanDetailPage({
           <SectionCard
             title="No workouts in this phase yet"
             eyebrow="Workout detail"
-            description="Add a workout to make this phase ready to run."
+            description="Add a workout to make this phase ready."
           >
             <p className="text-sm leading-6 text-slate">
               Once the workout is added, its exercises will appear here.
@@ -95,6 +104,20 @@ export default async function PlanDetailPage({
           </SectionCard>
         )}
       </section>
+
+      {activePhaseProgress ? (
+        <PhaseProgressPanel plan={plan} progress={activePhaseProgress} mode="plan" />
+      ) : null}
+
+      {plan.workouts.length > 0 ? (
+        <SectionCard
+          title="Exercise video links"
+          eyebrow="Demos"
+          description="Add or update YouTube demo links."
+        >
+          <ExerciseVideoLinkEditor workouts={plan.workouts} />
+        </SectionCard>
+      ) : null}
 
       <section className="grid gap-4 lg:grid-cols-2">
         {plan.phases.map((phase) => (
@@ -105,6 +128,28 @@ export default async function PlanDetailPage({
             description={phase.goal}
           >
             <div className="space-y-3 text-sm leading-6 text-slate">
+              {activePhaseProgress && phase.id === activePhaseProgress.currentPhaseId ? (
+                <div className="rounded-3xl bg-coral/10 p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-semibold text-ink">Current phase progress</p>
+                    <p className="font-semibold text-ink">
+                      {activePhaseProgress.completionPercent}%
+                    </p>
+                  </div>
+                  <div className="mt-3 h-3 overflow-hidden rounded-full bg-white">
+                    <div
+                      className="h-full rounded-full bg-coral"
+                      style={{ width: `${activePhaseProgress.completionPercent}%` }}
+                    />
+                  </div>
+                  <p className="mt-3 text-sm leading-6 text-slate">
+                    {activePhaseProgress.cleanSessions} of{" "}
+                    {activePhaseProgress.requiredCleanSessions} clean sessions,{" "}
+                    {activePhaseProgress.painFlags}{" "}
+                    {activePhaseProgress.painFlags === 1 ? "pain flag" : "pain flags"}.
+                  </p>
+                </div>
+              ) : null}
               <p>
                 <span className="font-semibold text-ink">Advance:</span>{" "}
                 {phase.advanceCriteria}
@@ -113,10 +158,25 @@ export default async function PlanDetailPage({
                 <span className="font-semibold text-ink">Deload:</span>{" "}
                 {phase.deloadCriteria}
               </p>
+              <div>
+                <p className="font-semibold text-ink">Workouts:</p>
+                <div className="mt-2 space-y-2">
+                  {plan.workouts
+                    .filter((workout) => workout.phaseId === phase.id)
+                    .map((workout) => (
+                      <div key={workout.id} className="rounded-2xl bg-white/70 px-3 py-2">
+                        <p className="font-semibold text-ink">{workout.name}</p>
+                        <p>{workout.exercises.length} exercises</p>
+                      </div>
+                    ))}
+                </div>
+              </div>
             </div>
           </SectionCard>
         ))}
       </section>
+
+      <PlanManagementActions plan={plan} />
     </div>
   );
 }

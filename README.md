@@ -7,10 +7,13 @@ Workout App is a mobile-first workout planner built as a Progressive Web App wit
 - Mobile-first app shell with dashboard, plans, plan detail, workout, settings, and login screens
 - Supabase email authentication with protected app routes
 - Supabase-backed plan, phase, workout, exercise, profile, session, and exercise-result data
-- Plan creation flow that saves one plan, one phase, one workout, and ordered exercises
+- First-user onboarding that captures goal, limitations, equipment, days per week, session length, and first-plan choice
+- Guided starter plan generation that creates a usable first plan without AI token usage
+- Structured plan creation flow that supports multiple phases, multiple workouts per phase, weekly schedule chips, starter exercise library picks, and ordered exercises
 - Connected workout flow with a checklist, rest timer, same-page check-in, exercise video links, and saved completion summary
-- Workout logging that saves completion date, pain, difficulty, notes, and completed exercise results
-- Recommendation helper for whether to progress, repeat, review, or deload
+- Plan detail flow for adding or updating YouTube demo links on existing exercises
+- Workout logging that saves completion date, pain, difficulty, notes, completed exercise results, and structured progression decisions
+- Explicit phase progression workflow for moving forward, moving back, or marking a plan complete
 - SQL schema, profile creation trigger, updated-at triggers, and row-level security policies for private user data
 - User-facing copy pass that removes developer/prototype language from normal app screens
 
@@ -41,7 +44,8 @@ npm run dev
 ## Supabase setup
 
 1. Create or open a Supabase project.
-2. Run [`supabase/schema.sql`](./supabase/schema.sql) in the SQL editor.
+2. Run [`supabase/schema.sql`](./supabase/schema.sql) in the SQL editor for a fresh setup.
+   - For an existing database, apply [`supabase/migrations/20260412160000_onboarding_progression.sql`](./supabase/migrations/20260412160000_onboarding_progression.sql).
 3. Enable Email auth in Supabase Authentication settings.
 4. Copy the project URL and anon key into `.env.local`.
 5. Create an account from the app login screen. The database trigger creates the starter profile row automatically.
@@ -68,10 +72,11 @@ The app currently uses protected routes, so signed-out visits to the dashboard a
 
 ## Recommended next steps
 
+- Finish logged-in testing for onboarding, starter plan creation, and structured progression
 - Add editing flows for existing plans, phases, workouts, and exercises
 - Add active-plan switching when more than one plan exists
 - Add account/profile editing in Settings
 - Add richer session history and progress trend views
-- Add exercise substitutions when pain, equipment, or schedule changes
-- Add AI-assisted workout plan drafts after the manual workflow feels solid
 - Add read-only plan sharing when personal tracking is stable
+- Add AI-assisted workout plan drafts after the manual workflow feels solid
+- Add exercise substitutions when pain, equipment, or schedule changes

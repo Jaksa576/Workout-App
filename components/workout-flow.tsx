@@ -3,12 +3,15 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
+import { PhaseProgressPanel } from "@/components/phase-progress-panel";
 import { TimerCard } from "@/components/timer-card";
 import { WorkoutChecklist } from "@/components/workout-checklist";
 import { generateRecommendation } from "@/lib/recommendation";
 import { getTodayDateString } from "@/lib/validation";
 import type {
   SavedWorkoutSession,
+  PhaseProgressSummary,
+  WorkoutPlan,
   WorkoutProgressSummary,
   WorkoutSession,
   WorkoutTemplate
@@ -20,10 +23,13 @@ type FlowStep = "workout" | "check-in" | "saved";
 
 type WorkoutFlowProps = {
   workouts: WorkoutTemplate[];
+  activePlan: WorkoutPlan;
+  recommendedWorkout: WorkoutTemplate | null;
   selectedWorkout: WorkoutTemplate;
   initialStep: "workout" | "check-in";
   recentSessions: WorkoutSession[];
   progressSummary: WorkoutProgressSummary;
+  phaseProgress: PhaseProgressSummary | null;
 };
 
 type SessionSaveResult = {
@@ -110,9 +116,9 @@ function ProgressBars({ summary }: { summary: WorkoutProgressSummary }) {
 
 function ProgressSummary({ summary }: { summary: WorkoutProgressSummary }) {
   return (
-    <section id="progress" className="rounded-[32px] border border-white/70 bg-[#fffdf9]/85 p-6 shadow-card">
-      <p className="text-xs uppercase tracking-[0.24em] text-slate">Progress</p>
-      <h2 className="mt-2 font-display text-3xl text-ink">Your workout rhythm</h2>
+    <section id="progress" className="rounded-[24px] border border-white/70 bg-[#fffdf9]/85 p-5 shadow-card sm:rounded-[32px] sm:p-6">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate sm:tracking-[0.22em]">Progress</p>
+      <h2 className="mt-2 font-display text-2xl leading-tight text-ink sm:text-3xl">Workout rhythm</h2>
       <p className="mt-3 max-w-3xl text-sm leading-6 text-slate">
         A simple look at how your recent workouts line up with the plan.
       </p>
@@ -151,10 +157,13 @@ function ProgressSummary({ summary }: { summary: WorkoutProgressSummary }) {
 
 export function WorkoutFlow({
   workouts,
+  activePlan,
+  recommendedWorkout,
   selectedWorkout,
   initialStep,
   recentSessions,
-  progressSummary
+  progressSummary,
+  phaseProgress
 }: WorkoutFlowProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -269,21 +278,44 @@ export function WorkoutFlow({
   }
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-[32px] bg-ink px-6 py-8 text-white shadow-card">
-        <p className="text-sm uppercase tracking-[0.24em] text-white/70">Workout</p>
-        <h1 className="mt-3 max-w-xl font-display text-4xl leading-tight text-balance sm:text-5xl">
-          Start, log, and keep your progress visible.
+    <div className="space-y-5 sm:space-y-6">
+      <section className="rounded-[24px] bg-ink px-5 py-6 text-white shadow-card sm:rounded-[32px] sm:px-6 sm:py-8">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/70 sm:tracking-[0.22em]">Workout</p>
+        <h1 className="mt-3 max-w-xl font-display text-3xl leading-tight text-balance sm:text-5xl">
+          Active phase workouts
         </h1>
-        <p className="mt-4 max-w-2xl text-sm leading-6 text-white/78 sm:text-base">
-          Run a workout now or log one you missed from another day.
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-white/78 sm:text-base">
+          Start the recommended session or choose another workout from this phase.
         </p>
       </section>
 
-      {workouts.length > 1 ? (
-        <section className="rounded-[32px] border border-white/70 bg-[#fffdf9]/85 p-6 shadow-card">
-          <label className="block">
-            <span className="text-sm font-semibold text-ink">Choose workout</span>
+      <section className="rounded-[24px] border border-white/70 bg-[#fffdf9]/85 p-5 shadow-card sm:rounded-[32px] sm:p-6">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate sm:tracking-[0.22em]">Recommended today</p>
+        <div className="mt-3 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h2 className="font-display text-3xl text-ink">
+              {recommendedWorkout?.name ?? workout.name}
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-slate">
+              Phase {activePlan.currentPhase.phaseNumber}: {activePlan.currentPhase.goal}
+            </p>
+          </div>
+          {recommendedWorkout ? (
+            <button
+              type="button"
+              onClick={() => handleSelectWorkout(recommendedWorkout.id)}
+              className="rounded-full bg-coral px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#f95a2b]"
+            >
+              Start Recommended Workout
+            </button>
+          ) : null}
+        </div>
+
+        {workouts.length > 1 ? (
+          <label className="mt-5 block">
+            <span className="text-sm font-semibold text-ink">
+              Other workouts in this phase
+            </span>
             <select
               value={workout.id}
               onChange={(event) => handleSelectWorkout(event.target.value)}
@@ -296,15 +328,15 @@ export function WorkoutFlow({
               ))}
             </select>
           </label>
-        </section>
-      ) : null}
+        ) : null}
+      </section>
 
       <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="rounded-[32px] border border-white/70 bg-[#fffdf9]/85 p-6 shadow-card">
-          <p className="text-xs uppercase tracking-[0.24em] text-slate">
+        <div className="rounded-[24px] border border-white/70 bg-[#fffdf9]/85 p-5 shadow-card sm:rounded-[32px] sm:p-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate sm:tracking-[0.22em]">
             {step === "saved" ? "Workout saved" : step === "check-in" ? "Check-in" : "Exercises"}
           </p>
-          <h2 className="mt-2 font-display text-3xl text-ink">{workout.name}</h2>
+          <h2 className="mt-2 font-display text-2xl leading-tight text-ink sm:text-3xl">{workout.name}</h2>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-slate">{workout.summary}</p>
 
           {latestSession ? (
@@ -313,6 +345,9 @@ export function WorkoutFlow({
                 Last logged on {formatDisplayDate(latestSession.completedOn)}:{" "}
                 {latestSession.recommendation}
               </p>
+              {latestSession.progressionReason ? (
+                <p className="mt-2 text-slate">{latestSession.progressionReason}</p>
+              ) : null}
               {getSessionNotes(latestSession) ? (
                 <p className="mt-2 text-slate">
                   Notes: {getSessionNotes(latestSession)}
@@ -333,7 +368,7 @@ export function WorkoutFlow({
                 <button
                   type="button"
                   onClick={handleFinishWorkout}
-                  className="rounded-full bg-coral px-5 py-3 text-sm font-semibold text-white"
+                  className="w-full rounded-full bg-coral px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#f95a2b] sm:w-auto"
                 >
                   Finish Workout
                 </button>
@@ -455,9 +490,9 @@ export function WorkoutFlow({
 
                 {status ? <p className="text-sm leading-6 text-slate">{status}</p> : null}
 
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                   <button
-                    className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white disabled:opacity-60"
+                    className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-ink/90 disabled:opacity-60"
                     disabled={saving || isPending}
                   >
                     {saving ? "Saving..." : "Save Workout"}
@@ -465,7 +500,7 @@ export function WorkoutFlow({
                   <button
                     type="button"
                     onClick={() => setStep("workout")}
-                    className="rounded-full border border-ink/10 bg-white px-5 py-3 text-sm font-semibold text-ink"
+                    className="rounded-full border border-ink/10 bg-white px-5 py-3 text-sm font-semibold text-ink transition hover:border-coral hover:text-coral"
                   >
                     Back to Exercises
                   </button>
@@ -486,21 +521,44 @@ export function WorkoutFlow({
                     {savedSession.completedExerciseCount} exercises checked.{" "}
                     {savedSession.recommendation}
                   </p>
+                  {savedSession.progressionReason ? (
+                    <p className="mt-2 text-sm leading-6 text-slate">
+                      {savedSession.progressionReason}
+                    </p>
+                  ) : null}
+                  {savedSession.progressionDecision === "advance" ? (
+                    <div className="mt-4 rounded-3xl bg-coral/10 p-4">
+                      <p className="text-sm font-semibold text-ink">
+                        You may be ready for the next phase.
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-slate">
+                        Review the plan before moving forward.
+                      </p>
+                    </div>
+                  ) : null}
                 </div>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                   <button
                     type="button"
                     onClick={handleStartAnotherWorkout}
-                    className="rounded-full bg-coral px-5 py-3 text-sm font-semibold text-white"
+                    className="rounded-full bg-coral px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#f95a2b]"
                   >
                     Start Another Workout
                   </button>
                   <a
                     href="#progress"
-                    className="rounded-full border border-ink/10 bg-white px-5 py-3 text-sm font-semibold text-ink"
+                    className="rounded-full border border-ink/10 bg-white px-5 py-3 text-center text-sm font-semibold text-ink transition hover:border-coral hover:text-coral"
                   >
                     View Progress
                   </a>
+                  {savedSession.progressionDecision === "advance" ? (
+                    <a
+                      href={`/plans/${activePlan.id}`}
+                      className="rounded-full border border-coral/30 bg-white px-5 py-3 text-center text-sm font-semibold text-coral transition hover:border-coral"
+                    >
+                      Review Plan Progress
+                    </a>
+                  ) : null}
                 </div>
               </div>
             ) : null}
@@ -511,14 +569,17 @@ export function WorkoutFlow({
       </section>
 
       {sessionHistory.length > 0 ? (
-        <section className="rounded-[32px] border border-white/70 bg-[#fffdf9]/85 p-6 shadow-card">
-          <p className="text-xs uppercase tracking-[0.24em] text-slate">Recent logs</p>
-          <h2 className="mt-2 font-display text-3xl text-ink">What you saved recently</h2>
+        <section className="rounded-[24px] border border-white/70 bg-[#fffdf9]/85 p-5 shadow-card sm:rounded-[32px] sm:p-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate sm:tracking-[0.22em]">Recent logs</p>
+          <h2 className="mt-2 font-display text-2xl leading-tight text-ink sm:text-3xl">Recent workouts</h2>
           <div className="mt-5 grid gap-3">
             {sessionHistory.slice(0, 4).map((session) => (
               <div key={session.id} className="rounded-3xl bg-white/70 p-4 text-sm">
                 <p className="font-semibold text-ink">{formatDisplayDate(session.completedOn)}</p>
                 <p className="mt-2 leading-6 text-slate">{session.recommendation}</p>
+                {session.progressionReason ? (
+                  <p className="mt-2 leading-6 text-slate">{session.progressionReason}</p>
+                ) : null}
                 {getSessionNotes(session) ? (
                   <p className="mt-2 leading-6 text-slate">
                     Notes: {getSessionNotes(session)}
@@ -531,6 +592,10 @@ export function WorkoutFlow({
       ) : null}
 
       <ProgressSummary summary={liveProgressSummary} />
+
+      {phaseProgress ? (
+        <PhaseProgressPanel plan={activePlan} progress={phaseProgress} mode="workout" />
+      ) : null}
     </div>
   );
 }

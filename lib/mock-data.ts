@@ -6,7 +6,8 @@ export const profile: Profile = {
   injuries: ["Monitor right shoulder discomfort during overhead work"],
   equipment: ["Adjustable dumbbells", "Bench", "Bands", "Bodyweight"],
   daysPerWeek: 4,
-  sessionMinutes: 50
+  sessionMinutes: 50,
+  onboardingCompletedAt: "2026-04-12T00:00:00.000Z"
 };
 
 const foundationPhase = {
@@ -16,7 +17,11 @@ const foundationPhase = {
   advanceCriteria:
     "Complete all planned sessions for 2 weeks with no pain and rate effort as appropriate or easier.",
   deloadCriteria:
-    "Two pain flags in one week or repeated too hard ratings on the same movement pattern."
+    "Two pain flags in one week or repeated too hard ratings on the same movement pattern.",
+  advancementPreset: "clean_sessions_in_window" as const,
+  advancementSettings: { sessions: 4, weeks: 2 },
+  deloadPreset: "pain_flags_in_window" as const,
+  deloadSettings: { painFlags: 2, days: 7 }
 };
 
 const buildPhase = {
@@ -26,7 +31,11 @@ const buildPhase = {
   advanceCriteria:
     "Hit top rep targets for 2 consecutive weeks without pain or technique breakdown.",
   deloadCriteria:
-    "Pain flag, missed reps across 2 sessions, or persistent recovery issues."
+    "Pain flag, missed reps across 2 sessions, or persistent recovery issues.",
+  advancementPreset: "clean_sessions_streak" as const,
+  advancementSettings: { sessions: 4 },
+  deloadPreset: "too_hard_streak" as const,
+  deloadSettings: { sessions: 2 }
 };
 
 export const workoutPlans: WorkoutPlan[] = [
@@ -37,16 +46,21 @@ export const workoutPlans: WorkoutPlan[] = [
       "A beginner-friendly plan for returning to structured training, built around simple movement patterns and clear progression rules.",
     isActive: true,
     scheduleSummary: "Mon / Tue / Thu / Sat with 1 active recovery day",
+    weeklySchedule: ["mon", "tue", "thu", "sat"],
+    completedAt: null,
+    archivedAt: null,
     currentPhase: foundationPhase,
     phases: [foundationPhase, buildPhase],
     workouts: [
       {
         id: "workout-1",
+        phaseId: "phase-1",
         name: "Lower Body + Core",
         focus: "Strength foundation",
         summary:
           "Move with control first, then add reps or light load only when the work feels stable and pain-free.",
         readiness: "Ready",
+        scheduledDays: ["mon", "thu"],
         exercises: [
           {
             id: "exercise-1",
@@ -90,11 +104,13 @@ export const workoutPlans: WorkoutPlan[] = [
       },
       {
         id: "workout-2",
+        phaseId: "phase-1",
         name: "Upper Body + Pull",
         focus: "Shoulder-friendly volume",
         summary:
           "Build pressing and pulling capacity while watching pain and keeping the shoulder moving cleanly.",
         readiness: "Monitor",
+        scheduledDays: ["tue"],
         exercises: [
           {
             id: "exercise-5",
@@ -123,6 +139,21 @@ export const workoutPlans: WorkoutPlan[] = [
 export const dashboardData: DashboardData = {
   activePlan: workoutPlans[0],
   todayWorkout: workoutPlans[0].workouts[0],
+  phaseProgress: {
+    decision: "repeat",
+    recommendation: "Keep going with this phase",
+    reason: "3 of 4 clean sessions complete.",
+    canAdvance: false,
+    canComplete: false,
+    criteriaMet: false,
+    currentPhaseId: "phase-1",
+    nextPhaseId: "phase-2",
+    previousPhaseId: null,
+    cleanSessions: 3,
+    requiredCleanSessions: 4,
+    painFlags: 0,
+    completionPercent: 75
+  },
   metrics: [
     {
       label: "Weekly streak",
@@ -141,4 +172,3 @@ export const dashboardData: DashboardData = {
     }
   ]
 };
-

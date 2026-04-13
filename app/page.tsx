@@ -1,77 +1,43 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { SectionCard } from "@/components/section-card";
-import { getDashboardData } from "@/lib/data";
+import { getDashboardData, getProfile } from "@/lib/data";
 import { ProgressBadge } from "@/components/progress-badge";
 
 export default async function HomePage() {
-  const dashboard = await getDashboardData();
+  const [dashboard, profile] = await Promise.all([getDashboardData(), getProfile()]);
   const activePlan = dashboard.activePlan;
   const nextWorkout = dashboard.todayWorkout;
   const exerciseCount = nextWorkout?.exercises.length ?? 0;
   const exerciseLabel = exerciseCount === 1 ? "1 exercise" : `${exerciseCount} exercises`;
 
-  if (!activePlan || !nextWorkout) {
-    return (
-      <div className="space-y-6">
-        <section className="rounded-[32px] bg-ink px-6 py-7 text-white shadow-card sm:px-7">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/65">
-            Dashboard
-          </p>
-          <h1 className="mt-3 max-w-xl font-display text-3xl leading-tight text-balance sm:text-4xl">
-            Let&apos;s set up your first plan.
-          </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-white/78">
-            Add one repeatable workout so your dashboard can show the next session and progress.
-          </p>
-          <div className="mt-5 flex flex-wrap gap-3">
-            <Link
-              href="/plans/new"
-              className="rounded-full bg-coral px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#f95a2b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
-            >
-              Create Plan
-            </Link>
-          </div>
-        </section>
-
-        <section className="grid gap-4 md:grid-cols-3">
-          {dashboard.metrics.map((metric) => (
-            <SectionCard
-              key={metric.label}
-              title={metric.value}
-              eyebrow={metric.label}
-              compact
-            >
-              <p className="text-sm leading-6 text-slate">{metric.detail}</p>
-            </SectionCard>
-          ))}
-        </section>
-      </div>
-    );
+  if (!profile?.onboardingCompletedAt || !activePlan || !nextWorkout) {
+    redirect("/onboarding" as Route);
   }
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-[32px] bg-ink px-6 py-7 text-white shadow-card sm:px-7">
+    <div className="space-y-5 sm:space-y-6">
+      <section className="rounded-[24px] bg-ink px-5 py-6 text-white shadow-card sm:rounded-[32px] sm:px-7 sm:py-7">
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/65">
           Your plan for today
         </p>
         <h1 className="mt-3 max-w-2xl font-display text-3xl leading-tight text-balance sm:text-4xl">
-          Stay consistent without guessing what&apos;s next.
+          Next up: {nextWorkout.name}
         </h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-white/78">
           Phase {activePlan.currentPhase.phaseNumber}: {activePlan.currentPhase.goal}
         </p>
-        <div className="mt-5 flex flex-wrap gap-3">
+        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link
             href={`/workout?workoutId=${nextWorkout.id}` as Route}
-            className="rounded-full bg-coral px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#f95a2b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
+            className="rounded-full bg-coral px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#f95a2b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
           >
             Start Session
           </Link>
           <Link
             href="/plans"
-            className="rounded-full border border-white/20 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
+            className="rounded-full border border-white/20 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
           >
             View My Plans
           </Link>
@@ -118,16 +84,16 @@ export default async function HomePage() {
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Link
                 href={`/workout?workoutId=${nextWorkout.id}` as Route}
-                className="inline-flex rounded-full bg-coral px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#f95a2b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral focus-visible:ring-offset-2 focus-visible:ring-offset-mist"
+                className="inline-flex justify-center rounded-full bg-coral px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#f95a2b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral focus-visible:ring-offset-2 focus-visible:ring-offset-mist"
               >
                 Start Session
               </Link>
               <Link
                 href={`/workout?workoutId=${nextWorkout.id}&step=check-in` as Route}
-                className="inline-flex rounded-full border border-ink/10 bg-white px-5 py-3 text-sm font-semibold text-ink transition hover:border-coral hover:text-coral focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral focus-visible:ring-offset-2 focus-visible:ring-offset-mist"
+                className="inline-flex justify-center rounded-full border border-ink/10 bg-white px-5 py-3 text-sm font-semibold text-ink transition hover:border-coral hover:text-coral focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral focus-visible:ring-offset-2 focus-visible:ring-offset-mist"
               >
                 Log Past Workout
               </Link>
@@ -151,6 +117,28 @@ export default async function HomePage() {
               <p className="mt-1 text-sm leading-6 text-slate">
                 {activePlan.currentPhase.goal}
               </p>
+              {dashboard.phaseProgress ? (
+                <div className="mt-4">
+                  <div className="flex items-center justify-between gap-3 text-sm">
+                    <p className="font-semibold text-ink">Phase progress</p>
+                    <p className="font-semibold text-ink">
+                      {dashboard.phaseProgress.completionPercent}%
+                    </p>
+                  </div>
+                  <div className="mt-3 h-3 overflow-hidden rounded-full bg-mist">
+                    <div
+                      className="h-full rounded-full bg-coral"
+                      style={{ width: `${dashboard.phaseProgress.completionPercent}%` }}
+                    />
+                  </div>
+                  <p className="mt-3 text-sm leading-6 text-slate">
+                    {dashboard.phaseProgress.cleanSessions} of{" "}
+                    {dashboard.phaseProgress.requiredCleanSessions} clean sessions,{" "}
+                    {dashboard.phaseProgress.painFlags}{" "}
+                    {dashboard.phaseProgress.painFlags === 1 ? "pain flag" : "pain flags"}.
+                  </p>
+                </div>
+              ) : null}
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
               <div className="rounded-[28px] bg-white/75 p-4">

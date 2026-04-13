@@ -75,13 +75,15 @@ export function WorkoutChecklist({
       <div className="space-y-3">
         {workout.exercises.map((exercise) => {
           const active = checked.includes(exercise.id);
+          const checkboxId = `exercise-check-${exercise.id}`;
 
           return (
-            <label
+            <div
               key={exercise.id}
-              className="flex cursor-pointer items-start gap-4 rounded-3xl border border-ink/8 bg-white/70 p-4 transition hover:border-coral/40"
+              className="flex items-start gap-4 rounded-3xl border border-ink/8 bg-white/70 p-4 transition hover:border-coral/40"
             >
               <input
+                id={checkboxId}
                 type="checkbox"
                 className="mt-1 h-5 w-5 accent-[#ff6a3d]"
                 checked={active}
@@ -95,9 +97,12 @@ export function WorkoutChecklist({
               />
               <div className="flex-1">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="text-base font-semibold text-ink">
+                  <label
+                    htmlFor={checkboxId}
+                    className="cursor-pointer text-base font-semibold text-ink"
+                  >
                     {exercise.name}
-                  </p>
+                  </label>
                   <p className="text-xs uppercase tracking-[0.2em] text-slate">
                     {exercise.sets} sets - {exercise.reps}
                   </p>
@@ -116,12 +121,12 @@ export function WorkoutChecklist({
                       rel="noreferrer"
                       className="rounded-full bg-mist px-3 py-2 transition hover:text-coral"
                     >
-                      Watch demo
+                      Watch Demo
                     </a>
                   ) : null}
                 </div>
               </div>
-            </label>
+            </div>
           );
         })}
       </div>

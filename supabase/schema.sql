@@ -7,6 +7,7 @@ create table if not exists public.profiles (
   equipment text[] not null default '{}',
   days_per_week integer not null check (days_per_week between 1 and 7),
   session_minutes integer not null check (session_minutes between 10 and 180),
+  onboarding_completed_at timestamptz,
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
 );
@@ -17,8 +18,11 @@ create table if not exists public.workout_plans (
   name text not null,
   description text not null default '',
   schedule_summary text not null default '',
+  weekly_schedule text[] not null default '{}',
   is_active boolean not null default false,
   current_phase_id uuid,
+  completed_at timestamptz,
+  archived_at timestamptz,
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
 );
@@ -30,6 +34,10 @@ create table if not exists public.plan_phases (
   goal text not null,
   advance_criteria text not null,
   deload_criteria text not null,
+  advancement_preset text not null default 'clean_sessions_in_window',
+  advancement_settings jsonb not null default '{"sessions":4,"weeks":2}',
+  deload_preset text not null default 'pain_flags_in_window',
+  deload_settings jsonb not null default '{"painFlags":2,"days":7}',
   unique(plan_id, phase_number)
 );
 
@@ -46,7 +54,8 @@ create table if not exists public.workout_templates (
   name text not null,
   focus text not null,
   summary text not null default '',
-  day_order integer not null default 1
+  day_order integer not null default 1,
+  scheduled_days text[] not null default '{}'
 );
 
 create table if not exists public.exercise_entries (
@@ -64,20 +73,25 @@ create table if not exists public.exercise_entries (
 create table if not exists public.workout_sessions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
-  workout_template_id uuid not null references public.workout_templates(id) on delete cascade,
+  workout_template_id uuid references public.workout_templates(id) on delete set null,
+  workout_name_snapshot text not null default '',
   completed_on date not null default current_date,
   completed boolean not null default false,
   pain_occurred boolean not null default false,
   perceived_difficulty text not null check (perceived_difficulty in ('too_easy', 'appropriate', 'too_hard')),
   notes text not null default '',
   recommendation text not null default '',
+  phase_id_at_completion uuid references public.plan_phases(id) on delete set null,
+  progression_decision text check (progression_decision in ('advance', 'repeat', 'review', 'deload')),
+  progression_reason text,
   created_at timestamptz not null default timezone('utc', now())
 );
 
 create table if not exists public.exercise_results (
   id uuid primary key default gen_random_uuid(),
   workout_session_id uuid not null references public.workout_sessions(id) on delete cascade,
-  exercise_entry_id uuid not null references public.exercise_entries(id) on delete cascade,
+  exercise_entry_id uuid references public.exercise_entries(id) on delete set null,
+  exercise_name_snapshot text not null default '',
   completed boolean not null default false,
   actual_reps text,
   actual_load text,
@@ -91,8 +105,108 @@ alter table public.workout_plans
 alter table public.workout_plans
   add column if not exists current_phase_id uuid;
 
+alter table public.profiles
+  add column if not exists onboarding_completed_at timestamptz;
+
+alter table public.workout_plans
+  add column if not exists weekly_schedule text[] not null default '{}';
+
+alter table public.workout_plans
+  add column if not exists completed_at timestamptz;
+
+alter table public.workout_plans
+  add column if not exists archived_at timestamptz;
+
+alter table public.workout_sessions
+  add column if not exists workout_name_snapshot text not null default '';
+
+alter table public.exercise_results
+  add column if not exists exercise_name_snapshot text not null default '';
+
+alter table public.plan_phases
+  add column if not exists advancement_preset text not null default 'clean_sessions_in_window';
+
+alter table public.plan_phases
+  add column if not exists advancement_settings jsonb not null default '{"sessions":4,"weeks":2}';
+
+alter table public.plan_phases
+  add column if not exists deload_preset text not null default 'pain_flags_in_window';
+
+alter table public.plan_phases
+  add column if not exists deload_settings jsonb not null default '{"painFlags":2,"days":7}';
+
+alter table public.workout_templates
+  add column if not exists scheduled_days text[] not null default '{}';
+
+alter table public.workout_sessions
+  add column if not exists phase_id_at_completion uuid references public.plan_phases(id) on delete set null;
+
+alter table public.workout_sessions
+  add column if not exists progression_decision text check (progression_decision in ('advance', 'repeat', 'review', 'deload'));
+
+alter table public.workout_sessions
+  add column if not exists progression_reason text;
+
+update public.workout_sessions sessions
+set phase_id_at_completion = templates.phase_id
+from public.workout_templates templates
+where sessions.workout_template_id = templates.id
+  and sessions.phase_id_at_completion is null;
+
+update public.workout_sessions sessions
+set workout_name_snapshot = templates.name
+from public.workout_templates templates
+where sessions.workout_template_id = templates.id
+  and sessions.workout_name_snapshot = '';
+
+update public.exercise_results results
+set exercise_name_snapshot = exercises.name
+from public.exercise_entries exercises
+where results.exercise_entry_id = exercises.id
+  and results.exercise_name_snapshot = '';
+
+alter table public.workout_sessions
+  alter column workout_template_id drop not null;
+
+alter table public.exercise_results
+  alter column exercise_entry_id drop not null;
+
+alter table public.workout_sessions
+  drop constraint if exists workout_sessions_workout_template_id_fkey;
+
+alter table public.workout_sessions
+  add constraint workout_sessions_workout_template_id_fkey
+  foreign key (workout_template_id)
+  references public.workout_templates(id)
+  on delete set null;
+
+alter table public.exercise_results
+  drop constraint if exists exercise_results_exercise_entry_id_fkey;
+
+alter table public.exercise_results
+  add constraint exercise_results_exercise_entry_id_fkey
+  foreign key (exercise_entry_id)
+  references public.exercise_entries(id)
+  on delete set null;
+
+update public.profiles profiles
+set onboarding_completed_at = timezone('utc', now())
+where onboarding_completed_at is null
+  and exists (
+    select 1
+    from public.workout_plans plans
+    where plans.user_id = profiles.id
+      and plans.is_active = true
+  );
+
 alter table public.workout_plans
   alter column schedule_summary set default '';
+
+create index if not exists workout_sessions_user_completed_idx
+  on public.workout_sessions (user_id, completed_on desc, created_at desc);
+
+create index if not exists workout_sessions_template_completed_idx
+  on public.workout_sessions (workout_template_id, completed_on desc, created_at desc);
 
 alter table public.workout_plans
   drop constraint if exists workout_plans_current_phase_id_fkey;

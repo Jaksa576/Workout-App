@@ -3,24 +3,25 @@ import type { Route } from "next";
 import { SectionCard } from "@/components/section-card";
 import { getPlans } from "@/lib/data";
 import { ProgressBadge } from "@/components/progress-badge";
+import { PlanListActions } from "@/components/plan-list-actions";
 
 export default async function PlansPage() {
   const plans = await getPlans();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm uppercase tracking-[0.24em] text-slate">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate sm:tracking-[0.22em]">
             My Workout Plans
           </p>
-          <h1 className="mt-2 font-display text-4xl text-ink">
-            Choose a plan and keep your progress moving.
+          <h1 className="mt-2 font-display text-3xl leading-tight text-ink sm:text-4xl">
+            Choose your active plan.
           </h1>
         </div>
         <Link
           href="/plans/new"
-          className="rounded-full bg-coral px-5 py-3 text-center text-sm font-semibold text-white"
+          className="rounded-full bg-coral px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#f95a2b]"
         >
           Create Plan
         </Link>
@@ -30,27 +31,27 @@ export default async function PlansPage() {
         <SectionCard
           title="No plans yet"
           eyebrow="Start here"
-          description="Create one plan with one phase and one workout to start training."
+          description="Create one plan to start training."
         >
           <Link
             href="/plans/new"
-            className="inline-flex rounded-full bg-coral px-5 py-3 text-sm font-semibold text-white"
+            className="inline-flex justify-center rounded-full bg-coral px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#f95a2b]"
           >
             Create your first plan
           </Link>
         </SectionCard>
       ) : (
-      <div className="grid gap-4">
-        {plans.map((plan) => (
-          <SectionCard
-            key={plan.id}
-            title={plan.name}
-            eyebrow={plan.isActive ? "Active plan" : "Saved plan"}
-            description={plan.description}
-          >
+        <div className="grid gap-4">
+          {plans.map((plan) => (
+            <SectionCard
+              key={plan.id}
+              title={plan.name}
+              eyebrow={plan.completedAt ? "Completed plan" : plan.isActive ? "Active plan" : "Saved plan"}
+              description={plan.description}
+            >
             <div className="flex flex-wrap items-center gap-3">
               <ProgressBadge
-                label={`Phase ${plan.currentPhase.phaseNumber}`}
+                label={plan.completedAt ? "Completed" : `Phase ${plan.currentPhase.phaseNumber}`}
                 tone="gold"
               />
               <ProgressBadge label={plan.currentPhase.goal} tone="green" />
@@ -81,17 +82,22 @@ export default async function PlansPage() {
                 </p>
               </div>
             </div>
-            <div className="mt-5 flex flex-wrap gap-3">
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Link
                 href={`/plans/${plan.id}` as Route}
-                className="rounded-full border border-ink/10 bg-white px-5 py-3 text-sm font-semibold text-ink transition hover:border-coral hover:text-coral"
+                className="rounded-full border border-ink/10 bg-white px-5 py-3 text-center text-sm font-semibold text-ink transition hover:border-coral hover:text-coral"
               >
                 View Plan
               </Link>
+              <PlanListActions
+                planId={plan.id}
+                isActive={plan.isActive}
+                completedAt={plan.completedAt}
+              />
             </div>
-          </SectionCard>
-        ))}
-      </div>
+            </SectionCard>
+          ))}
+        </div>
       )}
     </div>
   );

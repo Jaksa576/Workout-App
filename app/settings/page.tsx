@@ -53,9 +53,8 @@ export default async function SettingsPage() {
           description="Useful additions to make planning easier over time."
         >
           <ul className="space-y-3 text-sm leading-6 text-slate">
-            <li>AI-assisted workout plan drafts</li>
-            <li>YouTube video links on each exercise entry</li>
             <li>Read-only plan sharing for friends</li>
+            <li>AI-assisted workout plan drafts</li>
             <li>Exercise substitutions when pain or equipment changes</li>
           </ul>
         </SectionCard>

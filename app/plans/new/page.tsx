@@ -9,14 +9,14 @@ export default function NewPlanPage() {
           Create Plan
         </p>
         <h1 className="mt-2 font-display text-4xl text-ink">
-          Start with one phase and one workout. You can add more later.
+          Build the program, phases, and workouts in one guided flow.
         </h1>
       </section>
 
       <SectionCard
         title="Create a Workout Plan"
-        eyebrow="Plan details"
-        description="Start with one phase and one workout. You can add more later."
+        eyebrow="Guided builder"
+        description="Start with structure first, then choose exercises from the starter library and adjust the details."
       >
         <PlanBuilderForm />
       </SectionCard>

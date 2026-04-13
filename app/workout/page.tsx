@@ -1,5 +1,5 @@
-import Link from "next/link";
-import { SectionCard } from "@/components/section-card";
+import { redirect } from "next/navigation";
+import type { Route } from "next";
 import { WorkoutFlow } from "@/components/workout-flow";
 import { getWorkoutPageData } from "@/lib/data";
 
@@ -12,31 +12,19 @@ export default async function WorkoutPage({
   const data = await getWorkoutPageData(workoutId);
 
   if (!data.activePlan || !data.selectedWorkout) {
-    return (
-      <div className="space-y-6">
-        <SectionCard
-          title="No workout ready yet"
-          eyebrow="Workout"
-          description="Create a plan first, then your workouts will appear here."
-        >
-          <Link
-            href="/plans/new"
-            className="inline-flex rounded-full bg-coral px-5 py-3 text-sm font-semibold text-white"
-          >
-            Create Plan
-          </Link>
-        </SectionCard>
-      </div>
-    );
+    redirect("/onboarding" as Route);
   }
 
   return (
     <WorkoutFlow
-      workouts={data.workouts}
+      workouts={data.activePhaseWorkouts}
+      activePlan={data.activePlan}
+      recommendedWorkout={data.recommendedWorkout}
       selectedWorkout={data.selectedWorkout}
       initialStep={step === "check-in" ? "check-in" : "workout"}
       recentSessions={data.recentSessions}
       progressSummary={data.progressSummary}
+      phaseProgress={data.phaseProgress}
     />
   );
 }

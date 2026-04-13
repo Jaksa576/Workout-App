@@ -7,17 +7,17 @@ type AppLogoProps = {
 
 export function AppLogo({ className, iconClassName }: AppLogoProps) {
   return (
-    <span className={clsx("inline-flex items-center gap-3 text-left", className)}>
+    <span className={clsx("inline-flex items-center gap-2.5 text-left sm:gap-3", className)}>
       <span
         className={clsx(
-          "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-ink text-[#fffdf9] shadow-sm",
+          "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-ink text-[#fffdf9] shadow-sm sm:h-11 sm:w-11",
           iconClassName
         )}
         aria-hidden="true"
       >
         <svg
           viewBox="0 0 48 48"
-          className="h-8 w-8"
+          className="h-7 w-7 sm:h-8 sm:w-8"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
@@ -29,11 +29,11 @@ export function AppLogo({ className, iconClassName }: AppLogoProps) {
         </svg>
       </span>
       <span>
-        <span className="block font-display text-2xl leading-none text-ink">
+        <span className="block font-display text-xl leading-none text-ink sm:text-2xl">
           Workout App
         </span>
-        <span className="mt-1 block text-xs font-medium tracking-[0.04em] text-slate">
-          Personal workout planner
+        <span className="mt-1 block text-xs font-medium text-slate">
+          Workout planner
         </span>
       </span>
     </span>
