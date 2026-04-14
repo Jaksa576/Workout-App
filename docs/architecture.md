@@ -30,9 +30,9 @@ The current database and app model is:
 This model is still the right core engine:
 
 - A plan/program groups a longer training effort.
-- A phase is the stored DB concept for a progressive training segment.
-- The UI/product language is moving toward "Block", but the database still uses `plan_phases`.
-- Workouts belong to a phase/Block.
+- A phase is the stored DB concept and current UI term for a progressive training segment.
+- The database still uses `plan_phases` for compatibility.
+- Workouts belong to a phase.
 - Exercises belong to workouts.
 - Sessions/check-ins record what happened and keep history snapshots.
 - Progression logic uses recent sessions, completion, pain flags, effort, and phase snapshots to recommend advance, repeat, review, or deload/adjust decisions.
@@ -71,8 +71,8 @@ The engine should remain structured and adaptive. The app should not become a ge
 ### Concepts To Preserve
 
 - **Plans/programs:** Keep `workout_plans` as the top-level structure.
-- **Blocks:** Use "Block" in product/UI framing for progressive training segments, while keeping `plan_phases` in the DB for compatibility.
-- **Workouts:** Keep `workout_templates` as reusable planned sessions within a Block.
+- **Phases:** Use "Phase" in product/UI framing for progressive training segments, while keeping `plan_phases` in the DB for compatibility.
+- **Workouts:** Keep `workout_templates` as reusable planned sessions within a phase.
 - **Exercises:** Keep `exercise_entries` as the saved exercise prescription for a workout.
 - **Sessions/check-ins:** Keep `workout_sessions` and `exercise_results` as the history and progression signal source.
 - **Progression logic:** Keep server-side progression evaluation and explicit user-confirmed plan movement.
@@ -112,7 +112,7 @@ Plan creation should continue to save through `createStructuredPlanForUser` in `
 
 - Onboarding collects durable profile information.
 - `/plans/new` handles goal-specific plan setup and draft creation.
-- Product UI uses "Block" for progressive plan segments.
+- Product UI uses "Phase" for progressive plan segments.
 - Goal-aware draft templates improve exercise selection and plan structure.
 - Progression modes handle symptom-based, adherence-based, performance-based, and hybrid logic.
 

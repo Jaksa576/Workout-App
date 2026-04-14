@@ -302,7 +302,7 @@ function mapPlanFromBundle(
   const fallbackPhase: PlanPhase = {
     id: "missing-phase",
     phaseNumber: 1,
-    goal: "Create your first block goal.",
+    goal: "Create your first phase goal.",
     advanceCriteria: "Add advance criteria to begin progression tracking.",
     deloadCriteria: "Add deload criteria to guide pain or fatigue decisions.",
     advancementPreset: "clean_sessions_in_window",
@@ -364,7 +364,7 @@ function computeMetrics(
       {
         label: "Next decision",
         value: "Build first plan",
-        detail: "Start with one clear block and one repeatable workout."
+        detail: "Start with one clear phase and one repeatable workout."
       }
     ];
   }
@@ -400,11 +400,11 @@ function computeMetrics(
     },
     {
       label: "Next decision",
-      value: advanceReady >= 2 ? "Progress check" : "Repeat block",
+      value: advanceReady >= 2 ? "Progress check" : "Repeat phase",
       detail:
         advanceReady >= 2
           ? "You have enough clean sessions to consider moving forward."
-          : "Stay in the current block until more consistent successful sessions are logged."
+          : "Stay in the current phase until more consistent successful sessions are logged."
     }
   ];
 }

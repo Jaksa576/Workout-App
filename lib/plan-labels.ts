@@ -1,3 +1,3 @@
-export function formatBlockLabel(phaseNumber: number) {
-  return `Block ${phaseNumber}`;
+export function formatPhaseLabel(phaseNumber: number) {
+  return `Phase ${phaseNumber}`;
 }

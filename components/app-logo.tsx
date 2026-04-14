@@ -30,10 +30,10 @@ export function AppLogo({ className, iconClassName }: AppLogoProps) {
       </span>
       <span>
         <span className="block font-display text-xl leading-none text-ink sm:text-2xl">
-          Workout App
+          Adaptive Training
         </span>
         <span className="mt-1 block text-xs font-medium text-slate">
-          Workout planner
+          Structured plans that progress with you.
         </span>
       </span>
     </span>

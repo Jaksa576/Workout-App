@@ -6,7 +6,7 @@ import type { Route } from "next";
 import { PhaseProgressPanel } from "@/components/phase-progress-panel";
 import { TimerCard } from "@/components/timer-card";
 import { WorkoutChecklist } from "@/components/workout-checklist";
-import { formatBlockLabel } from "@/lib/plan-labels";
+import { formatPhaseLabel } from "@/lib/plan-labels";
 import { generateRecommendation } from "@/lib/recommendation";
 import { getTodayDateString } from "@/lib/validation";
 import type {
@@ -283,10 +283,10 @@ export function WorkoutFlow({
       <section className="rounded-[24px] bg-ink px-5 py-6 text-white shadow-card sm:rounded-[32px] sm:px-6 sm:py-8">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/70 sm:tracking-[0.22em]">Workout</p>
         <h1 className="mt-3 max-w-xl font-display text-3xl leading-tight text-balance sm:text-5xl">
-          Active block workouts
+          Active phase workouts
         </h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-white/78 sm:text-base">
-          Start the recommended session or choose another workout from this block.
+          Start the recommended session or choose another workout from this phase.
         </p>
       </section>
 
@@ -298,7 +298,7 @@ export function WorkoutFlow({
               {recommendedWorkout?.name ?? workout.name}
             </h2>
             <p className="mt-2 text-sm leading-6 text-slate">
-              {formatBlockLabel(activePlan.currentPhase.phaseNumber)}: {activePlan.currentPhase.goal}
+              {formatPhaseLabel(activePlan.currentPhase.phaseNumber)}: {activePlan.currentPhase.goal}
             </p>
           </div>
           {recommendedWorkout ? (
@@ -315,7 +315,7 @@ export function WorkoutFlow({
         {workouts.length > 1 ? (
           <label className="mt-5 block">
             <span className="text-sm font-semibold text-ink">
-              Other workouts in this block
+              Other workouts in this phase
             </span>
             <select
               value={workout.id}
@@ -530,7 +530,7 @@ export function WorkoutFlow({
                   {savedSession.progressionDecision === "advance" ? (
                     <div className="mt-4 rounded-3xl bg-coral/10 p-4">
                       <p className="text-sm font-semibold text-ink">
-                        You may be ready for the next block.
+                        You may be ready for the next phase.
                       </p>
                       <p className="mt-2 text-sm leading-6 text-slate">
                         Review the plan before moving forward.

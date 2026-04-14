@@ -1,6 +1,6 @@
-# Workout App
+# Adaptive Training
 
-Workout App is a mobile-first Progressive Web App for personal workout planning, tracking, and progression management. It guides new users through profile setup, helps them create goal-based structured plans, tracks block-based progression, and supports plan management for ongoing fitness goals.
+Adaptive Training is a mobile-first Progressive Web App for structured plans that progress with you. It guides new users through profile setup, helps them create goal-based training plans, tracks phase-based progression, and supports plan management for ongoing fitness goals.
 
 ## Built With
 
@@ -15,8 +15,8 @@ Workout App is a mobile-first Progressive Web App for personal workout planning,
 
 - **Onboarding Flow**: New users complete profile setup so plan creation can reuse durable training context.
 - **Guided Plan Setup**: Create goal-based plan drafts from `/plans/new`, review and edit them, then save when ready.
-- **Structured Plans**: Create multi-block plans with workouts, exercises, and preset progression rules.
-- **Block Progression**: Automatic evaluation of workout sessions for advancement, repeats, or deloads based on clean sessions and pain flags.
+- **Structured Plans**: Create multi-phase plans with workouts, exercises, and preset progression rules.
+- **Phase Progression**: Automatic evaluation of workout sessions for advancement, repeats, or deloads based on clean sessions and pain flags.
 - **Workout Tracking**: Log exercises, track progress, and view recommendations for next steps.
 - **Plan Management**: Edit plans, delete mistakes, activate different plans, and archive completed ones.
 - **Exercise Videos**: Add YouTube demo links to exercises for better guidance.
@@ -32,10 +32,10 @@ The app currently includes:
 - Dashboard with active plan and progress metrics
 - Plans listing and detail pages
 - Goal-based guided plan creation with review-before-save drafts
-- Plan creation with structured blocks and workouts
+- Plan creation with structured phases and workouts
 - Workout flow with recommendations and check-in
-- Block progress tracking and manual advancement
-- Plan management (activate, archive, delete blocks/workouts/exercises)
+- Phase progress tracking and manual advancement
+- Plan management (activate, archive, delete phases/workouts/exercises)
 - Exercise video link editing
 - Settings/profile page
 - Real Supabase-backed data loading
@@ -57,12 +57,12 @@ The app currently includes:
 - `app/api/onboarding/route.ts` - Onboarding API
 - `app/api/plans/route.ts` - Plan creation API
 - `app/api/sessions/route.ts` - Session logging API
-- `app/api/plans/[planId]/phase-action/route.ts` - Block advancement API; route name is kept for compatibility
+- `app/api/plans/[planId]/phase-action/route.ts` - Phase advancement API; route name is kept for compatibility
 
 ### Components
 - `components/onboarding-flow.tsx` - Onboarding UI
 - `components/workout-flow.tsx` - Workout UI
-- `components/phase-progress-panel.tsx` - Block progress display
+- `components/phase-progress-panel.tsx` - Phase progress display
 
 ### Libraries
 - `lib/data.ts` - Data loading helpers

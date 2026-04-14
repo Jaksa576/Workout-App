@@ -161,7 +161,7 @@ export async function POST(request: Request) {
         .eq("user_id", user.id);
 
       if (!updateSessionError && evaluation.decision === "advance" && evaluation.nextPhaseId) {
-        progression.reason = `${evaluation.reason} You can move to the next block when you are ready.`;
+        progression.reason = `${evaluation.reason} You can move to the next phase when you are ready.`;
       }
     }
   }

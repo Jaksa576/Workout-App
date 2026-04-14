@@ -4,7 +4,7 @@ import type { Route } from "next";
 import { SectionCard } from "@/components/section-card";
 import { getDashboardData, getProfile } from "@/lib/data";
 import { ProgressBadge } from "@/components/progress-badge";
-import { formatBlockLabel } from "@/lib/plan-labels";
+import { formatPhaseLabel } from "@/lib/plan-labels";
 
 export default async function HomePage() {
   const [dashboard, profile] = await Promise.all([getDashboardData(), getProfile()]);
@@ -31,7 +31,7 @@ export default async function HomePage() {
           Next up: {nextWorkout.name}
         </h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-white/78">
-          {formatBlockLabel(activePlan.currentPhase.phaseNumber)}: {activePlan.currentPhase.goal}
+          {formatPhaseLabel(activePlan.currentPhase.phaseNumber)}: {activePlan.currentPhase.goal}
         </p>
         <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link
@@ -114,10 +114,10 @@ export default async function HomePage() {
           <div className="space-y-3">
             <div className="rounded-[28px] bg-white/75 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate">
-                Active block
+                Active Phase
               </p>
               <p className="mt-2 text-lg font-semibold text-ink">
-                {formatBlockLabel(activePlan.currentPhase.phaseNumber)}
+                {formatPhaseLabel(activePlan.currentPhase.phaseNumber)}
               </p>
               <p className="mt-1 text-sm leading-6 text-slate">
                 {activePlan.currentPhase.goal}
@@ -125,7 +125,7 @@ export default async function HomePage() {
               {dashboard.phaseProgress ? (
                 <div className="mt-4">
                   <div className="flex items-center justify-between gap-3 text-sm">
-                    <p className="font-semibold text-ink">Block progress</p>
+                    <p className="font-semibold text-ink">Phase progress</p>
                     <p className="font-semibold text-ink">
                       {dashboard.phaseProgress.completionPercent}%
                     </p>

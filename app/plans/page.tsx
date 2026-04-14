@@ -4,7 +4,7 @@ import { SectionCard } from "@/components/section-card";
 import { getPlans } from "@/lib/data";
 import { ProgressBadge } from "@/components/progress-badge";
 import { PlanListActions } from "@/components/plan-list-actions";
-import { formatBlockLabel } from "@/lib/plan-labels";
+import { formatPhaseLabel } from "@/lib/plan-labels";
 
 export default async function PlansPage() {
   const plans = await getPlans();
@@ -55,7 +55,7 @@ export default async function PlansPage() {
                 label={
                   plan.completedAt
                     ? "Completed"
-                    : formatBlockLabel(plan.currentPhase.phaseNumber)
+                    : formatPhaseLabel(plan.currentPhase.phaseNumber)
                 }
                 tone="gold"
               />

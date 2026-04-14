@@ -101,7 +101,7 @@ function validateWorkout(workout: StructuredWorkoutInput) {
   const exercises = workout.exercises.map(validateExercise);
 
   if (!workout.name.trim()) {
-    throw new Error("Each block needs at least one named workout.");
+    throw new Error("Each phase needs at least one named workout.");
   }
 
   if (exercises.length === 0) {
@@ -121,7 +121,7 @@ function validatePhase(phase: StructuredPhaseInput) {
   const workouts = phase.workouts.map(validateWorkout);
 
   if (!phase.goal.trim()) {
-    throw new Error("Each block needs a clear goal.");
+    throw new Error("Each phase needs a clear goal.");
   }
 
   return {
@@ -199,7 +199,7 @@ export async function createStructuredPlanForUser({
       .single();
 
     if (phaseError || !phase) {
-      throw new Error(phaseError?.message ?? "Unable to create block.");
+      throw new Error(phaseError?.message ?? "Unable to create phase.");
     }
 
     firstPhaseId ??= phase.id;
@@ -249,7 +249,7 @@ export async function createStructuredPlanForUser({
       .eq("id", plan.id);
 
     if (currentPhaseError) {
-      throw new Error(currentPhaseError.message ?? "Unable to activate block.");
+      throw new Error(currentPhaseError.message ?? "Unable to activate phase.");
     }
   }
 

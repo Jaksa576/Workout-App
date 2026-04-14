@@ -2,7 +2,7 @@
 
 This roadmap tracks the practical implementation path for evolving the app from a recovery-first phased workout app into a goal-based adaptive training platform.
 
-The product should broaden the framing without replacing the engine. Keep structured plans/programs, progressive phases/Blocks, workouts, exercises, sessions/check-ins, and server-side progression logic.
+The product should broaden the framing without replacing the engine. Keep structured plans/programs, progressive phases, workouts, exercises, sessions/check-ins, and server-side progression logic.
 
 ## Near-Term Refactor Slices
 
@@ -38,36 +38,75 @@ Status: implemented locally.
 
 ## 4. UI Terminology Shift Toward Blocks
 
+Status: implemented locally, then refined by Slice 4.5.
+
+- Initially shifted user-facing plan segment language from "Phase" to "Block".
+- Kept database names such as `plan_phases` unchanged for compatibility.
+- Avoided broad internal renames.
+
+## 4.5. Terminology Refinement And Lightweight Branding Polish
+
 Status: implemented locally.
 
-- Update product/UI language from "Phase" to "Block" where user-facing.
-- Keep database names such as `plan_phases` unchanged for compatibility.
-- Avoid broad internal renames unless they are small and clearly reduce confusion.
+- Refine user-facing terminology back to concise "Phase" labels because "Block" was too vague in compact UI.
+- Keep `plan_phases`, `phase-action`, `currentPhase`, and phase-shaped payloads unchanged for compatibility.
+- Lightly update product framing to "Adaptive Training" with the subtitle "Structured plans that progress with you."
+- Keep this presentation-only: no schema, API, progression, draft-generation, or settings workflow changes.
 
-## 5. Goal-Aware Exercise Catalog And Draft Quality
+## 5A. Goal-Aware Templates, Richer Exercise Metadata, And Deterministic Defaults
 
 Status: next planned slice.
 
 - Expand catalog categories and tags for recovery, general fitness, strength, hypertrophy, running, sport performance, and consistency.
-- Improve template drafts by goal track, equipment, schedule, limitations, and profile data.
+- Improve deterministic template drafts by goal track, equipment, schedule, limitations, and profile data.
 - Use `source_exercise_id` to preserve traceability from catalog to saved plan exercises.
+- Keep the setup -> draft -> review/edit -> save contract unchanged.
 
-## 6. Progression Behavior Expansion
+## 5B. Profile/Settings And Guided Edit-Plan Workflow
 
 Status: planned.
 
-- Support symptom-based progression for recovery and rehab use cases.
-- Add adherence-based progression for consistency and general fitness.
-- Add performance-based progression for strength, hypertrophy, running, and sport performance where appropriate.
-- Add hybrid progression for goals that need both readiness/symptom checks and performance signals.
-- Keep explicit user-confirmed Block movement.
+- Add a user-facing profile/settings workflow for updating durable training context.
+- Add a guided edit-plan workflow for changing an existing plan without rebuilding onboarding.
+- Keep manual edits available for advanced users.
+- Preserve existing plan save paths and compatibility fields.
+
+## 6. Contextual Dashboard And Progression UX
+
+Status: planned.
+
+- Make dashboard copy and next-step prompts more contextual to the active goal, phase, and recent sessions.
+- Improve progression explanations so users understand why a phase should advance, repeat, or deload.
+- Keep explicit user-confirmed phase movement.
+
+## 7. Workout Execution UX
+
+Status: planned.
+
+- Improve in-session workout usability, logging flow, and check-in feedback.
+- Keep workout history snapshots readable after plan edits.
+- Avoid changing progression algorithms in this slice unless a narrow display change requires it.
+
+## 8. Exercise Media And Instruction Layer
+
+Status: planned.
+
+- Expand exercise instruction quality, video/demo surfaces, and coaching notes.
+- Keep the exercise catalog deterministic and editable through code until an admin/data workflow exists.
+
+## 9. Broader Polish And Branding
+
+Status: planned if still needed.
+
+- Revisit visual polish, naming, and brand expression after the core training quality and workflow slices are stronger.
+- Avoid doing broad branding work before deterministic plan quality improves.
 
 ## Later Product Work
 
 ## Read-Only Plan Sharing
 
 - Add public-safe share links for plan details only.
-- Shared pages can show plan, Block/phase, workout, exercise, and video-link information.
+- Shared pages can show plan, phase, workout, exercise, and video-link information.
 - Do not expose profile data, workout sessions, check-in notes, pain history, or progress data.
 - Prefer a sharing model that does not weaken private user RLS policies.
 
@@ -82,7 +121,7 @@ Status: planned.
 
 - Add richer session history and progress trend views.
 - Preserve workout and exercise snapshots so deleted plan structure remains readable in history.
-- Keep trend summaries tied to the active plan/Block when appropriate.
+- Keep trend summaries tied to the active plan and phase when appropriate.
 
 ## Deferred AI / LLM Drafting
 
@@ -104,4 +143,5 @@ When implemented:
 - Preserve recovery-first roots and symptom-aware progression as an important supported mode.
 - Keep manual plan creation available.
 - Keep Supabase auth and row-level security expectations intact.
+- Update `docs/current-task.md` to the next slice after each completed slice.
 - Update `docs/agent-handoff.md` after major implementation steps.

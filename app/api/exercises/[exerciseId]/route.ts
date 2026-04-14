@@ -53,7 +53,7 @@ export async function DELETE(
   }
 
   if (!phase) {
-    return NextResponse.json({ error: "Block not found." }, { status: 404 });
+    return NextResponse.json({ error: "Phase not found." }, { status: 404 });
   }
 
   const { data: plan, error: planError } = await supabase

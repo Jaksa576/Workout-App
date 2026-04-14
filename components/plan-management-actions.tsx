@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
-import { formatBlockLabel } from "@/lib/plan-labels";
+import { formatPhaseLabel } from "@/lib/plan-labels";
 import type { WorkoutPlan } from "@/lib/types";
 
 type DeleteTarget = "phase" | "workout" | "exercise" | "plan";
@@ -85,22 +85,22 @@ export function PlanManagementActions({ plan }: PlanManagementActionsProps) {
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <p className="text-xs uppercase tracking-[0.18em] text-slate">
-                    {formatBlockLabel(phase.phaseNumber)}
+                    {formatPhaseLabel(phase.phaseNumber)}
                   </p>
                   <p className="mt-2 font-semibold text-ink">{phase.goal}</p>
                 </div>
                 <button
                   type="button"
-                  onClick={() => runDelete("phase", phase.id, formatBlockLabel(phase.phaseNumber))}
+                  onClick={() => runDelete("phase", phase.id, formatPhaseLabel(phase.phaseNumber))}
                   disabled={phaseDeleteDisabled || workingId === phase.id || isPending}
                 className="rounded-full border border-coral/30 bg-white px-4 py-2 text-sm font-semibold text-coral transition hover:border-coral hover:bg-coral/5 disabled:opacity-45"
                 >
-                  {workingId === phase.id ? "Deleting..." : "Delete Block"}
+                  {workingId === phase.id ? "Deleting..." : "Delete Phase"}
                 </button>
               </div>
               {phaseDeleteDisabled ? (
                 <p className="mt-2 text-sm leading-6 text-slate">
-                  A plan needs at least one block.
+                  A plan needs at least one phase.
                 </p>
               ) : null}
 
@@ -129,7 +129,7 @@ export function PlanManagementActions({ plan }: PlanManagementActionsProps) {
                       </div>
                       {workoutDeleteDisabled ? (
                         <p className="mt-2 text-sm leading-6 text-slate">
-                          A block needs at least one workout.
+                          A phase needs at least one workout.
                         </p>
                       ) : null}
 
