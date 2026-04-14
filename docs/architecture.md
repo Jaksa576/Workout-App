@@ -81,7 +81,7 @@ The engine should remain structured and adaptive. The app should not become a ge
 
 - **Goal tracks:** Plan and profile metadata can describe recovery, general fitness, strength, hypertrophy, running, sport performance, or consistency.
 - **Progression modes:** Plans can use symptom-based, adherence-based, performance-based, or hybrid progression. The database field `workout_plans.progression_mode` is nullable and should be set by app code when enough context is available.
-- **Richer profile data:** The profile model is expanding beyond a single goal string to include durable training context such as age, weight, experience, activity level, training environment, exercise preferences/dislikes, sports/interests, and limitations detail.
+- **Richer profile data:** The profile model is expanding beyond a single goal string to include durable training context such as age, weight, experience, activity level, training environment, exercise preferences/dislikes, sports/interests, and limitations detail. This model may evolve: some currently stored fields, especially experience and activity level, may later be treated more like onboarding/setup context, plan-context inputs, or last-known context rather than permanent account settings.
 - **Plan drafting abstraction:** Plan drafts should flow through `lib/plan-drafting/plan-draft-provider.ts`. The current enabled path is template-based; LLM drafting remains disabled.
 - **Catalog traceability:** Catalog-backed exercises can use `source_exercise_id` so future catalog and substitution work can reason about where an exercise came from.
 
@@ -115,6 +115,7 @@ Plan creation should continue to save through `createStructuredPlanForUser` in `
 - Product UI uses "Phase" for progressive plan segments.
 - Goal-aware draft templates improve exercise selection and plan structure.
 - Progression modes handle symptom-based, adherence-based, performance-based, and hybrid logic.
+- Profile/settings field ownership may be refined over time as the product clarifies which data is durable account context versus plan-specific context.
 
 ### Deferred / Future
 

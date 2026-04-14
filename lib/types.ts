@@ -340,6 +340,8 @@ export type ProfileSetupInput = {
   weeklySchedule: Weekday[];
 };
 
+export type ProfileSettingsInput = Partial<Omit<ProfileSetupInput, "weeklySchedule">>;
+
 export type OnboardingInput = ProfileSetupInput & {
   goal: string;
   goalNotes: string;

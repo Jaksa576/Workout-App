@@ -64,12 +64,23 @@ Status: implemented locally.
 - Use `source_exercise_id` to preserve traceability from catalog to saved plan exercises.
 - Keep the setup -> draft -> review/edit -> save contract unchanged.
 
-## 5B. Profile/Settings And Guided Edit-Plan Workflow
+## 5B1. Profile/Settings Editing
+
+Status: implemented locally.
+
+- Add a user-facing profile/settings workflow for updating durable training context.
+- Keep settings separate from onboarding and plan-specific setup.
+- Let users explicitly clear optional profile fields from settings.
+- Reuse shared profile types, validation, and option labels where practical.
+- Follow-up candidate: improve settings field-level validation messaging for invalid values such as negative age or weight.
+- Future consideration: some currently durable profile fields, such as training experience and current activity level, may later be reclassified or simplified as onboarding/setup context, plan-specific context, or last-known context. This is not an active redesign yet.
+
+## 5B2. Guided Edit-Plan Workflow
 
 Status: next planned slice.
 
-- Add a user-facing profile/settings workflow for updating durable training context.
 - Add a guided edit-plan workflow for changing an existing plan without rebuilding onboarding.
+- Persist or reconstruct enough plan setup context to reopen guided plan configuration safely.
 - Keep manual edits available for advanced users.
 - Preserve existing plan save paths and compatibility fields.
 
@@ -104,6 +115,12 @@ Status: planned if still needed.
 - Avoid doing broad branding work before deterministic plan quality improves.
 
 ## Later Product Work
+
+## Profile Field Ownership
+
+- Revisit which profile fields should remain durable account settings versus plan-context or setup-time inputs.
+- Consider whether fields like training experience and current activity level should stay permanently user-editable in Settings, move into guided plan setup, or become last-known context used to seed future plans.
+- Do not treat this as blocking Slice 5B2 unless a future implementation plan explicitly says so.
 
 ## Read-Only Plan Sharing
 

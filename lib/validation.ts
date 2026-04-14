@@ -7,6 +7,7 @@ import type {
   PlanCreationSource,
   PlanPreferredSplit,
   PlanSetupInput,
+  ProfileSettingsInput,
   ProgressionMode,
   ProgressionSettings,
   StructuredPlanInput,
@@ -381,6 +382,54 @@ export function isOnboardingInput(value: unknown): value is OnboardingInput {
     input.weeklySchedule.every(isWeekday) &&
     typeof input.planSetupChoice === "string" &&
     planSetupChoices.includes(input.planSetupChoice)
+  );
+}
+
+export function isProfileSettingsInput(value: unknown): value is ProfileSettingsInput {
+  if (!isPlainRecord(value)) {
+    return false;
+  }
+
+  const input = value as Partial<ProfileSettingsInput>;
+  const allowedKeys = new Set([
+    "age",
+    "weight",
+    "trainingExperience",
+    "activityLevel",
+    "trainingEnvironment",
+    "limitationsDetail",
+    "injuries",
+    "equipment",
+    "exercisePreferences",
+    "exerciseDislikes",
+    "sportsInterests",
+    "daysPerWeek",
+    "sessionMinutes"
+  ]);
+
+  return (
+    Object.keys(input).every((key) => allowedKeys.has(key)) &&
+    isOptionalNullableIntegerInRange(input.age, 13, 120) &&
+    isOptionalNullablePositiveNumber(input.weight) &&
+    isOptionalNullableProfileEnum(input.trainingExperience, isTrainingExperience) &&
+    isOptionalNullableProfileEnum(input.activityLevel, isActivityLevel) &&
+    isOptionalNullableProfileEnum(input.trainingEnvironment, isTrainingEnvironment) &&
+    isOptionalString(input.limitationsDetail) &&
+    (input.injuries === undefined || isStringArray(input.injuries)) &&
+    (input.equipment === undefined || isStringArray(input.equipment)) &&
+    (input.exercisePreferences === undefined || isStringArray(input.exercisePreferences)) &&
+    (input.exerciseDislikes === undefined || isStringArray(input.exerciseDislikes)) &&
+    (input.sportsInterests === undefined || isStringArray(input.sportsInterests)) &&
+    (input.daysPerWeek === undefined ||
+      (typeof input.daysPerWeek === "number" &&
+        Number.isInteger(input.daysPerWeek) &&
+        input.daysPerWeek >= 1 &&
+        input.daysPerWeek <= 7)) &&
+    (input.sessionMinutes === undefined ||
+      (typeof input.sessionMinutes === "number" &&
+        Number.isInteger(input.sessionMinutes) &&
+        input.sessionMinutes >= 10 &&
+        input.sessionMinutes <= 180))
   );
 }
 

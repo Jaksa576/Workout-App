@@ -12,63 +12,18 @@ import type {
   TrainingExperience,
   Weekday
 } from "@/lib/types";
-
-const limitationAreas = ["Knee", "Hamstring", "Back", "Shoulder", "Ankle", "None right now"];
-const equipment = ["Bodyweight", "Dumbbells", "Bands", "Kettlebell", "Barbell", "Bench"];
-const exercisePreferenceOptions = [
-  "Strength training",
-  "Mobility",
-  "Running",
-  "Low-impact",
-  "Bodyweight",
-  "Short sessions"
-];
-const exerciseDislikeOptions = [
-  "Jumping",
-  "Running",
-  "Overhead work",
-  "Barbell lifts",
-  "Floor exercises",
-  "High-impact work"
-];
-const sportsInterestOptions = [
-  "Running",
-  "Cycling",
-  "Basketball",
-  "Soccer",
-  "Tennis",
-  "Hiking",
-  "Pickleball",
-  "General athletics"
-];
-const trainingExperienceOptions: Array<{ value: TrainingExperience; label: string }> = [
-  { value: "new", label: "New to training" },
-  { value: "returning", label: "Returning after time away" },
-  { value: "intermediate", label: "Training regularly" },
-  { value: "advanced", label: "Advanced or competitive" }
-];
-const activityLevelOptions: Array<{ value: ActivityLevel; label: string }> = [
-  { value: "mostly_sedentary", label: "Mostly sedentary" },
-  { value: "lightly_active", label: "Lightly active" },
-  { value: "moderately_active", label: "Moderately active" },
-  { value: "very_active", label: "Very active" }
-];
-const trainingEnvironmentOptions: Array<{ value: TrainingEnvironment; label: string }> = [
-  { value: "home", label: "Home" },
-  { value: "gym", label: "Gym" },
-  { value: "outdoors", label: "Outdoors" },
-  { value: "mixed", label: "Mixed" }
-];
-const weekdays: Array<{ value: Weekday; label: string }> = [
-  { value: "mon", label: "Mon" },
-  { value: "tue", label: "Tue" },
-  { value: "wed", label: "Wed" },
-  { value: "thu", label: "Thu" },
-  { value: "fri", label: "Fri" },
-  { value: "sat", label: "Sat" },
-  { value: "sun", label: "Sun" }
-];
-const sessionLengths = [30, 45, 60, 75];
+import {
+  activityLevelOptions,
+  equipmentOptions,
+  exerciseDislikeOptions,
+  exercisePreferenceOptions,
+  limitationAreas,
+  sessionLengths,
+  sportsInterestOptions,
+  trainingEnvironmentOptions,
+  trainingExperienceOptions,
+  weekdays
+} from "@/lib/profile-options";
 
 type Step = "welcome" | "basics" | "environment" | "limits" | "schedule" | "preferences" | "review";
 const steps: Array<{ id: Step; label: string }> = [
@@ -329,7 +284,7 @@ export function OnboardingFlow({ initialProfile = null }: OnboardingFlowProps) {
               <div>
                 <p className="text-sm font-semibold text-ink">Equipment you can usually use</p>
                 <div className="mt-3 flex flex-wrap gap-3">
-                  {equipment.map((item) => (
+                  {equipmentOptions.map((item) => (
                     <button
                       key={item}
                       type="button"

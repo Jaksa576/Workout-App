@@ -28,13 +28,14 @@ The approved refactor direction is additive and migration-safe:
 4. UI terminology shift toward "Blocks".
 4.5. Terminology refinement and lightweight branding polish.
 5A. Goal-aware templates, richer exercise metadata, and deterministic defaults.
-5B. Profile/settings and guided edit-plan workflow.
+5B1. Profile/settings editing.
+5B2. Guided edit-plan workflow.
 6. Contextual dashboard and progression UX.
 7. Workout execution UX.
 8. Exercise media and instruction layer.
 9. Broader polish/branding if still needed.
 
-Slices 1, 2, 3, 4, 4.5, and 5A are implemented locally. The next implementation slice is Slice 5B: profile/settings and guided edit-plan workflow.
+Slices 1, 2, 3, 4, 4.5, 5A, and 5B1 are implemented locally. The next major implementation slice is Slice 5B2: guided edit-plan workflow. A small Slice 5B1 follow-up patch may be needed first for profile/settings field-level validation messaging.
 
 ## Current Status
 
@@ -44,6 +45,8 @@ Slices 1, 2, 3, 4, 4.5, and 5A are implemented locally. The next implementation 
 - The lightweight working product frame is now "Adaptive Training" with the subtitle "Structured plans that progress with you."
 - Manual plan creation remains available and is now a secondary path from `/plans/new?mode=manual` or the guided setup toggle.
 - Guided plan creation is now review-before-save: `/plans/new` generates a draft, lets the user edit it, then saves through `/api/plans`.
+- Settings now has a real profile editing form for durable training context; onboarding remains separate from ongoing profile edits.
+- Slice 5B1 QA found that invalid settings values, such as negative age or weight, need clearer field-level validation guidance.
 - The app remains fully functional without any LLM provider.
 - The future LLM path should plug into the same setup -> draft -> review/edit -> save flow and never become the system of record.
 - Guided template drafts now have a stronger deterministic baseline by goal track before any LLM support exists.
@@ -160,6 +163,32 @@ Verification after Slice 5A:
 - `npm run test` passed.
 - `npm run typecheck` passed.
 
+## Slice 5B1 Completed Locally
+
+Slice 5B1 split profile/settings editing away from the guided edit-plan workflow and added a durable profile ownership surface:
+
+- replaced the read-only `/settings` summary with a client-side profile settings form
+- added `PATCH /api/profile` for authenticated profile updates without rerunning onboarding
+- added `ProfileSettingsInput`, settings validation, and a pure update-value mapper for partial profile updates
+- preserved the onboarding safeguard by keeping onboarding's "blank does not overwrite existing data" behavior unchanged
+- made settings PATCH behavior explicit: omitted fields are preserved, while submitted `null`, blank strings, or empty arrays are treated as intentional clears
+- extracted shared profile option lists into `lib/profile-options.ts` so onboarding and settings stay aligned
+- left `/plans/new`, plan drafting, progression behavior, schema, and LLM/provider integration unchanged
+- added Vitest coverage for settings validation and update-value mapping
+- updated `docs/current-task.md` and `docs/roadmap.md` to split 5B into 5B1 and 5B2
+
+Verification after Slice 5B1:
+
+- `npm run test` passed.
+- `npm run typecheck` passed.
+- `npm run build` passed.
+
+Post-QA findings after Slice 5B1:
+
+- Profile/settings editing works, but validation messaging needs a small follow-up UX patch so invalid values such as negative age or weight show clear field-level guidance.
+- Profile field ownership remains an open future product question. Training experience, current activity level, and similar fields are currently stored and editable as durable profile fields, but may later be treated as onboarding/setup inputs, plan-context inputs, or last-known context instead.
+- No redesign of the profile model has been implemented or approved yet.
+
 ## Schema Drift Recovery Status
 
 After Slice 2, localhost hit a runtime error because the Supabase project in `.env.local` was missing Slice 1 columns such as `profiles.primary_goal_type`.
@@ -184,20 +213,13 @@ Remaining recovery work:
 
 ## Next Best Step
 
-Manually verify the Slice 5A guided draft quality and retained plan-creation flows in a logged-in browser against a Supabase project with the current schema:
+If needed, make a small Slice 5B1 follow-up patch for profile/settings field-level validation messaging:
 
-- new user onboarding saves durable profile data and redirects to `/plans/new`
-- guided `/plans/new` draft generation works without LLM configuration
-- each goal track produces visibly different, credible draft content before save
-- running drafts include run/walk or easy-run work in the current exercise-style plan model
-- recovery drafts stay conservative and avoid obvious high-impact defaults
-- strength and hypertrophy drafts look like actual training plans rather than rehab-style templates
-- generated drafts are editable before save
-- generated plans save through `/api/plans` and appear in the plans list/detail pages
-- `/plans/new?mode=manual` still saves a manual plan
-- completed-profile users without a plan land on `/plans/new`, not back in onboarding
+- invalid values such as negative age or weight should show clear guidance near the relevant field
+- do not redesign the profile model as part of that patch
+- do not move fields between onboarding, settings, and plan setup unless explicitly scoped
 
-After browser verification, the next product slice is Slice 5B: profile/settings and guided edit-plan workflow.
+The next major product slice remains Slice 5B2: guided edit-plan workflow. That likely needs persisted or reconstructable plan setup context before an existing generated plan can be safely reopened for guided editing.
 
 ## Known Risks And Assumptions
 
@@ -205,7 +227,11 @@ After browser verification, the next product slice is Slice 5B: profile/settings
 - `workout_plans.progression_mode` is intentionally nullable at the database level; app code sets it when plan-goal context is available.
 - Slice 3 defaults progression mode from goal type and light profile/constraint context; it does not expand progression algorithms.
 - Ambiguous legacy profile goals should not be backfilled to `general_fitness`; only obvious goal text should receive `primary_goal_type`.
-- Slice 2 preserves existing non-null profile fields when submitted optional onboarding values are null, empty strings, or empty arrays; there is not yet an explicit profile-field clearing UI.
+- Slice 2 preserves existing non-null profile fields when submitted optional onboarding values are null, empty strings, or empty arrays; Slice 5B1 adds explicit clearing only through settings profile edits.
+- Slice 5B1 settings updates use partial PATCH semantics; omitted fields are preserved, while included empty values are intentional clears.
+- Slice 5B1 needs a small validation UX follow-up if settings field errors are not clear enough to the user.
+- Profile field ownership is not fully settled. Fields such as training experience and activity level may later move conceptually toward onboarding/setup context, plan-context inputs, or last-known context rather than permanent durable settings.
+- Slice 5B2 guided plan editing likely needs persisted or reconstructable setup context because current saved plans do not retain every guided setup answer.
 - Session save plus phase action updates are not fully atomic yet; a future SQL RPC would be stronger before broader public use.
 - Slice 4.5 intentionally did not rename `plan_phases`, `phase-action`, `currentPhase`, `PhaseProgressPanel`, `PhaseProgressSummary`, `PlanPhase`, `StructuredPhaseInput`, existing phase-shaped payload fields, route/file names, or progression algorithm terms used internally.
 - Slice 5A uses coarse deterministic filtering only; it is not a medical/PT rules engine and should not be treated as individualized clinical guidance.
@@ -216,6 +242,7 @@ After browser verification, the next product slice is Slice 5B: profile/settings
 - Saved phase/workout/exercise deletes are hard deletes from the live plan structure, so browser testing should confirm history snapshots remain readable.
 - Sessions with no recoverable phase snapshot do not count toward live phase progress.
 - Logged-in browser testing is still needed for onboarding, guided draft generation, generated draft edit/save with Phase terminology, manual plan creation, plan activation, deletion/archive behavior, and mobile layout.
+- Post-QA follow-up is still needed for settings/profile field-level validation messaging if not already patched.
 
 ## Important Files
 
@@ -224,17 +251,23 @@ After browser verification, the next product slice is Slice 5B: profile/settings
 - `components/plan-builder-form.tsx`
 - `app/api/plan-drafts/route.ts`
 - `app/api/plans/route.ts`
+- `app/api/profile/route.ts`
 - `app/api/onboarding/route.ts`
+- `app/settings/page.tsx`
 - `app/onboarding/page.tsx`
 - `app/page.tsx`
+- `components/profile-settings-form.tsx`
 - `lib/plan-write.ts`
 - `lib/starter-plan-generator.ts`
 - `lib/exercise-library.ts`
 - `lib/plan-drafting/plan-draft-provider.ts`
 - `lib/progression-mode.ts`
+- `lib/profile-options.ts`
+- `lib/profile-settings.ts`
 - `lib/plan-labels.ts`
 - `lib/types.ts`
 - `lib/validation.ts`
+- `lib/__tests__/profile-settings.test.ts`
 - `lib/__tests__/plan-drafting-foundation.test.ts`
 - `lib/data.ts`
 - `supabase/schema.sql`
@@ -272,6 +305,12 @@ Most recent Slice 4.5 verification:
 - `npm run build` passed.
 
 Most recent Slice 5A verification:
+
+- `npm run test` passed.
+- `npm run typecheck` passed.
+- `npm run build` passed.
+
+Most recent Slice 5B1 verification:
 
 - `npm run test` passed.
 - `npm run typecheck` passed.

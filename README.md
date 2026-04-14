@@ -37,7 +37,7 @@ The app currently includes:
 - Phase progress tracking and manual advancement
 - Plan management (activate, archive, delete phases/workouts/exercises)
 - Exercise video link editing
-- Settings/profile page
+- Settings/profile editing page
 - Real Supabase-backed data loading
 - API routes for onboarding, plans, sessions, and management
 - Static exercise catalog for guided plans
