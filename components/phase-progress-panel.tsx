@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
+import { formatBlockLabel } from "@/lib/plan-labels";
 import type { PhaseProgressSummary, WorkoutPlan } from "@/lib/types";
 
 type PhaseAction = "advance" | "force_advance" | "return_previous" | "complete_plan";
@@ -16,7 +17,7 @@ type PhaseProgressPanelProps = {
 
 function getPhaseName(plan: WorkoutPlan, phaseId: string | null) {
   const phase = plan.phases.find((item) => item.id === phaseId);
-  return phase ? `Phase ${phase.phaseNumber}` : null;
+  return phase ? formatBlockLabel(phase.phaseNumber) : null;
 }
 
 export function PhaseProgressPanel({
@@ -36,7 +37,7 @@ export function PhaseProgressPanel({
     if (
       action === "force_advance" &&
       !window.confirm(
-        "This phase has not met the criteria yet. Move to the next phase anyway?"
+        "This block has not met the criteria yet. Move to the next block anyway?"
       )
     ) {
       return;
@@ -44,7 +45,7 @@ export function PhaseProgressPanel({
 
     if (
       action === "return_previous" &&
-      !window.confirm("Return this plan to the previous phase?")
+      !window.confirm("Return this plan to the previous block?")
     ) {
       return;
     }
@@ -68,13 +69,13 @@ export function PhaseProgressPanel({
       const result = (await response.json()) as { error?: string };
 
       if (!response.ok) {
-        throw new Error(result.error ?? "Unable to update phase.");
+        throw new Error(result.error ?? "Unable to update block.");
       }
 
       setStatus("Plan updated.");
       startTransition(() => router.refresh());
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Unable to update phase.");
+      setStatus(error instanceof Error ? error.message : "Unable to update block.");
     } finally {
       setWorkingAction(null);
     }
@@ -82,9 +83,9 @@ export function PhaseProgressPanel({
 
   return (
     <section className="rounded-[24px] border border-white/70 bg-[#fffdf9]/85 p-5 shadow-card sm:rounded-[32px] sm:p-6">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate sm:tracking-[0.22em]">Phase progress</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate sm:tracking-[0.22em]">Block progress</p>
       <h2 className="mt-2 font-display text-2xl leading-tight text-ink sm:text-3xl">
-        Phase {plan.currentPhase.phaseNumber}
+        {formatBlockLabel(plan.currentPhase.phaseNumber)}
       </h2>
       <p className="mt-3 text-sm leading-6 text-slate">{progress.reason}</p>
 
@@ -124,7 +125,7 @@ export function PhaseProgressPanel({
         </p>
       ) : !isPlanMode && progress.canAdvance ? (
         <div className="mt-5 rounded-3xl bg-coral/10 p-4">
-          <p className="text-sm font-semibold text-ink">Ready to review the next phase.</p>
+          <p className="text-sm font-semibold text-ink">Ready to review the next block.</p>
           <p className="mt-2 text-sm leading-6 text-slate">
             You met the criteria. Review the plan before moving forward.
           </p>
@@ -137,7 +138,7 @@ export function PhaseProgressPanel({
         </div>
       ) : !isPlanMode ? (
         <p className="mt-5 rounded-3xl bg-white/70 px-4 py-3 text-sm leading-6 text-slate">
-          Keep logging workouts here. Manual phase changes live on the plan page.
+          Keep logging workouts here. Manual block changes live on the plan page.
         </p>
       ) : (
         <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">

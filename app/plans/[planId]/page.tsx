@@ -7,6 +7,7 @@ import { ExerciseVideoLinkEditor } from "@/components/exercise-video-link-editor
 import { PhaseProgressPanel } from "@/components/phase-progress-panel";
 import { PlanManagementActions } from "@/components/plan-management-actions";
 import { getWorkoutPageData } from "@/lib/data";
+import { formatBlockLabel } from "@/lib/plan-labels";
 
 export default async function PlanDetailPage({
   params
@@ -42,7 +43,7 @@ export default async function PlanDetailPage({
           </div>
           <div className="flex flex-wrap gap-3">
             <ProgressBadge
-              label={`Phase ${plan.currentPhase.phaseNumber}`}
+              label={formatBlockLabel(plan.currentPhase.phaseNumber)}
               tone="gold"
             />
             <ProgressBadge label={plan.currentPhase.goal} tone="green" />
@@ -52,7 +53,7 @@ export default async function PlanDetailPage({
 
       <section className="grid gap-4 lg:grid-cols-[1fr_1.2fr]">
         <SectionCard
-          title="Phase progression"
+          title="Block progression"
           eyebrow="Rules"
           description="Use these signals to decide when to progress, repeat, or deload."
         >
@@ -94,9 +95,9 @@ export default async function PlanDetailPage({
           </SectionCard>
         ) : (
           <SectionCard
-            title="No workouts in this phase yet"
+            title="No workouts in this block yet"
             eyebrow="Workout detail"
-            description="Add a workout to make this phase ready."
+            description="Add a workout to make this block ready."
           >
             <p className="text-sm leading-6 text-slate">
               Once the workout is added, its exercises will appear here.
@@ -123,7 +124,7 @@ export default async function PlanDetailPage({
         {plan.phases.map((phase) => (
           <SectionCard
             key={phase.id}
-            title={`Phase ${phase.phaseNumber}`}
+            title={formatBlockLabel(phase.phaseNumber)}
             eyebrow={phase.phaseNumber === plan.currentPhase.phaseNumber ? "Current" : "Upcoming"}
             description={phase.goal}
           >
@@ -131,7 +132,7 @@ export default async function PlanDetailPage({
               {activePhaseProgress && phase.id === activePhaseProgress.currentPhaseId ? (
                 <div className="rounded-3xl bg-coral/10 p-4">
                   <div className="flex items-center justify-between gap-3">
-                    <p className="font-semibold text-ink">Current phase progress</p>
+                    <p className="font-semibold text-ink">Current block progress</p>
                     <p className="font-semibold text-ink">
                       {activePhaseProgress.completionPercent}%
                     </p>

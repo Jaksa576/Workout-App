@@ -25,7 +25,7 @@ export async function POST(
   const body = (await request.json()) as { action?: unknown };
 
   if (!isPhaseAction(body.action)) {
-    return NextResponse.json({ error: "Choose a valid phase action." }, { status: 400 });
+    return NextResponse.json({ error: "Choose a valid block action." }, { status: 400 });
   }
 
   const supabase = await getSupabaseServerClient();
@@ -82,17 +82,17 @@ export async function POST(
     body.action === "return_previous" ? phaseProgress.previousPhaseId : null;
 
   if ((body.action === "advance" || body.action === "force_advance") && !nextPhaseId) {
-    return NextResponse.json({ error: "There is no next phase for this plan." }, { status: 400 });
+    return NextResponse.json({ error: "There is no next block for this plan." }, { status: 400 });
   }
 
   if (body.action === "return_previous" && !previousPhaseId) {
-    return NextResponse.json({ error: "There is no previous phase for this plan." }, { status: 400 });
+    return NextResponse.json({ error: "There is no previous block for this plan." }, { status: 400 });
   }
 
   if (body.action === "complete_plan") {
     if (!phaseProgress.canComplete) {
       return NextResponse.json(
-        { error: "Finish the final phase criteria before marking this plan complete." },
+        { error: "Finish the final block criteria before marking this plan complete." },
         { status: 400 }
       );
     }

@@ -29,13 +29,13 @@ The approved refactor direction is additive and migration-safe:
 5. Goal-aware exercise catalog and draft quality improvements.
 6. Progression behavior expansion.
 
-Slices 1, 2, and 3 are implemented locally. The next implementation slice is Slice 4: the scoped UI terminology shift toward "Blocks", while keeping database names such as `plan_phases` unchanged.
+Slices 1, 2, 3, and 4 are implemented locally. The next implementation slice is Slice 5: goal-aware exercise catalog and draft quality improvements.
 
 ## Current Status
 
-- The current app already has Supabase auth, onboarding, plan creation, structured plans with phases/workouts/exercises, session tracking, server-side progression evaluation, explicit phase advancement, plan activation, archive/delete management, and YouTube demo links.
+- The current app already has Supabase auth, onboarding, plan creation, structured plans with user-facing Blocks/workouts/exercises, session tracking, server-side progression evaluation, explicit Block advancement, plan activation, archive/delete management, and YouTube demo links.
 - The database engine still uses `workout_plans -> plan_phases -> workout_templates -> exercise_entries -> workout_sessions`.
-- Product/UI language is moving toward "Blocks", but the database has not been renamed; `plan_phases` remains the compatibility layer.
+- Product/UI language now uses "Blocks" in the main plan, workout, progress, and manual-builder surfaces, but the database has not been renamed; `plan_phases` remains the compatibility layer.
 - Manual plan creation remains available and is now a secondary path from `/plans/new?mode=manual` or the guided setup toggle.
 - Guided plan creation is now review-before-save: `/plans/new` generates a draft, lets the user edit it, then saves through `/api/plans`.
 - The app remains fully functional without any LLM provider.
@@ -96,6 +96,25 @@ Verification after Slice 3:
 - `npm run typecheck` passed.
 - `npm run build` passed.
 
+## Slice 4 Completed Locally
+
+Slice 4 made the user-facing terminology shift from "Phase" to "Block" as a scoped presentation-only pass:
+
+- added `lib/plan-labels.ts` with a tiny `formatBlockLabel(phaseNumber)` display helper
+- updated the dashboard, plans list, plan detail page, workout flow, phase progress panel, manual plan builder, and plan management controls so visible labels and action copy use "Block"
+- updated user-visible progression/session/write-path messages that are rendered in the UI or surfaced as API errors
+- kept internal compatibility names unchanged, including `plan_phases`, `phase-action`, `currentPhase`, `PhaseProgressPanel`, phase-shaped TypeScript payloads, route/file names, and progression algorithms/enums/semantics
+- lightly updated README product wording so it reflects onboarding/profile setup, guided `/plans/new` plan drafts, and block-based progression
+- updated `docs/current-task.md` to point to Slice 5 and added a maintenance note to advance it after each completed slice
+- updated `docs/roadmap.md` so Slice 4 is implemented locally and Slice 5 is next
+
+Verification after Slice 4:
+
+- Terminology search was run to separate remaining internal/API/database names from user-facing copy.
+- `npm run test` passed.
+- `npm run typecheck` passed.
+- `npm run build` passed.
+
 ## Schema Drift Recovery Status
 
 After Slice 2, localhost hit a runtime error because the Supabase project in `.env.local` was missing Slice 1 columns such as `profiles.primary_goal_type`.
@@ -129,7 +148,7 @@ Manually verify Slice 3 in a logged-in browser against a Supabase project with t
 - `/plans/new?mode=manual` still saves a manual plan
 - completed-profile users without a plan land on `/plans/new`, not back in onboarding
 
-After browser verification, the next product slice is Slice 4: user-facing terminology shift toward "Blocks" while leaving database/internal table names intact.
+After browser verification, the next product slice is Slice 5: goal-aware exercise catalog and draft quality improvements while preserving the existing setup -> draft -> review/edit -> save contract.
 
 ## Known Risks And Assumptions
 
@@ -139,11 +158,12 @@ After browser verification, the next product slice is Slice 4: user-facing termi
 - Ambiguous legacy profile goals should not be backfilled to `general_fitness`; only obvious goal text should receive `primary_goal_type`.
 - Slice 2 preserves existing non-null profile fields when submitted optional onboarding values are null, empty strings, or empty arrays; there is not yet an explicit profile-field clearing UI.
 - Session save plus phase action updates are not fully atomic yet; a future SQL RPC would be stronger before broader public use.
+- Slice 4 intentionally did not rename `plan_phases`, `phase-action`, `currentPhase`, `PhaseProgressPanel`, existing phase-shaped payload fields, route/file names, or progression algorithm terms used internally.
 - Existing old plans use default structured rule settings and keep old text criteria for display.
 - The starter exercise catalog is static TypeScript data for now, not an admin-editable database table.
 - Saved phase/workout/exercise deletes are hard deletes from the live plan structure, so browser testing should confirm history snapshots remain readable.
 - Sessions with no recoverable phase snapshot do not count toward live phase progress.
-- Logged-in browser testing is still needed for onboarding, guided draft generation, manual plan creation, plan activation, deletion/archive behavior, and mobile layout.
+- Logged-in browser testing is still needed for onboarding, guided draft generation, generated draft edit/save with Block terminology, manual plan creation, plan activation, deletion/archive behavior, and mobile layout.
 
 ## Important Files
 
@@ -160,6 +180,7 @@ After browser verification, the next product slice is Slice 4: user-facing termi
 - `lib/exercise-library.ts`
 - `lib/plan-drafting/plan-draft-provider.ts`
 - `lib/progression-mode.ts`
+- `lib/plan-labels.ts`
 - `lib/types.ts`
 - `lib/validation.ts`
 - `lib/data.ts`
@@ -183,11 +204,18 @@ Most recent Slice 3 verification:
 - `npm run typecheck` passed on April 13, 2026.
 - `npm run build` passed on April 13, 2026.
 
+Most recent Slice 4 verification:
+
+- Terminology search run locally; remaining `phase`/`Phase` hits are internal compatibility names, docs context, or unused mock data.
+- `npm run test` passed.
+- `npm run typecheck` passed.
+- `npm run build` passed.
+
 Manual browser verification still needed:
 
 - fresh auth and onboarding/profile creation
 - guided draft generation and retry/error states
-- generated draft edit and save
+- generated draft edit and save, including visible Block terminology in the review builder
 - manual `/plans/new?mode=manual` save
 - dashboard, workout, and onboarding redirects when the user has a profile but no plan
 - mobile layout usability

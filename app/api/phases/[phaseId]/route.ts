@@ -25,7 +25,7 @@ export async function DELETE(
   }
 
   if (!phase) {
-    return NextResponse.json({ error: "Phase not found." }, { status: 404 });
+    return NextResponse.json({ error: "Block not found." }, { status: 404 });
   }
 
   const { data: plan, error: planError } = await supabase
@@ -55,7 +55,7 @@ export async function DELETE(
 
   if (!phases || phases.length <= 1) {
     return NextResponse.json(
-      { error: "A plan needs at least one phase." },
+      { error: "A plan needs at least one block." },
       { status: 400 }
     );
   }

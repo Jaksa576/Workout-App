@@ -38,7 +38,7 @@ Status: implemented locally.
 
 ## 4. UI Terminology Shift Toward Blocks
 
-Status: planned.
+Status: implemented locally.
 
 - Update product/UI language from "Phase" to "Block" where user-facing.
 - Keep database names such as `plan_phases` unchanged for compatibility.
@@ -46,7 +46,7 @@ Status: planned.
 
 ## 5. Goal-Aware Exercise Catalog And Draft Quality
 
-Status: planned.
+Status: next planned slice.
 
 - Expand catalog categories and tags for recovery, general fitness, strength, hypertrophy, running, sport performance, and consistency.
 - Improve template drafts by goal track, equipment, schedule, limitations, and profile data.

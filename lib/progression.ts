@@ -5,6 +5,7 @@ import type {
   WorkoutPlan,
   WorkoutSession
 } from "@/lib/types";
+import { formatBlockLabel } from "@/lib/plan-labels";
 
 type EvaluationInput = {
   plan: WorkoutPlan;
@@ -136,7 +137,7 @@ export function evaluatePhaseProgression({
       return {
         decision: "deload",
         recommendation: "Pain trend needs review",
-        reason: `${painFlags} pain flags in the last ${painWindowDays} days. Stay in this phase and review the plan before progressing.`,
+        reason: `${painFlags} pain flags in the last ${painWindowDays} days. Stay in this block and review the plan before progressing.`,
         nextPhaseId: null
       };
     }
@@ -155,7 +156,7 @@ export function evaluatePhaseProgression({
     return {
       decision: "repeat",
       recommendation: "Tough workout, repeat before progressing",
-      reason: "The latest workout felt too hard. Repeat this phase until it feels controlled.",
+      reason: "The latest workout felt too hard. Repeat this block until it feels controlled.",
       nextPhaseId: null
     };
   }
@@ -179,8 +180,8 @@ export function evaluatePhaseProgression({
   if (cleanSessionCount >= neededSessions && nextPhase) {
     return {
       decision: "advance",
-      recommendation: `Ready for Phase ${nextPhase.phaseNumber}`,
-      reason: `${advanceReason} You met the phase progression target.`,
+      recommendation: `Ready for ${formatBlockLabel(nextPhase.phaseNumber)}`,
+      reason: `${advanceReason} You met the block progression target.`,
       nextPhaseId: nextPhase.id
     };
   }
@@ -190,13 +191,13 @@ export function evaluatePhaseProgression({
     recommendation:
       cleanSessionCount >= neededSessions
         ? "Ready to complete this plan"
-        : "Keep going with this phase",
+        : "Keep going with this block",
     reason:
       cleanSessionCount >= neededSessions
-        ? `${advanceReason} You met the final phase target.`
+        ? `${advanceReason} You met the final block target.`
         : nextPhase
-          ? `${advanceReason} Keep building consistency before moving to Phase ${nextPhase.phaseNumber}.`
-          : `${advanceReason} This is the final planned phase, so keep using it while it fits.`,
+          ? `${advanceReason} Keep building consistency before moving to ${formatBlockLabel(nextPhase.phaseNumber)}.`
+          : `${advanceReason} This is the final planned block, so keep using it while it fits.`,
     nextPhaseId: null
   };
 }

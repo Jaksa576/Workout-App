@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import type { ReactNode } from "react";
 import { exerciseCatalog, exerciseCategories, toPlanExercise } from "@/lib/exercise-library";
+import { formatBlockLabel } from "@/lib/plan-labels";
 import type {
   AdvancementPreset,
   DeloadPreset,
@@ -23,7 +24,7 @@ type Step = "basics" | "schedule" | "phases" | "workouts" | "criteria" | "review
 const steps: Array<{ id: Step; label: string }> = [
   { id: "basics", label: "Basics" },
   { id: "schedule", label: "Schedule" },
-  { id: "phases", label: "Phases" },
+  { id: "phases", label: "Blocks" },
   { id: "workouts", label: "Workouts" },
   { id: "criteria", label: "Progression" },
   { id: "review", label: "Review" }
@@ -121,7 +122,7 @@ export function PlanBuilderForm({
   const [name, setName] = useState(initialPlan?.name ?? "Starter Workout Plan");
   const [description, setDescription] = useState(
     initialPlan?.description ??
-      "A clear plan with phases, repeatable workouts, and simple progression rules."
+      "A clear plan with blocks, repeatable workouts, and simple progression rules."
   );
   const [goalType] = useState<TrainingGoalType | null>(initialPlan?.goalType ?? null);
   const [progressionMode] = useState<ProgressionMode | null>(
@@ -342,17 +343,19 @@ export function PlanBuilderForm({
           {phases.map((phase, phaseIndex) => (
             <div key={phaseIndex} className="rounded-[24px] bg-white/70 p-4 sm:rounded-[28px]">
               <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm font-semibold text-ink">Phase {phaseIndex + 1}</p>
+                <p className="text-sm font-semibold text-ink">
+                  {formatBlockLabel(phaseIndex + 1)}
+                </p>
                 <button
                   type="button"
                   onClick={() => deletePhase(phaseIndex)}
                   disabled={phases.length <= 1}
                   className="rounded-full border border-coral/30 bg-white px-4 py-2 text-sm font-semibold text-coral transition hover:border-coral hover:bg-coral/5 disabled:opacity-45"
                 >
-                  Delete Phase
+                  Delete Block
                 </button>
               </div>
-              <Field label={`Phase ${phaseIndex + 1} goal`}>
+              <Field label={`${formatBlockLabel(phaseIndex + 1)} goal`}>
                 <input
                   value={phase.goal}
                   onChange={(event) =>
@@ -363,7 +366,7 @@ export function PlanBuilderForm({
               </Field>
               {phases.length <= 1 ? (
                 <p className="mt-3 text-sm leading-6 text-slate">
-                  A plan needs at least one phase.
+                  A plan needs at least one block.
                 </p>
               ) : null}
             </div>
@@ -373,7 +376,7 @@ export function PlanBuilderForm({
             onClick={() => setPhases((current) => [...current, makePhase({ goal: "Progress the plan with control." })])}
             className="w-full rounded-full border border-ink/10 bg-white px-5 py-3 text-sm font-semibold text-ink transition hover:border-coral hover:text-coral sm:w-auto"
           >
-            Add Phase
+            Add Block
           </button>
         </div>
       ) : null}
@@ -406,7 +409,9 @@ export function PlanBuilderForm({
 
           {phases.map((phase, phaseIndex) => (
             <div key={phaseIndex} className="space-y-4">
-              <h3 className="font-display text-2xl text-ink">Phase {phaseIndex + 1}</h3>
+              <h3 className="font-display text-2xl text-ink">
+                {formatBlockLabel(phaseIndex + 1)}
+              </h3>
               {phase.workouts.map((workout, workoutIndex) => (
                 <div key={workoutIndex} className="rounded-[24px] border border-ink/5 bg-white/70 p-4 sm:rounded-[28px]">
                   <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -628,7 +633,7 @@ export function PlanBuilderForm({
                 }
                 className="w-full rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-ink/90 sm:w-auto"
               >
-                Add Workout to Phase {phaseIndex + 1}
+                Add Workout to {formatBlockLabel(phaseIndex + 1)}
               </button>
             </div>
           ))}
@@ -639,7 +644,9 @@ export function PlanBuilderForm({
         <div className="space-y-4">
           {phases.map((phase, phaseIndex) => (
             <div key={phaseIndex} className="rounded-[24px] bg-white/70 p-4 sm:rounded-[28px]">
-              <h3 className="font-display text-xl text-ink sm:text-2xl">Phase {phaseIndex + 1}</h3>
+              <h3 className="font-display text-xl text-ink sm:text-2xl">
+                {formatBlockLabel(phaseIndex + 1)}
+              </h3>
               <div className="mt-4 grid gap-4 md:grid-cols-2">
                 <Field label="Advance when">
                   <select
@@ -726,7 +733,9 @@ export function PlanBuilderForm({
           </div>
           {phases.map((phase, index) => (
             <div key={index} className="rounded-[24px] bg-white/70 p-5 sm:rounded-[28px]">
-              <p className="font-semibold text-ink">Phase {index + 1}: {phase.goal}</p>
+              <p className="font-semibold text-ink">
+                {formatBlockLabel(index + 1)}: {phase.goal}
+              </p>
               <p className="mt-2 text-sm leading-6 text-slate">
                 {phase.workouts.length} workouts,{" "}
                 {phase.workouts.reduce((total, workout) => total + workout.exercises.length, 0)} exercises.
