@@ -1,11 +1,31 @@
 import { describe, expect, it } from "vitest";
+import { exerciseCatalog, getCatalogExercise } from "@/lib/exercise-library";
 import { getPlanDraftProvider } from "@/lib/plan-drafting/plan-draft-provider";
 import {
   inferTrainingGoalTypeFromText,
   selectDefaultProgressionMode
 } from "@/lib/progression-mode";
-import type { PlanDraftInput, PlanSetupInput, StructuredPlanInput } from "@/lib/types";
-import { isPlanSetupInput, isStructuredPlanInput } from "@/lib/validation";
+import type {
+  PlanDraftInput,
+  PlanSetupInput,
+  StructuredPlanInput,
+  TrainingGoalType
+} from "@/lib/types";
+import {
+  isPlanSetupInput,
+  isStructuredPlanInput,
+  isTrainingGoalType
+} from "@/lib/validation";
+
+const goalTracks: TrainingGoalType[] = [
+  "recovery",
+  "general_fitness",
+  "strength",
+  "hypertrophy",
+  "running",
+  "sport_performance",
+  "consistency"
+];
 
 const basePlanSetupInput: PlanSetupInput = {
   goalType: "strength",
@@ -31,6 +51,65 @@ const baseDraftInput: PlanDraftInput = {
   }
 };
 
+function makeDraftInput(
+  goalType: TrainingGoalType,
+  overrides: Partial<PlanDraftInput> = {}
+): PlanDraftInput {
+  return {
+    ...baseDraftInput,
+    ...overrides,
+    setup: {
+      ...baseDraftInput.setup,
+      goalType,
+      preferredSplit:
+        goalType === "running"
+          ? "run_strength"
+          : goalType === "recovery"
+            ? "mobility_strength"
+            : "full_body",
+      focusAreas: goalType === "sport_performance" ? ["court sport"] : ["lower body"],
+      ...(overrides.setup ?? {})
+    },
+    profile: {
+      ...baseDraftInput.profile!,
+      ...(overrides.profile ?? {})
+    }
+  };
+}
+
+async function createDraft(
+  goalType: TrainingGoalType,
+  overrides: Partial<PlanDraftInput> = {}
+) {
+  const provider = getPlanDraftProvider("template");
+  return provider.createDraft(makeDraftInput(goalType, overrides));
+}
+
+function getExerciseNames(plan: StructuredPlanInput) {
+  return plan.phases.flatMap((phase) =>
+    phase.workouts.flatMap((workout) =>
+      workout.exercises.map((exercise) => exercise.name.toLowerCase())
+    )
+  );
+}
+
+function getExerciseText(plan: StructuredPlanInput) {
+  return getExerciseNames(plan).join(" ");
+}
+
+function getWorkoutCounts(plan: StructuredPlanInput) {
+  return plan.phases.map((phase) => phase.workouts.length);
+}
+
+function getCatalogItems(plan: StructuredPlanInput) {
+  return plan.phases
+    .flatMap((phase) => phase.workouts.flatMap((workout) => workout.exercises))
+    .map((exercise) =>
+      exercise.sourceExerciseId ? getCatalogExercise(exercise.sourceExerciseId) : null
+    )
+    .filter((exercise): exercise is NonNullable<typeof exercise> => Boolean(exercise));
+}
+
 describe("plan draft foundation", () => {
   it("creates a valid structured plan from the template draft provider", async () => {
     const provider = getPlanDraftProvider("template");
@@ -43,6 +122,18 @@ describe("plan draft foundation", () => {
     expect(result.plan.creationSource).toBe("guided_template");
     expect(result.plan.goalType).toBe("strength");
     expect(result.plan.progressionMode).toBe("performance_based");
+  });
+
+  it("creates valid structured plans for every goal track", async () => {
+    for (const goalType of goalTracks) {
+      const result = await createDraft(goalType);
+
+      expect(isStructuredPlanInput(result.plan), goalType).toBe(true);
+      expect(result.plan.goalType).toBe(goalType);
+      expect(result.plan.creationSource).toBe("guided_template");
+      expect(result.plan.phases).toHaveLength(2);
+      expect(result.plan.phases.every((phase) => phase.workouts.length > 0)).toBe(true);
+    }
   });
 
   it("keeps the LLM draft provider unavailable", async () => {
@@ -80,9 +171,7 @@ describe("plan draft foundation", () => {
   });
 
   it("uses profile constraints when selecting draft progression mode", async () => {
-    const provider = getPlanDraftProvider("template");
-    const result = await provider.createDraft({
-      ...baseDraftInput,
+    const result = await createDraft("strength", {
       profile: {
         ...baseDraftInput.profile!,
         injuries: ["Knee"]
@@ -91,6 +180,107 @@ describe("plan draft foundation", () => {
 
     expect(result.plan.goalType).toBe("strength");
     expect(result.plan.progressionMode).toBe("hybrid");
+  });
+
+  it("preserves minimum goal fidelity in generated drafts", async () => {
+    const running = await createDraft("running");
+    const recovery = await createDraft("recovery");
+    const strength = await createDraft("strength", {
+      profile: { ...baseDraftInput.profile!, equipment: ["Bodyweight", "Dumbbells", "Barbell"] }
+    });
+    const hypertrophy = await createDraft("hypertrophy", {
+      profile: { ...baseDraftInput.profile!, equipment: ["Bodyweight", "Dumbbells"] }
+    });
+    const consistency = await createDraft("consistency");
+
+    expect(getExerciseText(running.plan)).toMatch(/run\/walk intervals|easy run/);
+    expect(
+      getCatalogItems(recovery.plan).some((exercise) =>
+        exercise.cautionTags.includes("impact")
+      )
+    ).toBe(false);
+    expect(getExerciseText(strength.plan)).toMatch(/squat|deadlift|row|press/);
+    expect(getExerciseText(hypertrophy.plan)).toMatch(/lateral raise|curl|floor press/);
+    expect(
+      consistency.plan.phases.every((phase) =>
+        phase.workouts.every((workout) => workout.exercises.length <= 3)
+      )
+    ).toBe(true);
+  });
+
+  it("uses bounded draft shapes by goal, frequency, and split", async () => {
+    const recovery = await createDraft("recovery", {
+      setup: { ...basePlanSetupInput, goalType: "recovery", daysPerWeek: 5 }
+    });
+    const running = await createDraft("running", {
+      setup: { ...basePlanSetupInput, goalType: "running", preferredSplit: "run_strength" }
+    });
+    const strengthFullBody = await createDraft("strength", {
+      setup: { ...basePlanSetupInput, goalType: "strength", daysPerWeek: 3 }
+    });
+    const strengthUpperLower = await createDraft("strength", {
+      setup: {
+        ...basePlanSetupInput,
+        goalType: "strength",
+        daysPerWeek: 4,
+        weeklySchedule: ["mon", "tue", "thu", "fri"],
+        preferredSplit: "upper_lower"
+      }
+    });
+
+    expect(getWorkoutCounts(recovery.plan)).toEqual([2, 2]);
+    expect(getWorkoutCounts(running.plan)).toEqual([3, 3]);
+    expect(getWorkoutCounts(strengthFullBody.plan)).toEqual([3, 3]);
+    expect(getWorkoutCounts(strengthUpperLower.plan)).toEqual([4, 4]);
+  });
+
+  it("uses equipment, dislikes, and coarse constraints when selecting exercises", async () => {
+    const noSquatDraft = await createDraft("strength", {
+      profile: {
+        ...baseDraftInput.profile!,
+        equipment: ["Bodyweight"],
+        exerciseDislikes: ["squat"]
+      }
+    });
+    const noJumpingDraft = await createDraft("sport_performance", {
+      setup: {
+        ...basePlanSetupInput,
+        goalType: "sport_performance",
+        currentConstraints: ["No jumping right now"]
+      },
+      profile: {
+        ...baseDraftInput.profile!,
+        sportsInterests: ["Tennis"]
+      }
+    });
+
+    expect(getExerciseText(noSquatDraft.plan)).not.toContain("squat");
+    expect(
+      getCatalogItems(noSquatDraft.plan).every((exercise) =>
+        exercise.equipmentTags.includes("Bodyweight")
+      )
+    ).toBe(true);
+    expect(getExerciseText(noJumpingDraft.plan)).not.toContain("skater hop");
+  });
+
+  it("has complete deterministic metadata for catalog entries used by templates", () => {
+    const ids = new Set<string>();
+
+    for (const exercise of exerciseCatalog) {
+      expect(exercise.id).toBeTruthy();
+      expect(ids.has(exercise.id), exercise.id).toBe(false);
+      ids.add(exercise.id);
+      expect(exercise.name).toBeTruthy();
+      expect(exercise.category).toBeTruthy();
+      expect(exercise.movementPattern).toBeTruthy();
+      expect(exercise.equipmentTags.length, exercise.id).toBeGreaterThan(0);
+      expect(exercise.goalTags.length, exercise.id).toBeGreaterThan(0);
+      expect(exercise.goalTags.every(isTrainingGoalType), exercise.id).toBe(true);
+      expect(exercise.difficultyTier).toBeTruthy();
+      expect(Array.isArray(exercise.cautionTags), exercise.id).toBe(true);
+      expect(Array.isArray(exercise.traitTags), exercise.id).toBe(true);
+      expect(Array.isArray(exercise.preferenceTags), exercise.id).toBe(true);
+    }
   });
 
   it("validates goal and progression mode metadata on structured plans", () => {

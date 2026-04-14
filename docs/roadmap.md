@@ -55,16 +55,18 @@ Status: implemented locally.
 
 ## 5A. Goal-Aware Templates, Richer Exercise Metadata, And Deterministic Defaults
 
-Status: next planned slice.
+Status: implemented locally.
 
 - Expand catalog categories and tags for recovery, general fitness, strength, hypertrophy, running, sport performance, and consistency.
 - Improve deterministic template drafts by goal track, equipment, schedule, limitations, and profile data.
+- Use a bounded set of deterministic draft shapes rather than open-ended variation.
+- Keep running sessions represented as exercise-like plan items until a later running-specific domain model exists.
 - Use `source_exercise_id` to preserve traceability from catalog to saved plan exercises.
 - Keep the setup -> draft -> review/edit -> save contract unchanged.
 
 ## 5B. Profile/Settings And Guided Edit-Plan Workflow
 
-Status: planned.
+Status: next planned slice.
 
 - Add a user-facing profile/settings workflow for updating durable training context.
 - Add a guided edit-plan workflow for changing an existing plan without rebuilding onboarding.

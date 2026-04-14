@@ -34,7 +34,7 @@ The approved refactor direction is additive and migration-safe:
 8. Exercise media and instruction layer.
 9. Broader polish/branding if still needed.
 
-Slices 1, 2, 3, 4, and 4.5 are implemented locally. The next implementation slice is Slice 5A: goal-aware templates, richer exercise metadata, and deterministic defaults.
+Slices 1, 2, 3, 4, 4.5, and 5A are implemented locally. The next implementation slice is Slice 5B: profile/settings and guided edit-plan workflow.
 
 ## Current Status
 
@@ -46,6 +46,7 @@ Slices 1, 2, 3, 4, and 4.5 are implemented locally. The next implementation slic
 - Guided plan creation is now review-before-save: `/plans/new` generates a draft, lets the user edit it, then saves through `/api/plans`.
 - The app remains fully functional without any LLM provider.
 - The future LLM path should plug into the same setup -> draft -> review/edit -> save flow and never become the system of record.
+- Guided template drafts now have a stronger deterministic baseline by goal track before any LLM support exists.
 
 ## Slice 1 Completed Locally
 
@@ -139,6 +140,26 @@ Verification after Slice 4.5:
 - `npm run typecheck` passed.
 - `npm run build` passed.
 
+## Slice 5A Completed Locally
+
+Slice 5A improved deterministic guided draft quality without changing schema, API routes, provider strategy, or the `/plans/new` review/edit/save flow:
+
+- expanded `lib/exercise-library.ts` from a tiny rehab-leaning catalog into richer static metadata for movement pattern, goal tags, difficulty tier, caution tags, traits, and preference tags
+- added enough deterministic catalog entries to support recovery, general fitness, strength, hypertrophy, running, sport performance, and consistency drafts
+- refactored `lib/starter-plan-generator.ts` around the approved bounded draft shapes: `simple_foundation`, `balanced_3_day`, `strength_full_body`, `upper_lower`, and `run_strength`
+- added explicit goal-aware draft structures so running plans include run/walk or easy-run work, recovery plans stay conservative, strength/hypertrophy plans use real training patterns, sport performance includes lateral/athletic support, and consistency stays simple
+- added coarse deterministic selection for available equipment, exercise dislikes, profile limitations, plan constraints, and preference/sport context
+- kept running sessions represented as exercise-like plan items such as "Run/walk intervals" and "Easy run"; this is a temporary model compromise, not the long-term running design
+- kept `getPlanDraftProvider("template")` as the guided generation path and left the LLM provider unavailable
+- expanded Vitest coverage for all goal tracks, structure differences, goal fidelity, filtering behavior, metadata completeness, validation, and LLM unavailability
+- updated `docs/current-task.md` so the next active implementation slice is Slice 5B
+- updated `docs/roadmap.md` so Slice 5A is implemented locally and Slice 5B is next
+
+Verification after Slice 5A:
+
+- `npm run test` passed.
+- `npm run typecheck` passed.
+
 ## Schema Drift Recovery Status
 
 After Slice 2, localhost hit a runtime error because the Supabase project in `.env.local` was missing Slice 1 columns such as `profiles.primary_goal_type`.
@@ -163,18 +184,20 @@ Remaining recovery work:
 
 ## Next Best Step
 
-Manually verify the Slice 4.5 presentation pass and the retained Slice 3 plan-creation flows in a logged-in browser against a Supabase project with the current schema:
+Manually verify the Slice 5A guided draft quality and retained plan-creation flows in a logged-in browser against a Supabase project with the current schema:
 
 - new user onboarding saves durable profile data and redirects to `/plans/new`
 - guided `/plans/new` draft generation works without LLM configuration
+- each goal track produces visibly different, credible draft content before save
+- running drafts include run/walk or easy-run work in the current exercise-style plan model
+- recovery drafts stay conservative and avoid obvious high-impact defaults
+- strength and hypertrophy drafts look like actual training plans rather than rehab-style templates
 - generated drafts are editable before save
 - generated plans save through `/api/plans` and appear in the plans list/detail pages
 - `/plans/new?mode=manual` still saves a manual plan
 - completed-profile users without a plan land on `/plans/new`, not back in onboarding
-- dashboard, plans list, plan detail, workout flow, and guided draft review use visible Phase wording
-- compact/mobile badges, cards, headers, and progress surfaces fit the Phase wording cleanly
 
-After browser verification, the next product slice is Slice 5A: goal-aware templates, richer exercise metadata, and better deterministic defaults while preserving the existing setup -> draft -> review/edit -> save contract.
+After browser verification, the next product slice is Slice 5B: profile/settings and guided edit-plan workflow.
 
 ## Known Risks And Assumptions
 
@@ -185,6 +208,9 @@ After browser verification, the next product slice is Slice 5A: goal-aware templ
 - Slice 2 preserves existing non-null profile fields when submitted optional onboarding values are null, empty strings, or empty arrays; there is not yet an explicit profile-field clearing UI.
 - Session save plus phase action updates are not fully atomic yet; a future SQL RPC would be stronger before broader public use.
 - Slice 4.5 intentionally did not rename `plan_phases`, `phase-action`, `currentPhase`, `PhaseProgressPanel`, `PhaseProgressSummary`, `PlanPhase`, `StructuredPhaseInput`, existing phase-shaped payload fields, route/file names, or progression algorithm terms used internally.
+- Slice 5A uses coarse deterministic filtering only; it is not a medical/PT rules engine and should not be treated as individualized clinical guidance.
+- Running drafts still model run/walk and easy-run sessions as exercise entries because the app does not yet have a dedicated running-session domain model.
+- Goal-aware template quality is stronger, but the static catalog remains intentionally small and code-owned until a later catalog/admin workflow exists.
 - Existing old plans use default structured rule settings and keep old text criteria for display.
 - The starter exercise catalog is static TypeScript data for now, not an admin-editable database table.
 - Saved phase/workout/exercise deletes are hard deletes from the live plan structure, so browser testing should confirm history snapshots remain readable.
@@ -209,6 +235,7 @@ After browser verification, the next product slice is Slice 5A: goal-aware templ
 - `lib/plan-labels.ts`
 - `lib/types.ts`
 - `lib/validation.ts`
+- `lib/__tests__/plan-drafting-foundation.test.ts`
 - `lib/data.ts`
 - `supabase/schema.sql`
 - `supabase/migrations/20260413120000_training_profile_and_progression_mode.sql`
@@ -244,10 +271,17 @@ Most recent Slice 4.5 verification:
 - `npm run typecheck` passed.
 - `npm run build` passed.
 
+Most recent Slice 5A verification:
+
+- `npm run test` passed.
+- `npm run typecheck` passed.
+- `npm run build` passed.
+
 Manual browser verification still needed:
 
 - fresh auth and onboarding/profile creation
 - guided draft generation and retry/error states
+- generated draft quality across recovery, general fitness, strength, hypertrophy, running, sport performance, and consistency
 - generated draft edit and save, including visible Phase terminology in the review builder
 - compact/mobile UI for badges, cards, headers, and progress surfaces with the Phase wording
 - manual `/plans/new?mode=manual` save
