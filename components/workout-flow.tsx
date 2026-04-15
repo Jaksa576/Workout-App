@@ -6,6 +6,7 @@ import type { Route } from "next";
 import { PhaseProgressPanel } from "@/components/phase-progress-panel";
 import { TimerCard } from "@/components/timer-card";
 import { WorkoutChecklist } from "@/components/workout-checklist";
+import { formatPhaseLabel } from "@/lib/plan-labels";
 import { generateRecommendation } from "@/lib/recommendation";
 import { getTodayDateString } from "@/lib/validation";
 import type {
@@ -297,7 +298,7 @@ export function WorkoutFlow({
               {recommendedWorkout?.name ?? workout.name}
             </h2>
             <p className="mt-2 text-sm leading-6 text-slate">
-              Phase {activePlan.currentPhase.phaseNumber}: {activePlan.currentPhase.goal}
+              {formatPhaseLabel(activePlan.currentPhase.phaseNumber)}: {activePlan.currentPhase.goal}
             </p>
           </div>
           {recommendedWorkout ? (

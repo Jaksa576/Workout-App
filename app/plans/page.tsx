@@ -4,6 +4,7 @@ import { SectionCard } from "@/components/section-card";
 import { getPlans } from "@/lib/data";
 import { ProgressBadge } from "@/components/progress-badge";
 import { PlanListActions } from "@/components/plan-list-actions";
+import { formatPhaseLabel } from "@/lib/plan-labels";
 
 export default async function PlansPage() {
   const plans = await getPlans();
@@ -51,7 +52,11 @@ export default async function PlansPage() {
             >
             <div className="flex flex-wrap items-center gap-3">
               <ProgressBadge
-                label={plan.completedAt ? "Completed" : `Phase ${plan.currentPhase.phaseNumber}`}
+                label={
+                  plan.completedAt
+                    ? "Completed"
+                    : formatPhaseLabel(plan.currentPhase.phaseNumber)
+                }
                 tone="gold"
               />
               <ProgressBadge label={plan.currentPhase.goal} tone="green" />

@@ -1,6 +1,6 @@
-# Workout App
+# Adaptive Training
 
-Workout App is a mobile-first Progressive Web App for personal workout planning, tracking, and progression management. It guides new users through onboarding to create structured workout plans, tracks phase-based progression, and supports plan management for ongoing fitness goals.
+Adaptive Training is a mobile-first Progressive Web App for structured plans that progress with you. It guides new users through profile setup, helps them create goal-based training plans, tracks phase-based progression, and supports plan management for ongoing fitness goals.
 
 ## Built With
 
@@ -13,11 +13,13 @@ Workout App is a mobile-first Progressive Web App for personal workout planning,
 
 ## Features
 
-- **Onboarding Flow**: New users complete guided setup to create personalized starter plans based on goals, equipment, and schedule.
+- **Onboarding Flow**: New users complete profile setup so plan creation can reuse durable training context.
+- **Guided Plan Setup**: Create goal-based plan drafts from `/plans/new`, review and edit them, then save when ready.
+- **Guided Setup Regeneration**: Reopen saved plan setup context for an existing plan, regenerate a draft, review it, and save back to the same plan.
 - **Structured Plans**: Create multi-phase plans with workouts, exercises, and preset progression rules.
 - **Phase Progression**: Automatic evaluation of workout sessions for advancement, repeats, or deloads based on clean sessions and pain flags.
 - **Workout Tracking**: Log exercises, track progress, and view recommendations for next steps.
-- **Plan Management**: Edit plans, delete mistakes, activate different plans, and archive completed ones.
+- **Plan Management**: Activate plans, delete mistakes, archive completed ones, and use advanced/manual structure edits when needed.
 - **Exercise Videos**: Add YouTube demo links to exercises for better guidance.
 - **Mobile-First UI**: Responsive design optimized for phones and tablets.
 
@@ -30,12 +32,14 @@ The app currently includes:
 - Onboarding page for new users
 - Dashboard with active plan and progress metrics
 - Plans listing and detail pages
+- Goal-based guided plan creation with review-before-save drafts
+- Guided setup regeneration for existing plans with review-before-save drafts
 - Plan creation with structured phases and workouts
 - Workout flow with recommendations and check-in
 - Phase progress tracking and manual advancement
 - Plan management (activate, archive, delete phases/workouts/exercises)
 - Exercise video link editing
-- Settings/profile page
+- Settings/profile editing page
 - Real Supabase-backed data loading
 - API routes for onboarding, plans, sessions, and management
 - Static exercise catalog for guided plans
@@ -55,12 +59,12 @@ The app currently includes:
 - `app/api/onboarding/route.ts` - Onboarding API
 - `app/api/plans/route.ts` - Plan creation API
 - `app/api/sessions/route.ts` - Session logging API
-- `app/api/plans/[planId]/phase-action/route.ts` - Phase advancement API
+- `app/api/plans/[planId]/phase-action/route.ts` - Phase advancement API; route name is kept for compatibility
 
 ### Components
 - `components/onboarding-flow.tsx` - Onboarding UI
 - `components/workout-flow.tsx` - Workout UI
-- `components/phase-progress-panel.tsx` - Progress display
+- `components/phase-progress-panel.tsx` - Phase progress display
 
 ### Libraries
 - `lib/data.ts` - Data loading helpers
@@ -80,11 +84,18 @@ The app expects these environment variables:
 ```
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
+NEXT_PUBLIC_SITE_URL=https://workout-app-seven-delta.vercel.app
 ```
 
 For local development, place them in `.env.local`.
 
 For Vercel, add them in the Vercel project's Environment Variables settings.
+
+In Supabase Auth URL Configuration, set the Site URL and add this redirect URL for email confirmations:
+
+```
+https://workout-app-seven-delta.vercel.app/
+```
 
 ## Database Schema
 
@@ -164,7 +175,7 @@ Before deploying, confirm:
 
 - `package.json` uses Next.js 16.2.3 or newer
 - `package-lock.json` is committed after dependency updates
-- Vercel has the same Supabase environment variables: `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- Vercel has the same Supabase environment variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `NEXT_PUBLIC_SITE_URL`
 - The GitHub repo points to the correct project root
 
 Commit and push:

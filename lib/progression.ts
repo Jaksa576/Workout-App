@@ -5,6 +5,7 @@ import type {
   WorkoutPlan,
   WorkoutSession
 } from "@/lib/types";
+import { formatPhaseLabel } from "@/lib/plan-labels";
 
 type EvaluationInput = {
   plan: WorkoutPlan;
@@ -179,7 +180,7 @@ export function evaluatePhaseProgression({
   if (cleanSessionCount >= neededSessions && nextPhase) {
     return {
       decision: "advance",
-      recommendation: `Ready for Phase ${nextPhase.phaseNumber}`,
+      recommendation: `Ready for ${formatPhaseLabel(nextPhase.phaseNumber)}`,
       reason: `${advanceReason} You met the phase progression target.`,
       nextPhaseId: nextPhase.id
     };
@@ -195,7 +196,7 @@ export function evaluatePhaseProgression({
       cleanSessionCount >= neededSessions
         ? `${advanceReason} You met the final phase target.`
         : nextPhase
-          ? `${advanceReason} Keep building consistency before moving to Phase ${nextPhase.phaseNumber}.`
+          ? `${advanceReason} Keep building consistency before moving to ${formatPhaseLabel(nextPhase.phaseNumber)}.`
           : `${advanceReason} This is the final planned phase, so keep using it while it fits.`,
     nextPhaseId: null
   };

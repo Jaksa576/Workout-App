@@ -1,6 +1,8 @@
 import { getSupabaseServerClient } from "@/lib/supabase-server";
+import { selectDefaultProgressionMode } from "@/lib/progression-mode";
 import type {
   PlanFormInput,
+  PlanSetupInput,
   StructuredExerciseInput,
   StructuredPhaseInput,
   StructuredPlanInput,
@@ -91,7 +93,8 @@ function validateExercise(exercise: StructuredExerciseInput) {
     reps: exercise.reps.trim(),
     rest: exercise.rest.trim(),
     coachingNote: exercise.coachingNote.trim(),
-    videoUrl
+    videoUrl,
+    sourceExerciseId: exercise.sourceExerciseId?.trim() || null
   };
 }
 
@@ -129,56 +132,34 @@ function validatePhase(phase: StructuredPhaseInput) {
   };
 }
 
-export async function createStructuredPlanForUser({
-  supabase,
-  userId,
-  input
-}: {
-  supabase: SupabaseServerClient;
-  userId: string;
-  input: StructuredPlanInput;
-}) {
+function validateStructuredPlan(input: StructuredPlanInput) {
   const phases = input.phases.map(validatePhase);
 
   if (!input.name.trim()) {
     throw new Error("Plan name is required.");
   }
 
-  const { data: existingPlans } = await supabase
-    .from("workout_plans")
-    .select("id, is_active")
-    .eq("user_id", userId)
-    .eq("is_active", true)
-    .is("archived_at", null)
-    .limit(1);
+  return phases;
+}
 
-  const hasExistingActivePlan = Boolean(existingPlans?.some((plan) => plan.is_active));
-
-  const { data: plan, error: planError } = await supabase
-    .from("workout_plans")
-    .insert({
-      user_id: userId,
-      name: input.name.trim(),
-      description: input.description.trim(),
-      schedule_summary: formatWeeklySchedule(input.weeklySchedule),
-      weekly_schedule: input.weeklySchedule,
-      is_active: !hasExistingActivePlan
-    })
-    .select("id")
-    .single();
-
-  if (planError || !plan) {
-    throw new Error(planError?.message ?? "Unable to create plan.");
-  }
-
+async function insertPlanStructure({
+  supabase,
+  planId,
+  phases
+}: {
+  supabase: SupabaseServerClient;
+  planId: string;
+  phases: ReturnType<typeof validatePhase>[];
+}) {
   let firstPhaseId: string | null = null;
+  const phaseIdsByNumber = new Map<number, string>();
 
   for (const [phaseIndex, phaseInput] of phases.entries()) {
     const criteria = getPresetSummary(phaseInput);
     const { data: phase, error: phaseError } = await supabase
       .from("plan_phases")
       .insert({
-        plan_id: plan.id,
+        plan_id: planId,
         phase_number: phaseIndex + 1,
         goal: phaseInput.goal,
         advance_criteria: criteria.advanceCriteria,
@@ -196,6 +177,7 @@ export async function createStructuredPlanForUser({
     }
 
     firstPhaseId ??= phase.id;
+    phaseIdsByNumber.set(phaseIndex + 1, phase.id);
 
     for (const [workoutIndex, workoutInput] of phaseInput.workouts.entries()) {
       const { data: workout, error: workoutError } = await supabase
@@ -224,6 +206,7 @@ export async function createStructuredPlanForUser({
           rest: exercise.rest,
           coaching_note: exercise.coachingNote,
           video_url: exercise.videoUrl || null,
+          source_exercise_id: exercise.sourceExerciseId,
           sort_order: exerciseIndex + 1
         }))
       );
@@ -234,6 +217,116 @@ export async function createStructuredPlanForUser({
     }
   }
 
+  return { firstPhaseId, phaseIdsByNumber };
+}
+
+async function snapshotExistingPlanHistory({
+  supabase,
+  userId,
+  workoutIds
+}: {
+  supabase: SupabaseServerClient;
+  userId: string;
+  workoutIds: string[];
+}) {
+  if (!workoutIds.length) {
+    return;
+  }
+
+  const { data: workouts, error: workoutsError } = await supabase
+    .from("workout_templates")
+    .select("id, name")
+    .in("id", workoutIds);
+
+  if (workoutsError) {
+    throw new Error(workoutsError.message);
+  }
+
+  for (const workout of workouts ?? []) {
+    const { error } = await supabase
+      .from("workout_sessions")
+      .update({ workout_name_snapshot: workout.name })
+      .eq("user_id", userId)
+      .eq("workout_template_id", workout.id);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+  }
+
+  const { data: exercises, error: exercisesError } = await supabase
+    .from("exercise_entries")
+    .select("id, name")
+    .in("workout_template_id", workoutIds);
+
+  if (exercisesError) {
+    throw new Error(exercisesError.message);
+  }
+
+  for (const exercise of exercises ?? []) {
+    const { error } = await supabase
+      .from("exercise_results")
+      .update({ exercise_name_snapshot: exercise.name })
+      .eq("exercise_entry_id", exercise.id);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+  }
+}
+
+export async function createStructuredPlanForUser({
+  supabase,
+  userId,
+  input,
+  setupContext = null
+}: {
+  supabase: SupabaseServerClient;
+  userId: string;
+  input: StructuredPlanInput;
+  setupContext?: PlanSetupInput | null;
+}) {
+  const phases = validateStructuredPlan(input);
+
+  const { data: existingPlans } = await supabase
+    .from("workout_plans")
+    .select("id, is_active")
+    .eq("user_id", userId)
+    .eq("is_active", true)
+    .is("archived_at", null)
+    .limit(1);
+
+  const hasExistingActivePlan = Boolean(existingPlans?.some((plan) => plan.is_active));
+  const progressionMode =
+    input.progressionMode ?? selectDefaultProgressionMode(input.goalType ?? null);
+
+  const { data: plan, error: planError } = await supabase
+    .from("workout_plans")
+    .insert({
+      user_id: userId,
+      name: input.name.trim(),
+      description: input.description.trim(),
+      goal_type: input.goalType ?? null,
+      progression_mode: progressionMode,
+      creation_source: input.creationSource ?? "manual",
+      setup_context: setupContext,
+      schedule_summary: formatWeeklySchedule(input.weeklySchedule),
+      weekly_schedule: input.weeklySchedule,
+      is_active: !hasExistingActivePlan
+    })
+    .select("id")
+    .single();
+
+  if (planError || !plan) {
+    throw new Error(planError?.message ?? "Unable to create plan.");
+  }
+
+  const { firstPhaseId } = await insertPlanStructure({
+    supabase,
+    planId: plan.id,
+    phases
+  });
+
   if (firstPhaseId) {
     const { error: currentPhaseError } = await supabase
       .from("workout_plans")
@@ -243,6 +336,117 @@ export async function createStructuredPlanForUser({
     if (currentPhaseError) {
       throw new Error(currentPhaseError.message ?? "Unable to activate phase.");
     }
+  }
+
+  return { id: plan.id };
+}
+
+export async function updateStructuredPlanForUser({
+  supabase,
+  userId,
+  planId,
+  input,
+  setupContext = null
+}: {
+  supabase: SupabaseServerClient;
+  userId: string;
+  planId: string;
+  input: StructuredPlanInput;
+  setupContext?: PlanSetupInput | null;
+}) {
+  const phases = validateStructuredPlan(input);
+  const { data: plan, error: planError } = await supabase
+    .from("workout_plans")
+    .select("id, current_phase_id")
+    .eq("id", planId)
+    .eq("user_id", userId)
+    .is("archived_at", null)
+    .maybeSingle();
+
+  if (planError) {
+    throw new Error(planError.message);
+  }
+
+  if (!plan) {
+    throw new Error("Plan not found.");
+  }
+
+  const { data: existingPhases, error: phasesError } = await supabase
+    .from("plan_phases")
+    .select("id, phase_number")
+    .eq("plan_id", plan.id)
+    .order("phase_number", { ascending: true });
+
+  if (phasesError) {
+    throw new Error(phasesError.message);
+  }
+
+  const oldCurrentPhaseNumber =
+    existingPhases?.find((phase) => phase.id === plan.current_phase_id)?.phase_number ?? 1;
+  const existingPhaseIds = (existingPhases ?? []).map((phase) => phase.id);
+
+  if (existingPhaseIds.length) {
+    const { data: existingWorkouts, error: workoutsError } = await supabase
+      .from("workout_templates")
+      .select("id")
+      .in("phase_id", existingPhaseIds);
+
+    if (workoutsError) {
+      throw new Error(workoutsError.message);
+    }
+
+    await snapshotExistingPlanHistory({
+      supabase,
+      userId,
+      workoutIds: (existingWorkouts ?? []).map((workout) => workout.id)
+    });
+  }
+
+  const { error: resetCurrentPhaseError } = await supabase
+    .from("workout_plans")
+    .update({ current_phase_id: null })
+    .eq("id", plan.id)
+    .eq("user_id", userId);
+
+  if (resetCurrentPhaseError) {
+    throw new Error(resetCurrentPhaseError.message);
+  }
+
+  const { error: deletePhasesError } = await supabase
+    .from("plan_phases")
+    .delete()
+    .eq("plan_id", plan.id);
+
+  if (deletePhasesError) {
+    throw new Error(deletePhasesError.message);
+  }
+
+  const { firstPhaseId, phaseIdsByNumber } = await insertPlanStructure({
+    supabase,
+    planId: plan.id,
+    phases
+  });
+  const progressionMode =
+    input.progressionMode ?? selectDefaultProgressionMode(input.goalType ?? null);
+  const currentPhaseId = phaseIdsByNumber.get(oldCurrentPhaseNumber) ?? firstPhaseId;
+  const { error: updatePlanError } = await supabase
+    .from("workout_plans")
+    .update({
+      name: input.name.trim(),
+      description: input.description.trim(),
+      goal_type: input.goalType ?? null,
+      progression_mode: progressionMode,
+      creation_source: input.creationSource ?? "manual",
+      setup_context: setupContext,
+      schedule_summary: formatWeeklySchedule(input.weeklySchedule),
+      weekly_schedule: input.weeklySchedule,
+      current_phase_id: currentPhaseId
+    })
+    .eq("id", plan.id)
+    .eq("user_id", userId);
+
+  if (updatePlanError) {
+    throw new Error(updatePlanError.message);
   }
 
   return { id: plan.id };

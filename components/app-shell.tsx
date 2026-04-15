@@ -33,7 +33,7 @@ export function AppShell({
             <Link
               href="/"
               className="inline-flex rounded-2xl outline-none transition focus-visible:ring-2 focus-visible:ring-coral focus-visible:ring-offset-2 focus-visible:ring-offset-mist"
-              aria-label="Workout App dashboard"
+              aria-label="Adaptive Training dashboard"
             >
               <AppLogo />
             </Link>

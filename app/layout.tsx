@@ -4,8 +4,8 @@ import { AppShell } from "@/components/app-shell";
 import { getCurrentUser } from "@/lib/auth";
 
 export const metadata: Metadata = {
-  title: "Workout App",
-  description: "Personal workout planning and progression tracking on your phone.",
+  title: "Adaptive Training",
+  description: "Structured plans that progress with you.",
   manifest: "/manifest.webmanifest",
   icons: {
     icon: "/icon-192.svg",

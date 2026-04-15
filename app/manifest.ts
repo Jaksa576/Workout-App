@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Workout App",
-    short_name: "Workout App",
-    description: "A mobile-first workout planner with progression tracking.",
+    name: "Adaptive Training",
+    short_name: "Adaptive Training",
+    description: "Structured plans that progress with you.",
     start_url: "/",
     display: "standalone",
     background_color: "#fffdf9",

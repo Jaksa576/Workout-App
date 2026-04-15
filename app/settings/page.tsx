@@ -1,64 +1,51 @@
+import Link from "next/link";
+import type { Route } from "next";
+import { ProfileSettingsForm } from "@/components/profile-settings-form";
 import { SectionCard } from "@/components/section-card";
+import { requireUser } from "@/lib/auth";
 import { getProfile } from "@/lib/data";
 
 export default async function SettingsPage() {
+  await requireUser();
   const profile = await getProfile();
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-5xl space-y-6">
       <section>
         <p className="text-sm uppercase tracking-[0.24em] text-slate">
           Profile settings
         </p>
         <h1 className="mt-2 font-display text-4xl text-ink">
-          Personal details that shape your plan.
+          Keep your training profile current.
         </h1>
+        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate">
+          These details help future guided plans account for your availability, equipment,
+          preferences, and limitations.
+        </p>
       </section>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <SectionCard
-          title="Training profile"
-          eyebrow="Inputs"
-          description="These details help personalize your workout plans."
-        >
-          {profile ? (
-            <div className="space-y-4 text-sm text-slate">
-              <p>
-                <span className="font-semibold text-ink">Goal:</span>{" "}
-                {profile.goal}
-              </p>
-              <p>
-                <span className="font-semibold text-ink">Available days:</span>{" "}
-                {profile.daysPerWeek} per week
-              </p>
-              <p>
-                <span className="font-semibold text-ink">Equipment:</span>{" "}
-                {profile.equipment.length > 0 ? profile.equipment.join(", ") : "Not set yet"}
-              </p>
-              <p>
-                <span className="font-semibold text-ink">Session length:</span>{" "}
-                {profile.sessionMinutes} minutes
-              </p>
-            </div>
-          ) : (
+      <SectionCard
+        title="Training profile"
+        eyebrow="Profile"
+        description="Update your reusable training context without going back through onboarding."
+      >
+        {profile ? (
+          <ProfileSettingsForm profile={profile} />
+        ) : (
+          <div className="space-y-4">
             <p className="text-sm leading-6 text-slate">
-              Your profile details will appear here after your account is ready.
+              Your profile is not ready yet. Complete profile setup first, then return here
+              for ongoing edits.
             </p>
-          )}
-        </SectionCard>
-
-        <SectionCard
-          title="Coming Soon"
-          eyebrow="Up next"
-          description="Useful additions to make planning easier over time."
-        >
-          <ul className="space-y-3 text-sm leading-6 text-slate">
-            <li>Read-only plan sharing for friends</li>
-            <li>AI-assisted workout plan drafts</li>
-            <li>Exercise substitutions when pain or equipment changes</li>
-          </ul>
-        </SectionCard>
-      </div>
+            <Link
+              href={"/onboarding" as Route}
+              className="inline-flex rounded-full bg-coral px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#f95a2b]"
+            >
+              Complete Profile Setup
+            </Link>
+          </div>
+        )}
+      </SectionCard>
     </div>
   );
 }

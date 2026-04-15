@@ -5,13 +5,18 @@ import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import type { ReactNode } from "react";
 import { exerciseCatalog, exerciseCategories, toPlanExercise } from "@/lib/exercise-library";
+import { formatPhaseLabel } from "@/lib/plan-labels";
 import type {
   AdvancementPreset,
   DeloadPreset,
+  PlanCreationSource,
+  PlanSetupInput,
+  ProgressionMode,
   StructuredExerciseInput,
   StructuredPhaseInput,
   StructuredPlanInput,
   StructuredWorkoutInput,
+  TrainingGoalType,
   Weekday
 } from "@/lib/types";
 
@@ -104,20 +109,56 @@ function Field({
   );
 }
 
-export function PlanBuilderForm() {
+type PlanBuilderFormProps = {
+  initialPlan?: StructuredPlanInput;
+  submitLabel?: string;
+  setupContext?: PlanSetupInput | null;
+  planId?: string;
+  flow?: "create" | "edit-details" | "edit-setup";
+  editingPlanName?: string;
+};
+
+export function PlanBuilderForm({
+  initialPlan,
+  submitLabel = "Save Workout Plan",
+  setupContext = null,
+  planId,
+  flow = "create",
+  editingPlanName
+}: PlanBuilderFormProps) {
   const router = useRouter();
   const [stepIndex, setStepIndex] = useState(0);
-  const [name, setName] = useState("Starter Workout Plan");
+  const [name, setName] = useState(initialPlan?.name ?? "Starter Workout Plan");
   const [description, setDescription] = useState(
-    "A clear plan with phases, repeatable workouts, and simple progression rules."
+    initialPlan?.description ??
+      "A clear plan with phases, repeatable workouts, and simple progression rules."
   );
-  const [weeklySchedule, setWeeklySchedule] = useState<Weekday[]>(["mon", "wed", "fri"]);
-  const [phases, setPhases] = useState<StructuredPhaseInput[]>([makePhase()]);
+  const [goalType] = useState<TrainingGoalType | null>(initialPlan?.goalType ?? null);
+  const [progressionMode] = useState<ProgressionMode | null>(
+    initialPlan?.progressionMode ?? null
+  );
+  const [creationSource] = useState<PlanCreationSource>(
+    initialPlan?.creationSource ?? "manual"
+  );
+  const [weeklySchedule, setWeeklySchedule] = useState<Weekday[]>(
+    () => initialPlan?.weeklySchedule ?? ["mon", "wed", "fri"]
+  );
+  const [phases, setPhases] = useState<StructuredPhaseInput[]>(() =>
+    initialPlan?.phases ? structuredClone(initialPlan.phases) : [makePhase()]
+  );
   const [exerciseSearch, setExerciseSearch] = useState("");
   const [exerciseCategory, setExerciseCategory] = useState("all");
   const [status, setStatus] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const currentStep = steps[stepIndex];
+  const planLabel = editingPlanName ?? name;
+
+  const reviewNotice =
+    flow === "edit-details"
+      ? "Past workout history stays saved. Changes to this plan apply going forward, including any updated phases, workouts, and exercises."
+      : flow === "edit-setup"
+        ? `You are reviewing a regenerated version of ${planLabel}. Saving replaces the live plan structure. Old workout and exercise names stay readable in history snapshots, and prior sessions should not be treated as progress toward the regenerated structure.`
+        : null;
 
   const filteredExercises = useMemo(() => {
     const normalizedSearch = exerciseSearch.trim().toLowerCase();
@@ -223,15 +264,21 @@ export function PlanBuilderForm() {
       version: "structured-v1",
       name,
       description,
+      goalType,
+      progressionMode,
+      creationSource,
       weeklySchedule,
       phases
     };
+    const requestBody = setupContext ? { plan: payload, setupContext } : payload;
+    const endpoint = planId ? `/api/plans/${planId}` : "/api/plans";
+    const method = planId ? "PATCH" : "POST";
 
     try {
-      const response = await fetch("/api/plans", {
-        method: "POST",
+      const response = await fetch(endpoint, {
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(requestBody)
       });
       const result = (await response.json()) as { id?: string; error?: string };
 
@@ -239,7 +286,7 @@ export function PlanBuilderForm() {
         throw new Error(result.error ?? "Unable to save plan.");
       }
 
-      router.push(`/plans/${result.id}` as Route);
+      router.push(`/plans/${planId ?? result.id}` as Route);
       router.refresh();
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Unable to save plan.");
@@ -316,7 +363,9 @@ export function PlanBuilderForm() {
           {phases.map((phase, phaseIndex) => (
             <div key={phaseIndex} className="rounded-[24px] bg-white/70 p-4 sm:rounded-[28px]">
               <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm font-semibold text-ink">Phase {phaseIndex + 1}</p>
+                <p className="text-sm font-semibold text-ink">
+                  {formatPhaseLabel(phaseIndex + 1)}
+                </p>
                 <button
                   type="button"
                   onClick={() => deletePhase(phaseIndex)}
@@ -326,7 +375,7 @@ export function PlanBuilderForm() {
                   Delete Phase
                 </button>
               </div>
-              <Field label={`Phase ${phaseIndex + 1} goal`}>
+              <Field label={`${formatPhaseLabel(phaseIndex + 1)} goal`}>
                 <input
                   value={phase.goal}
                   onChange={(event) =>
@@ -380,7 +429,9 @@ export function PlanBuilderForm() {
 
           {phases.map((phase, phaseIndex) => (
             <div key={phaseIndex} className="space-y-4">
-              <h3 className="font-display text-2xl text-ink">Phase {phaseIndex + 1}</h3>
+              <h3 className="font-display text-2xl text-ink">
+                {formatPhaseLabel(phaseIndex + 1)}
+              </h3>
               {phase.workouts.map((workout, workoutIndex) => (
                 <div key={workoutIndex} className="rounded-[24px] border border-ink/5 bg-white/70 p-4 sm:rounded-[28px]">
                   <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -602,7 +653,7 @@ export function PlanBuilderForm() {
                 }
                 className="w-full rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-ink/90 sm:w-auto"
               >
-                Add Workout to Phase {phaseIndex + 1}
+                Add Workout to {formatPhaseLabel(phaseIndex + 1)}
               </button>
             </div>
           ))}
@@ -613,7 +664,9 @@ export function PlanBuilderForm() {
         <div className="space-y-4">
           {phases.map((phase, phaseIndex) => (
             <div key={phaseIndex} className="rounded-[24px] bg-white/70 p-4 sm:rounded-[28px]">
-              <h3 className="font-display text-xl text-ink sm:text-2xl">Phase {phaseIndex + 1}</h3>
+              <h3 className="font-display text-xl text-ink sm:text-2xl">
+                {formatPhaseLabel(phaseIndex + 1)}
+              </h3>
               <div className="mt-4 grid gap-4 md:grid-cols-2">
                 <Field label="Advance when">
                   <select
@@ -693,6 +746,11 @@ export function PlanBuilderForm() {
 
       {currentStep.id === "review" ? (
         <div className="space-y-4">
+          {reviewNotice ? (
+            <div className="rounded-[24px] border border-gold/30 bg-gold/10 p-4 text-sm leading-6 text-slate sm:rounded-[28px]">
+              {reviewNotice}
+            </div>
+          ) : null}
           <div className="rounded-[24px] bg-white/70 p-5 sm:rounded-[28px]">
             <p className="text-xs uppercase tracking-[0.18em] text-slate">Plan</p>
             <h3 className="mt-2 text-xl font-semibold text-ink">{name}</h3>
@@ -700,7 +758,9 @@ export function PlanBuilderForm() {
           </div>
           {phases.map((phase, index) => (
             <div key={index} className="rounded-[24px] bg-white/70 p-5 sm:rounded-[28px]">
-              <p className="font-semibold text-ink">Phase {index + 1}: {phase.goal}</p>
+              <p className="font-semibold text-ink">
+                {formatPhaseLabel(index + 1)}: {phase.goal}
+              </p>
               <p className="mt-2 text-sm leading-6 text-slate">
                 {phase.workouts.length} workouts,{" "}
                 {phase.workouts.reduce((total, workout) => total + workout.exercises.length, 0)} exercises.
@@ -714,7 +774,7 @@ export function PlanBuilderForm() {
             disabled={saving}
             className="w-full rounded-full bg-coral px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#f95a2b] disabled:opacity-60 sm:w-auto"
           >
-            {saving ? "Saving..." : "Save Workout Plan"}
+            {saving ? "Saving..." : submitLabel}
           </button>
         </div>
       ) : null}

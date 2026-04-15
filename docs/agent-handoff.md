@@ -2,93 +2,481 @@
 
 Use this file to help the next coding agent understand where work stopped.
 
-## Current Feature
+## Project Summary
 
-First-user onboarding, guided plan builder, starter exercise library, structured progression, explicit phase advancement, and plan management cleanup.
+This app is evolving from a recovery-first phased workout app into a broader goal-based adaptive training platform.
+
+The product should support multiple goal tracks while reusing the same core infrastructure:
+
+- recovery / rehab
+- general fitness
+- strength
+- hypertrophy
+- running
+- sport performance
+- consistency / habit building
+
+The differentiated product idea is still structured adaptive programming, not generic workout logging. The app should keep guiding users through plans/programs, progressive phases, workouts, exercises, sessions, check-ins, and intelligent advancement, repetition, or adjustment decisions.
+
+## Current Objective
+
+The approved refactor direction is additive and migration-safe:
+
+1. Domain foundation and draft abstraction.
+2. Onboarding/profile separation.
+3. `/plans/new` goal-specific plan setup.
+4. UI terminology shift toward "Blocks".
+4.5. Terminology refinement and lightweight branding polish.
+5A. Goal-aware templates, richer exercise metadata, and deterministic defaults.
+5B1. Profile/settings editing.
+5B2. Guided edit-plan workflow.
+5B3. Reusable review/edit flow for existing plans.
+6. Contextual dashboard and progression UX.
+7. Workout execution UX.
+8. Exercise media and instruction layer.
+9. Broader polish/branding if still needed.
+
+Slices 1, 2, 3, 4, 4.5, 5A, 5B1, 5B2, and 5B3 are implemented locally. A small post-5B3 UX cleanup patch is also implemented locally based on QA learning after 5B3 shipped. Slice 6 is now the next major implementation slice. A small Slice 5B1 follow-up patch may still be needed for profile/settings field-level validation messaging.
 
 ## Current Status
 
-- YouTube v1 was manually verified by the user.
-- Onboarding/progression feature is implemented locally and needs logged-in browser testing.
-- Workout selection supports active-phase recommendations and other workouts in the current phase.
-- Plan management now includes make-active plan controls, plan archive, hard delete for phases/workouts/exercises, and phase progress percent UI.
-- Manual phase actions are on the plan page; the workout page only prompts the user to review the plan when criteria are met.
-- The phase-action API now allows a next-phase move whenever a next phase exists; the UI remains responsible for showing the criteria-met versus manual override confirmation path.
-- Phase progress now counts only sessions with `phase_id_at_completion` matching the current phase, and a follow-up migration backfills old sessions from their workout template phase.
-- A focused UI polish pass tightened mobile spacing, button alignment, hover states, logo/header sizing, and shorter copy across dashboard, plans, workout, onboarding, and shared cards.
-- `npm run typecheck` passed after the UI polish pass.
-- `npm run build` passed after the UI polish pass.
+- The current app already has Supabase auth, onboarding, plan creation, structured plans with user-facing phases/workouts/exercises, session tracking, server-side progression evaluation, explicit phase advancement, plan activation, archive/delete management, and YouTube demo links.
+- The database engine still uses `workout_plans -> plan_phases -> workout_templates -> exercise_entries -> workout_sessions`.
+- Product/UI language now uses concise "Phase" labels in the main plan, workout, progress, and manual-builder surfaces, but the database has not been renamed; `plan_phases` remains the compatibility layer.
+- The lightweight working product frame is now "Adaptive Training" with the subtitle "Structured plans that progress with you."
+- Manual plan creation remains available and is now a secondary path from `/plans/new?mode=manual` or the guided setup toggle.
+- Guided plan creation is now review-before-save: `/plans/new` generates a draft, lets the user edit it, then saves through `/api/plans`.
+- Primary saved-plan detail editing is now available from existing plan detail through `/plans/[planId]/edit`.
+- Guided setup-driven plan regeneration is now available separately through `/plans/[planId]/edit-setup`; it reuses setup -> draft -> review/edit -> save and does not route through onboarding.
+- Guided setup answers can be saved on `workout_plans.setup_context`; older plans without saved setup context are prefilled from safe reconstructed plan/profile context with missing-context copy.
+- Saved-plan detail edits and guided regenerate drafts both save back to the same plan through `PATCH /api/plans/[planId]`, replacing live plan structure after snapshotting workout/exercise names for readable history.
+- Post-5B3 QA confirmed that `Edit details` is the correct primary path.
+- A follow-up cleanup patch simplified the `Edit details` review/save copy, removed the surfaced advanced/manual section from the main plan-detail page, and removed the surfaced `Update setup & regenerate` action from the main plan-detail page.
+- That cleanup patch was driven by QA learning after 5B3 released; it should not be described as if 5B3 always intended to remove those surfaced actions.
+- Archive remains available on the plan-detail page as a smaller secondary control.
+- `/plans/[planId]/edit-setup` still exists as a direct route for setup-driven regeneration, but it is no longer surfaced as a main plan-detail action.
+- Settings now has a real profile editing form for durable training context; onboarding remains separate from ongoing profile edits.
+- Slice 5B1 QA found that invalid settings values, such as negative age or weight, need clearer field-level validation guidance.
+- The app remains fully functional without any LLM provider.
+- The future LLM path should plug into the same setup -> draft -> review/edit -> save flow and never become the system of record.
+- Guided template drafts now have a stronger deterministic baseline by goal track before any LLM support exists.
 
-## Last Completed Step
+## Slice 1 Completed Locally
 
-Added schema/migration changes, onboarding UI/API, structured plan creation, a starter exercise catalog, guided starter plan generation, server-side progression evaluation, explicit phase actions, plan section delete APIs, make-active plan API, and progress indicators.
+Slice 1 added the foundation for the broader product direction:
+
+- richer profile metadata columns and plan metadata columns additively
+- nullable plan-level `progression_mode`
+- `source_exercise_id` for catalog-backed exercise entries
+- AI-neutral draft-provider boundary at `lib/plan-drafting/plan-draft-provider.ts`
+- goal/progression shared types, validation, and default progression-mode selection
+- minimal Vitest foundation tests for draft generation, validation, and progression-mode selection
+
+Verification after Slice 1:
+
+- `npm run test` passed.
+- `npm run typecheck` passed.
+- `npm run build` passed.
+
+## Slice 2 Completed Locally
+
+Slice 2 separated onboarding/profile setup from longer-term goal-specific plan setup:
+
+- onboarding now centers durable profile data: age, weight, training experience, activity level, training environment, limitations detail, exercise preferences, exercise dislikes, sports/interests, equipment, typical availability, and typical session duration
+- `planSetupChoice` remains only as temporary onboarding submission state so users can still choose guided plan setup or the manual plan builder after profile save
+- the onboarding API saves only durable profile fields and does not write `goal_notes` or infer `primary_goal_type`
+- existing non-null profile fields are protected from null/empty overwrites by preserving stored values when optional submitted values are blank
+- `lib/data.ts` maps the richer profile fields for future use
+- onboarding/profile validation tests were added under `lib/__tests__/`
+
+Verification after Slice 2:
+
+- `npm run test` passed.
+- `npm run typecheck` passed.
+- `npm run build` passed.
+
+## Slice 3 Completed Locally
+
+Slice 3 moved goal-specific setup into `/plans/new`:
+
+- added a lightweight `PlanSetupInput` model for `goalType`, optional `objectiveSummary`, `daysPerWeek`, `sessionMinutes`, `weeklySchedule`, `preferredSplit`, `focusAreas`, `currentConstraints`, and optional advanced `progressionModeOverride`
+- added plan setup validation in `lib/validation.ts`
+- refactored `lib/plan-drafting/plan-draft-provider.ts` and `lib/starter-plan-generator.ts` so guided drafts use plan setup input plus optional profile context, not onboarding input
+- added `POST /api/plan-drafts` as a non-persistent draft-generation endpoint that requires auth, loads the profile, calls the template draft provider, and returns a structured draft without saving
+- added `components/plan-setup-wizard.tsx` with goal selection, minimal plan-specific questions, draft loading/error/retry states, missing-profile fallback copy, and draft review/edit before save
+- refactored `components/plan-builder-form.tsx` to accept an optional generated `StructuredPlanInput` while preserving `goalType`, `progressionMode`, and `creationSource`
+- updated `/plans/new` to default to guided setup and keep manual setup available through `?mode=manual`
+- updated onboarding to redirect to `/plans/new` or `/plans/new?mode=manual` instead of auto-saving a guided starter plan
+- updated dashboard/onboarding/workout redirects so completed-profile users without a plan are sent to `/plans/new`
+- updated `docs/current-task.md` to describe Slice 3
+
+Verification after Slice 3:
+
+- `npm run test` passed.
+- `npm run typecheck` passed.
+- `npm run build` passed.
+
+## Slice 4 Completed Locally
+
+Slice 4 made the user-facing terminology shift from "Phase" to "Block" as a scoped presentation-only pass:
+
+- added `lib/plan-labels.ts` with a tiny `formatBlockLabel(phaseNumber)` display helper
+- updated the dashboard, plans list, plan detail page, workout flow, phase progress panel, manual plan builder, and plan management controls so visible labels and action copy use "Block"
+- updated user-visible progression/session/write-path messages that are rendered in the UI or surfaced as API errors
+- kept internal compatibility names unchanged, including `plan_phases`, `phase-action`, `currentPhase`, `PhaseProgressPanel`, phase-shaped TypeScript payloads, route/file names, and progression algorithms/enums/semantics
+- lightly updated README product wording so it reflects onboarding/profile setup, guided `/plans/new` plan drafts, and block-based progression
+- updated `docs/current-task.md` to point to Slice 5 and added a maintenance note to advance it after each completed slice
+- updated `docs/roadmap.md` so Slice 4 is implemented locally and Slice 5 is next
+
+Verification after Slice 4:
+
+- Terminology search was run to separate remaining internal/API/database names from user-facing copy.
+- `npm run test` passed.
+- `npm run typecheck` passed.
+- `npm run build` passed.
+
+## Slice 4.5 Completed Locally
+
+Slice 4.5 refined terminology and light product framing as a presentation-only pass:
+
+- changed the tiny display helper in `lib/plan-labels.ts` from `formatBlockLabel(phaseNumber)` to `formatPhaseLabel(phaseNumber)`
+- changed user-visible "Block" copy back to concise "Phase" language across the dashboard, plans list, plan detail page, workout flow, phase progress panel, manual plan builder, plan management controls, progression messages, plan write validation, and management API error text
+- updated the app shell, metadata, manifest, and README to the working product frame "Adaptive Training" / "Structured plans that progress with you."
+- updated `docs/roadmap.md` to add Slice 4.5 and revise the next sequence to Slice 5A, 5B, 6, 7, 8, and 9
+- updated `docs/current-task.md` so the next active implementation task is Slice 5A
+- kept internal compatibility names unchanged, including `plan_phases`, `phase-action`, `currentPhase`, `PhaseProgressPanel`, `PhaseProgressSummary`, `PlanPhase`, `StructuredPhaseInput`, phase-shaped payload fields, route/file names, progression algorithms/enums/semantics, the draft provider, guided setup logic, save paths, schema, auth, and RLS assumptions
+
+Verification after Slice 4.5:
+
+- Terminology search was run locally; remaining lowercase `block` hits in app code are Tailwind/CSS display classes, while remaining "Block" docs hits are Slice 4 historical context.
+- `npm run test` passed.
+- `npm run typecheck` passed.
+- `npm run build` passed.
+
+## Slice 5A Completed Locally
+
+Slice 5A improved deterministic guided draft quality without changing schema, API routes, provider strategy, or the `/plans/new` review/edit/save flow:
+
+- expanded `lib/exercise-library.ts` from a tiny rehab-leaning catalog into richer static metadata for movement pattern, goal tags, difficulty tier, caution tags, traits, and preference tags
+- added enough deterministic catalog entries to support recovery, general fitness, strength, hypertrophy, running, sport performance, and consistency drafts
+- refactored `lib/starter-plan-generator.ts` around the approved bounded draft shapes: `simple_foundation`, `balanced_3_day`, `strength_full_body`, `upper_lower`, and `run_strength`
+- added explicit goal-aware draft structures so running plans include run/walk or easy-run work, recovery plans stay conservative, strength/hypertrophy plans use real training patterns, sport performance includes lateral/athletic support, and consistency stays simple
+- added coarse deterministic selection for available equipment, exercise dislikes, profile limitations, plan constraints, and preference/sport context
+- kept running sessions represented as exercise-like plan items such as "Run/walk intervals" and "Easy run"; this is a temporary model compromise, not the long-term running design
+- kept `getPlanDraftProvider("template")` as the guided generation path and left the LLM provider unavailable
+- expanded Vitest coverage for all goal tracks, structure differences, goal fidelity, filtering behavior, metadata completeness, validation, and LLM unavailability
+- updated `docs/current-task.md` so the next active implementation slice is Slice 5B
+- updated `docs/roadmap.md` so Slice 5A is implemented locally and Slice 5B is next
+
+Verification after Slice 5A:
+
+- `npm run test` passed.
+- `npm run typecheck` passed.
+
+## Slice 5B1 Completed Locally
+
+Slice 5B1 split profile/settings editing away from the guided edit-plan workflow and added a durable profile ownership surface:
+
+- replaced the read-only `/settings` summary with a client-side profile settings form
+- added `PATCH /api/profile` for authenticated profile updates without rerunning onboarding
+- added `ProfileSettingsInput`, settings validation, and a pure update-value mapper for partial profile updates
+- preserved the onboarding safeguard by keeping onboarding's "blank does not overwrite existing data" behavior unchanged
+- made settings PATCH behavior explicit: omitted fields are preserved, while submitted `null`, blank strings, or empty arrays are treated as intentional clears
+- extracted shared profile option lists into `lib/profile-options.ts` so onboarding and settings stay aligned
+- left `/plans/new`, plan drafting, progression behavior, schema, and LLM/provider integration unchanged
+- added Vitest coverage for settings validation and update-value mapping
+- updated `docs/current-task.md` and `docs/roadmap.md` to split 5B into 5B1 and 5B2
+
+Verification after Slice 5B1:
+
+- `npm run test` passed.
+- `npm run typecheck` passed.
+- `npm run build` passed.
+
+Post-QA findings after Slice 5B1:
+
+- Profile/settings editing works, but validation messaging needs a small follow-up UX patch so invalid values such as negative age or weight show clear field-level guidance.
+- Profile field ownership remains an open future product question. Training experience, current activity level, and similar fields are currently stored and editable as durable profile fields, but may later be treated as onboarding/setup inputs, plan-context inputs, or last-known context instead.
+- No redesign of the profile model has been implemented or approved yet.
+
+## Slice 5B2 Completed Locally
+
+Slice 5B2 added a guided setup-driven update/regenerate workflow for existing plans:
+
+- added `workout_plans.setup_context` through an additive migration and schema update so guided setup answers can be stored with saved plans
+- added setup-context helpers that use saved setup context when present and safely reconstruct older plans from plan/profile data when missing
+- added `/plans/[planId]/edit-setup` as the guided edit route, with copy explaining that it does not rerun onboarding
+- added an "Edit plan setup" primary action on plan detail
+- reused `PlanSetupWizard` and `PlanBuilderForm` for edit mode instead of creating a second wizard
+- kept manual structure management visible as a separate advanced path
+- added a wrapped plan-save payload so guided create/edit can pass both the reviewed `StructuredPlanInput` and its `PlanSetupInput`
+- added `PATCH /api/plans/[planId]` and `updateStructuredPlanForUser` to replace the live plan structure after review
+- snapshot current workout and exercise names before replacing plan structure so old history remains readable through snapshots
+- added Vitest coverage for persisted setup context, older-plan reconstruction, profile fallback defaults, and wrapped save validation
+- updated `docs/current-task.md`, `docs/roadmap.md`, and `docs/architecture.md` for the completed slice
+
+Verification after Slice 5B2:
+
+- `npm run typecheck` passed.
+- `npm run test` passed: 4 files, 25 tests.
+- `npm run build` passed and confirmed `/plans/[planId]/edit-setup` in the Next.js route output.
+
+Manual browser verification still needed after Slice 5B2:
+
+- launch guided edit from a saved plan
+- confirm it does not route through onboarding
+- confirm known setup fields are prefilled
+- confirm missing context is explained and editable for an older plan without `setup_context`
+- generate an edited draft, review it, and save back to the same plan
+- confirm existing `/plans/new` guided creation still works and persists setup context
+- confirm manual plan management remains available as the advanced path
+- confirm prior workout history remains readable after saving a guided edit
+
+Post-QA learning after Slice 5B2:
+
+- setup-context persistence and older-plan reconstruction are the right foundation and should be kept
+- the current flow is better understood as "update plan setup" / "regenerate from setup" than the main general edit-existing-plan journey
+- the next slice should focus on a reusable review/edit experience for existing plans
+- do not remove the advanced/manual edit path yet because the new primary edit flow does not exist
+
+## Slice 5B3 Completed Locally
+
+Slice 5B3 made saved-plan detail editing the primary existing-plan edit path:
+
+- added `/plans/[planId]/edit` as the primary existing-plan review/edit route
+- changed the top plan-detail actions to `Edit details` and `Update setup & regenerate`
+- reused the existing review/edit stage for saved-plan detail edits instead of inventing a second editor
+- added a pure saved-plan-to-structured-draft helper so existing plans can open directly in the reusable review/edit flow
+- kept detail edits saving through `PATCH /api/plans/[planId]` and preserved existing `setup_context` when it already exists
+- confirmed the saved-plan read -> edit -> save path would drop `source_exercise_id`, then patched the read-side mapping so reopening and resaving a plan does not lose catalog traceability
+- updated the advanced/manual plan management copy so it reads as clearly secondary and manual
+- updated `docs/current-task.md`, `docs/roadmap.md`, and `docs/architecture.md` for the completed slice and next Slice 6 focus
+
+Verification after Slice 5B3:
+
+- `npm run test` passed: 5 files, 26 tests.
+- `npm run typecheck` passed.
+- `npm run build` passed and confirmed `/plans/[planId]/edit` in the Next.js route output.
+
+Manual browser verification still needed after Slice 5B3:
+
+- open an existing plan and launch `Edit details`
+- confirm it opens saved-plan detail editing, not onboarding or setup
+- save changes back to the same plan
+- confirm `Update setup & regenerate` still works separately
+- confirm older-plan regenerate still explains missing setup context only on the regenerate path
+- confirm advanced/manual plan editing is still reachable and clearly secondary
+- confirm existing `/plans/new` guided creation still works
+- confirm prior workout history remains readable after plan edits
+- confirm mobile layout is still usable for the changed entry points
+
+## Post-5B3 Cleanup Patch Completed Locally
+
+This was a narrow QA-driven cleanup after Slice 5B3, not a retroactive rewrite of 5B3's original intended scope.
+
+- kept `Edit details` as the single clear main edit action on the plan-detail page
+- simplified the review/save copy inside the saved-plan detail edit flow
+- removed the surfaced advanced/manual section from the main plan-detail page
+- removed the surfaced `Update setup & regenerate` action from the main plan-detail page
+- kept archive as a smaller secondary control on the plan-detail page
+- kept `/plans/[planId]/edit-setup`, setup-context persistence, and the existing compatible save/write behavior intact
+
+Verification after the cleanup patch:
+
+- `npm run test` passed.
+- `npm run typecheck` passed.
+- `npm run build` passed.
+
+Manual browser verification still needed after the cleanup patch:
+
+- open an existing plan and launch `Edit details`
+- confirm the simplified review/save copy is easy to understand
+- confirm the surfaced advanced/manual section is no longer shown on the main plan-detail page
+- confirm the surfaced `Update setup & regenerate` action is no longer shown on the main plan-detail page
+- confirm archive is still reachable as a smaller secondary control
+- save changes back to the same plan
+- confirm prior workout history remains readable after plan edits
+- confirm existing `/plans/new` guided creation still works
+- confirm `/plans/[planId]/edit-setup` still works if visited directly
+- confirm mobile layout is still usable for the changed plan-detail actions
+
+## Schema Drift Recovery Status
+
+After Slice 2, localhost hit a runtime error because the Supabase project in `.env.local` was missing Slice 1 columns such as `profiles.primary_goal_type`.
+
+Recovery status:
+
+- Partial migration-tolerant fallback edits in `lib/data.ts` and `app/api/onboarding/route.ts` were removed before Slice 3.
+- The app now expects the clean Slice 1/Slice 2/Slice 3 schema directly.
+- `supabase/schema.sql` was inspected and already includes the Slice 1/Slice 2 expected columns.
+- Slice 3 did not require database schema changes.
+- The repo only uses `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` for Supabase clients.
+
+Remaining recovery work:
+
+- Create or use a Supabase dev project with the current schema applied.
+- Update `.env.local` to the dev project's `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+- Apply `supabase/schema.sql` once to a blank dev project, or ensure these migrations are applied to an existing project:
+  - `supabase/migrations/20260412160000_onboarding_progression.sql`
+  - `supabase/migrations/20260412170000_phase_session_scoping.sql`
+  - `supabase/migrations/20260413120000_training_profile_and_progression_mode.sql`
+  - `supabase/migrations/20260414100000_plan_setup_context.sql`
+- Restart the dev server and manually verify logged-in flows.
 
 ## Next Best Step
 
-1. Apply `supabase/migrations/20260412160000_onboarding_progression.sql` and `supabase/migrations/20260412170000_phase_session_scoping.sql` in Supabase, or rerun `supabase/schema.sql` for a fresh local database.
-2. Test a new-user onboarding flow with guided starter plan creation.
-3. Test an existing user with an active plan still reaches the dashboard after migration backfill.
-4. Test the plan builder with multiple phases/workouts, including draft delete buttons.
-5. Test saved plan deletion for an exercise, workout, and phase.
-6. Test make-active plan, plan archive, manual phase movement, previous phase movement, and plan completion.
-7. Review dashboard, plans, workout, onboarding, and plan builder on mobile width for spacing and button alignment.
+Slice 6 is now the next major product slice.
 
-## Open Issues / Risks
+It should make dashboard copy and next-step prompts more specific to the active goal, current phase, and recent session signals without changing the core progression engine.
 
-- The feature depends on a database migration before deployed code can read/write the new columns.
-- Session save plus phase action updates are not fully atomic yet; a future SQL RPC would be stronger before broad public use.
-- Existing old plans use default structured rule settings and keep the old text criteria for display.
-- The starter exercise catalog is static TypeScript data for v1, not an admin-editable database table.
-- AI draft architecture is a disabled stub, so no paid API calls happen by default.
-- Plan completion uses `completed_at` and keeps plan data for reference.
-- Whole-plan archive uses `archived_at`; archived plans are hidden from active plan recommendations.
-- Saved phase/workout/exercise deletes are hard deletes, so manual browser testing should confirm history snapshots still show readable past workout/exercise names.
+If needed, a small Slice 5B1 follow-up patch is still available for profile/settings field-level validation messaging:
+
+- invalid values such as negative age or weight should show clear guidance near the relevant field
+- do not redesign the profile model as part of that patch
+- do not move fields between onboarding, settings, and plan setup unless explicitly scoped
+
+## Known Risks And Assumptions
+
+- The Slice 1 migration may still need to be applied in Supabase before deployed code can write the new columns.
+- `workout_plans.progression_mode` is intentionally nullable at the database level; app code sets it when plan-goal context is available.
+- Slice 3 defaults progression mode from goal type and light profile/constraint context; it does not expand progression algorithms.
+- Ambiguous legacy profile goals should not be backfilled to `general_fitness`; only obvious goal text should receive `primary_goal_type`.
+- Slice 2 preserves existing non-null profile fields when submitted optional onboarding values are null, empty strings, or empty arrays; Slice 5B1 adds explicit clearing only through settings profile edits.
+- Slice 5B1 settings updates use partial PATCH semantics; omitted fields are preserved, while included empty values are intentional clears.
+- Slice 5B1 needs a small validation UX follow-up if settings field errors are not clear enough to the user.
+- Profile field ownership is not fully settled. Fields such as training experience and activity level may later move conceptually toward onboarding/setup context, plan-context inputs, or last-known context rather than permanent durable settings.
+- Slice 5B2 added `workout_plans.setup_context`; Supabase projects need the new migration applied before guided setup context can be saved.
+- Older plans may not have saved setup context, so the regenerate path still reconstructs only safe fields and asks users to confirm missing setup details.
+- Saved-plan detail edits and setup/regenerate edits both replace the live plan structure after review. Workout and exercise names are snapshotted first, but old sessions should not be treated as progress toward the newly changed structure.
+- `/plans/[planId]/edit-setup` still exists even though it is no longer surfaced from the main plan-detail page; a later product call can decide whether to keep that direct route long-term.
+- Guided plan update is not fully transactional because the app still uses route-handler Supabase writes rather than a SQL RPC; a future RPC would be safer before broader public use.
+- Session save plus phase action updates are not fully atomic yet; a future SQL RPC would be stronger before broader public use.
+- Slice 4.5 intentionally did not rename `plan_phases`, `phase-action`, `currentPhase`, `PhaseProgressPanel`, `PhaseProgressSummary`, `PlanPhase`, `StructuredPhaseInput`, existing phase-shaped payload fields, route/file names, or progression algorithm terms used internally.
+- Slice 5A uses coarse deterministic filtering only; it is not a medical/PT rules engine and should not be treated as individualized clinical guidance.
+- Running drafts still model run/walk and easy-run sessions as exercise entries because the app does not yet have a dedicated running-session domain model.
+- Goal-aware template quality is stronger, but the static catalog remains intentionally small and code-owned until a later catalog/admin workflow exists.
+- Existing old plans use default structured rule settings and keep old text criteria for display.
+- The starter exercise catalog is static TypeScript data for now, not an admin-editable database table.
+- Saved phase/workout/exercise deletes and guided setup edits replace or delete live plan structure, so browser testing should confirm history snapshots remain readable.
 - Sessions with no recoverable phase snapshot do not count toward live phase progress.
-- The polish pass was checked by typecheck/build, but still needs visual browser review on a real mobile viewport.
+- Logged-in browser testing is still needed for onboarding, guided draft generation, generated draft edit/save with Phase terminology, manual plan creation, plan activation, deletion/archive behavior, and mobile layout.
+- Post-QA follow-up is still needed for settings/profile field-level validation messaging if not already patched.
 
 ## Important Files
 
-- `app/onboarding/page.tsx`
-- `app/api/onboarding/route.ts`
-- `components/onboarding-flow.tsx`
+- `app/plans/[planId]/page.tsx`
+- `app/plans/[planId]/edit/page.tsx`
+- `app/plans/new/page.tsx`
+- `app/plans/[planId]/edit-setup/page.tsx`
+- `components/plan-archive-action.tsx`
+- `components/plan-setup-wizard.tsx`
 - `components/plan-builder-form.tsx`
-- `app/api/plans/route.ts`
-- `app/api/sessions/route.ts`
-- `app/api/plans/[planId]/phase-action/route.ts`
-- `app/api/plans/[planId]/activate/route.ts`
-- `app/api/plans/[planId]/route.ts`
-- `app/api/phases/[phaseId]/route.ts`
-- `app/api/workouts/[workoutId]/route.ts`
-- `app/api/exercises/[exerciseId]/route.ts`
-- `components/phase-progress-panel.tsx`
 - `components/plan-management-actions.tsx`
-- `components/plan-list-actions.tsx`
+- `app/api/plan-drafts/route.ts`
+- `app/api/plans/route.ts`
+- `app/api/plans/[planId]/route.ts`
+- `app/api/profile/route.ts`
+- `app/api/onboarding/route.ts`
+- `app/settings/page.tsx`
+- `app/onboarding/page.tsx`
+- `app/page.tsx`
+- `components/profile-settings-form.tsx`
 - `lib/plan-write.ts`
-- `lib/progression.ts`
+- `lib/plan-edit-draft.ts`
+- `lib/plan-save-input.ts`
+- `lib/plan-setup-context.ts`
 - `lib/starter-plan-generator.ts`
 - `lib/exercise-library.ts`
-- `lib/ai/plan-draft-provider.ts`
-- `lib/data.ts`
+- `lib/plan-drafting/plan-draft-provider.ts`
+- `lib/progression-mode.ts`
+- `lib/profile-options.ts`
+- `lib/profile-settings.ts`
+- `lib/plan-labels.ts`
 - `lib/types.ts`
 - `lib/validation.ts`
+- `lib/__tests__/profile-settings.test.ts`
+- `lib/__tests__/plan-edit-draft.test.ts`
+- `lib/__tests__/plan-setup-context.test.ts`
+- `lib/__tests__/plan-drafting-foundation.test.ts`
+- `lib/data.ts`
 - `supabase/schema.sql`
-- `supabase/migrations/20260412160000_onboarding_progression.sql`
-- `supabase/migrations/20260412170000_phase_session_scoping.sql`
+- `supabase/migrations/20260413120000_training_profile_and_progression_mode.sql`
+- `supabase/migrations/20260414100000_plan_setup_context.sql`
+- `docs/architecture.md`
+- `docs/current-task.md`
+- `docs/roadmap.md`
 
-## Verification Steps
+## Verification Notes
 
+For code changes, usually run:
+
+- `npm run test`
 - `npm run typecheck`
 - `npm run build`
-- Manual: new user without onboarding lands on `/onboarding`.
-- Manual: guided starter plan creates a usable active plan without AI.
-- Manual: manual setup routes to `/plans/new`.
-- Manual: existing active-plan user lands on dashboard.
-- Manual: structured plan builder saves multiple phases/workouts.
-- Manual: check-in saves progression decision/reason and only advances phase when criteria are met.
-- Manual: phase does not advance automatically after check-in.
-- Manual: `Move to Next Phase`, `Move Anyway`, `Return to Previous Phase`, and `Mark Plan Complete` behave correctly.
-- Manual: moving to the next phase does not show the stale “not met” error when the progress panel says the phase is ready.
-- Manual: after moving into a new phase, phase progress starts at 0% until a workout is logged in that phase.
-- Manual: make another incomplete plan active and confirm dashboard/workout switch to it.
-- Manual: delete a saved exercise/workout/phase and confirm it leaves the plan without deleting past session history.
-- Manual: archive a plan and confirm it no longer drives dashboard/workout recommendations.
+
+Most recent Slice 3 verification:
+
+- `npm run test` passed on April 13, 2026.
+- `npm run typecheck` passed on April 13, 2026.
+- `npm run build` passed on April 13, 2026.
+
+Most recent Slice 4 verification:
+
+- Terminology search run locally; remaining `phase`/`Phase` hits are internal compatibility names, docs context, or unused mock data.
+- `npm run test` passed.
+- `npm run typecheck` passed.
+- `npm run build` passed.
+
+Most recent Slice 4.5 verification:
+
+- Terminology search run locally; remaining lowercase `block` hits in app code are Tailwind/CSS display classes, and remaining "Block" docs hits are Slice 4 historical context.
+- `npm run test` passed.
+- `npm run typecheck` passed.
+- `npm run build` passed.
+
+Most recent Slice 5A verification:
+
+- `npm run test` passed.
+- `npm run typecheck` passed.
+- `npm run build` passed.
+
+Most recent Slice 5B1 verification:
+
+- `npm run test` passed.
+- `npm run typecheck` passed.
+- `npm run build` passed.
+
+Most recent Slice 5B2 verification:
+
+- `npm run typecheck` passed.
+- `npm run test` passed: 4 files, 25 tests.
+- `npm run build` passed.
+
+Most recent Slice 5B3 verification:
+
+- `npm run test` passed: 5 files, 26 tests.
+- `npm run typecheck` passed.
+- `npm run build` passed.
+
+Most recent post-5B3 cleanup patch verification:
+
+- `npm run test` passed.
+- `npm run typecheck` passed.
+- `npm run build` passed.
+
+Manual browser verification still needed:
+
+- fresh auth and onboarding/profile creation
+- guided draft generation and retry/error states
+- generated draft quality across recovery, general fitness, strength, hypertrophy, running, sport performance, and consistency
+- generated draft edit and save, including visible Phase terminology in the review builder
+- saved-plan detail edit launch from an existing plan
+- saved-plan detail edit save back to the same plan
+- direct visit to guided setup/regenerate from an existing plan
+- guided edit setup reconstruction for older plans without saved `setup_context`
+- guided edit draft review/save back to the same plan
+- history readability after a saved-plan detail edit or guided edit replaces live plan structure
+- compact/mobile UI for badges, cards, headers, and progress surfaces with the Phase wording
+- manual `/plans/new?mode=manual` save
+- dashboard, workout, and onboarding redirects when the user has a profile but no plan
+- mobile layout usability

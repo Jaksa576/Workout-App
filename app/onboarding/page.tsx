@@ -11,5 +11,9 @@ export default async function OnboardingPage() {
     redirect("/");
   }
 
-  return <OnboardingFlow />;
+  if (profile?.onboardingCompletedAt) {
+    redirect("/plans/new");
+  }
+
+  return <OnboardingFlow initialProfile={profile} />;
 }

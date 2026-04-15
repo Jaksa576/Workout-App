@@ -1,12 +1,8 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { createStructuredPlanForUser, legacyPlanToStructured } from "@/lib/plan-write";
+import { parsePlanSaveInput } from "@/lib/plan-save-input";
+import { createStructuredPlanForUser } from "@/lib/plan-write";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
-import {
-  isLegacyPlanFormInput,
-  isStructuredPlanInput,
-  normalizeWeekdays
-} from "@/lib/validation";
 
 export async function POST(request: Request) {
   const user = await getCurrentUser();
@@ -16,13 +12,9 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const input = isStructuredPlanInput(body)
-    ? { ...body, weeklySchedule: normalizeWeekdays(body.weeklySchedule) }
-    : isLegacyPlanFormInput(body)
-      ? legacyPlanToStructured(body)
-      : null;
+  const parsedInput = parsePlanSaveInput(body);
 
-  if (!input) {
+  if (!parsedInput) {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
@@ -31,7 +23,8 @@ export async function POST(request: Request) {
     const plan = await createStructuredPlanForUser({
       supabase,
       userId: user.id,
-      input
+      input: parsedInput.input,
+      setupContext: parsedInput.setupContext
     });
 
     return NextResponse.json(plan);

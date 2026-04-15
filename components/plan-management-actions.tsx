@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
+import { formatPhaseLabel } from "@/lib/plan-labels";
 import type { WorkoutPlan } from "@/lib/types";
 
 type DeleteTarget = "phase" | "workout" | "exercise" | "plan";
@@ -68,10 +69,12 @@ export function PlanManagementActions({ plan }: PlanManagementActionsProps) {
 
   return (
     <section className="rounded-[24px] border border-white/70 bg-[#fffdf9]/85 p-5 shadow-card sm:rounded-[32px] sm:p-6">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate sm:tracking-[0.22em]">Plan management</p>
-      <h2 className="mt-2 font-display text-2xl leading-tight text-ink sm:text-3xl">Edit plan structure</h2>
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate sm:tracking-[0.22em]">Advanced plan management</p>
+      <h2 className="mt-2 font-display text-2xl leading-tight text-ink sm:text-3xl">Advanced manual edits</h2>
       <p className="mt-3 max-w-3xl text-sm leading-6 text-slate">
-        Delete mistakes from the plan. Completed workout history stays saved.
+        Use this for one-off manual cleanup when you need direct structure control. Most plan
+        changes belong in Edit details, and setup changes belong in Update setup & regenerate.
+        Completed workout history stays saved.
       </p>
 
       <div className="mt-6 space-y-4">
@@ -84,13 +87,13 @@ export function PlanManagementActions({ plan }: PlanManagementActionsProps) {
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <p className="text-xs uppercase tracking-[0.18em] text-slate">
-                    Phase {phase.phaseNumber}
+                    {formatPhaseLabel(phase.phaseNumber)}
                   </p>
                   <p className="mt-2 font-semibold text-ink">{phase.goal}</p>
                 </div>
                 <button
                   type="button"
-                  onClick={() => runDelete("phase", phase.id, `Phase ${phase.phaseNumber}`)}
+                  onClick={() => runDelete("phase", phase.id, formatPhaseLabel(phase.phaseNumber))}
                   disabled={phaseDeleteDisabled || workingId === phase.id || isPending}
                 className="rounded-full border border-coral/30 bg-white px-4 py-2 text-sm font-semibold text-coral transition hover:border-coral hover:bg-coral/5 disabled:opacity-45"
                 >

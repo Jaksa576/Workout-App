@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
+import { formatPhaseLabel } from "@/lib/plan-labels";
 import type { PhaseProgressSummary, WorkoutPlan } from "@/lib/types";
 
 type PhaseAction = "advance" | "force_advance" | "return_previous" | "complete_plan";
@@ -16,7 +17,7 @@ type PhaseProgressPanelProps = {
 
 function getPhaseName(plan: WorkoutPlan, phaseId: string | null) {
   const phase = plan.phases.find((item) => item.id === phaseId);
-  return phase ? `Phase ${phase.phaseNumber}` : null;
+  return phase ? formatPhaseLabel(phase.phaseNumber) : null;
 }
 
 export function PhaseProgressPanel({
@@ -84,7 +85,7 @@ export function PhaseProgressPanel({
     <section className="rounded-[24px] border border-white/70 bg-[#fffdf9]/85 p-5 shadow-card sm:rounded-[32px] sm:p-6">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate sm:tracking-[0.22em]">Phase progress</p>
       <h2 className="mt-2 font-display text-2xl leading-tight text-ink sm:text-3xl">
-        Phase {plan.currentPhase.phaseNumber}
+        {formatPhaseLabel(plan.currentPhase.phaseNumber)}
       </h2>
       <p className="mt-3 text-sm leading-6 text-slate">{progress.reason}</p>
 
