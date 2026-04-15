@@ -10,6 +10,7 @@ import type {
   AdvancementPreset,
   DeloadPreset,
   PlanCreationSource,
+  PlanSetupInput,
   ProgressionMode,
   StructuredExerciseInput,
   StructuredPhaseInput,
@@ -111,11 +112,15 @@ function Field({
 type PlanBuilderFormProps = {
   initialPlan?: StructuredPlanInput;
   submitLabel?: string;
+  setupContext?: PlanSetupInput | null;
+  planId?: string;
 };
 
 export function PlanBuilderForm({
   initialPlan,
-  submitLabel = "Save Workout Plan"
+  submitLabel = "Save Workout Plan",
+  setupContext = null,
+  planId
 }: PlanBuilderFormProps) {
   const router = useRouter();
   const [stepIndex, setStepIndex] = useState(0);
@@ -253,12 +258,15 @@ export function PlanBuilderForm({
       weeklySchedule,
       phases
     };
+    const requestBody = setupContext ? { plan: payload, setupContext } : payload;
+    const endpoint = planId ? `/api/plans/${planId}` : "/api/plans";
+    const method = planId ? "PATCH" : "POST";
 
     try {
-      const response = await fetch("/api/plans", {
-        method: "POST",
+      const response = await fetch(endpoint, {
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(requestBody)
       });
       const result = (await response.json()) as { id?: string; error?: string };
 
@@ -266,7 +274,7 @@ export function PlanBuilderForm({
         throw new Error(result.error ?? "Unable to save plan.");
       }
 
-      router.push(`/plans/${result.id}` as Route);
+      router.push(`/plans/${planId ?? result.id}` as Route);
       router.refresh();
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Unable to save plan.");
@@ -726,6 +734,12 @@ export function PlanBuilderForm({
 
       {currentStep.id === "review" ? (
         <div className="space-y-4">
+          {planId ? (
+            <div className="rounded-[24px] border border-gold/30 bg-gold/10 p-4 text-sm leading-6 text-slate sm:rounded-[28px]">
+              Saving will update this plan's live setup and workouts. Prior workout history
+              remains readable after the update.
+            </div>
+          ) : null}
           <div className="rounded-[24px] bg-white/70 p-5 sm:rounded-[28px]">
             <p className="text-xs uppercase tracking-[0.18em] text-slate">Plan</p>
             <h3 className="mt-2 text-xl font-semibold text-ink">{name}</h3>

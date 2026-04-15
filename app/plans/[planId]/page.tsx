@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
+import type { Route } from "next";
 import { SectionCard } from "@/components/section-card";
 import { getPlanById } from "@/lib/data";
 import { ProgressBadge } from "@/components/progress-badge";
@@ -41,7 +43,13 @@ export default async function PlanDetailPage({
               {plan.description}
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href={`/plans/${plan.id}/edit-setup` as Route}
+              className="rounded-full bg-coral px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#f95a2b]"
+            >
+              Edit plan setup
+            </Link>
             <ProgressBadge
               label={formatPhaseLabel(plan.currentPhase.phaseNumber)}
               tone="gold"

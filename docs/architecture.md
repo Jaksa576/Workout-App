@@ -42,7 +42,8 @@ This model is still the right core engine:
 Already implemented:
 
 - first-user onboarding
-- guided starter plan generation without LLM calls
+- guided starter plan generation without LLM calls through `/plans/new`
+- guided setup-driven plan regeneration for existing plans through `/plans/[planId]/edit-setup`
 - manual structured plan creation
 - multiple phases and workouts per plan
 - active-phase workout recommendations
@@ -52,7 +53,8 @@ Already implemented:
 - plan activation, archive, and plan structure cleanup
 - YouTube demo links on exercises
 - history snapshots for workout and exercise names
-- Slice 1 foundation for broader goal-based architecture
+- persisted or reconstructed guided plan setup context on `workout_plans.setup_context`
+- Slice 1 through Slice 5B2 foundation for broader goal-based architecture
 
 ## Target Direction
 
@@ -83,6 +85,7 @@ The engine should remain structured and adaptive. The app should not become a ge
 - **Progression modes:** Plans can use symptom-based, adherence-based, performance-based, or hybrid progression. The database field `workout_plans.progression_mode` is nullable and should be set by app code when enough context is available.
 - **Richer profile data:** The profile model is expanding beyond a single goal string to include durable training context such as age, weight, experience, activity level, training environment, exercise preferences/dislikes, sports/interests, and limitations detail. This model may evolve: some currently stored fields, especially experience and activity level, may later be treated more like onboarding/setup context, plan-context inputs, or last-known context rather than permanent account settings.
 - **Plan drafting abstraction:** Plan drafts should flow through `lib/plan-drafting/plan-draft-provider.ts`. The current enabled path is template-based; LLM drafting remains disabled.
+- **Plan setup context:** Guided plan setup answers can be stored in `workout_plans.setup_context`. Existing older plans without that context can be reopened with safely reconstructed fields and explicit missing-context guidance. This currently supports setup-driven regeneration of a saved plan; it is not yet a replacement for primary plan-detail editing.
 - **Catalog traceability:** Catalog-backed exercises can use `source_exercise_id` so future catalog and substitution work can reason about where an exercise came from.
 
 ## Data Flow
@@ -98,21 +101,30 @@ Most current writes should continue to follow this pattern:
 
 Plan creation should continue to save through `createStructuredPlanForUser` in `lib/plan-write.ts` so manual, template-generated, and future LLM-generated drafts share one persistence path.
 
+Guided plan edits save through `updateStructuredPlanForUser` in `lib/plan-write.ts`. The edit path snapshots current workout and exercise names before replacing the live plan structure, then writes the reviewed draft back to the same `workout_plans` row.
+
+The review/edit stage for generated plan details currently lives inside the guided create/regenerate flow. It is not yet exposed as a separate reusable existing-plan edit surface.
+
 ## Current Vs Target Boundaries
 
 ### Current
 
-- Onboarding still contains some plan-start decisions.
-- The UI still often says "phase".
+- Onboarding collects durable profile information and no longer owns goal-specific plan setup.
+- `/plans/new` handles goal-specific plan setup and draft creation.
+- `/plans/[planId]/edit-setup` handles setup-driven regeneration for an existing plan without rerunning onboarding.
+- Review/edit of generated plan details exists inside the guided flow, but it is not yet the primary reusable edit-existing-plan journey.
+- The advanced/manual plan editor still remains because the reusable review/edit replacement is not built yet.
+- Product UI uses "Phase" for progressive plan segments.
 - The starter exercise catalog is static TypeScript data.
 - Progression is still mostly recovery/symptom-aware with clean-session rules.
 - The template draft provider exists and LLM provider behavior is intentionally unavailable.
 
 ### Target
 
-- Onboarding collects durable profile information.
-- `/plans/new` handles goal-specific plan setup and draft creation.
-- Product UI uses "Phase" for progressive plan segments.
+- Guided create and setup/regenerate continue to share the same setup -> draft -> review/edit -> save model.
+- Primary editing for an existing plan should move toward a reusable review/edit surface for the already-generated plan details.
+- Saved guided setup context should make setup/regenerate feel like reopening setup, not starting over.
+- Setup/regenerate should stay distinct from general plan-detail editing.
 - Goal-aware draft templates improve exercise selection and plan structure.
 - Progression modes handle symptom-based, adherence-based, performance-based, and hybrid logic.
 - Profile/settings field ownership may be refined over time as the product clarifies which data is durable account context versus plan-specific context.

@@ -7,6 +7,7 @@ import {
   type ProgressionDecision,
   type ProgressionSettings,
   type PlanPhase,
+  type PlanSetupInput,
   type Profile,
   type Weekday,
   type WorkoutPageData,
@@ -17,6 +18,7 @@ import {
 } from "@/lib/types";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 import { calculatePhaseProgress } from "@/lib/progression";
+import { isPlanSetupInput, normalizeWeekdays } from "@/lib/validation";
 
 type PlanRow = {
   id: string;
@@ -25,6 +27,7 @@ type PlanRow = {
   goal_type: WorkoutPlan["goalType"];
   progression_mode: WorkoutPlan["progressionMode"];
   creation_source: WorkoutPlan["creationSource"];
+  setup_context: unknown;
   is_active: boolean;
   schedule_summary: string;
   weekly_schedule: Weekday[] | null;
@@ -113,6 +116,17 @@ function mapExercise(row: ExerciseRow): ExerciseEntry {
   };
 }
 
+function mapSetupContext(value: unknown): PlanSetupInput | null {
+  if (!isPlanSetupInput(value)) {
+    return null;
+  }
+
+  return {
+    ...value,
+    weeklySchedule: normalizeWeekdays(value.weeklySchedule)
+  };
+}
+
 function deriveReadiness(session?: SessionRow) {
   if (!session) {
     return "Ready";
@@ -187,7 +201,7 @@ async function getPlanBundle(userId: string, sessionSince?: string) {
   const { data: plansData, error: plansError } = await supabase
     .from("workout_plans")
     .select(
-      "id, name, description, goal_type, progression_mode, creation_source, is_active, schedule_summary, weekly_schedule, current_phase_id, completed_at, archived_at"
+      "id, name, description, goal_type, progression_mode, creation_source, setup_context, is_active, schedule_summary, weekly_schedule, current_phase_id, completed_at, archived_at"
     )
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
@@ -334,6 +348,7 @@ function mapPlanFromBundle(
     goalType: plan.goal_type,
     progressionMode: plan.progression_mode,
     creationSource: plan.creation_source,
+    setupContext: mapSetupContext(plan.setup_context),
     isActive: plan.is_active,
     scheduleSummary: plan.schedule_summary,
     weeklySchedule: plan.weekly_schedule ?? [],

@@ -15,10 +15,11 @@ Adaptive Training is a mobile-first Progressive Web App for structured plans tha
 
 - **Onboarding Flow**: New users complete profile setup so plan creation can reuse durable training context.
 - **Guided Plan Setup**: Create goal-based plan drafts from `/plans/new`, review and edit them, then save when ready.
+- **Guided Setup Regeneration**: Reopen saved plan setup context for an existing plan, regenerate a draft, review it, and save back to the same plan.
 - **Structured Plans**: Create multi-phase plans with workouts, exercises, and preset progression rules.
 - **Phase Progression**: Automatic evaluation of workout sessions for advancement, repeats, or deloads based on clean sessions and pain flags.
 - **Workout Tracking**: Log exercises, track progress, and view recommendations for next steps.
-- **Plan Management**: Edit plans, delete mistakes, activate different plans, and archive completed ones.
+- **Plan Management**: Activate plans, delete mistakes, archive completed ones, and use advanced/manual structure edits when needed.
 - **Exercise Videos**: Add YouTube demo links to exercises for better guidance.
 - **Mobile-First UI**: Responsive design optimized for phones and tablets.
 
@@ -32,6 +33,7 @@ The app currently includes:
 - Dashboard with active plan and progress metrics
 - Plans listing and detail pages
 - Goal-based guided plan creation with review-before-save drafts
+- Guided setup regeneration for existing plans with review-before-save drafts
 - Plan creation with structured phases and workouts
 - Workout flow with recommendations and check-in
 - Phase progress tracking and manual advancement

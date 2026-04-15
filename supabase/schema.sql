@@ -68,6 +68,7 @@ create table if not exists public.workout_plans (
     creation_source is null or
     creation_source in ('manual', 'guided_template', 'llm_draft')
   ),
+  setup_context jsonb,
   schedule_summary text not null default '',
   weekly_schedule text[] not null default '{}',
   is_active boolean not null default false,
@@ -241,6 +242,9 @@ alter table public.workout_plans
     creation_source is null or
     creation_source in ('manual', 'guided_template', 'llm_draft')
   );
+
+alter table public.workout_plans
+  add column if not exists setup_context jsonb;
 
 alter table public.workout_plans
   add column if not exists completed_at timestamptz;

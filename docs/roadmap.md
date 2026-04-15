@@ -77,12 +77,23 @@ Status: implemented locally.
 
 ## 5B2. Guided Edit-Plan Workflow
 
-Status: next planned slice.
+Status: implemented locally.
 
-- Add a guided edit-plan workflow for changing an existing plan without rebuilding onboarding.
+- Delivered a setup-driven edit/regenerate workflow for changing an existing plan without rebuilding onboarding.
 - Persist or reconstruct enough plan setup context to reopen guided plan configuration safely.
+- Reuse setup -> draft -> review/edit -> save and write the reviewed result back to the same plan.
 - Keep manual edits available for advanced users.
 - Preserve existing plan save paths and compatibility fields.
+- Product learning after QA: this flow is useful for updating setup inputs and regenerating a plan, but it should not be treated as the ideal primary general "edit existing plan" journey.
+
+## 5B3. Reusable Review/Edit Flow For Existing Plans
+
+Status: planned next.
+
+- Separate the post-generation review/edit experience into a reusable screen or flow for existing plans.
+- Make plan-detail review/edit the primary edit-existing-plan journey.
+- Keep setup/regenerate as a distinct action for updating plan setup inputs.
+- Defer removal of the legacy advanced/manual plan editor until the reusable review/edit flow fully covers the real editing use case.
 
 ## 6. Contextual Dashboard And Progression UX
 
@@ -120,7 +131,7 @@ Status: planned if still needed.
 
 - Revisit which profile fields should remain durable account settings versus plan-context or setup-time inputs.
 - Consider whether fields like training experience and current activity level should stay permanently user-editable in Settings, move into guided plan setup, or become last-known context used to seed future plans.
-- Do not treat this as blocking Slice 5B2 unless a future implementation plan explicitly says so.
+- Do not treat this as blocking Slice 5B3 or Slice 6 unless a future implementation plan explicitly says so.
 
 ## Read-Only Plan Sharing
 

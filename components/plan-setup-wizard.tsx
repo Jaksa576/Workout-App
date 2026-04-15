@@ -2,6 +2,11 @@
 
 import { useMemo, useState } from "react";
 import { PlanBuilderForm } from "@/components/plan-builder-form";
+import {
+  buildDefaultPlanSetup,
+  getDefaultPlanSplit,
+  getDefaultSchedule
+} from "@/lib/plan-setup-context";
 import { selectDefaultProgressionMode } from "@/lib/progression-mode";
 import type {
   PlanPreferredSplit,
@@ -19,9 +24,15 @@ type PlanMode = "guided" | "manual";
 type PlanSetupWizardProps = {
   profile: Profile | null;
   initialMode?: PlanMode;
+  initialSetup?: PlanSetupInput;
+  editingPlan?: {
+    id: string;
+    name: string;
+  };
+  setupContextNotices?: string[];
+  setupContextMissingFields?: string[];
+  allowManualMode?: boolean;
 };
-
-const defaultDays: Weekday[] = ["mon", "wed", "fri", "tue", "thu", "sat", "sun"];
 
 const steps: Array<{ id: WizardStep; label: string }> = [
   { id: "goal", label: "Goal" },
@@ -98,26 +109,6 @@ const weekdays: Array<{ value: Weekday; label: string }> = [
   { value: "sun", label: "Sun" }
 ];
 
-function getDefaultSchedule(daysPerWeek: number) {
-  return defaultDays.slice(0, daysPerWeek);
-}
-
-function getDefaultSplit(goalType: TrainingGoalType, daysPerWeek: number): PlanPreferredSplit {
-  if (goalType === "running") {
-    return "run_strength";
-  }
-
-  if (goalType === "recovery") {
-    return "mobility_strength";
-  }
-
-  if (goalType === "strength" || goalType === "hypertrophy") {
-    return daysPerWeek >= 4 ? "upper_lower" : "full_body";
-  }
-
-  return "flexible";
-}
-
 function splitList(value: string) {
   return value
     .split(",")
@@ -129,49 +120,31 @@ function joinList(values: string[] | undefined) {
   return values?.join(", ") ?? "";
 }
 
-function getInitialConstraints(profile: Profile | null) {
-  return [
-    ...(profile?.injuries ?? []).filter((item) => item !== "None right now"),
-    ...(profile?.limitationsDetail ? [profile.limitationsDetail] : [])
-  ];
-}
-
-function getInitialSetup(profile: Profile | null): PlanSetupInput {
-  const goalType = profile?.primaryGoalType ?? "general_fitness";
-  const daysPerWeek = profile?.daysPerWeek ?? 3;
-
-  return {
-    goalType,
-    objectiveSummary: "",
-    daysPerWeek,
-    sessionMinutes: profile?.sessionMinutes ?? 45,
-    weeklySchedule: getDefaultSchedule(daysPerWeek),
-    preferredSplit: getDefaultSplit(goalType, daysPerWeek),
-    focusAreas: [
-      ...(profile?.exercisePreferences ?? []).slice(0, 2),
-      ...(profile?.sportsInterests ?? []).slice(0, 1)
-    ],
-    currentConstraints: getInitialConstraints(profile),
-    progressionModeOverride: null
-  };
-}
-
 function toggleWeekday(values: Weekday[], value: Weekday) {
   return values.includes(value) ? values.filter((item) => item !== value) : [...values, value];
 }
 
 export function PlanSetupWizard({
   profile,
-  initialMode = "guided"
+  initialMode = "guided",
+  initialSetup,
+  editingPlan,
+  setupContextNotices = [],
+  setupContextMissingFields = [],
+  allowManualMode = true
 }: PlanSetupWizardProps) {
   const [mode, setMode] = useState<PlanMode>(initialMode);
   const [stepIndex, setStepIndex] = useState(0);
-  const [setup, setSetup] = useState<PlanSetupInput>(() => getInitialSetup(profile));
+  const [setup, setSetup] = useState<PlanSetupInput>(
+    () => initialSetup ?? buildDefaultPlanSetup(profile)
+  );
   const [draft, setDraft] = useState<StructuredPlanInput | null>(null);
   const [draftKey, setDraftKey] = useState(0);
   const [generating, setGenerating] = useState(false);
   const [generationError, setGenerationError] = useState<string | null>(null);
   const step = steps[stepIndex];
+  const effectiveMode = allowManualMode ? mode : "guided";
+  const isEditing = Boolean(editingPlan);
 
   const selectedGoal = goalOptions.find((option) => option.value === setup.goalType);
   const defaultProgressionMode = useMemo(
@@ -185,7 +158,7 @@ export function PlanSetupWizard({
     setSetup((current) => ({
       ...current,
       goalType,
-      preferredSplit: getDefaultSplit(goalType, current.daysPerWeek),
+      preferredSplit: getDefaultPlanSplit(goalType, current.daysPerWeek),
       progressionModeOverride: null
     }));
   }
@@ -197,7 +170,7 @@ export function PlanSetupWizard({
       weeklySchedule: current.weeklySchedule.length
         ? current.weeklySchedule.slice(0, daysPerWeek)
         : getDefaultSchedule(daysPerWeek),
-      preferredSplit: getDefaultSplit(current.goalType, daysPerWeek)
+      preferredSplit: getDefaultPlanSplit(current.goalType, daysPerWeek)
     }));
   }
 
@@ -232,7 +205,7 @@ export function PlanSetupWizard({
     }
   }
 
-  if (mode === "manual") {
+  if (effectiveMode === "manual") {
     return (
       <div className="space-y-5 sm:space-y-6">
         <div className="rounded-[24px] bg-white/70 p-4 sm:rounded-[28px]">
@@ -260,17 +233,36 @@ export function PlanSetupWizard({
         <div>
           <p className="text-sm font-semibold text-ink">Guided setup</p>
           <p className="mt-1 text-sm leading-6 text-slate">
-            Answer a few plan-specific questions, generate a draft, then edit before saving.
+            {isEditing
+              ? "Adjust this plan setup, generate an updated draft, then review before saving."
+              : "Answer a few plan-specific questions, generate a draft, then edit before saving."}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setMode("manual")}
-          className="rounded-full border border-ink/10 bg-white px-5 py-3 text-sm font-semibold text-ink transition hover:border-coral hover:text-coral"
-        >
-          Manual Builder
-        </button>
+        {allowManualMode ? (
+          <button
+            type="button"
+            onClick={() => setMode("manual")}
+            className="rounded-full border border-ink/10 bg-white px-5 py-3 text-sm font-semibold text-ink transition hover:border-coral hover:text-coral"
+          >
+            Manual Builder
+          </button>
+        ) : null}
       </div>
+
+      {setupContextNotices.length ? (
+        <div className="rounded-[24px] border border-gold/30 bg-gold/10 p-4 text-sm leading-6 text-slate sm:rounded-[28px]">
+          <div className="space-y-2">
+            {setupContextNotices.map((notice) => (
+              <p key={notice}>{notice}</p>
+            ))}
+            {setupContextMissingFields.length ? (
+              <p>
+                Please confirm: {setupContextMissingFields.join(", ")}.
+              </p>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
 
       {!hasProfileContext ? (
         <div className="rounded-[24px] border border-gold/30 bg-gold/10 p-4 text-sm leading-6 text-slate sm:rounded-[28px]">
@@ -310,7 +302,9 @@ export function PlanSetupWizard({
           <div>
             <h2 className="font-display text-3xl text-ink">What are you training for now?</h2>
             <p className="mt-2 text-sm leading-6 text-slate">
-              Pick the main track for this plan. Your profile still supplies background context.
+              {isEditing
+                ? "Confirm the main track for this updated plan. This does not rerun onboarding."
+                : "Pick the main track for this plan. Your profile still supplies background context."}
             </p>
           </div>
           <div className="grid gap-3 md:grid-cols-2">
@@ -336,7 +330,9 @@ export function PlanSetupWizard({
           <div>
             <h2 className="font-display text-3xl text-ink">Plan details</h2>
             <p className="mt-2 text-sm leading-6 text-slate">
-              Keep this specific to the plan you want right now.
+              {isEditing
+                ? "Update only the setup details that should guide the new draft."
+                : "Keep this specific to the plan you want right now."}
             </p>
           </div>
 
@@ -504,7 +500,9 @@ export function PlanSetupWizard({
               Ready to draft
             </p>
             <h2 className="mt-2 font-display text-3xl text-ink">
-              Generate a reviewable {selectedGoal?.label.toLowerCase()} draft.
+              {isEditing
+                ? `Generate an updated ${selectedGoal?.label.toLowerCase()} draft.`
+                : `Generate a reviewable ${selectedGoal?.label.toLowerCase()} draft.`}
             </h2>
             <div className="mt-4 space-y-2 text-sm leading-6 text-slate">
               <p>
@@ -536,15 +534,18 @@ export function PlanSetupWizard({
           <div className="rounded-[24px] bg-white/70 p-4 sm:rounded-[28px]">
             <p className="text-sm font-semibold text-ink">Review and edit before saving</p>
             <p className="mt-2 text-sm leading-6 text-slate">
-              This is the same review path future draft sources can use. Make any changes,
-              then save when the structure looks right.
+              {isEditing
+                ? `You are updating ${editingPlan?.name ?? "this plan"}. Review the draft, make any changes, then save when it looks right. Prior workout history stays readable after saving.`
+                : "This is the same review path future draft sources can use. Make any changes, then save when the structure looks right."}
             </p>
           </div>
           {draft ? (
             <PlanBuilderForm
               key={draftKey}
               initialPlan={draft}
-              submitLabel="Save Generated Plan"
+              submitLabel={isEditing ? "Save Updated Plan" : "Save Generated Plan"}
+              setupContext={setup}
+              planId={editingPlan?.id}
             />
           ) : (
             <div className="rounded-[24px] bg-white/70 p-5 text-sm leading-6 text-slate sm:rounded-[28px]">

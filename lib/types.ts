@@ -115,6 +115,7 @@ export type WorkoutPlan = {
   goalType?: TrainingGoalType | null;
   progressionMode?: ProgressionMode | null;
   creationSource?: PlanCreationSource | null;
+  setupContext?: PlanSetupInput | null;
   isActive: boolean;
   scheduleSummary: string;
   weeklySchedule: Weekday[];
@@ -267,6 +268,11 @@ export type StructuredPlanInput = {
   creationSource?: PlanCreationSource;
   weeklySchedule: Weekday[];
   phases: StructuredPhaseInput[];
+};
+
+export type StructuredPlanSaveInput = {
+  plan: StructuredPlanInput;
+  setupContext?: PlanSetupInput | null;
 };
 
 export type PlanCreationInput = PlanFormInput | StructuredPlanInput;

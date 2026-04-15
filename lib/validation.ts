@@ -10,6 +10,7 @@ import type {
   ProfileSettingsInput,
   ProgressionMode,
   ProgressionSettings,
+  StructuredPlanSaveInput,
   StructuredPlanInput,
   TrainingEnvironment,
   TrainingExperience,
@@ -296,6 +297,21 @@ export function isStructuredPlanInput(value: unknown): value is StructuredPlanIn
             )
         )
     )
+  );
+}
+
+export function isStructuredPlanSaveInput(value: unknown): value is StructuredPlanSaveInput {
+  if (!isPlainRecord(value)) {
+    return false;
+  }
+
+  const input = value as Partial<StructuredPlanSaveInput>;
+
+  return (
+    isStructuredPlanInput(input.plan) &&
+    (input.setupContext === undefined ||
+      input.setupContext === null ||
+      isPlanSetupInput(input.setupContext))
   );
 }
 
