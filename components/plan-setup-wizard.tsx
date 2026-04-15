@@ -234,7 +234,7 @@ export function PlanSetupWizard({
           <p className="text-sm font-semibold text-ink">Guided setup</p>
           <p className="mt-1 text-sm leading-6 text-slate">
             {isEditing
-              ? "Adjust this plan setup, generate an updated draft, then review before saving."
+              ? "Update this plan's setup inputs, regenerate a draft, then review before saving."
               : "Answer a few plan-specific questions, generate a draft, then edit before saving."}
           </p>
         </div>
@@ -535,7 +535,7 @@ export function PlanSetupWizard({
             <p className="text-sm font-semibold text-ink">Review and edit before saving</p>
             <p className="mt-2 text-sm leading-6 text-slate">
               {isEditing
-                ? `You are updating ${editingPlan?.name ?? "this plan"}. Review the draft, make any changes, then save when it looks right. Prior workout history stays readable after saving.`
+                ? `You are reviewing a regenerated version of ${editingPlan?.name ?? "this plan"}. Make any changes, then save when it looks right.`
                 : "This is the same review path future draft sources can use. Make any changes, then save when the structure looks right."}
             </p>
           </div>
@@ -543,9 +543,11 @@ export function PlanSetupWizard({
             <PlanBuilderForm
               key={draftKey}
               initialPlan={draft}
-              submitLabel={isEditing ? "Save Updated Plan" : "Save Generated Plan"}
+              submitLabel={isEditing ? "Save regenerated plan" : "Save Generated Plan"}
               setupContext={setup}
               planId={editingPlan?.id}
+              flow={isEditing ? "edit-setup" : "create"}
+              editingPlanName={editingPlan?.name}
             />
           ) : (
             <div className="rounded-[24px] bg-white/70 p-5 text-sm leading-6 text-slate sm:rounded-[28px]">

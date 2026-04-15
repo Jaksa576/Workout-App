@@ -68,6 +68,7 @@ type ExerciseRow = {
   rest: string;
   coaching_note: string;
   video_url: string | null;
+  source_exercise_id: string | null;
   sort_order: number;
 };
 
@@ -112,7 +113,8 @@ function mapExercise(row: ExerciseRow): ExerciseEntry {
     reps: row.reps,
     rest: row.rest,
     coachingNote: row.coaching_note,
-    videoUrl: row.video_url ?? undefined
+    videoUrl: row.video_url ?? undefined,
+    sourceExerciseId: row.source_exercise_id
   };
 }
 
@@ -254,7 +256,7 @@ async function getPlanBundle(userId: string, sessionSince?: string) {
     ? supabase
         .from("exercise_entries")
         .select(
-          "id, workout_template_id, name, sets, reps, rest, coaching_note, video_url, sort_order"
+          "id, workout_template_id, name, sets, reps, rest, coaching_note, video_url, source_exercise_id, sort_order"
         )
         .in("workout_template_id", workoutIds)
         .order("sort_order", { ascending: true })

@@ -26,14 +26,15 @@ export default async function EditPlanSetupPage({
     <div className="mx-auto max-w-5xl space-y-6">
       <section>
         <p className="text-sm uppercase tracking-[0.24em] text-slate">
-          Edit Plan Setup
+          Update Setup & Regenerate
         </p>
         <h1 className="mt-2 font-display text-4xl text-ink">
-          Adjust the setup for {plan.name}.
+          Update setup for {plan.name}.
         </h1>
         <p className="mt-3 max-w-3xl text-sm leading-6 text-slate">
-          This reopens the guided setup for this plan. It does not rerun onboarding, and
-          you will review the updated draft before saving.
+          Use this when your goal, schedule, or context has changed and you want to regenerate
+          from setup. It does not rerun onboarding, and you will review the regenerated draft
+          before saving.
         </p>
         <Link
           href={`/plans/${plan.id}` as Route}
@@ -44,9 +45,9 @@ export default async function EditPlanSetupPage({
       </section>
 
       <SectionCard
-        title="Update guided setup"
+        title="Update setup & regenerate"
         eyebrow="Plan setup"
-        description="Use this for setup and context changes. Deep structure edits remain available from plan management."
+        description="Use this for setup and context changes. For direct saved-plan edits, go back and choose Edit details."
       >
         <PlanSetupWizard
           profile={profile}

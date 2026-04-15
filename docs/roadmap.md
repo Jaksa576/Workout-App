@@ -88,12 +88,26 @@ Status: implemented locally.
 
 ## 5B3. Reusable Review/Edit Flow For Existing Plans
 
-Status: planned next.
+Status: implemented locally.
 
-- Separate the post-generation review/edit experience into a reusable screen or flow for existing plans.
-- Make plan-detail review/edit the primary edit-existing-plan journey.
+- Add a primary existing-plan detail edit route that opens the saved plan details in the reusable review/edit flow.
 - Keep setup/regenerate as a distinct action for updating plan setup inputs.
-- Defer removal of the legacy advanced/manual plan editor until the reusable review/edit flow fully covers the real editing use case.
+- Preserve compatible plan update writes and readable history snapshots after edits.
+- Keep the legacy advanced/manual plan editor available as a secondary advanced path; removal stays deferred until a future slice fully covers the remaining use cases.
+
+Post-5B3 product learning:
+
+- The reusable review/edit flow is the correct primary edit-existing-plan journey.
+- The advanced/manual plan-detail edit section no longer appears necessary as a surfaced path.
+- The surfaced setup/regenerate action is being reconsidered because creating a new plan may be the clearer UX for larger setup changes.
+
+Immediate post-5B3 cleanup patch, implemented locally based on QA learning after release:
+
+- simplify the review/save copy in the `Edit details` flow
+- remove the surfaced advanced/manual plan-detail edit section from the main plan-detail page
+- remove the surfaced `Update setup & regenerate` action from the main plan-detail page
+- keep archive available as a smaller secondary control
+- keep `/plans/[planId]/edit-setup` available as a direct route for now, rather than claiming 5B3 always intended to remove it
 
 ## 6. Contextual Dashboard And Progression UX
 
@@ -131,7 +145,7 @@ Status: planned if still needed.
 
 - Revisit which profile fields should remain durable account settings versus plan-context or setup-time inputs.
 - Consider whether fields like training experience and current activity level should stay permanently user-editable in Settings, move into guided plan setup, or become last-known context used to seed future plans.
-- Do not treat this as blocking Slice 5B3 or Slice 6 unless a future implementation plan explicitly says so.
+- Do not treat this as blocking Slice 6 unless a future implementation plan explicitly says so.
 
 ## Read-Only Plan Sharing
 

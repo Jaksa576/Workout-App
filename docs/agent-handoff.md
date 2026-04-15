@@ -36,7 +36,7 @@ The approved refactor direction is additive and migration-safe:
 8. Exercise media and instruction layer.
 9. Broader polish/branding if still needed.
 
-Slices 1, 2, 3, 4, 4.5, 5A, 5B1, and 5B2 are implemented locally. The next major implementation slice is Slice 5B3: reusable review/edit flow for existing plans. A small Slice 5B1 follow-up patch may still be needed for profile/settings field-level validation messaging.
+Slices 1, 2, 3, 4, 4.5, 5A, 5B1, 5B2, and 5B3 are implemented locally. A small post-5B3 UX cleanup patch is also implemented locally based on QA learning after 5B3 shipped. Slice 6 is now the next major implementation slice. A small Slice 5B1 follow-up patch may still be needed for profile/settings field-level validation messaging.
 
 ## Current Status
 
@@ -46,12 +46,15 @@ Slices 1, 2, 3, 4, 4.5, 5A, 5B1, and 5B2 are implemented locally. The next major
 - The lightweight working product frame is now "Adaptive Training" with the subtitle "Structured plans that progress with you."
 - Manual plan creation remains available and is now a secondary path from `/plans/new?mode=manual` or the guided setup toggle.
 - Guided plan creation is now review-before-save: `/plans/new` generates a draft, lets the user edit it, then saves through `/api/plans`.
-- Guided setup-driven plan regeneration is now available from existing plan detail through `/plans/[planId]/edit-setup`; it reuses setup -> draft -> review/edit -> save and does not route through onboarding.
+- Primary saved-plan detail editing is now available from existing plan detail through `/plans/[planId]/edit`.
+- Guided setup-driven plan regeneration is now available separately through `/plans/[planId]/edit-setup`; it reuses setup -> draft -> review/edit -> save and does not route through onboarding.
 - Guided setup answers can be saved on `workout_plans.setup_context`; older plans without saved setup context are prefilled from safe reconstructed plan/profile context with missing-context copy.
-- Reviewed guided regenerate drafts save back to the same plan through `PATCH /api/plans/[planId]`, replacing live plan structure after snapshotting workout/exercise names for readable history.
-- QA learning after Slice 5B2: this shipped flow is useful for setup-driven regeneration, but it should not be treated as the ideal primary general "edit existing plan" journey.
-- QA also showed that the setup-driven flow plus the advanced/manual plan editor creates confusing duplicate edit surfaces today.
-- The advanced/manual edit path should stay for now because the reusable primary review/edit flow is not built yet.
+- Saved-plan detail edits and guided regenerate drafts both save back to the same plan through `PATCH /api/plans/[planId]`, replacing live plan structure after snapshotting workout/exercise names for readable history.
+- Post-5B3 QA confirmed that `Edit details` is the correct primary path.
+- A follow-up cleanup patch simplified the `Edit details` review/save copy, removed the surfaced advanced/manual section from the main plan-detail page, and removed the surfaced `Update setup & regenerate` action from the main plan-detail page.
+- That cleanup patch was driven by QA learning after 5B3 released; it should not be described as if 5B3 always intended to remove those surfaced actions.
+- Archive remains available on the plan-detail page as a smaller secondary control.
+- `/plans/[planId]/edit-setup` still exists as a direct route for setup-driven regeneration, but it is no longer surfaced as a main plan-detail action.
 - Settings now has a real profile editing form for durable training context; onboarding remains separate from ongoing profile edits.
 - Slice 5B1 QA found that invalid settings values, such as negative age or weight, need clearer field-level validation guidance.
 - The app remains fully functional without any LLM provider.
@@ -236,6 +239,67 @@ Post-QA learning after Slice 5B2:
 - the next slice should focus on a reusable review/edit experience for existing plans
 - do not remove the advanced/manual edit path yet because the new primary edit flow does not exist
 
+## Slice 5B3 Completed Locally
+
+Slice 5B3 made saved-plan detail editing the primary existing-plan edit path:
+
+- added `/plans/[planId]/edit` as the primary existing-plan review/edit route
+- changed the top plan-detail actions to `Edit details` and `Update setup & regenerate`
+- reused the existing review/edit stage for saved-plan detail edits instead of inventing a second editor
+- added a pure saved-plan-to-structured-draft helper so existing plans can open directly in the reusable review/edit flow
+- kept detail edits saving through `PATCH /api/plans/[planId]` and preserved existing `setup_context` when it already exists
+- confirmed the saved-plan read -> edit -> save path would drop `source_exercise_id`, then patched the read-side mapping so reopening and resaving a plan does not lose catalog traceability
+- updated the advanced/manual plan management copy so it reads as clearly secondary and manual
+- updated `docs/current-task.md`, `docs/roadmap.md`, and `docs/architecture.md` for the completed slice and next Slice 6 focus
+
+Verification after Slice 5B3:
+
+- `npm run test` passed: 5 files, 26 tests.
+- `npm run typecheck` passed.
+- `npm run build` passed and confirmed `/plans/[planId]/edit` in the Next.js route output.
+
+Manual browser verification still needed after Slice 5B3:
+
+- open an existing plan and launch `Edit details`
+- confirm it opens saved-plan detail editing, not onboarding or setup
+- save changes back to the same plan
+- confirm `Update setup & regenerate` still works separately
+- confirm older-plan regenerate still explains missing setup context only on the regenerate path
+- confirm advanced/manual plan editing is still reachable and clearly secondary
+- confirm existing `/plans/new` guided creation still works
+- confirm prior workout history remains readable after plan edits
+- confirm mobile layout is still usable for the changed entry points
+
+## Post-5B3 Cleanup Patch Completed Locally
+
+This was a narrow QA-driven cleanup after Slice 5B3, not a retroactive rewrite of 5B3's original intended scope.
+
+- kept `Edit details` as the single clear main edit action on the plan-detail page
+- simplified the review/save copy inside the saved-plan detail edit flow
+- removed the surfaced advanced/manual section from the main plan-detail page
+- removed the surfaced `Update setup & regenerate` action from the main plan-detail page
+- kept archive as a smaller secondary control on the plan-detail page
+- kept `/plans/[planId]/edit-setup`, setup-context persistence, and the existing compatible save/write behavior intact
+
+Verification after the cleanup patch:
+
+- `npm run test` passed.
+- `npm run typecheck` passed.
+- `npm run build` passed.
+
+Manual browser verification still needed after the cleanup patch:
+
+- open an existing plan and launch `Edit details`
+- confirm the simplified review/save copy is easy to understand
+- confirm the surfaced advanced/manual section is no longer shown on the main plan-detail page
+- confirm the surfaced `Update setup & regenerate` action is no longer shown on the main plan-detail page
+- confirm archive is still reachable as a smaller secondary control
+- save changes back to the same plan
+- confirm prior workout history remains readable after plan edits
+- confirm existing `/plans/new` guided creation still works
+- confirm `/plans/[planId]/edit-setup` still works if visited directly
+- confirm mobile layout is still usable for the changed plan-detail actions
+
 ## Schema Drift Recovery Status
 
 After Slice 2, localhost hit a runtime error because the Supabase project in `.env.local` was missing Slice 1 columns such as `profiles.primary_goal_type`.
@@ -261,12 +325,9 @@ Remaining recovery work:
 
 ## Next Best Step
 
-The next major product slice is Slice 5B3: reusable review/edit flow for existing plans. It should make the review/edit stage the primary edit-existing-plan journey, while keeping setup/regenerate as a separate action for changing setup inputs.
+Slice 6 is now the next major product slice.
 
-Immediate UX follow-up recommendation:
-
-- relabel the current setup-driven entry point so it clearly means setup/regenerate rather than general plan editing
-- keep the advanced/manual plan editor available until the reusable review/edit path really covers the common editing use case
+It should make dashboard copy and next-step prompts more specific to the active goal, current phase, and recent session signals without changing the core progression engine.
 
 If needed, a small Slice 5B1 follow-up patch is still available for profile/settings field-level validation messaging:
 
@@ -285,10 +346,9 @@ If needed, a small Slice 5B1 follow-up patch is still available for profile/sett
 - Slice 5B1 needs a small validation UX follow-up if settings field errors are not clear enough to the user.
 - Profile field ownership is not fully settled. Fields such as training experience and activity level may later move conceptually toward onboarding/setup context, plan-context inputs, or last-known context rather than permanent durable settings.
 - Slice 5B2 added `workout_plans.setup_context`; Supabase projects need the new migration applied before guided setup context can be saved.
-- Older plans may not have saved setup context, so guided edit reconstructs only safe fields and asks users to confirm missing setup details.
-- Guided plan edit replaces the live plan structure after review. Workout and exercise names are snapshotted first, but old sessions should not be treated as progress toward the newly generated structure.
-- The current setup-driven edit label and the advanced/manual edit surface can still confuse users until Slice 5B3 separates setup/regenerate from primary plan-detail editing more clearly.
-- The advanced/manual edit path is still needed for some direct plan-detail changes because the reusable primary review/edit flow is not built yet.
+- Older plans may not have saved setup context, so the regenerate path still reconstructs only safe fields and asks users to confirm missing setup details.
+- Saved-plan detail edits and setup/regenerate edits both replace the live plan structure after review. Workout and exercise names are snapshotted first, but old sessions should not be treated as progress toward the newly changed structure.
+- `/plans/[planId]/edit-setup` still exists even though it is no longer surfaced from the main plan-detail page; a later product call can decide whether to keep that direct route long-term.
 - Guided plan update is not fully transactional because the app still uses route-handler Supabase writes rather than a SQL RPC; a future RPC would be safer before broader public use.
 - Session save plus phase action updates are not fully atomic yet; a future SQL RPC would be stronger before broader public use.
 - Slice 4.5 intentionally did not rename `plan_phases`, `phase-action`, `currentPhase`, `PhaseProgressPanel`, `PhaseProgressSummary`, `PlanPhase`, `StructuredPhaseInput`, existing phase-shaped payload fields, route/file names, or progression algorithm terms used internally.
@@ -305,8 +365,10 @@ If needed, a small Slice 5B1 follow-up patch is still available for profile/sett
 ## Important Files
 
 - `app/plans/[planId]/page.tsx`
+- `app/plans/[planId]/edit/page.tsx`
 - `app/plans/new/page.tsx`
 - `app/plans/[planId]/edit-setup/page.tsx`
+- `components/plan-archive-action.tsx`
 - `components/plan-setup-wizard.tsx`
 - `components/plan-builder-form.tsx`
 - `components/plan-management-actions.tsx`
@@ -320,6 +382,7 @@ If needed, a small Slice 5B1 follow-up patch is still available for profile/sett
 - `app/page.tsx`
 - `components/profile-settings-form.tsx`
 - `lib/plan-write.ts`
+- `lib/plan-edit-draft.ts`
 - `lib/plan-save-input.ts`
 - `lib/plan-setup-context.ts`
 - `lib/starter-plan-generator.ts`
@@ -332,6 +395,7 @@ If needed, a small Slice 5B1 follow-up patch is still available for profile/sett
 - `lib/types.ts`
 - `lib/validation.ts`
 - `lib/__tests__/profile-settings.test.ts`
+- `lib/__tests__/plan-edit-draft.test.ts`
 - `lib/__tests__/plan-setup-context.test.ts`
 - `lib/__tests__/plan-drafting-foundation.test.ts`
 - `lib/data.ts`
@@ -388,16 +452,30 @@ Most recent Slice 5B2 verification:
 - `npm run test` passed: 4 files, 25 tests.
 - `npm run build` passed.
 
+Most recent Slice 5B3 verification:
+
+- `npm run test` passed: 5 files, 26 tests.
+- `npm run typecheck` passed.
+- `npm run build` passed.
+
+Most recent post-5B3 cleanup patch verification:
+
+- `npm run test` passed.
+- `npm run typecheck` passed.
+- `npm run build` passed.
+
 Manual browser verification still needed:
 
 - fresh auth and onboarding/profile creation
 - guided draft generation and retry/error states
 - generated draft quality across recovery, general fitness, strength, hypertrophy, running, sport performance, and consistency
 - generated draft edit and save, including visible Phase terminology in the review builder
-- guided edit launch from an existing plan
+- saved-plan detail edit launch from an existing plan
+- saved-plan detail edit save back to the same plan
+- direct visit to guided setup/regenerate from an existing plan
 - guided edit setup reconstruction for older plans without saved `setup_context`
 - guided edit draft review/save back to the same plan
-- history readability after a guided edit replaces live plan structure
+- history readability after a saved-plan detail edit or guided edit replaces live plan structure
 - compact/mobile UI for badges, cards, headers, and progress surfaces with the Phase wording
 - manual `/plans/new?mode=manual` save
 - dashboard, workout, and onboarding redirects when the user has a profile but no plan

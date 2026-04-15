@@ -2,25 +2,32 @@
 
 ## Goal
 
-Next planned major implementation slice: Slice 5B3, reusable review/edit flow for existing plans.
+Current active work: Slice 6, contextual dashboard and progression UX.
 
-Slice 5B2 should be treated as completed locally: users can open an existing plan, enter a setup-driven edit flow, regenerate an updated draft, review it, and save back to the same plan without rerunning onboarding.
+Recent patch completed locally: a post-5B3 cleanup pass based on QA learning after release.
 
-Immediate product learning from QA:
+Important product learning after Slice 5B3:
 
-- the current edit-setup flow is useful, but it should mean "update plan setup" or "regenerate from setup," not the primary general "edit my plan" path
-- users who want to edit an existing plan usually want to edit the already-generated plan details / review-stage content
-- having both the setup-driven flow and the advanced/manual plan editor creates confusing duplicate edit surfaces right now
+- `Edit details` is the right primary edit-existing-plan journey
+- 5B3 shipped while still surfacing `Update setup & regenerate` and the advanced/manual plan-detail section
+- QA showed those extra surfaced actions created unnecessary duplication
+- the cleanup patch simplified the main plan-detail UX rather than changing the underlying write model
 
-Immediate follow-up patch recommendation:
+That cleanup patch delivered:
 
-- relabel the current setup-driven entry point so it clearly means setup/regenerate rather than general plan editing
+- simpler review/save copy in `/plans/[planId]/edit`
+- removal of the surfaced advanced/manual section from the main plan-detail page
+- removal of the surfaced `Update setup & regenerate` action from the main plan-detail page
+- a small secondary archive control on the plan-detail page
+- retention of `/plans/[planId]/edit-setup` as a direct route for now, without surfacing it as a main plan-detail action
+
+Next planned major implementation slice: Slice 6, contextual dashboard and progression UX.
 
 Small follow-up candidate still open from Slice 5B1: improve profile/settings validation UX so invalid values such as negative age or weight show clear field-level guidance. This is a patch candidate, not a completed fix.
 
 ## Current Context
 
-Slices 1 through 5B2 are implemented locally:
+Slices 1 through 5B3 are implemented locally:
 
 - richer profile and plan metadata columns
 - nullable `workout_plans.progression_mode`
@@ -29,7 +36,9 @@ Slices 1 through 5B2 are implemented locally:
 - AI-neutral plan draft provider
 - onboarding/profile separation for durable profile data
 - guided `/plans/new` plan setup with review-before-save drafts
-- guided `/plans/[planId]/edit-setup` setup-driven plan regeneration with review-before-save updates
+- guided `/plans/[planId]/edit` for primary saved-plan detail edits
+- guided `/plans/[planId]/edit-setup` for setup-driven plan regeneration with review-before-save updates
+- post-5B3 cleanup that de-surfaces regenerate and advanced/manual plan-detail actions while keeping archive as a smaller secondary control
 - template-only draft generation through `POST /api/plan-drafts`
 - compatible plan creation and update writes through `lib/plan-write.ts`
 - presentation-only terminology refinement back to user-facing "Phase"
@@ -40,52 +49,52 @@ Slices 1 through 5B2 are implemented locally:
 
 The app should continue to work without any LLM provider.
 
-## Slice 5B2 Completed Scope
+## Slice 5B3 Completed Scope
 
-Slice 5B2 added guided plan setup regeneration for existing plans:
+Slice 5B3 added a primary existing-plan detail edit flow:
 
-- one primary "Edit plan setup" entry point from plan detail
-- `/plans/[planId]/edit-setup` for guided edits without routing through onboarding
-- setup-context persistence for newly saved guided plans
-- safe reconstruction for older plans that do not have saved setup context
-- reuse of the existing guided setup -> draft -> review/edit -> save pattern
-- `PATCH /api/plans/[planId]` for saving reviewed updates back to the same plan
-- history snapshot preservation before replacing live plan structure
-- manual plan management kept as a separate advanced path
+- `/plans/[planId]/edit` for editing the saved plan details directly without rerunning onboarding or setup
+- `Edit details` as the primary plan-detail action on the existing plan page
+- `Update setup & regenerate` as a clearly separate setup/regenerate action
+- reuse of the existing review/edit stage for both saved-plan edits and regenerate flows
+- continued saving through `PATCH /api/plans/[planId]` for compatible updates to the same plan row
+- preservation of existing `setup_context` during saved-plan detail edits when it already exists
+- readable history snapshot behavior preserved when live plan structure is replaced
+- lower-page advanced/manual plan management kept available as a clearly secondary path
+- read-side `source_exercise_id` preservation on the saved-plan edit path so reopening and resaving a plan does not drop catalog traceability
 
 Post-implementation notes:
 
-- Guided edit replaces the live plan structure after review. Existing workout and exercise names are snapshotted first so prior history remains readable.
-- Old sessions from the replaced structure should not be treated as progress toward the newly generated structure.
+- Saved-plan detail edits and setup/regenerate edits both replace the live plan structure after review. Existing workout and exercise names are snapshotted first so prior history remains readable.
+- Old sessions from the replaced structure should not be treated as progress toward the newly changed structure.
 - The update path follows existing non-RPC write patterns and is not fully transactional; a future SQL RPC would be stronger before broader public use.
-- Logged-in browser testing is still needed against a real Supabase project with `workout_plans.setup_context` applied.
-- QA learning changed the next priority: the setup-driven flow should remain available, but it should not be treated as the main general edit-existing-plan journey.
+- Older plans can still rely on reconstructed setup context when using the regenerate path.
+- Logged-in browser testing is still needed against a real Supabase project with the current schema applied.
 
-## Scope For Slice 5B3
+## Post-5B3 Cleanup Patch Completed Locally
 
-Slice 5B3 should make editing an existing plan feel like editing the already-generated plan details, not restarting setup.
+This patch was a QA-driven cleanup after Slice 5B3, not a restatement of 5B3's original intended scope.
 
-Expected focus:
+What changed:
 
-- separate or reuse the post-generation review/edit experience so it can be opened for an existing plan
-- make that review/edit experience the primary edit-existing-plan journey
-- keep setup/regenerate as a distinct action for changing setup inputs and regenerating from them
-- keep the advanced/manual plan editor available until the reusable review/edit flow fully covers the real use case
-- preserve existing plan write compatibility and readable history snapshots
-- avoid broad onboarding, profile/settings, schema, or LLM work in this slice
+- kept `Edit details` as the clear primary existing-plan edit journey
+- simplified the review/save copy in the saved-plan edit flow
+- removed the surfaced advanced/manual plan-detail section
+- removed the surfaced `Update setup & regenerate` action from the main plan-detail page
+- kept archive available as a small secondary control
+- preserved `/plans/[planId]/edit-setup`, compatible save behavior, and readable history snapshots
+
+## Next Major Scope After This Patch
+
+Slice 6 should improve dashboard and progression UX without changing the core progression engine.
 
 ## Likely Files To Inspect
 
 - `app/plans/[planId]/page.tsx`
+- `app/plans/[planId]/edit/page.tsx`
 - `app/plans/[planId]/edit-setup/page.tsx`
-- `app/plans/new/page.tsx`
 - `components/plan-builder-form.tsx`
-- `components/plan-setup-wizard.tsx`
 - `components/plan-management-actions.tsx`
-- `lib/plan-setup-context.ts`
-- `lib/plan-write.ts`
-- `lib/types.ts`
-- `lib/validation.ts`
 - `docs/current-task.md`
 - `docs/agent-handoff.md`
 - `docs/roadmap.md`
@@ -99,32 +108,19 @@ Expected focus:
 - Do not rename database tables, API routes, or compatibility fields such as `plan_phases`, `phase-action`, or `currentPhase`.
 - Do not weaken Supabase auth or RLS assumptions.
 - Keep changes migration-safe and scoped.
-- Do not remove the advanced/manual plan editor yet; that decision is deferred until the new review/edit path is complete.
-- Do not do dashboard/progression UX work yet; that remains Slice 6 after this slice.
+- Do not broaden this cleanup patch into a broader editing-system redesign.
+- Do not change plan-write persistence behavior beyond the small UX cleanup this patch requires.
+- Do not remove the `/plans/[planId]/edit-setup` route unless that is explicitly re-scoped later; this patch is about the surfaced plan-detail UI.
 - Do not do workout execution timer/checklist overhaul; that is Slice 7.
 - Do not do exercise media/instruction work; that is Slice 8.
-
-## Acceptance Criteria For Slice 5B3
-
-- Editing an existing plan can primarily start from a review/edit experience for the already-generated plan details.
-- Setup/regenerate remains available as a separate action and is clearly labeled that way.
-- Duplicate edit surfaces are meaningfully clearer to a normal user.
-- The advanced/manual plan editor remains available until the new primary edit flow fully covers the use case.
-- Existing guided `/plans/new` creation still works.
-- Existing guided `/plans/[planId]/edit-setup` editing still works.
-- Workout history snapshots remain readable after plan edits.
-- The app remains functional without LLM configuration.
-- `npm run test`, `npm run typecheck`, and `npm run build` pass for code changes.
-- Logged-in browser testing notes are added to `docs/agent-handoff.md`.
 
 ## Non-Goals
 
 - No LLM/provider integration.
 - No profile/settings redesign beyond targeted validation UX fixes.
 - No broad progression algorithm expansion.
-- No removal of the advanced/manual plan editor in this slice.
 - No broad internal phase terminology renaming.
-- No dashboard/progression UX work in this slice; that is Slice 6.
+- No dashboard/progression UX work in this patch; that remains Slice 6.
 - No workout execution timer/checklist overhaul; that is Slice 7.
 - No exercise media/instruction layer; that is Slice 8.
 - No read-only plan sharing.

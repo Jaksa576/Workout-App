@@ -32,6 +32,7 @@ export type ExerciseEntry = {
   rest: string;
   coachingNote: string;
   videoUrl?: string;
+  sourceExerciseId?: string | null;
 };
 
 export type Weekday = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";

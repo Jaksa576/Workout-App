@@ -70,10 +70,11 @@ export function PlanManagementActions({ plan }: PlanManagementActionsProps) {
   return (
     <section className="rounded-[24px] border border-white/70 bg-[#fffdf9]/85 p-5 shadow-card sm:rounded-[32px] sm:p-6">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate sm:tracking-[0.22em]">Advanced plan management</p>
-      <h2 className="mt-2 font-display text-2xl leading-tight text-ink sm:text-3xl">Edit plan structure</h2>
+      <h2 className="mt-2 font-display text-2xl leading-tight text-ink sm:text-3xl">Advanced manual edits</h2>
       <p className="mt-3 max-w-3xl text-sm leading-6 text-slate">
-        Use this for manual cleanup when you need direct structure control. Completed workout
-        history stays saved.
+        Use this for one-off manual cleanup when you need direct structure control. Most plan
+        changes belong in Edit details, and setup changes belong in Update setup & regenerate.
+        Completed workout history stays saved.
       </p>
 
       <div className="mt-6 space-y-4">

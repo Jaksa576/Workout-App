@@ -114,13 +114,17 @@ type PlanBuilderFormProps = {
   submitLabel?: string;
   setupContext?: PlanSetupInput | null;
   planId?: string;
+  flow?: "create" | "edit-details" | "edit-setup";
+  editingPlanName?: string;
 };
 
 export function PlanBuilderForm({
   initialPlan,
   submitLabel = "Save Workout Plan",
   setupContext = null,
-  planId
+  planId,
+  flow = "create",
+  editingPlanName
 }: PlanBuilderFormProps) {
   const router = useRouter();
   const [stepIndex, setStepIndex] = useState(0);
@@ -147,6 +151,14 @@ export function PlanBuilderForm({
   const [status, setStatus] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const currentStep = steps[stepIndex];
+  const planLabel = editingPlanName ?? name;
+
+  const reviewNotice =
+    flow === "edit-details"
+      ? "Past workout history stays saved. Changes to this plan apply going forward, including any updated phases, workouts, and exercises."
+      : flow === "edit-setup"
+        ? `You are reviewing a regenerated version of ${planLabel}. Saving replaces the live plan structure. Old workout and exercise names stay readable in history snapshots, and prior sessions should not be treated as progress toward the regenerated structure.`
+        : null;
 
   const filteredExercises = useMemo(() => {
     const normalizedSearch = exerciseSearch.trim().toLowerCase();
@@ -734,10 +746,9 @@ export function PlanBuilderForm({
 
       {currentStep.id === "review" ? (
         <div className="space-y-4">
-          {planId ? (
+          {reviewNotice ? (
             <div className="rounded-[24px] border border-gold/30 bg-gold/10 p-4 text-sm leading-6 text-slate sm:rounded-[28px]">
-              Saving will update this plan's live setup and workouts. Prior workout history
-              remains readable after the update.
+              {reviewNotice}
             </div>
           ) : null}
           <div className="rounded-[24px] bg-white/70 p-5 sm:rounded-[28px]">

@@ -7,7 +7,7 @@ import { ProgressBadge } from "@/components/progress-badge";
 import { WorkoutChecklist } from "@/components/workout-checklist";
 import { ExerciseVideoLinkEditor } from "@/components/exercise-video-link-editor";
 import { PhaseProgressPanel } from "@/components/phase-progress-panel";
-import { PlanManagementActions } from "@/components/plan-management-actions";
+import { PlanArchiveAction } from "@/components/plan-archive-action";
 import { getWorkoutPageData } from "@/lib/data";
 import { formatPhaseLabel } from "@/lib/plan-labels";
 
@@ -45,10 +45,10 @@ export default async function PlanDetailPage({
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <Link
-              href={`/plans/${plan.id}/edit-setup` as Route}
+              href={`/plans/${plan.id}/edit` as Route}
               className="rounded-full bg-coral px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#f95a2b]"
             >
-              Edit plan setup
+              Edit details
             </Link>
             <ProgressBadge
               label={formatPhaseLabel(plan.currentPhase.phaseNumber)}
@@ -185,7 +185,19 @@ export default async function PlanDetailPage({
         ))}
       </section>
 
-      <PlanManagementActions plan={plan} />
+      <section className="rounded-[24px] border border-ink/10 bg-white/70 p-4 sm:rounded-[32px] sm:p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate sm:tracking-[0.22em]">
+              Plan management
+            </p>
+            <p className="mt-2 text-sm leading-6 text-slate">
+              Archive this plan to stop using it while keeping past workout history readable.
+            </p>
+          </div>
+          <PlanArchiveAction planId={plan.id} planName={plan.name} />
+        </div>
+      </section>
     </div>
   );
 }
