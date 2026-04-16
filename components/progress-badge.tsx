@@ -9,11 +9,11 @@ export function ProgressBadge({ label, tone }: ProgressBadgeProps) {
   return (
     <span
       className={clsx(
-        "inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em]",
+        "inline-flex items-center rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em]",
         {
-          "bg-moss/15 text-moss": tone === "green",
-          "bg-gold/20 text-[#8a6400]": tone === "gold",
-          "bg-ink text-white": tone === "ink"
+          "border-success/20 bg-success/10 text-success": tone === "green",
+          "border-warning/25 bg-warning/10 text-warning": tone === "gold",
+          "border-transparent bg-hero text-white": tone === "ink"
         }
       )}
     >
@@ -21,4 +21,3 @@ export function ProgressBadge({ label, tone }: ProgressBadgeProps) {
     </span>
   );
 }
-

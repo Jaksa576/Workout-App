@@ -109,15 +109,28 @@ Immediate post-5B3 cleanup patch, implemented locally based on QA learning after
 - keep archive available as a smaller secondary control
 - keep `/plans/[planId]/edit-setup` available as a direct route for now, rather than claiming 5B3 always intended to remove it
 
-## 6. Contextual Dashboard And Progression UX
+## 6. UI Overhaul Phase 1
+
+Status: implemented locally.
+
+- This is a foundation slice, not a full redesign.
+- Add light/dark theme support through a small semantic token layer and a local client-side preference override.
+- Introduce shared mobile-first UI primitives for plan surfaces, including page headers, summary cards, section cards, and clearer phase/workout hierarchy patterns.
+- Establish responsive layout rules so mobile remains the primary experience and desktop becomes a wider version of the same information architecture.
+- Refresh the saved-plan detail page, `/plans/[planId]/edit`, and `/plans/[planId]/edit-setup`.
+- Keep the current adaptive-training engine, save semantics, history snapshots, and edit-versus-regenerate route boundaries unchanged.
+- Do not broaden this slice into dashboard redesign, workout execution redesign, onboarding/setup redesign, or major route reorganization.
+
+## 7. Contextual Dashboard And Progression UX
 
 Status: planned.
 
+- Build on the UI foundation from Slice 6 instead of trying to redesign dashboard/progression surfaces first.
 - Make dashboard copy and next-step prompts more contextual to the active goal, phase, and recent sessions.
 - Improve progression explanations so users understand why a phase should advance, repeat, or deload.
 - Keep explicit user-confirmed phase movement.
 
-## 7. Workout Execution UX
+## 8. Workout Execution UX
 
 Status: planned.
 
@@ -125,19 +138,20 @@ Status: planned.
 - Keep workout history snapshots readable after plan edits.
 - Avoid changing progression algorithms in this slice unless a narrow display change requires it.
 
-## 8. Exercise Media And Instruction Layer
+## 9. Exercise Media And Instruction Layer
 
 Status: planned.
 
 - Expand exercise instruction quality, video/demo surfaces, and coaching notes.
 - Keep the exercise catalog deterministic and editable through code until an admin/data workflow exists.
 
-## 9. Broader Polish And Branding
+## 10. Broader Polish And Branding
 
 Status: planned if still needed.
 
-- Revisit visual polish, naming, and brand expression after the core training quality and workflow slices are stronger.
-- Avoid doing broad branding work before deterministic plan quality improves.
+- Revisit broader polish, naming, and brand expression only after the UI foundation, dashboard, workout execution, and exercise instruction slices are stronger.
+- Keep this intentionally narrow if it happens; it should not become a vague catch-all redesign bucket.
+- Avoid doing broad branding work before the core training quality and workflow slices are stronger.
 
 ## Later Product Work
 
@@ -145,7 +159,7 @@ Status: planned if still needed.
 
 - Revisit which profile fields should remain durable account settings versus plan-context or setup-time inputs.
 - Consider whether fields like training experience and current activity level should stay permanently user-editable in Settings, move into guided plan setup, or become last-known context used to seed future plans.
-- Do not treat this as blocking Slice 6 unless a future implementation plan explicitly says so.
+- Do not treat this as blocking Slice 7 unless a future implementation plan explicitly says so.
 
 ## Read-Only Plan Sharing
 

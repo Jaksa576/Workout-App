@@ -31,12 +31,15 @@ The approved refactor direction is additive and migration-safe:
 5B1. Profile/settings editing.
 5B2. Guided edit-plan workflow.
 5B3. Reusable review/edit flow for existing plans.
-6. Contextual dashboard and progression UX.
-7. Workout execution UX.
-8. Exercise media and instruction layer.
-9. Broader polish/branding if still needed.
+6. UI Overhaul Phase 1.
+7. Contextual dashboard and progression UX.
+8. Workout execution UX.
+9. Exercise media and instruction layer.
+10. Broader polish/branding if still needed.
 
-Slices 1, 2, 3, 4, 4.5, 5A, 5B1, 5B2, and 5B3 are implemented locally. A small post-5B3 UX cleanup patch is also implemented locally based on QA learning after 5B3 shipped. Slice 6 is now the next major implementation slice. A small Slice 5B1 follow-up patch may still be needed for profile/settings field-level validation messaging.
+The docs had previously been aligned on Slice 6 as dashboard/progression work. Product direction then intentionally shifted to prioritize UI Overhaul Phase 1 first, ahead of the previously planned dashboard slice.
+
+Slices 1, 2, 3, 4, 4.5, 5A, 5B1, 5B2, 5B3, and UI Overhaul Phase 1 are implemented locally. A small post-5B3 UX cleanup patch is also implemented locally based on QA learning after 5B3 shipped. The next recommended major slice is now contextual dashboard and progression UX. A small Slice 5B1 follow-up patch may still be needed for profile/settings field-level validation messaging.
 
 ## Current Status
 
@@ -60,6 +63,11 @@ Slices 1, 2, 3, 4, 4.5, 5A, 5B1, 5B2, and 5B3 are implemented locally. A small p
 - The app remains fully functional without any LLM provider.
 - The future LLM path should plug into the same setup -> draft -> review/edit -> save flow and never become the system of record.
 - Guided template drafts now have a stronger deterministic baseline by goal track before any LLM support exists.
+- UI Overhaul Phase 1 added a small theme foundation with semantic tokens, `html[data-theme]`, system-default light/dark support, and a local override in the existing authenticated app shell.
+- The saved-plan detail page now has a stronger summary area, clearer plan -> phase -> workout hierarchy, and a cleaner archive management section without resurfacing setup/regenerate.
+- `/plans/[planId]/edit` now reads as the clear primary existing-plan edit surface.
+- `/plans/[planId]/edit-setup` now shares the same visual language while remaining explicitly secondary and setup-driven.
+- Shared plan-surface components such as section cards, badges, review/edit panels, and phase/workout cards were refreshed without changing progression logic, save semantics, or history snapshot behavior.
 
 ## Slice 1 Completed Locally
 
@@ -300,6 +308,42 @@ Manual browser verification still needed after the cleanup patch:
 - confirm `/plans/[planId]/edit-setup` still works if visited directly
 - confirm mobile layout is still usable for the changed plan-detail actions
 
+## UI Overhaul Phase 1 Completed Locally
+
+This slice intentionally changed the roadmap sequence before implementation: the docs had been aligned on dashboard/progression work as Slice 6, but product direction shifted to land the saved-plan UI foundation first.
+
+What changed:
+
+- updated `docs/roadmap.md`, `docs/current-task.md`, and this handoff so UI Overhaul Phase 1 is the deliberate priority change ahead of dashboard work
+- added a small repo-native theme layer with semantic tokens, `html[data-theme]`, system-default theme selection, a local persisted override, and a no-flash bootstrap script in `app/layout.tsx`
+- refreshed the authenticated app shell styling and added a compact theme control in the existing shared header rather than creating a larger nav/settings redesign
+- refreshed the saved-plan detail page with a stronger summary/hero area, clearer hierarchy, and reusable phase/workout cards
+- refreshed `/plans/[planId]/edit` so it reads as the primary saved-plan editing surface
+- refreshed `/plans/[planId]/edit-setup` so it stays related but clearly secondary to direct detail editing
+- updated `PlanBuilderForm` and `PlanSetupWizard` at the token/primitive level so the edit surfaces inherit the new visual foundation without doing dedicated `/plans/new` route UX work
+- kept progression logic, save semantics, setup-context behavior, history snapshotting, schema, auth, and RLS assumptions unchanged
+
+Verification after UI Overhaul Phase 1:
+
+- `npm run typecheck` passed.
+- `npm run build` passed.
+
+Manual browser verification still needed after UI Overhaul Phase 1:
+
+- open plan detail in light mode and dark mode
+- open `/plans/[planId]/edit` in light mode and dark mode
+- open `/plans/[planId]/edit-setup` in light mode and dark mode
+- confirm mobile-width behavior on all three saved-plan surfaces
+- confirm desktop-width behavior on all three saved-plan surfaces
+- confirm `Edit details` still reads as the dominant action on plan detail
+- confirm setup/regenerate remains clearly secondary and direct-route only
+- confirm the theme override persists locally
+- confirm system theme fallback works
+- confirm there is no obvious hydration mismatch or flash of the wrong theme on initial load
+- save a detail edit back to the same plan
+- confirm archive still works
+- confirm history remains readable after plan edits
+
 ## Schema Drift Recovery Status
 
 After Slice 2, localhost hit a runtime error because the Supabase project in `.env.local` was missing Slice 1 columns such as `profiles.primary_goal_type`.
@@ -325,9 +369,9 @@ Remaining recovery work:
 
 ## Next Best Step
 
-Slice 6 is now the next major product slice.
+Contextual dashboard and progression UX is now the next major product slice.
 
-It should make dashboard copy and next-step prompts more specific to the active goal, current phase, and recent session signals without changing the core progression engine.
+It should build on the new UI foundation and make dashboard copy and next-step prompts more specific to the active goal, current phase, and recent session signals without changing the core progression engine.
 
 If needed, a small Slice 5B1 follow-up patch is still available for profile/settings field-level validation messaging:
 
@@ -461,6 +505,11 @@ Most recent Slice 5B3 verification:
 Most recent post-5B3 cleanup patch verification:
 
 - `npm run test` passed.
+- `npm run typecheck` passed.
+- `npm run build` passed.
+
+Most recent UI Overhaul Phase 1 verification:
+
 - `npm run typecheck` passed.
 - `npm run build` passed.
 

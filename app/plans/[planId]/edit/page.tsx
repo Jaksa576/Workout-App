@@ -2,10 +2,12 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Route } from "next";
 import { PlanBuilderForm } from "@/components/plan-builder-form";
-import { SectionCard } from "@/components/section-card";
+import { PageHero } from "@/components/page-hero";
+import { ProgressBadge } from "@/components/progress-badge";
 import { requireUser } from "@/lib/auth";
 import { getPlanById } from "@/lib/data";
 import { savedPlanToStructuredPlanInput } from "@/lib/plan-edit-draft";
+import { formatPhaseLabel } from "@/lib/plan-labels";
 
 export default async function EditPlanDetailsPage({
   params
@@ -22,29 +24,49 @@ export default async function EditPlanDetailsPage({
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      <section>
-        <p className="text-sm uppercase tracking-[0.24em] text-slate">Edit Details</p>
-        <h1 className="mt-2 font-display text-4xl text-ink">
-          Edit the saved details for {plan.name}.
-        </h1>
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate">
-          Use this to update the plan you already have. This keeps you in the saved plan details,
-          not onboarding or setup. If you want something substantially different, create a new
-          plan instead.
-        </p>
-        <Link
-          href={`/plans/${plan.id}` as Route}
-          className="mt-4 inline-flex rounded-full border border-ink/10 bg-white px-5 py-3 text-sm font-semibold text-ink transition hover:border-coral hover:text-coral"
-        >
-          Back to plan
-        </Link>
-      </section>
+      <PageHero
+        eyebrow="Edit details"
+        title={`Edit the saved details for ${plan.name}.`}
+        description="Use this to refine the plan you already have. This stays in the saved plan details flow rather than reopening setup or onboarding."
+        badges={
+          <>
+            <ProgressBadge label="Primary edit path" tone="ink" />
+            <ProgressBadge label={formatPhaseLabel(plan.currentPhase.phaseNumber)} tone="gold" />
+          </>
+        }
+        actions={
+          <>
+            <Link href={`/plans/${plan.id}` as Route} className="ui-button-secondary text-center">
+              Back to plan
+            </Link>
+            <Link href="/plans" className="ui-button-ghost text-center">
+              View all plans
+            </Link>
+          </>
+        }
+        aside={
+          <div className="space-y-3">
+            <p className="ui-eyebrow">How this save works</p>
+            <p className="text-sm leading-6 text-copy">
+              Saving updates the live plan structure. Existing history stays readable through snapshots.
+            </p>
+            <p className="text-sm leading-6 text-muted">
+              For larger goal or schedule changes, use the separate setup/regenerate route instead of treating this like a restart.
+            </p>
+          </div>
+        }
+      />
 
-      <SectionCard
-        title="Edit plan details"
-        eyebrow="Review/edit"
-        description="Adjust the saved structure directly, then save when it looks right."
-      >
+      <section className="space-y-4">
+        <div>
+          <p className="ui-eyebrow">Review and update</p>
+          <h2 className="mt-2 font-display text-2xl leading-tight text-copy sm:text-3xl">
+            Refine the current blueprint
+          </h2>
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">
+            Adjust the saved structure directly, review the outcome, and save when the live plan looks right.
+          </p>
+        </div>
         <PlanBuilderForm
           initialPlan={savedPlanToStructuredPlanInput(plan)}
           submitLabel="Save plan changes"
@@ -53,7 +75,7 @@ export default async function EditPlanDetailsPage({
           flow="edit-details"
           editingPlanName={plan.name}
         />
-      </SectionCard>
+      </section>
     </div>
   );
 }

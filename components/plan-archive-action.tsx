@@ -47,11 +47,11 @@ export function PlanArchiveAction({ planId, planName }: PlanArchiveActionProps) 
         type="button"
         onClick={archivePlan}
         disabled={isArchiving}
-        className="rounded-full border border-ink/10 bg-white px-4 py-2 text-sm font-semibold text-ink transition hover:border-coral hover:text-coral disabled:opacity-45"
+        className="ui-button-ghost px-4 py-2 disabled:opacity-45"
       >
         {isArchiving ? "Archiving..." : "Archive Plan"}
       </button>
-      {status ? <p className="text-sm leading-6 text-slate">{status}</p> : null}
+      {status ? <p className="text-sm leading-6 text-muted">{status}</p> : null}
     </div>
   );
 }

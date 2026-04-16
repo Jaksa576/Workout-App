@@ -45,12 +45,12 @@ export function PlanListActions({ planId, isActive, completedAt }: PlanListActio
           type="button"
           onClick={makeActive}
           disabled={isPending}
-          className="rounded-full bg-coral px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#f95a2b] disabled:opacity-60"
+          className="ui-button-primary disabled:opacity-60"
         >
           {isPending ? "Updating..." : "Make Active Plan"}
         </button>
       ) : null}
-      {status ? <p className="text-sm leading-6 text-slate">{status}</p> : null}
+      {status ? <p className="text-sm leading-6 text-muted">{status}</p> : null}
     </div>
   );
 }

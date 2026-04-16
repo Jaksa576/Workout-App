@@ -10,6 +10,8 @@ import { PhaseProgressPanel } from "@/components/phase-progress-panel";
 import { PlanArchiveAction } from "@/components/plan-archive-action";
 import { getWorkoutPageData } from "@/lib/data";
 import { formatPhaseLabel } from "@/lib/plan-labels";
+import { PageHero } from "@/components/page-hero";
+import { PlanPhaseCard } from "@/components/plan-phase-card";
 
 export default async function PlanDetailPage({
   params
@@ -32,63 +34,65 @@ export default async function PlanDetailPage({
 
   return (
     <div className="space-y-5 sm:space-y-6">
-      <section className="rounded-[24px] bg-white/80 p-5 shadow-card sm:rounded-[32px] sm:p-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate sm:tracking-[0.22em]">
-          Plan detail
-        </p>
-        <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <h1 className="font-display text-3xl leading-tight text-ink sm:text-4xl">{plan.name}</h1>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate">
-              {plan.description}
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <Link
-              href={`/plans/${plan.id}/edit` as Route}
-              className="rounded-full bg-coral px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#f95a2b]"
-            >
+      <PageHero
+        eyebrow="Saved plan"
+        title={plan.name}
+        description={plan.description}
+        badges={
+          <>
+            <ProgressBadge label={formatPhaseLabel(plan.currentPhase.phaseNumber)} tone="ink" />
+            <ProgressBadge label={plan.currentPhase.goal} tone="green" />
+          </>
+        }
+        actions={
+          <>
+            <Link href={`/plans/${plan.id}/edit` as Route} className="ui-button-primary text-center">
               Edit details
             </Link>
-            <ProgressBadge
-              label={formatPhaseLabel(plan.currentPhase.phaseNumber)}
-              tone="gold"
-            />
-            <ProgressBadge label={plan.currentPhase.goal} tone="green" />
+            <Link href="/plans" className="ui-button-ghost text-center">
+              Back to plans
+            </Link>
+          </>
+        }
+        aside={
+          <div className="space-y-4">
+            <div>
+              <p className="ui-eyebrow">Current structure</p>
+              <p className="mt-2 text-xl font-semibold text-copy">
+                {plan.phases.length} {plan.phases.length === 1 ? "phase" : "phases"}
+              </p>
+              <p className="mt-1 text-sm leading-6 text-muted">
+                {plan.workouts.length} saved workouts with history snapshots preserved across edits.
+              </p>
+            </div>
+            <div className="rounded-[18px] border border-border/70 bg-surface px-4 py-3">
+              <p className="ui-eyebrow">Primary action</p>
+              <p className="mt-2 text-sm leading-6 text-copy">
+                Edit details updates the live plan directly while keeping old history readable.
+              </p>
+            </div>
           </div>
-        </div>
-      </section>
+        }
+      />
 
       <section className="grid gap-4 lg:grid-cols-[1fr_1.2fr]">
         <SectionCard
-          title="Phase progression"
-          eyebrow="Rules"
+          title="Current phase rules"
+          eyebrow="Progression"
           description="Use these signals to decide when to progress, repeat, or deload."
         >
           <div className="space-y-4">
-            <div className="rounded-3xl bg-white/70 p-4">
-              <p className="text-xs uppercase tracking-[0.2em] text-slate">
-                Goal
-              </p>
-              <p className="mt-3 text-sm leading-6 text-ink">
-                {plan.currentPhase.goal}
-              </p>
+            <div className="surface-panel">
+              <p className="ui-eyebrow">Goal</p>
+              <p className="mt-3 text-sm leading-6 text-copy">{plan.currentPhase.goal}</p>
             </div>
-            <div className="rounded-3xl bg-white/70 p-4">
-              <p className="text-xs uppercase tracking-[0.2em] text-slate">
-                Advance criteria
-              </p>
-              <p className="mt-3 text-sm leading-6 text-ink">
-                {plan.currentPhase.advanceCriteria}
-              </p>
+            <div className="surface-panel">
+              <p className="ui-eyebrow">Advance criteria</p>
+              <p className="mt-3 text-sm leading-6 text-copy">{plan.currentPhase.advanceCriteria}</p>
             </div>
-            <div className="rounded-3xl bg-white/70 p-4">
-              <p className="text-xs uppercase tracking-[0.2em] text-slate">
-                Deload criteria
-              </p>
-              <p className="mt-3 text-sm leading-6 text-ink">
-                {plan.currentPhase.deloadCriteria}
-              </p>
+            <div className="surface-panel">
+              <p className="ui-eyebrow">Deload criteria</p>
+              <p className="mt-3 text-sm leading-6 text-copy">{plan.currentPhase.deloadCriteria}</p>
             </div>
           </div>
         </SectionCard>
@@ -107,7 +111,7 @@ export default async function PlanDetailPage({
             eyebrow="Workout detail"
             description="Add a workout to make this phase ready."
           >
-            <p className="text-sm leading-6 text-slate">
+            <p className="text-sm leading-6 text-muted">
               Once the workout is added, its exercises will appear here.
             </p>
           </SectionCard>
@@ -128,70 +132,36 @@ export default async function PlanDetailPage({
         </SectionCard>
       ) : null}
 
-      <section className="grid gap-4 lg:grid-cols-2">
+      <section className="space-y-4">
+        <div>
+          <p className="ui-eyebrow">Plan structure</p>
+          <h2 className="mt-2 font-display text-2xl leading-tight text-copy sm:text-3xl">
+            Phase-by-phase blueprint
+          </h2>
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">
+            Keep the full plan readable at a glance. The current phase stays visible alongside the upcoming structure.
+          </p>
+        </div>
         {plan.phases.map((phase) => (
-          <SectionCard
+          <PlanPhaseCard
             key={phase.id}
-            title={formatPhaseLabel(phase.phaseNumber)}
-            eyebrow={phase.phaseNumber === plan.currentPhase.phaseNumber ? "Current" : "Upcoming"}
-            description={phase.goal}
-          >
-            <div className="space-y-3 text-sm leading-6 text-slate">
-              {activePhaseProgress && phase.id === activePhaseProgress.currentPhaseId ? (
-                <div className="rounded-3xl bg-coral/10 p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="font-semibold text-ink">Current phase progress</p>
-                    <p className="font-semibold text-ink">
-                      {activePhaseProgress.completionPercent}%
-                    </p>
-                  </div>
-                  <div className="mt-3 h-3 overflow-hidden rounded-full bg-white">
-                    <div
-                      className="h-full rounded-full bg-coral"
-                      style={{ width: `${activePhaseProgress.completionPercent}%` }}
-                    />
-                  </div>
-                  <p className="mt-3 text-sm leading-6 text-slate">
-                    {activePhaseProgress.cleanSessions} of{" "}
-                    {activePhaseProgress.requiredCleanSessions} clean sessions,{" "}
-                    {activePhaseProgress.painFlags}{" "}
-                    {activePhaseProgress.painFlags === 1 ? "pain flag" : "pain flags"}.
-                  </p>
-                </div>
-              ) : null}
-              <p>
-                <span className="font-semibold text-ink">Advance:</span>{" "}
-                {phase.advanceCriteria}
-              </p>
-              <p>
-                <span className="font-semibold text-ink">Deload:</span>{" "}
-                {phase.deloadCriteria}
-              </p>
-              <div>
-                <p className="font-semibold text-ink">Workouts:</p>
-                <div className="mt-2 space-y-2">
-                  {plan.workouts
-                    .filter((workout) => workout.phaseId === phase.id)
-                    .map((workout) => (
-                      <div key={workout.id} className="rounded-2xl bg-white/70 px-3 py-2">
-                        <p className="font-semibold text-ink">{workout.name}</p>
-                        <p>{workout.exercises.length} exercises</p>
-                      </div>
-                    ))}
-                </div>
-              </div>
-            </div>
-          </SectionCard>
+            phase={phase}
+            workouts={plan.workouts.filter((workout) => workout.phaseId === phase.id)}
+            isCurrent={phase.phaseNumber === plan.currentPhase.phaseNumber}
+            progress={
+              activePhaseProgress && phase.id === activePhaseProgress.currentPhaseId
+                ? activePhaseProgress
+                : null
+            }
+          />
         ))}
       </section>
 
-      <section className="rounded-[24px] border border-ink/10 bg-white/70 p-4 sm:rounded-[32px] sm:p-5">
+      <section className="surface-card-soft p-4 sm:p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate sm:tracking-[0.22em]">
-              Plan management
-            </p>
-            <p className="mt-2 text-sm leading-6 text-slate">
+            <p className="ui-eyebrow">Plan management</p>
+            <p className="mt-2 text-sm leading-6 text-muted">
               Archive this plan to stop using it while keeping past workout history readable.
             </p>
           </div>

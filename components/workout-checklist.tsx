@@ -59,15 +59,15 @@ export function WorkoutChecklist({
 
   return (
     <div className="space-y-5">
-      <div className="rounded-3xl bg-white/70 p-4">
+      <div className="surface-panel">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold text-ink">Completion</p>
-            <p className="mt-1 text-sm text-slate">
+            <p className="text-sm font-semibold text-copy">Completion</p>
+            <p className="mt-1 text-sm text-muted">
               {checked.length} of {workout.exercises.length} exercises checked
             </p>
           </div>
-          <div className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">
+          <div className="rounded-full bg-hero px-4 py-2 text-sm font-semibold text-white">
             {completion}%
           </div>
         </div>
@@ -80,7 +80,7 @@ export function WorkoutChecklist({
           return (
             <div
               key={exercise.id}
-              className="flex items-start gap-4 rounded-3xl border border-ink/8 bg-white/70 p-4 transition hover:border-coral/40"
+              className="flex items-start gap-4 rounded-3xl border border-border/70 bg-surface-soft/85 p-4 transition hover:border-accent/35"
             >
               <input
                 id={checkboxId}
@@ -99,19 +99,19 @@ export function WorkoutChecklist({
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <label
                     htmlFor={checkboxId}
-                    className="cursor-pointer text-base font-semibold text-ink"
+                    className="cursor-pointer text-base font-semibold text-copy"
                   >
                     {exercise.name}
                   </label>
-                  <p className="text-xs uppercase tracking-[0.2em] text-slate">
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted">
                     {exercise.sets} sets - {exercise.reps}
                   </p>
                 </div>
-                <p className="mt-2 text-sm leading-6 text-slate">
+                <p className="mt-2 text-sm leading-6 text-muted">
                   {exercise.coachingNote}
                 </p>
-                <div className="mt-3 flex flex-wrap gap-2 text-xs uppercase tracking-[0.16em] text-slate">
-                  <span className="rounded-full bg-mist px-3 py-2">
+                <div className="mt-3 flex flex-wrap gap-2 text-xs uppercase tracking-[0.16em] text-muted">
+                  <span className="rounded-full bg-shell-elevated px-3 py-2">
                     Rest {exercise.rest}
                   </span>
                   {exercise.videoUrl ? (
@@ -119,7 +119,7 @@ export function WorkoutChecklist({
                       href={exercise.videoUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="rounded-full bg-mist px-3 py-2 transition hover:text-coral"
+                      className="rounded-full bg-shell-elevated px-3 py-2 transition hover:text-accent"
                     >
                       Watch Demo
                     </a>

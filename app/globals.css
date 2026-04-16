@@ -4,20 +4,54 @@
 
 :root {
   color-scheme: light;
+  --color-shell: 244 239 231;
+  --color-shell-elevated: 250 247 241;
+  --color-surface: 255 252 247;
+  --color-surface-soft: 245 239 230;
+  --color-border: 217 208 196;
+  --color-copy: 21 28 39;
+  --color-muted: 93 106 124;
+  --color-accent: 228 103 74;
+  --color-accent-contrast: 255 255 255;
+  --color-success: 101 136 111;
+  --color-warning: 191 144 61;
+  --color-hero: 22 29 40;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --color-shell: 14 18 25;
+  --color-shell-elevated: 20 25 35;
+  --color-surface: 24 31 43;
+  --color-surface-soft: 31 39 53;
+  --color-border: 59 72 91;
+  --color-copy: 237 241 246;
+  --color-muted: 162 174 191;
+  --color-accent: 240 121 92;
+  --color-accent-contrast: 15 18 24;
+  --color-success: 124 171 139;
+  --color-warning: 223 182 96;
+  --color-hero: 12 16 23;
 }
 
 html {
   min-height: 100%;
   background:
-    radial-gradient(circle at top left, rgba(255, 106, 61, 0.16), transparent 34%),
-    radial-gradient(circle at top right, rgba(100, 137, 107, 0.18), transparent 28%),
-    linear-gradient(180deg, #f7f2e9 0%, #fffdf9 55%, #f2efe9 100%);
+    radial-gradient(circle at top left, rgb(var(--color-accent) / 0.18), transparent 34%),
+    radial-gradient(circle at top right, rgb(var(--color-success) / 0.18), transparent 30%),
+    linear-gradient(
+      180deg,
+      rgb(var(--color-shell-elevated)) 0%,
+      rgb(var(--color-shell)) 58%,
+      rgb(var(--color-shell-elevated)) 100%
+    );
 }
 
 body {
   min-height: 100vh;
   margin: 0;
-  color: #11161f;
+  color: rgb(var(--color-copy));
+  background: transparent;
   font-family: Verdana, Geneva, sans-serif;
 }
 
@@ -35,9 +69,86 @@ input,
 textarea,
 select {
   font: inherit;
+  color: inherit;
 }
 
 .text-balance {
   text-wrap: balance;
 }
 
+@layer components {
+  .surface-card {
+    @apply rounded-[24px] shadow-card backdrop-blur sm:rounded-[32px];
+    border: 1px solid rgb(var(--color-border) / 0.7);
+    background-color: rgb(var(--color-surface) / 0.92);
+  }
+
+  .surface-card-soft {
+    @apply rounded-[24px] shadow-card backdrop-blur sm:rounded-[32px];
+    border: 1px solid rgb(var(--color-border) / 0.7);
+    background-color: rgb(var(--color-surface-soft) / 0.82);
+  }
+
+  .surface-panel {
+    @apply rounded-[22px] p-4 sm:rounded-[26px];
+    border: 1px solid rgb(var(--color-border) / 0.7);
+    background-color: rgb(var(--color-surface-soft) / 0.9);
+  }
+
+  .surface-panel-muted {
+    @apply rounded-[20px] p-4;
+    border: 1px solid rgb(var(--color-border) / 0.7);
+    background-color: rgb(var(--color-shell-elevated) / 0.7);
+  }
+
+  .surface-hero {
+    @apply rounded-[28px] p-5 shadow-card backdrop-blur sm:rounded-[36px] sm:p-6;
+    border: 1px solid rgb(var(--color-border) / 0.7);
+    background-color: rgb(var(--color-surface) / 0.96);
+  }
+
+  .surface-hero-strong {
+    @apply rounded-[28px] border border-white/10 bg-hero p-5 text-white shadow-card sm:rounded-[36px] sm:p-6;
+  }
+
+  .ui-eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.18em] text-muted sm:tracking-[0.22em];
+  }
+
+  .ui-input {
+    @apply w-full rounded-[18px] border border-border bg-surface px-4 py-3 text-sm text-copy outline-none transition placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-accent;
+  }
+
+  .ui-button-primary {
+    @apply rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-contrast transition hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-shell;
+  }
+
+  .ui-button-secondary {
+    @apply rounded-full border border-border bg-surface-soft px-5 py-3 text-sm font-semibold text-copy transition hover:border-accent hover:bg-surface hover:text-copy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-shell;
+  }
+
+  .ui-button-ghost {
+    @apply rounded-full border border-border bg-transparent px-5 py-3 text-sm font-semibold text-muted transition hover:border-accent hover:bg-surface hover:text-copy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-shell;
+  }
+
+  .ui-step-chip {
+    @apply rounded-full border border-border bg-surface px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-muted transition hover:border-accent hover:text-copy sm:px-4;
+  }
+
+  .ui-step-chip-active {
+    @apply border-transparent bg-hero text-white;
+  }
+
+  .ui-mobile-actions {
+    @apply sticky bottom-3 z-20 rounded-[22px] p-3 shadow-card backdrop-blur md:static md:p-0 md:shadow-none;
+    border: 1px solid rgb(var(--color-border) / 0.7);
+    background-color: rgb(var(--color-surface) / 0.95);
+  }
+}
+
+@media (min-width: 768px) {
+  .ui-mobile-actions {
+    border: 0;
+    background-color: transparent;
+  }
+}

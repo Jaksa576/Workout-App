@@ -7,6 +7,7 @@ import clsx from "clsx";
 import type { UserSummary } from "@/lib/types";
 import { AppLogo } from "@/components/app-logo";
 import { SignOutButton } from "@/components/sign-out-button";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const navItems = [
   { href: "/" as Route, label: "Dashboard" },
@@ -29,10 +30,11 @@ export function AppShell({
     <div className="min-h-screen px-3 pb-20 pt-4 sm:px-6 sm:pb-24 sm:pt-5 lg:px-8">
       <div className="mx-auto max-w-6xl">
         {showShell ? (
-          <header className="mb-5 flex flex-col gap-3 rounded-[24px] border border-white/70 bg-white/80 px-3 py-3 shadow-sm backdrop-blur sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-5 sm:py-4">
+          <header className="surface-card mb-5 px-3 py-3 sm:mb-6 sm:px-5 sm:py-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
             <Link
               href="/"
-              className="inline-flex rounded-2xl outline-none transition focus-visible:ring-2 focus-visible:ring-coral focus-visible:ring-offset-2 focus-visible:ring-offset-mist"
+              className="inline-flex rounded-2xl outline-none transition focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-shell"
               aria-label="Adaptive Training dashboard"
             >
               <AppLogo />
@@ -40,7 +42,7 @@ export function AppShell({
 
             <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
               <nav
-                className="grid grid-cols-2 gap-1 rounded-[20px] border border-ink/5 bg-white/85 p-1 sm:flex sm:flex-wrap sm:rounded-full"
+                className="grid grid-cols-2 gap-1 rounded-[20px] border border-border/70 bg-shell-elevated/75 p-1 sm:flex sm:flex-wrap sm:rounded-full"
                 aria-label="Primary navigation"
               >
                 {navItems.map((item) => {
@@ -54,10 +56,10 @@ export function AppShell({
                       key={item.href}
                       href={item.href}
                       className={clsx(
-                        "rounded-full px-3 py-2 text-center text-sm font-semibold transition outline-none focus-visible:ring-2 focus-visible:ring-coral focus-visible:ring-offset-2 focus-visible:ring-offset-white sm:px-4",
+                        "rounded-full px-3 py-2 text-center text-sm font-semibold transition outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-shell sm:px-4",
                         active
-                          ? "bg-ink text-white shadow-sm"
-                          : "text-slate hover:bg-mist hover:text-ink"
+                          ? "bg-hero text-white shadow-sm"
+                          : "text-muted hover:bg-surface hover:text-copy"
                       )}
                     >
                       {item.label}
@@ -65,7 +67,9 @@ export function AppShell({
                   );
                 })}
               </nav>
+              <ThemeToggle />
               <SignOutButton />
+            </div>
             </div>
           </header>
         ) : null}

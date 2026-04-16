@@ -107,10 +107,10 @@ export function ExerciseVideoLinkEditor({ workouts }: ExerciseVideoLinkEditorPro
   return (
     <div className="space-y-5">
       {workouts.map((workout) => (
-        <div key={workout.id} className="rounded-[28px] bg-white/70 p-4">
+        <div key={workout.id} className="surface-panel">
           <div>
-            <p className="text-sm font-semibold text-ink">{workout.name}</p>
-            <p className="mt-1 text-sm leading-6 text-slate">
+            <p className="text-sm font-semibold text-copy">{workout.name}</p>
+            <p className="mt-1 text-sm leading-6 text-muted">
               Add a YouTube demo link for any exercise that needs one.
             </p>
           </div>
@@ -126,11 +126,11 @@ export function ExerciseVideoLinkEditor({ workouts }: ExerciseVideoLinkEditorPro
               return (
                 <div
                   key={exercise.id}
-                  className="rounded-3xl border border-ink/8 bg-[#fffdf9] p-4"
+                  className="rounded-3xl border border-border/70 bg-surface px-4 py-4"
                 >
                   <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
                     <label className="flex-1">
-                      <span className="text-sm font-semibold text-ink">
+                      <span className="text-sm font-semibold text-copy">
                         {exercise.name}
                       </span>
                       <input
@@ -143,14 +143,14 @@ export function ExerciseVideoLinkEditor({ workouts }: ExerciseVideoLinkEditorPro
                           }))
                         }
                         placeholder="https://www.youtube.com/watch?v=..."
-                        className="mt-3 w-full rounded-2xl border border-ink/10 bg-white px-3 py-2 text-sm text-ink outline-none transition focus:border-coral"
+                        className="ui-input mt-3 px-3 py-2"
                       />
                     </label>
                     <button
                       type="button"
                       onClick={() => handleSave(exercise.id)}
                       disabled={isSaving}
-                      className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-coral disabled:opacity-60"
+                      className="rounded-full bg-hero px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent disabled:opacity-60"
                     >
                       {savingExerciseId === exercise.id ? "Saving..." : "Save Link"}
                     </button>
@@ -162,15 +162,15 @@ export function ExerciseVideoLinkEditor({ workouts }: ExerciseVideoLinkEditorPro
                         href={previewVideoUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="font-semibold text-coral transition hover:text-ink"
+                        className="font-semibold text-accent transition hover:text-copy"
                       >
                         Preview video
                       </a>
                     ) : (
-                      <p className="text-slate">No video link yet.</p>
+                      <p className="text-muted">No video link yet.</p>
                     )}
                     {status ? (
-                      <p className={status.tone === "error" ? "text-coral" : "text-moss"}>
+                      <p className={status.tone === "error" ? "text-accent" : "text-success"}>
                         {status.message}
                       </p>
                     ) : null}

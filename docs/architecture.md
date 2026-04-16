@@ -15,6 +15,14 @@ The product is evolving from a recovery-first phased workout app into a broader 
 - Data loading lives mostly in `lib/data.ts`.
 - Writes generally flow through API route handlers, validation helpers, and the authenticated Supabase server client.
 
+### UI Foundation Conventions
+
+- UI Overhaul Phase 1 adds a small visual foundation layer without changing the domain engine.
+- Theme styling should prefer semantic tokens and shared primitives over hardcoded page-specific colors where practical.
+- Light/dark mode should flow through `html[data-theme]` with system preference by default and a local client-side override.
+- The first shared visual focus is saved-plan surfaces such as plan detail, direct detail editing, and setup/regenerate editing.
+- Do not rewrite architecture areas unrelated to that UI foundation when updating this document.
+
 ### Current Domain Engine
 
 The current database and app model is:

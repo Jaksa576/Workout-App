@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Structured plans that progress with you.",
     start_url: "/",
     display: "standalone",
-    background_color: "#fffdf9",
-    theme_color: "#ff6a3d",
+    background_color: "#f4efe7",
+    theme_color: "#0e1219",
     orientation: "portrait",
     icons: [
       {

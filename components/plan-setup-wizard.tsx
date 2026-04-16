@@ -207,17 +207,17 @@ export function PlanSetupWizard({
 
   if (effectiveMode === "manual") {
     return (
-      <div className="space-y-5 sm:space-y-6">
-        <div className="rounded-[24px] bg-white/70 p-4 sm:rounded-[28px]">
-          <p className="text-sm font-semibold text-ink">Manual builder</p>
-          <p className="mt-2 text-sm leading-6 text-slate">
+      <div className="space-y-6">
+        <div className="surface-panel">
+          <p className="text-sm font-semibold text-copy">Manual builder</p>
+          <p className="mt-2 text-sm leading-6 text-muted">
             Build the structure yourself. This path is still here for advanced edits or plans
             you already have in mind.
           </p>
           <button
             type="button"
             onClick={() => setMode("guided")}
-            className="mt-4 rounded-full border border-ink/10 bg-white px-5 py-3 text-sm font-semibold text-ink transition hover:border-coral hover:text-coral"
+            className="ui-button-secondary mt-4"
           >
             Use Guided Setup
           </button>
@@ -228,11 +228,11 @@ export function PlanSetupWizard({
   }
 
   return (
-    <div className="space-y-5 sm:space-y-6">
-      <div className="flex flex-col gap-3 rounded-[24px] bg-white/70 p-4 sm:rounded-[28px] md:flex-row md:items-center md:justify-between">
+    <div className="space-y-6">
+      <div className="surface-panel flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-sm font-semibold text-ink">Guided setup</p>
-          <p className="mt-1 text-sm leading-6 text-slate">
+          <p className="text-sm font-semibold text-copy">Guided setup</p>
+          <p className="mt-1 text-sm leading-6 text-muted">
             {isEditing
               ? "Update this plan's setup inputs, regenerate a draft, then review before saving."
               : "Answer a few plan-specific questions, generate a draft, then edit before saving."}
@@ -242,7 +242,7 @@ export function PlanSetupWizard({
           <button
             type="button"
             onClick={() => setMode("manual")}
-            className="rounded-full border border-ink/10 bg-white px-5 py-3 text-sm font-semibold text-ink transition hover:border-coral hover:text-coral"
+            className="ui-button-secondary"
           >
             Manual Builder
           </button>
@@ -250,7 +250,7 @@ export function PlanSetupWizard({
       </div>
 
       {setupContextNotices.length ? (
-        <div className="rounded-[24px] border border-gold/30 bg-gold/10 p-4 text-sm leading-6 text-slate sm:rounded-[28px]">
+        <div className="rounded-[24px] border border-warning/25 bg-warning/10 p-4 text-sm leading-6 text-muted sm:rounded-[28px]">
           <div className="space-y-2">
             {setupContextNotices.map((notice) => (
               <p key={notice}>{notice}</p>
@@ -265,34 +265,34 @@ export function PlanSetupWizard({
       ) : null}
 
       {!hasProfileContext ? (
-        <div className="rounded-[24px] border border-gold/30 bg-gold/10 p-4 text-sm leading-6 text-slate sm:rounded-[28px]">
+        <div className="rounded-[24px] border border-warning/25 bg-warning/10 p-4 text-sm leading-6 text-muted sm:rounded-[28px]">
           Your training profile is missing or incomplete, so this draft will use simple
           starter defaults. You can still edit everything before saving.
         </div>
       ) : !hasEquipmentContext ? (
-        <div className="rounded-[24px] border border-gold/30 bg-gold/10 p-4 text-sm leading-6 text-slate sm:rounded-[28px]">
+        <div className="rounded-[24px] border border-warning/25 bg-warning/10 p-4 text-sm leading-6 text-muted sm:rounded-[28px]">
           Your profile does not list equipment yet. This draft will lean on bodyweight-friendly
           choices, and you can swap exercises in review.
         </div>
       ) : null}
 
-      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+      <div className="surface-panel-muted grid grid-cols-2 gap-2 p-3 sm:flex sm:flex-wrap">
         {steps.map((item, index) => (
           <button
             key={item.id}
             type="button"
             onClick={() => setStepIndex(index)}
             disabled={index === 3 && !draft}
-            className={`rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em] transition sm:px-4 ${
+            className={`ui-step-chip ${
               step.id === item.id
-                ? "bg-ink text-white"
-                : "bg-white text-slate hover:text-coral disabled:opacity-45"
+                ? "ui-step-chip-active"
+                : "disabled:opacity-45"
             }`}
           >
             {index + 1}. {item.label}
           </button>
         ))}
-        <span className="rounded-full bg-white px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-slate sm:px-4">
+        <span className="rounded-full border border-border bg-surface px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-muted sm:px-4">
           5. Save
         </span>
       </div>
@@ -300,8 +300,8 @@ export function PlanSetupWizard({
       {step.id === "goal" ? (
         <div className="space-y-4">
           <div>
-            <h2 className="font-display text-3xl text-ink">What are you training for now?</h2>
-            <p className="mt-2 text-sm leading-6 text-slate">
+            <h2 className="font-display text-3xl text-copy">What are you training for now?</h2>
+            <p className="mt-2 text-sm leading-6 text-muted">
               {isEditing
                 ? "Confirm the main track for this updated plan. This does not rerun onboarding."
                 : "Pick the main track for this plan. Your profile still supplies background context."}
@@ -313,8 +313,10 @@ export function PlanSetupWizard({
                 key={option.value}
                 type="button"
                 onClick={() => updateGoalType(option.value)}
-                className={`rounded-[24px] p-4 text-left transition sm:rounded-[28px] ${
-                  setup.goalType === option.value ? "bg-coral text-white" : "bg-white text-ink"
+                className={`rounded-[24px] border p-4 text-left transition sm:rounded-[28px] ${
+                  setup.goalType === option.value
+                    ? "border-transparent bg-accent text-accent-contrast"
+                    : "border-border/70 bg-surface text-copy"
                 }`}
               >
                 <span className="block font-semibold">{option.label}</span>
@@ -328,8 +330,8 @@ export function PlanSetupWizard({
       {step.id === "details" ? (
         <div className="space-y-5">
           <div>
-            <h2 className="font-display text-3xl text-ink">Plan details</h2>
-            <p className="mt-2 text-sm leading-6 text-slate">
+            <h2 className="font-display text-3xl text-copy">Plan details</h2>
+            <p className="mt-2 text-sm leading-6 text-muted">
               {isEditing
                 ? "Update only the setup details that should guide the new draft."
                 : "Keep this specific to the plan you want right now."}
@@ -337,7 +339,7 @@ export function PlanSetupWizard({
           </div>
 
           <label className="block">
-            <span className="text-sm font-semibold text-ink">Optional objective summary</span>
+            <span className="text-sm font-semibold text-copy">Optional objective summary</span>
             <textarea
               value={setup.objectiveSummary ?? ""}
               onChange={(event) =>
@@ -348,24 +350,24 @@ export function PlanSetupWizard({
               }
               rows={3}
               placeholder="Example: rebuild a consistent three-day routine around knee-friendly lower body work."
-              className="mt-3 w-full rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+              className="ui-input mt-3 min-h-[7.5rem]"
             />
           </label>
 
           <div className="grid gap-4 md:grid-cols-3">
             <label className="block">
-              <span className="text-sm font-semibold text-ink">Training days per week</span>
+              <span className="text-sm font-semibold text-copy">Training days per week</span>
               <input
                 type="number"
                 min={1}
                 max={7}
                 value={setup.daysPerWeek}
                 onChange={(event) => updateDaysPerWeek(Number(event.target.value))}
-                className="mt-3 w-full rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+                className="ui-input mt-3"
               />
             </label>
             <label className="block">
-              <span className="text-sm font-semibold text-ink">Session length</span>
+              <span className="text-sm font-semibold text-copy">Session length</span>
               <select
                 value={setup.sessionMinutes}
                 onChange={(event) =>
@@ -374,7 +376,7 @@ export function PlanSetupWizard({
                     sessionMinutes: Number(event.target.value)
                   }))
                 }
-                className="mt-3 w-full rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+                className="ui-input mt-3"
               >
                 {[30, 45, 60, 75].map((minutes) => (
                   <option key={minutes} value={minutes}>
@@ -384,7 +386,7 @@ export function PlanSetupWizard({
               </select>
             </label>
             <label className="block">
-              <span className="text-sm font-semibold text-ink">Preferred split</span>
+              <span className="text-sm font-semibold text-copy">Preferred split</span>
               <select
                 value={setup.preferredSplit}
                 onChange={(event) =>
@@ -393,7 +395,7 @@ export function PlanSetupWizard({
                     preferredSplit: event.target.value as PlanPreferredSplit
                   }))
                 }
-                className="mt-3 w-full rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+                className="ui-input mt-3"
               >
                 {splitOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -405,7 +407,7 @@ export function PlanSetupWizard({
           </div>
 
           <div>
-            <p className="text-sm font-semibold text-ink">Training days</p>
+            <p className="text-sm font-semibold text-copy">Training days</p>
             <div className="mt-3 flex flex-wrap gap-3">
               {weekdays.map((day) => (
                 <button
@@ -417,10 +419,10 @@ export function PlanSetupWizard({
                       weeklySchedule: toggleWeekday(current.weeklySchedule, day.value)
                     }))
                   }
-                  className={`rounded-full px-4 py-2 text-sm font-semibold ${
+                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
                     setup.weeklySchedule.includes(day.value)
-                      ? "bg-coral text-white"
-                      : "bg-white text-ink"
+                      ? "bg-accent text-accent-contrast"
+                      : "border border-border bg-surface text-copy"
                   }`}
                 >
                   {day.label}
@@ -431,7 +433,7 @@ export function PlanSetupWizard({
 
           <div className="grid gap-4 md:grid-cols-2">
             <label className="block">
-              <span className="text-sm font-semibold text-ink">Temporary focus areas</span>
+              <span className="text-sm font-semibold text-copy">Temporary focus areas</span>
               <input
                 value={joinList(setup.focusAreas)}
                 onChange={(event) =>
@@ -441,11 +443,11 @@ export function PlanSetupWizard({
                   }))
                 }
                 placeholder="Glutes, shoulders, running base"
-                className="mt-3 w-full rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+                className="ui-input mt-3"
               />
             </label>
             <label className="block">
-              <span className="text-sm font-semibold text-ink">Current constraints</span>
+              <span className="text-sm font-semibold text-copy">Current constraints</span>
               <input
                 value={joinList(setup.currentConstraints)}
                 onChange={(event) =>
@@ -455,13 +457,13 @@ export function PlanSetupWizard({
                   }))
                 }
                 placeholder="Knee sensitivity, no jumping"
-                className="mt-3 w-full rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+                className="ui-input mt-3"
               />
             </label>
           </div>
 
-          <details className="rounded-[24px] bg-white/70 p-4 sm:rounded-[28px]">
-            <summary className="cursor-pointer text-sm font-semibold text-ink">
+          <details className="surface-panel">
+            <summary className="cursor-pointer text-sm font-semibold text-copy">
               Advanced progression override
             </summary>
             <div className="mt-4 grid gap-3 md:grid-cols-[1fr_2fr] md:items-center">
@@ -475,7 +477,7 @@ export function PlanSetupWizard({
                       : null
                   }))
                 }
-                className="rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+                className="ui-input"
               >
                 <option value="">Use default</option>
                 {progressionModeOptions.map((option) => (
@@ -484,7 +486,7 @@ export function PlanSetupWizard({
                   </option>
                 ))}
               </select>
-              <p className="text-sm leading-6 text-slate">
+              <p className="text-sm leading-6 text-muted">
                 Default for {selectedGoal?.label ?? "this goal"}:{" "}
                 {defaultProgressionMode ?? "not set yet"}.
               </p>
@@ -495,16 +497,14 @@ export function PlanSetupWizard({
 
       {step.id === "generate" ? (
         <div className="space-y-5">
-          <div className="rounded-[24px] bg-white/70 p-5 sm:rounded-[28px]">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate">
-              Ready to draft
-            </p>
-            <h2 className="mt-2 font-display text-3xl text-ink">
+          <div className="surface-panel">
+            <p className="ui-eyebrow">Ready to draft</p>
+            <h2 className="mt-2 font-display text-3xl text-copy">
               {isEditing
                 ? `Generate an updated ${selectedGoal?.label.toLowerCase()} draft.`
                 : `Generate a reviewable ${selectedGoal?.label.toLowerCase()} draft.`}
             </h2>
-            <div className="mt-4 space-y-2 text-sm leading-6 text-slate">
+            <div className="mt-4 space-y-2 text-sm leading-6 text-muted">
               <p>
                 {setup.daysPerWeek} days per week, {setup.sessionMinutes} minutes per session.
               </p>
@@ -521,7 +521,7 @@ export function PlanSetupWizard({
           </div>
 
           {generationError ? (
-            <div className="rounded-[24px] border border-coral/30 bg-coral/10 p-4 text-sm leading-6 text-slate sm:rounded-[28px]">
+            <div className="rounded-[24px] border border-accent/25 bg-accent/10 p-4 text-sm leading-6 text-muted sm:rounded-[28px]">
               {generationError}
             </div>
           ) : null}
@@ -531,9 +531,9 @@ export function PlanSetupWizard({
 
       {step.id === "review" ? (
         <div className="space-y-5">
-          <div className="rounded-[24px] bg-white/70 p-4 sm:rounded-[28px]">
-            <p className="text-sm font-semibold text-ink">Review and edit before saving</p>
-            <p className="mt-2 text-sm leading-6 text-slate">
+          <div className="surface-panel">
+            <p className="text-sm font-semibold text-copy">Review and edit before saving</p>
+            <p className="mt-2 text-sm leading-6 text-muted">
               {isEditing
                 ? `You are reviewing a regenerated version of ${editingPlan?.name ?? "this plan"}. Make any changes, then save when it looks right.`
                 : "This is the same review path future draft sources can use. Make any changes, then save when the structure looks right."}
@@ -550,7 +550,7 @@ export function PlanSetupWizard({
               editingPlanName={editingPlan?.name}
             />
           ) : (
-            <div className="rounded-[24px] bg-white/70 p-5 text-sm leading-6 text-slate sm:rounded-[28px]">
+            <div className="surface-panel text-sm leading-6 text-muted">
               Generate a draft first, then review it here.
             </div>
           )}
@@ -563,7 +563,7 @@ export function PlanSetupWizard({
             type="button"
             disabled={stepIndex === 0}
             onClick={() => setStepIndex((index) => Math.max(0, index - 1))}
-            className="rounded-full border border-ink/10 bg-white px-5 py-3 text-sm font-semibold text-ink transition hover:border-coral hover:text-coral disabled:opacity-40"
+            className="ui-button-secondary disabled:opacity-40"
           >
             Back
           </button>
@@ -572,7 +572,7 @@ export function PlanSetupWizard({
               type="button"
               onClick={generateDraft}
               disabled={generating}
-              className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-ink/90 disabled:opacity-60"
+              className="rounded-full bg-hero px-5 py-3 text-sm font-semibold text-white transition hover:bg-hero/90 disabled:opacity-60"
             >
               {generating ? "Generating..." : "Generate Draft"}
             </button>
@@ -580,7 +580,7 @@ export function PlanSetupWizard({
             <button
               type="button"
               onClick={() => setStepIndex((index) => Math.min(steps.length - 1, index + 1))}
-              className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-ink/90"
+              className="rounded-full bg-hero px-5 py-3 text-sm font-semibold text-white transition hover:bg-hero/90"
             >
               Continue
             </button>

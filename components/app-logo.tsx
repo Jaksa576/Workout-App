@@ -10,7 +10,7 @@ export function AppLogo({ className, iconClassName }: AppLogoProps) {
     <span className={clsx("inline-flex items-center gap-2.5 text-left sm:gap-3", className)}>
       <span
         className={clsx(
-          "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-ink text-[#fffdf9] shadow-sm sm:h-11 sm:w-11",
+          "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-hero text-white shadow-sm sm:h-11 sm:w-11",
           iconClassName
         )}
         aria-hidden="true"
@@ -29,10 +29,10 @@ export function AppLogo({ className, iconClassName }: AppLogoProps) {
         </svg>
       </span>
       <span>
-        <span className="block font-display text-xl leading-none text-ink sm:text-2xl">
+        <span className="block font-display text-xl leading-none text-copy sm:text-2xl">
           Adaptive Training
         </span>
-        <span className="mt-1 block text-xs font-medium text-slate">
+        <span className="mt-1 block text-xs font-medium text-muted">
           Structured plans that progress with you.
         </span>
       </span>

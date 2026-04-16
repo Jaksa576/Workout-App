@@ -103,7 +103,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="text-sm font-semibold text-ink">{label}</span>
+      <span className="text-sm font-semibold text-copy">{label}</span>
       <div className="mt-3">{children}</div>
     </label>
   );
@@ -296,17 +296,17 @@ export function PlanBuilderForm({
   }
 
   return (
-    <div className="space-y-5 sm:space-y-6">
-      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+    <div className="space-y-6">
+      <div className="surface-panel-muted grid grid-cols-2 gap-2 p-3 sm:flex sm:flex-wrap">
         {steps.map((step, index) => (
           <button
             key={step.id}
             type="button"
             onClick={() => setStepIndex(index)}
-            className={`rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em] transition sm:px-4 ${
+            className={`ui-step-chip ${
               currentStep.id === step.id
-                ? "bg-ink text-white"
-                : "bg-white text-slate hover:text-coral"
+                ? "ui-step-chip-active"
+                : ""
             }`}
           >
             {index + 1}. {step.label}
@@ -320,7 +320,7 @@ export function PlanBuilderForm({
             <input
               value={name}
               onChange={(event) => setName(event.target.value)}
-              className="w-full rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+              className="ui-input"
             />
           </Field>
           <Field label="Plan description">
@@ -328,7 +328,7 @@ export function PlanBuilderForm({
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               rows={4}
-              className="w-full rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+              className="ui-input min-h-[8rem]"
             />
           </Field>
         </div>
@@ -336,7 +336,7 @@ export function PlanBuilderForm({
 
       {currentStep.id === "schedule" ? (
         <div className="space-y-4">
-          <p className="text-sm leading-6 text-slate">
+          <p className="text-sm leading-6 text-muted">
             Pick the days this plan should usually happen. You can assign workouts to days next.
           </p>
           <div className="flex flex-wrap gap-3">
@@ -345,10 +345,10 @@ export function PlanBuilderForm({
                 key={day.value}
                 type="button"
                 onClick={() => setWeeklySchedule((current) => toggleListValue(current, day.value))}
-                className={`rounded-full px-4 py-2 text-sm font-semibold ${
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
                   weeklySchedule.includes(day.value)
-                    ? "bg-coral text-white"
-                    : "bg-white text-ink"
+                    ? "bg-accent text-accent-contrast"
+                    : "border border-border bg-surface text-copy"
                 }`}
               >
                 {day.label}
@@ -361,16 +361,16 @@ export function PlanBuilderForm({
       {currentStep.id === "phases" ? (
         <div className="space-y-4">
           {phases.map((phase, phaseIndex) => (
-            <div key={phaseIndex} className="rounded-[24px] bg-white/70 p-4 sm:rounded-[28px]">
+            <div key={phaseIndex} className="surface-panel">
               <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm font-semibold text-ink">
+                <p className="text-sm font-semibold text-copy">
                   {formatPhaseLabel(phaseIndex + 1)}
                 </p>
                 <button
                   type="button"
                   onClick={() => deletePhase(phaseIndex)}
                   disabled={phases.length <= 1}
-                  className="rounded-full border border-coral/30 bg-white px-4 py-2 text-sm font-semibold text-coral transition hover:border-coral hover:bg-coral/5 disabled:opacity-45"
+                  className="ui-button-ghost px-4 py-2 disabled:opacity-45"
                 >
                   Delete Phase
                 </button>
@@ -381,11 +381,11 @@ export function PlanBuilderForm({
                   onChange={(event) =>
                     updatePhase(phaseIndex, { ...phase, goal: event.target.value })
                   }
-                  className="w-full rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+                  className="ui-input"
                 />
               </Field>
               {phases.length <= 1 ? (
-                <p className="mt-3 text-sm leading-6 text-slate">
+                <p className="mt-3 text-sm leading-6 text-muted">
                   A plan needs at least one phase.
                 </p>
               ) : null}
@@ -394,7 +394,7 @@ export function PlanBuilderForm({
           <button
             type="button"
             onClick={() => setPhases((current) => [...current, makePhase({ goal: "Progress the plan with control." })])}
-            className="w-full rounded-full border border-ink/10 bg-white px-5 py-3 text-sm font-semibold text-ink transition hover:border-coral hover:text-coral sm:w-auto"
+            className="ui-button-secondary w-full sm:w-auto"
           >
             Add Phase
           </button>
@@ -403,19 +403,19 @@ export function PlanBuilderForm({
 
       {currentStep.id === "workouts" ? (
         <div className="space-y-6">
-          <div className="rounded-[24px] bg-white/70 p-4 sm:rounded-[28px]">
-            <p className="text-sm font-semibold text-ink">Exercise library</p>
+          <div className="surface-panel">
+            <p className="text-sm font-semibold text-copy">Exercise library</p>
             <div className="mt-3 grid gap-3 md:grid-cols-[1fr_12rem]">
               <input
                 value={exerciseSearch}
                 onChange={(event) => setExerciseSearch(event.target.value)}
                 placeholder="Search exercises or equipment"
-                className="rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+                className="ui-input"
               />
               <select
                 value={exerciseCategory}
                 onChange={(event) => setExerciseCategory(event.target.value)}
-                className="rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+                className="ui-input"
               >
                 <option value="all">All categories</option>
                 {exerciseCategories.map((category) => (
@@ -429,20 +429,20 @@ export function PlanBuilderForm({
 
           {phases.map((phase, phaseIndex) => (
             <div key={phaseIndex} className="space-y-4">
-              <h3 className="font-display text-2xl text-ink">
+              <h3 className="font-display text-2xl text-copy">
                 {formatPhaseLabel(phaseIndex + 1)}
               </h3>
               {phase.workouts.map((workout, workoutIndex) => (
-                <div key={workoutIndex} className="rounded-[24px] border border-ink/5 bg-white/70 p-4 sm:rounded-[28px]">
+                <div key={workoutIndex} className="surface-panel">
                   <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <p className="text-sm font-semibold text-ink">
+                    <p className="text-sm font-semibold text-copy">
                       Workout {workoutIndex + 1}
                     </p>
                     <button
                       type="button"
                       onClick={() => deleteWorkout(phaseIndex, workoutIndex)}
                       disabled={phase.workouts.length <= 1}
-                      className="rounded-full border border-coral/30 bg-white px-4 py-2 text-sm font-semibold text-coral transition hover:border-coral hover:bg-coral/5 disabled:opacity-45"
+                      className="ui-button-ghost px-4 py-2 disabled:opacity-45"
                     >
                       Delete Workout
                     </button>
@@ -457,7 +457,7 @@ export function PlanBuilderForm({
                             name: event.target.value
                           })
                         }
-                        className="w-full rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+                        className="ui-input"
                       />
                     </Field>
                     <Field label="Focus">
@@ -469,7 +469,7 @@ export function PlanBuilderForm({
                             focus: event.target.value
                           })
                         }
-                        className="w-full rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+                        className="ui-input"
                       />
                     </Field>
                     <Field label="Assigned days">
@@ -484,10 +484,10 @@ export function PlanBuilderForm({
                                 scheduledDays: toggleListValue(workout.scheduledDays, day.value)
                               })
                             }
-                            className={`rounded-full px-3 py-2 text-xs font-semibold ${
+                            className={`rounded-full px-3 py-2 text-xs font-semibold transition ${
                               workout.scheduledDays.includes(day.value)
-                                ? "bg-ink text-white"
-                                : "bg-mist text-slate"
+                                ? "bg-hero text-white"
+                                : "border border-border bg-shell-elevated text-muted"
                             }`}
                           >
                             {day.label}
@@ -506,13 +506,13 @@ export function PlanBuilderForm({
                           summary: event.target.value
                         })
                       }
-                      className="w-full rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+                      className="ui-input"
                     />
                   </Field>
 
                   <div className="mt-5 space-y-3">
                     {workout.exercises.map((exercise, exerciseIndex) => (
-                      <div key={exerciseIndex} className="grid gap-3 rounded-3xl bg-[#fffdf9] p-4 md:grid-cols-4">
+                      <div key={exerciseIndex} className="grid gap-3 rounded-[20px] border border-border/70 bg-surface px-4 py-4 md:grid-cols-4">
                         <input
                           value={exercise.name}
                           onChange={(event) =>
@@ -522,7 +522,7 @@ export function PlanBuilderForm({
                             })
                           }
                           aria-label="Exercise name"
-                          className="rounded-2xl border border-ink/10 bg-white px-3 py-2 text-sm text-ink outline-none transition focus:border-coral"
+                          className="ui-input px-3 py-2"
                         />
                         <input
                           type="number"
@@ -535,7 +535,7 @@ export function PlanBuilderForm({
                             })
                           }
                           aria-label="Sets"
-                          className="rounded-2xl border border-ink/10 bg-white px-3 py-2 text-sm text-ink outline-none transition focus:border-coral"
+                          className="ui-input px-3 py-2"
                         />
                         <input
                           value={exercise.reps}
@@ -546,7 +546,7 @@ export function PlanBuilderForm({
                             })
                           }
                           aria-label="Reps"
-                          className="rounded-2xl border border-ink/10 bg-white px-3 py-2 text-sm text-ink outline-none transition focus:border-coral"
+                          className="ui-input px-3 py-2"
                         />
                         <input
                           value={exercise.rest}
@@ -557,7 +557,7 @@ export function PlanBuilderForm({
                             })
                           }
                           aria-label="Rest"
-                          className="rounded-2xl border border-ink/10 bg-white px-3 py-2 text-sm text-ink outline-none transition focus:border-coral"
+                          className="ui-input px-3 py-2"
                         />
                         <input
                           value={exercise.coachingNote}
@@ -568,7 +568,7 @@ export function PlanBuilderForm({
                             })
                           }
                           aria-label="Coaching note"
-                          className="md:col-span-2 rounded-2xl border border-ink/10 bg-white px-3 py-2 text-sm text-ink outline-none transition focus:border-coral"
+                          className="ui-input px-3 py-2 md:col-span-2"
                         />
                         <input
                           value={exercise.videoUrl ?? ""}
@@ -579,20 +579,20 @@ export function PlanBuilderForm({
                             })
                           }
                           aria-label="Exercise video link"
-                          className="md:col-span-2 rounded-2xl border border-ink/10 bg-white px-3 py-2 text-sm text-ink outline-none transition focus:border-coral"
+                          className="ui-input px-3 py-2 md:col-span-2"
                         />
                         <button
                           type="button"
                           onClick={() => deleteExercise(phaseIndex, workoutIndex, exerciseIndex)}
                           disabled={workout.exercises.length <= 1}
-                          className="rounded-full border border-coral/30 bg-white px-4 py-2 text-sm font-semibold text-coral transition hover:border-coral hover:bg-coral/5 disabled:opacity-45 md:col-span-4"
+                          className="ui-button-ghost px-4 py-2 disabled:opacity-45 md:col-span-4"
                         >
                           Delete Exercise
                         </button>
                       </div>
                     ))}
                     {workout.exercises.length <= 1 ? (
-                      <p className="text-sm leading-6 text-slate">
+                      <p className="text-sm leading-6 text-muted">
                         A workout needs at least one exercise.
                       </p>
                     ) : null}
@@ -605,7 +605,7 @@ export function PlanBuilderForm({
                         addCatalogExercise(phaseIndex, workoutIndex, event.target.value);
                         event.currentTarget.value = "";
                       }}
-                      className="rounded-full border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+                      className="ui-input w-full rounded-full sm:w-auto"
                     >
                       <option value="" disabled>
                         Add from library
@@ -624,7 +624,7 @@ export function PlanBuilderForm({
                           exercises: [...workout.exercises, makeExercise()]
                         })
                       }
-                      className="rounded-full border border-ink/10 bg-white px-5 py-3 text-sm font-semibold text-ink transition hover:border-coral hover:text-coral"
+                      className="ui-button-secondary"
                     >
                       Add blank exercise
                     </button>
@@ -636,7 +636,7 @@ export function PlanBuilderForm({
                           workouts: [...phase.workouts, structuredClone(workout)]
                         })
                       }
-                      className="rounded-full border border-ink/10 bg-white px-5 py-3 text-sm font-semibold text-ink transition hover:border-coral hover:text-coral"
+                      className="ui-button-secondary"
                     >
                       Duplicate workout
                     </button>
@@ -651,7 +651,7 @@ export function PlanBuilderForm({
                     workouts: [...phase.workouts, makeWorkout({ name: "New Workout" })]
                   })
                 }
-                className="w-full rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-ink/90 sm:w-auto"
+                className="w-full rounded-full bg-hero px-5 py-3 text-sm font-semibold text-white transition hover:bg-hero/90 sm:w-auto"
               >
                 Add Workout to {formatPhaseLabel(phaseIndex + 1)}
               </button>
@@ -663,8 +663,8 @@ export function PlanBuilderForm({
       {currentStep.id === "criteria" ? (
         <div className="space-y-4">
           {phases.map((phase, phaseIndex) => (
-            <div key={phaseIndex} className="rounded-[24px] bg-white/70 p-4 sm:rounded-[28px]">
-              <h3 className="font-display text-xl text-ink sm:text-2xl">
+            <div key={phaseIndex} className="surface-panel">
+              <h3 className="font-display text-xl text-copy sm:text-2xl">
                 {formatPhaseLabel(phaseIndex + 1)}
               </h3>
               <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -677,7 +677,7 @@ export function PlanBuilderForm({
                         advancementPreset: event.target.value as AdvancementPreset
                       })
                     }
-                    className="w-full rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+                    className="ui-input"
                   >
                     {advancementOptions.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -695,7 +695,7 @@ export function PlanBuilderForm({
                         deloadPreset: event.target.value as DeloadPreset
                       })
                     }
-                    className="w-full rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+                    className="ui-input"
                   >
                     {deloadOptions.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -718,7 +718,7 @@ export function PlanBuilderForm({
                         }
                       })
                     }
-                    className="w-full rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+                    className="ui-input"
                   />
                 </Field>
                 <Field label="Pain flags before review">
@@ -735,7 +735,7 @@ export function PlanBuilderForm({
                         }
                       })
                     }
-                    className="w-full rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+                    className="ui-input"
                   />
                 </Field>
               </div>
@@ -747,57 +747,70 @@ export function PlanBuilderForm({
       {currentStep.id === "review" ? (
         <div className="space-y-4">
           {reviewNotice ? (
-            <div className="rounded-[24px] border border-gold/30 bg-gold/10 p-4 text-sm leading-6 text-slate sm:rounded-[28px]">
+            <div className="rounded-[24px] border border-warning/25 bg-warning/10 p-4 text-sm leading-6 text-muted sm:rounded-[28px]">
               {reviewNotice}
             </div>
           ) : null}
-          <div className="rounded-[24px] bg-white/70 p-5 sm:rounded-[28px]">
-            <p className="text-xs uppercase tracking-[0.18em] text-slate">Plan</p>
-            <h3 className="mt-2 text-xl font-semibold text-ink">{name}</h3>
-            <p className="mt-2 text-sm leading-6 text-slate">{description}</p>
+          <div className="surface-panel">
+            <p className="ui-eyebrow">Plan</p>
+            <h3 className="mt-2 text-xl font-semibold text-copy">{name}</h3>
+            <p className="mt-2 text-sm leading-6 text-muted">{description}</p>
           </div>
           {phases.map((phase, index) => (
-            <div key={index} className="rounded-[24px] bg-white/70 p-5 sm:rounded-[28px]">
-              <p className="font-semibold text-ink">
+            <div key={index} className="surface-panel" >
+              <p className="font-semibold text-copy">
                 {formatPhaseLabel(index + 1)}: {phase.goal}
               </p>
-              <p className="mt-2 text-sm leading-6 text-slate">
+              <p className="mt-2 text-sm leading-6 text-muted">
                 {phase.workouts.length} workouts,{" "}
                 {phase.workouts.reduce((total, workout) => total + workout.exercises.length, 0)} exercises.
               </p>
             </div>
           ))}
-          {status ? <p className="text-sm leading-6 text-slate">{status}</p> : null}
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={saving}
-            className="w-full rounded-full bg-coral px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#f95a2b] disabled:opacity-60 sm:w-auto"
-          >
-            {saving ? "Saving..." : submitLabel}
-          </button>
+          {status ? <p className="text-sm leading-6 text-muted">{status}</p> : null}
         </div>
       ) : null}
 
-      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:flex-wrap">
-        <button
-          type="button"
-          onClick={() => setStepIndex((index) => Math.max(0, index - 1))}
-          disabled={stepIndex === 0}
-          className="rounded-full border border-ink/10 bg-white px-5 py-3 text-sm font-semibold text-ink transition hover:border-coral hover:text-coral disabled:opacity-40"
-        >
-          Back
-        </button>
-        {currentStep.id !== "review" ? (
+      {currentStep.id === "review" ? (
+        <div className="ui-mobile-actions">
+          <div className="flex flex-col justify-between gap-3 md:flex-row md:flex-wrap">
+            <button
+              type="button"
+              onClick={() => setStepIndex((index) => Math.max(0, index - 1))}
+              disabled={stepIndex === 0}
+              className="ui-button-secondary disabled:opacity-40"
+            >
+              Back
+            </button>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={saving}
+              className="ui-button-primary disabled:opacity-60"
+            >
+              {saving ? "Saving..." : submitLabel}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:flex-wrap">
+          <button
+            type="button"
+            onClick={() => setStepIndex((index) => Math.max(0, index - 1))}
+            disabled={stepIndex === 0}
+            className="ui-button-secondary disabled:opacity-40"
+          >
+            Back
+          </button>
           <button
             type="button"
             onClick={() => setStepIndex((index) => Math.min(steps.length - 1, index + 1))}
-            className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-ink/90"
+            className="rounded-full bg-hero px-5 py-3 text-sm font-semibold text-white transition hover:bg-hero/90"
           >
             Continue
           </button>
-        ) : null}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
