@@ -2,15 +2,13 @@
 
 ## Goal
 
-Current active work: Slice 7, contextual dashboard and progression UX.
+Current active work: small UI refinement patch after Slice 6 completion.
 
-Important context before starting:
+This is a narrow follow-up, not a major slice. After this patch completes, the next major implementation slice will be Slice 7, contextual dashboard and progression UX.
 
-- the roadmap was intentionally re-sequenced so **UI Overhaul Phase 1** happened before the previously planned dashboard/progression slice
-- that UI foundation slice is now implemented locally
-- dashboard redesign still has not happened yet, but it should now build on the new theme/primitives foundation rather than preceding it
+## Recently Completed Slice
 
-Recently completed slice: Slice 6, UI Overhaul Phase 1.
+Slice 6, UI Overhaul Phase 1, is implemented locally.
 
 That slice delivered:
 
@@ -27,6 +25,26 @@ That slice did not deliver:
 - exercise media/instruction work
 - onboarding/setup flow redesign
 - schema or route reorganization
+
+## Current Patch Scope
+
+Immediate next work: small UI refinement patch after Slice 6 QA.
+
+The patch is limited to:
+
+- dark-mode contrast and readability fixes on already-touched surfaces
+- semantic theme token tuning
+- relocating theme preference control from the app shell into Settings
+
+The patch is NOT:
+
+- a dashboard redesign
+- a workout execution redesign
+- a settings redesign beyond moving the theme preference control
+- a broad branding or visual refresh
+- any domain-model, API, or progression-engine changes
+
+After this patch, the next major implementation slice remains Slice 7, contextual dashboard and progression UX.
 
 ## Current Context
 

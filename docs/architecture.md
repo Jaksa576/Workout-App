@@ -19,7 +19,7 @@ The product is evolving from a recovery-first phased workout app into a broader 
 
 - UI Overhaul Phase 1 adds a small visual foundation layer without changing the domain engine.
 - Theme styling should prefer semantic tokens and shared primitives over hardcoded page-specific colors where practical.
-- Light/dark mode should flow through `html[data-theme]` with system preference by default and a local client-side override.
+- Light/dark mode flows through `html[data-theme]` with system preference by default. User theme preference is persisted in the profile and accessed through Settings. (A follow-up patch after Slice 6 will improve dark-mode contrast on already-touched surfaces and complete the relocation of theme preference control into Settings.)
 - The first shared visual focus is saved-plan surfaces such as plan detail, direct detail editing, and setup/regenerate editing.
 - Do not rewrite architecture areas unrelated to that UI foundation when updating this document.
 

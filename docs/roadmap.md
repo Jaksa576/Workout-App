@@ -121,6 +121,17 @@ Status: implemented locally.
 - Keep the current adaptive-training engine, save semantics, history snapshots, and edit-versus-regenerate route boundaries unchanged.
 - Do not broaden this slice into dashboard redesign, workout execution redesign, onboarding/setup redesign, or major route reorganization.
 
+## 6.5. UI Polish And Theme Refinement
+
+Status: planned.
+
+Post-Slice 6 QA identified a small follow-up patch needed before the next major slice:
+
+- Fix dark-mode contrast and readability issues on already-touched surfaces.
+- Tune semantic theme tokens for consistency and accessibility.
+- Relocate theme preference control into Settings instead of surfacing a toggle on every page.
+- No domain-model, API, or progression-engine changes.
+
 ## 7. Contextual Dashboard And Progression UX
 
 Status: planned.

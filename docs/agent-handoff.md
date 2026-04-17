@@ -39,7 +39,7 @@ The approved refactor direction is additive and migration-safe:
 
 The docs had previously been aligned on Slice 6 as dashboard/progression work. Product direction then intentionally shifted to prioritize UI Overhaul Phase 1 first, ahead of the previously planned dashboard slice.
 
-Slices 1, 2, 3, 4, 4.5, 5A, 5B1, 5B2, 5B3, and UI Overhaul Phase 1 are implemented locally. A small post-5B3 UX cleanup patch is also implemented locally based on QA learning after 5B3 shipped. The next recommended major slice is now contextual dashboard and progression UX. A small Slice 5B1 follow-up patch may still be needed for profile/settings field-level validation messaging.
+Slices 1 through 5B3, UI Overhaul Phase 1, and the post-5B3 cleanup patch are implemented locally. A small UI refinement patch is the immediate next work, focused on dark-mode contrast/readability fixes and theme-control relocation to Settings. The next major slice after that patch remains contextual dashboard and progression UX.
 
 ## Current Status
 
@@ -68,6 +68,23 @@ Slices 1, 2, 3, 4, 4.5, 5A, 5B1, 5B2, 5B3, and UI Overhaul Phase 1 are implement
 - `/plans/[planId]/edit` now reads as the clear primary existing-plan edit surface.
 - `/plans/[planId]/edit-setup` now shares the same visual language while remaining explicitly secondary and setup-driven.
 - Shared plan-surface components such as section cards, badges, review/edit panels, and phase/workout cards were refreshed without changing progression logic, save semantics, or history snapshot behavior.
+
+## UI Overhaul Phase 1 Completed Locally
+
+Slice 6 added the visual foundation for the broader product direction:
+
+- a small theme foundation with semantic tokens and system-default light/dark detection
+- `html[data-theme]` support with a local client-side override in the app shell
+- shared mobile-first UI primitives for plan surfaces
+- refreshed saved-plan detail, `/plans/[planId]/edit`, and `/plans/[planId]/edit-setup` without changing progression logic or save semantics
+
+QA learning after Slice 6:
+
+- the directional theme support and updated surfaces work well
+- dark mode has contrast/readability issues on some already-touched surfaces
+- the theme preference toggle should move into Settings rather than staying in the app shell
+
+The immediate next work is a small follow-up patch for dark-mode refinement and theme-control relocation. No domain-model, API, or progression-engine changes are needed for this patch.
 
 ## Slice 1 Completed Locally
 
