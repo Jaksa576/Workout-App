@@ -123,7 +123,7 @@ Status: implemented locally.
 
 ## 6.5. UI Polish And Theme Refinement
 
-Status: planned.
+Status: implemented locally.
 
 Post-Slice 6 QA identified a small follow-up patch needed before the next major slice:
 

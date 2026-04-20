@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import { ProfileSettingsForm } from "@/components/profile-settings-form";
 import { SectionCard } from "@/components/section-card";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { requireUser } from "@/lib/auth";
 import { getProfile } from "@/lib/data";
 
@@ -12,17 +13,35 @@ export default async function SettingsPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <section>
-        <p className="text-sm uppercase tracking-[0.24em] text-slate">
+        <p className="ui-eyebrow">
           Profile settings
         </p>
-        <h1 className="mt-2 font-display text-4xl text-ink">
+        <h1 className="mt-2 font-display text-4xl text-copy">
           Keep your training profile current.
         </h1>
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate">
+        <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">
           These details help future guided plans account for your availability, equipment,
           preferences, and limitations.
         </p>
       </section>
+
+      <SectionCard
+        title="Appearance"
+        eyebrow="Theme"
+        description="Choose how the app looks on this device. System follows your device theme."
+        compact
+      >
+        <div className="surface-panel flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-2">
+            <p className="text-sm font-semibold text-copy">Theme preference</p>
+            <p className="max-w-2xl text-sm leading-6 text-muted">
+              This preference stays on this device and continues to apply across navigation and
+              refresh.
+            </p>
+          </div>
+          <ThemeToggle />
+        </div>
+      </SectionCard>
 
       <SectionCard
         title="Training profile"
@@ -33,7 +52,7 @@ export default async function SettingsPage() {
           <ProfileSettingsForm profile={profile} />
         ) : (
           <div className="space-y-4">
-            <p className="text-sm leading-6 text-slate">
+            <p className="text-sm leading-6 text-muted">
               Your profile is not ready yet. Complete profile setup first, then return here
               for ongoing edits.
             </p>

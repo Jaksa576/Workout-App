@@ -124,7 +124,7 @@ export function PhaseProgressPanel({
           This plan is marked complete and kept for reference.
         </p>
       ) : !isPlanMode && progress.canAdvance ? (
-        <div className="mt-5 rounded-3xl bg-accent/10 p-4">
+        <div className="mt-5 rounded-3xl border border-accent/20 bg-accent/10 p-4">
           <p className="text-sm font-semibold text-copy">Ready to review the next phase.</p>
           <p className="mt-2 text-sm leading-6 text-muted">
             You met the criteria. Review the plan before moving forward.
@@ -167,7 +167,7 @@ export function PhaseProgressPanel({
               type="button"
               onClick={() => runAction("complete_plan")}
               disabled={isPending || Boolean(workingAction)}
-              className="rounded-full bg-hero px-5 py-3 text-sm font-semibold text-white transition hover:bg-hero/90 disabled:opacity-60"
+              className="ui-button-primary disabled:opacity-60"
             >
               {workingAction === "complete_plan" ? "Completing..." : "Mark Plan Complete"}
             </button>

@@ -7,7 +7,6 @@ import clsx from "clsx";
 import type { UserSummary } from "@/lib/types";
 import { AppLogo } from "@/components/app-logo";
 import { SignOutButton } from "@/components/sign-out-button";
-import { ThemeToggle } from "@/components/theme-toggle";
 
 const navItems = [
   { href: "/" as Route, label: "Dashboard" },
@@ -67,7 +66,6 @@ export function AppShell({
                   );
                 })}
               </nav>
-              <ThemeToggle />
               <SignOutButton />
             </div>
             </div>

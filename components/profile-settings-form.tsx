@@ -69,8 +69,8 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="text-sm font-semibold text-ink">{label}</span>
-      {helper ? <span className="mt-1 block text-xs leading-5 text-slate">{helper}</span> : null}
+      <span className="text-sm font-semibold text-copy">{label}</span>
+      {helper ? <span className="mt-1 block text-xs leading-5 text-muted">{helper}</span> : null}
       <div className="mt-3">{children}</div>
     </label>
   );
@@ -97,8 +97,8 @@ function OptionButtons({
 
   return (
     <div>
-      <p className="text-sm font-semibold text-ink">{label}</p>
-      {helper ? <p className="mt-1 text-xs leading-5 text-slate">{helper}</p> : null}
+      <p className="text-sm font-semibold text-copy">{label}</p>
+      {helper ? <p className="mt-1 text-xs leading-5 text-muted">{helper}</p> : null}
       <div className="mt-3 flex flex-wrap gap-3">
         {visibleOptions.map((item) => (
           <button
@@ -106,7 +106,9 @@ function OptionButtons({
             type="button"
             onClick={() => onChange(toggleListValue(values, item))}
             className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-              values.includes(item) ? "bg-coral text-white" : "bg-white text-ink"
+              values.includes(item)
+                ? "bg-coral text-white"
+                : "border border-border bg-surface text-copy hover:border-accent"
             }`}
           >
             {item}
@@ -162,7 +164,7 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
               setForm((current) => ({ ...current, age: toNullableNumber(event.target.value) }))
             }
             placeholder="Optional"
-            className="w-full rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+            className="ui-input"
           />
         </Field>
         <Field label="Weight">
@@ -175,7 +177,7 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
               setForm((current) => ({ ...current, weight: toNullableNumber(event.target.value) }))
             }
             placeholder="Optional"
-            className="w-full rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+            className="ui-input"
           />
         </Field>
         <Field label="Training experience">
@@ -189,7 +191,7 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
                   : null
               }))
             }
-            className="w-full rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+            className="ui-input"
           >
             <option value="">Select experience</option>
             {trainingExperienceOptions.map((option) => (
@@ -208,7 +210,7 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
                 activityLevel: event.target.value ? (event.target.value as ActivityLevel) : null
               }))
             }
-            className="w-full rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+            className="ui-input"
           >
             <option value="">Select activity level</option>
             {activityLevelOptions.map((option) => (
@@ -232,7 +234,7 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
                   : null
               }))
             }
-            className="w-full rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+            className="ui-input"
           >
             <option value="">Select environment</option>
             {trainingEnvironmentOptions.map((option) => (
@@ -266,7 +268,7 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
             }
             rows={4}
             placeholder="Optional: pain triggers, movements to modify, or anything a future plan should respect."
-            className="w-full rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+            className="ui-input min-h-[7.5rem]"
           />
         </Field>
       </div>
@@ -283,7 +285,7 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
             }
             className="w-full"
           />
-          <span className="mt-2 block text-sm text-slate">
+          <span className="mt-2 block text-sm text-muted">
             {form.daysPerWeek ?? 3} days per week
           </span>
         </Field>
@@ -293,7 +295,7 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
             onChange={(event) =>
               setForm((current) => ({ ...current, sessionMinutes: Number(event.target.value) }))
             }
-            className="w-full rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+            className="ui-input"
           >
             {sessionLengths.map((length) => (
               <option key={length} value={length}>
@@ -327,16 +329,16 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
         />
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-ink/10 pt-5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-t border-border/70 pt-5 sm:flex-row sm:items-center sm:justify-between">
         <button
           type="button"
           onClick={handleSave}
           disabled={saving || isPending}
-          className="rounded-full bg-coral px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#f95a2b] disabled:opacity-60"
+          className="ui-button-primary disabled:opacity-60"
         >
           {saving || isPending ? "Saving..." : "Save Profile Settings"}
         </button>
-        {status ? <p className="text-sm leading-6 text-slate">{status}</p> : null}
+        {status ? <p className="text-sm leading-6 text-muted">{status}</p> : null}
       </div>
     </div>
   );

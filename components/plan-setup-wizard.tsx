@@ -568,23 +568,23 @@ export function PlanSetupWizard({
             Back
           </button>
           {step.id === "generate" ? (
-            <button
-              type="button"
-              onClick={generateDraft}
-              disabled={generating}
-              className="rounded-full bg-hero px-5 py-3 text-sm font-semibold text-white transition hover:bg-hero/90 disabled:opacity-60"
-            >
-              {generating ? "Generating..." : "Generate Draft"}
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setStepIndex((index) => Math.min(steps.length - 1, index + 1))}
-              className="rounded-full bg-hero px-5 py-3 text-sm font-semibold text-white transition hover:bg-hero/90"
-            >
-              Continue
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={generateDraft}
+            disabled={generating}
+            className="ui-button-primary disabled:opacity-60"
+          >
+            {generating ? "Generating..." : "Generate Draft"}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setStepIndex((index) => Math.min(steps.length - 1, index + 1))}
+            className="ui-button-primary"
+          >
+            Continue
+          </button>
+        )}
         </div>
       ) : null}
     </div>

@@ -26,7 +26,7 @@ export function PageHero({
     <section
       className={clsx(
         "rounded-[28px] border p-5 shadow-card backdrop-blur sm:rounded-[36px] sm:p-6",
-        isSecondary ? "border-border/70 bg-surface-soft/88" : "border-border/70 bg-surface/96"
+        isSecondary ? "border-border/80 bg-surface-soft/92" : "border-border/80 bg-surface/94"
       )}
     >
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">

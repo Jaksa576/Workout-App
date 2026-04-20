@@ -32,6 +32,7 @@ The approved refactor direction is additive and migration-safe:
 5B2. Guided edit-plan workflow.
 5B3. Reusable review/edit flow for existing plans.
 6. UI Overhaul Phase 1.
+6.5. UI Polish and Theme Refinement.
 7. Contextual dashboard and progression UX.
 8. Workout execution UX.
 9. Exercise media and instruction layer.
@@ -85,6 +86,69 @@ QA learning after Slice 6:
 - the theme preference toggle should move into Settings rather than staying in the app shell
 
 The immediate next work is a small follow-up patch for dark-mode refinement and theme-control relocation. No domain-model, API, or progression-engine changes are needed for this patch.
+
+## Slice 6.5 Completed Locally
+
+This was a narrow follow-up patch after Slice 6, not a redesign.
+
+What changed:
+
+- removed the surfaced theme toggle from the authenticated app shell and moved the single user-facing theme preference control into Settings
+- kept the existing local `localStorage` theme preference behavior, `html[data-theme]` application, and no-flash bootstrap script intact
+- tightened dark-mode semantic tokens and shared surface styling so the saved-plan detail page, `/plans/[planId]/edit`, and `/plans/[planId]/edit-setup` have better text contrast, calmer card backgrounds, and clearer borders
+- improved shared status badge readability in dark mode
+- updated Settings styling to use the existing semantic input/button primitives instead of separate hardcoded light-only field styles
+- updated `docs/roadmap.md`, `docs/current-task.md`, and `docs/architecture.md` so Slice 6.5 is recorded correctly and Slice 7 is clearly next
+
+Verification after Slice 6.5:
+
+- `npm run test` passed.
+- `npm run typecheck` passed.
+- `npm run build` passed.
+
+Manual browser verification still needed after Slice 6.5:
+
+- confirm theme preference appears in Settings
+- confirm the shell-level theme toggle is gone
+- confirm theme selection persists across refresh and navigation
+- confirm dark mode is more readable on saved plan detail, `/plans/[planId]/edit`, and `/plans/[planId]/edit-setup`
+- confirm edit-vs-regenerate boundaries remain unchanged
+- confirm there are no unrelated regressions on the touched plan surfaces
+
+Tiny QA follow-up after Slice 6.5:
+
+- fixed the remaining dark-mode header contrast issue on Settings and Plans by switching those headers to the shared semantic text tokens already used on the Slice 6 plan surfaces
+- improved theme selector readability in dark mode so the closed control text and native dropdown option text inherit readable foreground/background colors
+
+Verification after the tiny Slice 6.5 QA follow-up:
+
+- `npm run typecheck` passed.
+- `npm run build` passed.
+
+Manual browser verification still needed after the tiny Slice 6.5 QA follow-up:
+
+- confirm Settings header text is clearly readable in dark mode
+- confirm Plans header text is clearly readable in dark mode
+- confirm the theme selector closed-state text is readable in dark mode
+- confirm the theme selector dropdown option text is readable in dark mode
+- confirm light mode still looks correct
+- confirm no unrelated settings/plans layout changes were introduced
+
+Final tiny Slice 6.5 QA follow-up:
+
+- fixed the remaining dark-mode Settings field-label readability issue by switching the shared settings form labels and helper text onto the same semantic `text-copy` / `text-muted` tokens used elsewhere in the refreshed Settings surface
+
+Verification after the final tiny Slice 6.5 QA follow-up:
+
+- `npm run typecheck` passed.
+- `npm run build` passed.
+
+Manual browser verification still needed after the final tiny Slice 6.5 QA follow-up:
+
+- confirm Settings field labels like Age, Weight, and the other field headers are clearly readable in dark mode
+- confirm light mode still looks correct
+- confirm no unrelated Settings styling changed
+- confirm the Appearance/theme section still looks correct
 
 ## Slice 1 Completed Locally
 

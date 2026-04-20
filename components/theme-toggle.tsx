@@ -66,7 +66,7 @@ export function ThemeToggle() {
   }, [appliedTheme, preference]);
 
   return (
-    <label className="flex items-center gap-2 rounded-full border border-border/80 bg-surface/80 px-3 py-2 text-sm text-muted">
+    <label className="flex w-full items-center gap-2 rounded-full border border-border/80 bg-surface-soft/90 px-3 py-2 text-sm text-muted sm:w-auto">
       <span className="sr-only">Theme</span>
       <span aria-hidden="true" className="text-xs font-semibold uppercase tracking-[0.16em]">
         Theme
@@ -79,7 +79,7 @@ export function ThemeToggle() {
           setPreference(nextPreference);
           setAppliedTheme(applyTheme(nextPreference));
         }}
-        className="bg-transparent text-sm font-semibold text-copy outline-none"
+        className="theme-select min-w-0 flex-1 rounded-full border border-border/70 bg-surface px-3 py-2 text-sm font-semibold text-copy outline-none sm:flex-none"
       >
         <option value="system">System</option>
         <option value="light">Light</option>

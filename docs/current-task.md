@@ -2,49 +2,50 @@
 
 ## Goal
 
-Current active work: small UI refinement patch after Slice 6 completion.
+Current active work: Slice 7, contextual dashboard and progression UX.
 
-This is a narrow follow-up, not a major slice. After this patch completes, the next major implementation slice will be Slice 7, contextual dashboard and progression UX.
+Slice 6.5, UI Polish and Theme Refinement, is complete locally. The next major implementation slice is now Slice 7.
+
+Manual browser QA still remains for the final Slice 6.5 contrast checks on Settings, Plans, and the theme selector in both dark and light mode.
 
 ## Recently Completed Slice
 
-Slice 6, UI Overhaul Phase 1, is implemented locally.
+Slice 6.5, UI Polish and Theme Refinement, is implemented locally as the narrow follow-up patch after Slice 6.
 
-That slice delivered:
+That patch delivered:
 
-- a small repo-native light/dark theme foundation
-- semantic UI tokens
-- a local persisted theme override in the existing authenticated app shell
-- shared mobile-first plan-surface primitives
-- refreshed saved-plan detail, `/plans/[planId]/edit`, and `/plans/[planId]/edit-setup`
+- dark-mode contrast and readability fixes on the Slice 6 saved-plan surfaces
+- tighter semantic theme tokens and clearer shared badge/card contrast in dark mode
+- relocation of the user-facing theme preference control from the authenticated shell into Settings
+- preservation of the existing local persisted theme override, `html[data-theme]` behavior, and no-flash theme bootstrap
 
-That slice did not deliver:
+That patch did not deliver:
 
 - dashboard redesign
 - workout execution redesign
 - exercise media/instruction work
 - onboarding/setup flow redesign
-- schema or route reorganization
+- schema, API, or route reorganization
 
-## Current Patch Scope
+## Current Slice
 
-Immediate next work: small UI refinement patch after Slice 6 QA.
+Current active implementation slice: Slice 7, contextual dashboard and progression UX.
 
-The patch is limited to:
+Slice 7 should build on the visual foundation from Slice 6 and the cleanup from Slice 6.5.
 
-- dark-mode contrast and readability fixes on already-touched surfaces
-- semantic theme token tuning
-- relocating theme preference control from the app shell into Settings
+It should focus on:
 
-The patch is NOT:
+- more contextual dashboard copy and next-step guidance
+- clearer progression explanations tied to the active goal, phase, and recent sessions
+- keeping explicit user-confirmed phase movement
 
-- a dashboard redesign
+It should not become:
+
 - a workout execution redesign
-- a settings redesign beyond moving the theme preference control
-- a broad branding or visual refresh
-- any domain-model, API, or progression-engine changes
-
-After this patch, the next major implementation slice remains Slice 7, contextual dashboard and progression UX.
+- an exercise media/instruction slice
+- an onboarding/setup redesign
+- a rewrite of the saved-plan detail/edit/setup boundaries
+- a progression-algorithm rewrite unless explicitly re-scoped
 
 ## Current Context
 
@@ -67,7 +68,7 @@ Slices 1 through 5B3 are implemented locally, along with the post-5B3 cleanup pa
 - expanded static exercise catalog metadata for deterministic generation
 - goal-aware template drafts for recovery, general fitness, strength, hypertrophy, running, sport performance, and consistency
 - settings/profile editing through `/settings` and `PATCH /api/profile`
-- shared theme tokens and `html[data-theme]` support
+- shared theme tokens, `html[data-theme]` support, and a single user-facing theme preference control in Settings
 - refreshed saved-plan detail and editing surfaces that preserve the existing edit-versus-regenerate boundary
 
 The app must remain fully functional without any LLM provider.

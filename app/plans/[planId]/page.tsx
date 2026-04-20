@@ -65,7 +65,7 @@ export default async function PlanDetailPage({
                 {plan.workouts.length} saved workouts with history snapshots preserved across edits.
               </p>
             </div>
-            <div className="rounded-[18px] border border-border/70 bg-surface px-4 py-3">
+            <div className="surface-panel-muted">
               <p className="ui-eyebrow">Primary action</p>
               <p className="mt-2 text-sm leading-6 text-copy">
                 Edit details updates the live plan directly while keeping old history readable.

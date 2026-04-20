@@ -651,7 +651,7 @@ export function PlanBuilderForm({
                     workouts: [...phase.workouts, makeWorkout({ name: "New Workout" })]
                   })
                 }
-                className="w-full rounded-full bg-hero px-5 py-3 text-sm font-semibold text-white transition hover:bg-hero/90 sm:w-auto"
+                className="ui-button-primary w-full sm:w-auto"
               >
                 Add Workout to {formatPhaseLabel(phaseIndex + 1)}
               </button>
@@ -805,7 +805,7 @@ export function PlanBuilderForm({
           <button
             type="button"
             onClick={() => setStepIndex((index) => Math.min(steps.length - 1, index + 1))}
-            className="rounded-full bg-hero px-5 py-3 text-sm font-semibold text-white transition hover:bg-hero/90"
+            className="ui-button-primary"
           >
             Continue
           </button>

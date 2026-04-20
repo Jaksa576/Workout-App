@@ -13,10 +13,10 @@ export default async function PlansPage() {
     <div className="space-y-5 sm:space-y-6">
       <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate sm:tracking-[0.22em]">
+          <p className="ui-eyebrow">
             My Workout Plans
           </p>
-          <h1 className="mt-2 font-display text-3xl leading-tight text-ink sm:text-4xl">
+          <h1 className="mt-2 font-display text-3xl leading-tight text-copy sm:text-4xl">
             Choose your active plan.
           </h1>
         </div>

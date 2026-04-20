@@ -20,18 +20,18 @@
 
 html[data-theme="dark"] {
   color-scheme: dark;
-  --color-shell: 14 18 25;
-  --color-shell-elevated: 20 25 35;
-  --color-surface: 24 31 43;
-  --color-surface-soft: 31 39 53;
-  --color-border: 59 72 91;
-  --color-copy: 237 241 246;
-  --color-muted: 162 174 191;
+  --color-shell: 11 15 22;
+  --color-shell-elevated: 17 22 31;
+  --color-surface: 21 27 37;
+  --color-surface-soft: 26 33 45;
+  --color-border: 73 87 108;
+  --color-copy: 241 245 249;
+  --color-muted: 184 195 209;
   --color-accent: 240 121 92;
-  --color-accent-contrast: 15 18 24;
-  --color-success: 124 171 139;
-  --color-warning: 223 182 96;
-  --color-hero: 12 16 23;
+  --color-accent-contrast: 14 18 25;
+  --color-success: 132 184 149;
+  --color-warning: 230 191 108;
+  --color-hero: 9 13 19;
 }
 
 html {
@@ -79,32 +79,32 @@ select {
 @layer components {
   .surface-card {
     @apply rounded-[24px] shadow-card backdrop-blur sm:rounded-[32px];
-    border: 1px solid rgb(var(--color-border) / 0.7);
-    background-color: rgb(var(--color-surface) / 0.92);
+    border: 1px solid rgb(var(--color-border) / 0.76);
+    background-color: rgb(var(--color-surface) / 0.93);
   }
 
   .surface-card-soft {
     @apply rounded-[24px] shadow-card backdrop-blur sm:rounded-[32px];
-    border: 1px solid rgb(var(--color-border) / 0.7);
-    background-color: rgb(var(--color-surface-soft) / 0.82);
+    border: 1px solid rgb(var(--color-border) / 0.76);
+    background-color: rgb(var(--color-surface-soft) / 0.88);
   }
 
   .surface-panel {
     @apply rounded-[22px] p-4 sm:rounded-[26px];
-    border: 1px solid rgb(var(--color-border) / 0.7);
+    border: 1px solid rgb(var(--color-border) / 0.76);
     background-color: rgb(var(--color-surface-soft) / 0.9);
   }
 
   .surface-panel-muted {
     @apply rounded-[20px] p-4;
-    border: 1px solid rgb(var(--color-border) / 0.7);
-    background-color: rgb(var(--color-shell-elevated) / 0.7);
+    border: 1px solid rgb(var(--color-border) / 0.76);
+    background-color: rgb(var(--color-shell-elevated) / 0.82);
   }
 
   .surface-hero {
     @apply rounded-[28px] p-5 shadow-card backdrop-blur sm:rounded-[36px] sm:p-6;
-    border: 1px solid rgb(var(--color-border) / 0.7);
-    background-color: rgb(var(--color-surface) / 0.96);
+    border: 1px solid rgb(var(--color-border) / 0.76);
+    background-color: rgb(var(--color-surface) / 0.95);
   }
 
   .surface-hero-strong {
@@ -132,7 +132,7 @@ select {
   }
 
   .ui-step-chip {
-    @apply rounded-full border border-border bg-surface px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-muted transition hover:border-accent hover:text-copy sm:px-4;
+    @apply rounded-full border border-border bg-surface-soft px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-copy transition hover:border-accent hover:bg-surface hover:text-copy sm:px-4;
   }
 
   .ui-step-chip-active {
@@ -143,6 +143,11 @@ select {
     @apply sticky bottom-3 z-20 rounded-[22px] p-3 shadow-card backdrop-blur md:static md:p-0 md:shadow-none;
     border: 1px solid rgb(var(--color-border) / 0.7);
     background-color: rgb(var(--color-surface) / 0.95);
+  }
+
+  .theme-select option {
+    color: rgb(var(--color-copy));
+    background-color: rgb(var(--color-surface));
   }
 }
 
