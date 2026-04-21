@@ -1,38 +1,193 @@
-# Agent Instructions
+# AGENTS.md
 
-This repo is a Next.js + Supabase workout app for small real-world use.
+## Product direction
 
-## Before Major Changes
+This repository is being refactored from a rehab-specific phased workout app into a broader goal-based adaptive training platform.
 
-- Read `docs/agent-handoff.md`.
-- Read `docs/current-task.md`.
-- Read `docs/roadmap.md`.
-- Summarize the current state in plain English before coding when taking over from another agent.
+The app should support multiple goal tracks using the same core infrastructure:
+- recovery / rehab
+- general fitness
+- strength
+- hypertrophy
+- running
+- sport performance
+- consistency / habit building
 
-## While Working
+The core product idea is:
+- users create structured training programs
+- programs are divided into blocks (UI term; database may still use phases)
+- workouts are completed and logged
+- progression is evaluated based on the program’s progression mode
+- plan creation must work without an LLM today
+- the architecture must allow a future LLM-driven plan drafting path later
 
-- Keep solutions simple, reliable, and easy to extend.
-- Prefer existing project patterns over new abstractions.
-- Preserve Supabase auth and row-level security expectations.
-- Do not expose server-only secrets to the client.
-- Do not make unrelated product changes.
-- Explain changes in beginner-friendly plain English.
-- Call out risks, tradeoffs, and verification steps.
+## Non-goals
 
-## After Major Implementation Steps
+Do not turn this app into a generic exercise logger.
+Do not remove the phased/block structure.
+Do not make an LLM required for plan creation.
+Do not break compatibility with existing plans unless explicitly asked.
+Do not perform broad destructive renames without a migration-safe reason.
 
-- Update `docs/agent-handoff.md` with:
-  - what changed
-  - what was verified
-  - what remains
-  - any known risks
-- Run relevant checks, usually `npm run typecheck` and `npm run build` for code changes.
-- Mention anything that still needs manual logged-in testing.
+## Architecture principles
 
-## Current Project Shape
+Prefer additive, migration-safe refactors over rewrites.
 
-- App routes and API routes live under `app/`.
-- Shared UI lives under `components/`.
-- Data helpers and validation live under `lib/`.
-- Supabase schema and RLS policies live in `supabase/schema.sql`.
-- The app deploys from GitHub to Vercel.
+Preserve these core concepts:
+- user profile
+- workout plan / program
+- phases / blocks
+- workouts
+- exercises
+- progression logic
+- session logging
+
+Generalize narrow rehab-specific assumptions into reusable abstractions.
+
+Examples:
+- "phase" may remain in the DB, but use "block" in the UI when practical
+- progression should support multiple modes, not only symptom-based rehab logic
+- onboarding should store durable profile information
+- plan-specific personalization should happen in the plan creation flow
+
+## Required future-ready design
+
+All plan drafting must go through a single abstraction, even before an LLM is added.
+
+Target interface shape:
+- draftPlan(context, { strategy })
+
+Supported strategies:
+- template
+- manual
+- llm (stub only for now)
+
+The rest of the app should not care whether a plan was drafted manually, from templates, or eventually by an LLM.
+
+## LLM design constraint
+
+We will add an LLM later to help draft plans based on:
+- user profile
+- age
+- weight
+- training experience
+- current fitness level
+- injuries / limitations
+- equipment access
+- schedule
+- preferences
+- current goal
+
+The LLM should eventually help automate exercise selection and block design.
+For now:
+- do not integrate a provider
+- do not add runtime dependencies on an LLM
+- do create interfaces and data structures that make later integration easy
+
+## Preferred product model
+
+Use these concepts:
+- GoalTrack
+- ProgressionMode
+- PlanSource
+- PlanCreationContext
+
+GoalTrack should support:
+- recovery
+- general_fitness
+- strength
+- hypertrophy
+- running
+- sport_performance
+- consistency
+
+ProgressionMode should support:
+- symptom_based
+- adherence_based
+- performance_based
+- hybrid
+
+PlanSource should support:
+- template
+- manual
+- llm
+
+## Implementation expectations
+
+For large changes:
+- inspect the existing repo structure first
+- identify the current seams before coding
+- propose a migration-safe plan before implementation
+- work in small, reviewable slices
+- keep the app functional after each slice
+
+Prefer this sequence unless the repo strongly suggests a better one:
+1. shared types and schema changes
+2. onboarding/profile refactor
+3. new guided plan creation flow
+4. template-based program drafting
+5. progression strategy refactor
+6. UI terminology refresh
+7. LLM-ready draftPlan abstraction
+8. docs and cleanup
+
+## Prompt handling expectations
+
+When given a large redesign task:
+- first restate the current architecture as you found it
+- identify which parts are reusable vs overly specific
+- list assumptions
+- produce a phased implementation plan
+- wait for approval before broad coding if the task is large
+
+When implementing:
+- state which slice you are working on
+- keep changes scoped
+- document tradeoffs
+- avoid hidden architecture drift
+
+## Code quality expectations
+
+Use the repository’s existing stack and conventions.
+Prefer the smallest change that preserves future extensibility.
+Avoid creating parallel systems when a clean extension of the existing one will work.
+Keep types strong and explicit.
+Prefer deterministic, testable logic over clever heuristics.
+
+## Verification expectations
+
+Before considering work complete:
+- run relevant type checks
+- run relevant tests
+- add or update tests when behavior changes
+- verify no obvious regressions in existing plan behavior
+- summarize what changed, what remains, and any follow-up risks
+
+## Review expectations
+
+Call out:
+- migration risks
+- data model assumptions
+- backward compatibility concerns
+- places where future LLM integration will plug in
+
+If you are unsure, preserve compatibility and leave a clear extension point rather than overcommitting to a hard-coded design.
+
+## Local tooling available
+
+The local development environment includes these CLIs:
+
+- `gh` (GitHub CLI)
+- `jq`
+- `rg` (ripgrep)
+- `vercel`
+
+Supabase CLI is available **in this repository only** and should be run via:
+
+- `npx supabase ...`
+
+Agent guidance:
+- Prefer `rg` for codebase/text search over slower generic shell search.
+- Use `gh` when GitHub CLI is helpful for repo inspection or PR workflows.
+- Use `vercel` for deployment/log/environment workflows when relevant.
+- Do not assume Supabase CLI is globally installed; use `npx supabase`.
