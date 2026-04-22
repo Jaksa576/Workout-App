@@ -96,6 +96,35 @@ In Supabase Auth URL Configuration, set the Site URL and add this redirect URL f
 ```
 https://workout-app-seven-delta.vercel.app/
 ```
+## Windows + WSL Development Workflow
+
+If you are developing on Windows, the recommended setup for this repo is to use VS Code with a WSL workspace.
+
+### Recommended daily startup
+1. Open Ubuntu
+2. `cd ~/code/Workout-App`
+3. `code .`
+4. Confirm VS Code shows `WSL: Ubuntu` in the bottom-left
+5. Run project commands from the VS Code terminal in that WSL window
+
+### Why this is recommended
+- Keeps the repo in the Linux filesystem used by WSL
+- Avoids cross-environment path issues between Windows and Linux tools
+- Makes Node/npm behavior more consistent inside the project
+
+### Environment notes
+- `.env.local` is local-only and is not expected to come from Git
+- If you clone the repo into WSL, recreate `.env.local` there
+- Use Linux-installed Node/npm inside WSL for this repo
+
+### Common WSL troubleshooting
+If `npm install` fails with Windows path errors, `cmd.exe`, or UNC path issues, your WSL shell is probably using Windows Node/npm instead of Linux Node/npm.
+
+To check:
+
+```bash
+which node
+which npm
 
 ## Database Schema
 

@@ -132,7 +132,19 @@ Post-Slice 6 QA identified a small follow-up patch needed before the next major 
 - Relocate theme preference control into Settings instead of surfacing a toggle on every page.
 - No domain-model, API, or progression-engine changes.
 
-## 7. Contextual Dashboard And Progression UX
+## 7. AI-Assisted Plan Draft Import
+
+Status: planned.
+
+- Add a `Draft with AI` path inside `/plans/new` without changing onboarding ownership.
+- Generate a copyable prompt from structured plan setup inputs so the user can use their own external AI assistant.
+- Accept pasted structured AI output from the user and validate it before it can enter app state as a draft.
+- Normalize accepted AI output into the existing setup -> draft -> review/edit -> save flow rather than creating a parallel save path.
+- Require user review before save; the app remains the system of record.
+- Do not integrate a provider, store provider credentials, or require any LLM configuration for core plan creation.
+- Do not broaden this slice into progression/dashboard redesign, workout execution redesign, or onboarding redesign.
+
+## 8. Contextual Dashboard And Progression UX
 
 Status: planned.
 
@@ -141,7 +153,7 @@ Status: planned.
 - Improve progression explanations so users understand why a phase should advance, repeat, or deload.
 - Keep explicit user-confirmed phase movement.
 
-## 8. Workout Execution UX
+## 9. Workout Execution UX
 
 Status: planned.
 
@@ -149,14 +161,14 @@ Status: planned.
 - Keep workout history snapshots readable after plan edits.
 - Avoid changing progression algorithms in this slice unless a narrow display change requires it.
 
-## 9. Exercise Media And Instruction Layer
+## 10. Exercise Media And Instruction Layer
 
 Status: planned.
 
 - Expand exercise instruction quality, video/demo surfaces, and coaching notes.
 - Keep the exercise catalog deterministic and editable through code until an admin/data workflow exists.
 
-## 10. Broader Polish And Branding
+## 11. Broader Polish And Branding
 
 Status: planned if still needed.
 
@@ -170,7 +182,7 @@ Status: planned if still needed.
 
 - Revisit which profile fields should remain durable account settings versus plan-context or setup-time inputs.
 - Consider whether fields like training experience and current activity level should stay permanently user-editable in Settings, move into guided plan setup, or become last-known context used to seed future plans.
-- Do not treat this as blocking Slice 7 unless a future implementation plan explicitly says so.
+- Do not treat this as blocking Slice 8 unless a future implementation plan explicitly says so.
 
 ## Read-Only Plan Sharing
 
@@ -194,16 +206,27 @@ Status: planned if still needed.
 
 ## Deferred AI / LLM Drafting
 
-LLM support is deferred.
+Near-term external AI draft import should arrive before any provider-backed in-app LLM work.
+
+Near-term external AI draft import:
+
+- should stay inside plan creation, not onboarding
+- should generate a structured, copyable prompt from `/plans/new` inputs
+- should accept pasted structured output from the user's own external AI assistant
+- should validate and normalize imported output before it can enter the review/edit/save flow
+- should require review before persistence
+- should not add provider integration, API-key handling, or runtime LLM dependencies
+
+Later optional provider-backed LLM drafting remains deferred.
 
 When implemented:
 
-- LLM support should plug into plan creation, not onboarding.
-- The LLM should be a structured plan-drafting assistant, not the system of record.
-- Drafts should be editable before saving.
-- Draft output must be validated before persistence.
-- API keys and provider details must stay server-side.
-- The app must remain fully functional without LLM configuration.
+- provider-backed LLM drafting should plug into plan creation, not onboarding
+- the LLM should be a structured plan-drafting assistant, not the system of record
+- drafts should be editable before saving
+- draft output must be validated before persistence
+- API keys and provider details must stay server-side
+- the app must remain fully functional without LLM configuration
 
 ## Ongoing Maintenance
 

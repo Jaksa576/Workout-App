@@ -15,7 +15,7 @@ The app should support multiple goal tracks using the same core infrastructure:
 
 The core product idea is:
 - users create structured training programs
-- programs are divided into blocks (UI term; database may still use phases)
+- programs are divided into phases (current user-facing term; `plan_phases` may remain the compatibility/storage term)
 - workouts are completed and logged
 - progression is evaluated based on the program’s progression mode
 - plan creation must work without an LLM today
@@ -36,7 +36,7 @@ Prefer additive, migration-safe refactors over rewrites.
 Preserve these core concepts:
 - user profile
 - workout plan / program
-- phases / blocks
+- phases
 - workouts
 - exercises
 - progression logic
@@ -45,7 +45,7 @@ Preserve these core concepts:
 Generalize narrow rehab-specific assumptions into reusable abstractions.
 
 Examples:
-- "phase" may remain in the DB, but use "block" in the UI when practical
+- use "Phase" in the UI/product language while keeping `plan_phases` and other compatibility/storage names unchanged unless there is a migration-safe reason to change them
 - progression should support multiple modes, not only symptom-based rehab logic
 - onboarding should store durable profile information
 - plan-specific personalization should happen in the plan creation flow
@@ -78,7 +78,9 @@ We will add an LLM later to help draft plans based on:
 - preferences
 - current goal
 
-The LLM should eventually help automate exercise selection and block design.
+Near-term AI support may arrive first as external structured draft import using the user's own AI assistant before any provider-backed integration exists.
+
+The LLM should eventually help automate exercise selection and phase design.
 For now:
 - do not integrate a provider
 - do not add runtime dependencies on an LLM
@@ -175,7 +177,12 @@ If you are unsure, preserve compatibility and leave a clear extension point rath
 
 ## Local tooling available
 
-The local development environment includes these CLIs:
+Primary development environment:
+- On Windows, prefer opening this repo in a WSL VS Code workspace
+- Preferred repo location for WSL use: `~/code/Workout-App`
+- Prefer Linux-installed Node/npm inside WSL for all project commands
+
+The local development environment may include these CLIs inside WSL:
 
 - `gh` (GitHub CLI)
 - `jq`
@@ -187,7 +194,9 @@ Supabase CLI is available **in this repository only** and should be run via:
 - `npx supabase ...`
 
 Agent guidance:
-- Prefer `rg` for codebase/text search over slower generic shell search.
-- Use `gh` when GitHub CLI is helpful for repo inspection or PR workflows.
-- Use `vercel` for deployment/log/environment workflows when relevant.
-- Do not assume Supabase CLI is globally installed; use `npx supabase`.
+- Prefer `rg` for codebase/text search over slower generic shell search
+- Use `gh` when GitHub CLI is helpful for repo inspection or PR workflows
+- Use `vercel` for deployment/log/environment workflows when relevant
+- Do not assume Supabase CLI is globally installed; use `npx supabase`
+- Do not assume Windows-installed CLIs are available inside WSL
+- If a CLI is needed, verify availability first with `which <tool>`
