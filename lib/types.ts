@@ -280,7 +280,11 @@ export type PlanCreationInput = PlanFormInput | StructuredPlanInput;
 
 export type PlanSetupChoice = "manual" | "guided" | "ai";
 
-export type PlanCreationSource = "manual" | "guided_template" | "llm_draft";
+export type PlanCreationSource =
+  | "manual"
+  | "guided_template"
+  | "llm_draft"
+  | "ai_import";
 
 export type PlanDraftStrategy = "template" | "llm";
 
@@ -302,6 +306,55 @@ export type PlanSetupInput = {
   focusAreas: string[];
   currentConstraints: string[];
   progressionModeOverride?: ProgressionMode | null;
+};
+
+export type AiPlanPromptInput = {
+  goalTrack: TrainingGoalType;
+  daysPerWeek: number;
+  sessionDurationMin: number;
+  weeklySchedule: Weekday[];
+  equipmentAccess: string;
+  experienceLevel?: TrainingExperience | null;
+  limitations: string;
+  primaryFocus: string;
+  progressionMode?: ProgressionMode | null;
+  trainingEnvironment?: TrainingEnvironment | null;
+  preferences?: string[];
+  dislikes?: string[];
+  sportsInterests?: string[];
+  freeformContext?: string;
+};
+
+export type AiImportedExercise = {
+  name: string;
+  sets: number;
+  reps: string;
+  restSeconds: number | null;
+  notes: string;
+};
+
+export type AiImportedWorkout = {
+  name: string;
+  focus: string;
+  exercises: AiImportedExercise[];
+};
+
+export type AiImportedPhase = {
+  phaseNumber: number;
+  name: string;
+  durationWeeks: number;
+  objective: string;
+  workouts: AiImportedWorkout[];
+};
+
+export type AiImportedPlan = {
+  title: string;
+  goalTrack: TrainingGoalType;
+  progressionMode: ProgressionMode | null;
+  daysPerWeek: number;
+  sessionDurationMin: number;
+  summary: string;
+  phases: AiImportedPhase[];
 };
 
 export type PlanDraftProfileContext = {

@@ -94,6 +94,7 @@ The engine should remain structured and adaptive. The app should not become a ge
 - **Progression modes:** Plans can use symptom-based, adherence-based, performance-based, or hybrid progression. The database field `workout_plans.progression_mode` is nullable and should be set by app code when enough context is available.
 - **Richer profile data:** The profile model is expanding beyond a single goal string to include durable training context such as age, weight, experience, activity level, training environment, exercise preferences/dislikes, sports/interests, and limitations detail. This model may evolve: some currently stored fields, especially experience and activity level, may later be treated more like onboarding/setup context, plan-context inputs, or last-known context rather than permanent account settings.
 - **Plan drafting abstraction:** Plan drafts should flow through `lib/plan-drafting/plan-draft-provider.ts`. The current enabled path is template-based; LLM drafting remains disabled.
+- **External AI draft import:** `/plans/new` now also supports a provider-free external AI import path. The app generates a deterministic prompt locally, the user uses their own external assistant, and pasted structured markdown is validated and converted into the same review/edit/save flow before persistence.
 - **Plan setup context:** Guided plan setup answers can be stored in `workout_plans.setup_context`. Existing older plans without that context can be reopened with safely reconstructed fields and explicit missing-context guidance. This supports setup-driven regeneration of a saved plan and stays distinct from primary plan-detail editing.
 - **Catalog traceability:** Catalog-backed exercises can use `source_exercise_id` so future catalog and substitution work can reason about where an exercise came from.
 
@@ -133,6 +134,7 @@ The same review/edit stage now supports:
 - The starter exercise catalog is static TypeScript data.
 - Progression is still mostly recovery/symptom-aware with clean-session rules.
 - The template draft provider exists and LLM provider behavior is intentionally unavailable.
+- External AI draft import exists inside `/plans/new`, but it is provider-free and does not make server-side model calls.
 
 ### Target
 

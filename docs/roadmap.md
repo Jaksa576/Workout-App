@@ -134,7 +134,7 @@ Post-Slice 6 QA identified a small follow-up patch needed before the next major 
 
 ## 7. AI-Assisted Plan Draft Import
 
-Status: planned.
+Status: implemented locally.
 
 - Add a `Draft with AI` path inside `/plans/new` without changing onboarding ownership.
 - Generate a copyable prompt from structured plan setup inputs so the user can use their own external AI assistant.
@@ -210,6 +210,7 @@ Near-term external AI draft import should arrive before any provider-backed in-a
 
 Near-term external AI draft import:
 
+- is now implemented locally through `/plans/new`
 - should stay inside plan creation, not onboarding
 - should generate a structured, copyable prompt from `/plans/new` inputs
 - should accept pasted structured output from the user's own external AI assistant

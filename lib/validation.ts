@@ -79,7 +79,8 @@ export const trainingEnvironmentValues: TrainingEnvironment[] = [
 export const planCreationSources: PlanCreationSource[] = [
   "manual",
   "guided_template",
-  "llm_draft"
+  "llm_draft",
+  "ai_import"
 ];
 
 export const planSetupChoices = ["manual", "guided", "ai"] as const;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { AiPlanDraftWizard } from "@/components/ai-plan-draft-wizard";
 import { PlanBuilderForm } from "@/components/plan-builder-form";
 import {
   buildDefaultPlanSetup,
@@ -19,7 +20,7 @@ import type {
 } from "@/lib/types";
 
 type WizardStep = "goal" | "details" | "generate" | "review";
-type PlanMode = "guided" | "manual";
+type PlanMode = "guided" | "manual" | "ai";
 
 type PlanSetupWizardProps = {
   profile: Profile | null;
@@ -214,15 +215,62 @@ export function PlanSetupWizard({
             Build the structure yourself. This path is still here for advanced edits or plans
             you already have in mind.
           </p>
-          <button
-            type="button"
-            onClick={() => setMode("guided")}
-            className="ui-button-secondary mt-4"
-          >
-            Use Guided Setup
-          </button>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+            <button
+              type="button"
+              onClick={() => setMode("guided")}
+              className="ui-button-secondary"
+            >
+              Use Guided Setup
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("ai")}
+              className="ui-button-secondary"
+            >
+              Draft with AI
+            </button>
+          </div>
         </div>
         <PlanBuilderForm submitLabel="Save Manual Plan" />
+      </div>
+    );
+  }
+
+  if (effectiveMode === "ai") {
+    return (
+      <div className="space-y-6">
+        <div className="surface-panel flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-copy">Draft with AI</p>
+            <p className="mt-1 text-sm leading-6 text-muted">
+              Use your own external AI assistant as an optional drafting helper, then review and
+              edit the imported plan before saving it in the app.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <button
+              type="button"
+              onClick={() => setMode("guided")}
+              className="ui-button-secondary"
+            >
+              Guided Setup
+            </button>
+            {allowManualMode ? (
+              <button
+                type="button"
+                onClick={() => setMode("manual")}
+                className="ui-button-secondary"
+              >
+                Manual Builder
+              </button>
+            ) : null}
+          </div>
+        </div>
+        <AiPlanDraftWizard
+          profile={profile}
+          initialSetup={initialSetup ?? setup}
+        />
       </div>
     );
   }
@@ -238,15 +286,24 @@ export function PlanSetupWizard({
               : "Answer a few plan-specific questions, generate a draft, then edit before saving."}
           </p>
         </div>
-        {allowManualMode ? (
+        <div className="flex flex-col gap-3 sm:flex-row">
           <button
             type="button"
-            onClick={() => setMode("manual")}
+            onClick={() => setMode("ai")}
             className="ui-button-secondary"
           >
-            Manual Builder
+            Draft with AI
           </button>
-        ) : null}
+          {allowManualMode ? (
+            <button
+              type="button"
+              onClick={() => setMode("manual")}
+              className="ui-button-secondary"
+            >
+              Manual Builder
+            </button>
+          ) : null}
+        </div>
       </div>
 
       {setupContextNotices.length ? (

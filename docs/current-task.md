@@ -2,50 +2,47 @@
 
 ## Goal
 
-Current active work: Slice 7, AI-assisted plan draft import.
+Current active work: Slice 8, contextual dashboard and progression UX.
 
-Slice 6.5, UI Polish and Theme Refinement, is complete locally. The next implementation slice is now the AI-assisted draft-import slice. The following slice after that becomes contextual dashboard and progression UX.
+Slice 7, AI-assisted plan draft import, is complete locally. The next implementation slice is now contextual dashboard and progression UX.
 
 ## Recently Completed Slice
 
-Slice 6.5, UI Polish and Theme Refinement, is implemented locally as the narrow follow-up patch after Slice 6.
+Slice 7, AI-assisted plan draft import, is implemented locally.
 
-That patch delivered:
+That slice delivered:
 
-- dark-mode contrast and readability fixes on the Slice 6 saved-plan surfaces
-- tighter semantic theme tokens and clearer shared badge/card contrast in dark mode
-- relocation of the user-facing theme preference control from the authenticated shell into Settings
-- preservation of the existing local persisted theme override, `html[data-theme]` behavior, and no-flash theme bootstrap
+- a visible `Draft with AI` path inside `/plans/new`
+- deterministic prompt generation from the v1 prompt contract
+- strict paste-back import of structured markdown from the user's own external AI assistant
+- validation and conversion of imported output into the existing review/edit/save flow
+- a distinct `ai_import` plan creation source
+- preservation of review-before-save and the existing plan write path
 
-That patch did not deliver:
+That slice did not deliver:
 
-- dashboard redesign
+- provider-backed LLM integration
+- onboarding redesign
+- dashboard/progression redesign
 - workout execution redesign
-- exercise media/instruction work
-- onboarding/setup flow redesign
-- schema, API, or route reorganization
+- progression-engine redesign
 
 ## Current Slice
 
-Current active implementation slice: Slice 7, AI-assisted plan draft import.
+Current active implementation slice: Slice 8, contextual dashboard and progression UX.
 
-Slice 7 should add an optional external-AI-assisted draft path inside `/plans/new` while preserving the existing setup -> draft -> review/edit -> save contract.
+Slice 8 should build on the updated plan-creation foundation, including the new external AI-assisted draft-import path, without changing the underlying progression engine.
 
 It should focus on:
 
-- a `Draft with AI` path inside `/plans/new`
-- generating a copyable prompt from structured plan setup inputs
-- accepting pasted structured AI output from the user's own external assistant
-- validating and normalizing imported output into the existing review/edit/save flow
-- requiring review before save while keeping the app as the system of record
+- more contextual dashboard copy and next-step guidance
+- clearer progression explanations tied to the active goal, phase, and recent sessions
+- keeping explicit user-confirmed phase movement
 
 It should not become:
 
-- a provider-backed LLM integration
-- an onboarding redesign or an AI-onboarding path
 - a workout execution redesign
-- a contextual dashboard/progression slice
-- a progression-engine redesign
+- an onboarding redesign
 - a rewrite of the saved-plan detail/edit/setup boundaries
 - a progression-algorithm rewrite unless explicitly re-scoped
 
@@ -64,6 +61,7 @@ Slices 1 through 5B3 are implemented locally, along with the post-5B3 cleanup pa
 - guided `/plans/[planId]/edit-setup` for setup-driven plan regeneration with review-before-save updates
 - post-5B3 cleanup that de-surfaces regenerate and advanced/manual plan-detail actions while keeping archive as a smaller secondary control
 - template-only draft generation through `POST /api/plan-drafts`
+- AI-assisted prompt generation and paste-back import through `/plans/new`
 - compatible plan creation and update writes through `lib/plan-write.ts`
 - presentation-only terminology refinement back to user-facing "Phase"
 - lightweight app framing as "Adaptive Training" / "Structured plans that progress with you."
@@ -75,33 +73,28 @@ Slices 1 through 5B3 are implemented locally, along with the post-5B3 cleanup pa
 
 The app must remain fully functional without any LLM provider.
 
-## Slice 7 Planned Scope
+## Slice 8 Planned Scope
 
-AI-assisted plan draft import should:
+Contextual dashboard and progression UX should:
 
-- stay inside `/plans/new` and build on the existing guided setup flow
-- generate a structured prompt from plan setup inputs for the user's own external AI assistant
-- accept pasted structured AI output and validate it before it becomes a draft
-- normalize valid imported output into the existing review/edit/save flow
-- reuse the current draft provider boundary, draft validation expectations, and plan write architecture where practical
-- require review before saving any imported draft
+- build on the shared UI foundation from Slice 6 and the broadened plan-creation flows now available in Slice 7
+- make dashboard copy and next-step prompts more contextual to the active goal, phase, and recent sessions
+- improve progression explanations so users understand why a phase should advance, repeat, or deload
+- keep explicit user-confirmed phase movement
 
-AI-assisted plan draft import should not:
+Contextual dashboard and progression UX should not:
 
-- integrate an LLM provider or server-side API keys
-- move AI assistance into onboarding
 - redesign workout execution
-- redesign dashboard/progression UX; that is the next slice after this one
-- redesign the progression engine or algorithms
+- redesign onboarding or guided setup flows
+- change progression algorithms beyond narrow explanation/display work unless explicitly re-scoped
 - weaken the saved-plan detail/edit/setup boundaries that are now clearer after Slice 6
 
 ## Likely Files To Inspect
 
-- `app/plans/new/page.tsx`
-- `components/plan-setup-wizard.tsx`
-- `lib/plan-drafting/plan-draft-provider.ts`
-- `lib/validation.ts`
-- `lib/plan-write.ts`
+- `app/page.tsx`
+- `components/phase-progress-panel.tsx`
+- `lib/data.ts`
+- `lib/types.ts`
 - `docs/current-task.md`
 - `docs/agent-handoff.md`
 - `docs/roadmap.md`
@@ -110,21 +103,20 @@ AI-assisted plan draft import should not:
 ## Constraints
 
 - Do not add LLM/provider integration.
-- Do not redesign onboarding broadly or move AI into onboarding.
-- Do not redesign workout execution or progression UX in this slice.
+- Do not redesign onboarding broadly.
+- Do not redesign workout execution in this slice.
 - Do not rename database tables, API routes, or compatibility fields such as `plan_phases`, `phase-action`, or `currentPhase`.
 - Do not weaken Supabase auth or RLS assumptions.
 - Keep changes migration-safe and scoped.
 - Keep the separation between direct detail edits and setup/regenerate clear.
-- Do not redesign the progression engine; imported drafts must adapt to the current system rather than redefining it.
-- The next slice after this one is Slice 8, contextual dashboard and progression UX.
+- Do not redesign the progression engine; dashboard explanations must adapt to the current system rather than redefining it.
+- The next slice after this one is Slice 9, workout execution UX.
 
 ## Non-Goals
 
 - No LLM/provider integration.
-- No onboarding AI flow.
 - No workout execution redesign.
-- No contextual dashboard/progression redesign in this slice.
+- No onboarding AI flow or provider-backed AI work in this slice.
 - No progression-engine redesign.
 - No schema or RLS rewrites.
 - No read-only plan sharing.

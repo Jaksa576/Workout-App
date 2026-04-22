@@ -66,7 +66,7 @@ create table if not exists public.workout_plans (
   ),
   creation_source text check (
     creation_source is null or
-    creation_source in ('manual', 'guided_template', 'llm_draft')
+    creation_source in ('manual', 'guided_template', 'llm_draft', 'ai_import')
   ),
   setup_context jsonb,
   schedule_summary text not null default '',
@@ -240,7 +240,7 @@ alter table public.workout_plans
 alter table public.workout_plans
   add column if not exists creation_source text check (
     creation_source is null or
-    creation_source in ('manual', 'guided_template', 'llm_draft')
+    creation_source in ('manual', 'guided_template', 'llm_draft', 'ai_import')
   );
 
 alter table public.workout_plans

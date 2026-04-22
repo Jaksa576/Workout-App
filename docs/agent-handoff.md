@@ -41,7 +41,7 @@ The approved refactor direction is additive and migration-safe:
 
 The docs had previously been aligned on Slice 6 as dashboard/progression work. Product direction then intentionally shifted to prioritize UI Overhaul Phase 1 first, ahead of the previously planned dashboard slice.
 
-Slices 1 through 5B3, UI Overhaul Phase 1, and Slice 6.5 are implemented locally. The immediate next work is now Slice 7, AI-assisted plan draft import. Contextual dashboard and progression UX moves to the following slice.
+Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, and Slice 7 are implemented locally. The immediate next work is now Slice 8, contextual dashboard and progression UX.
 
 ## Current Status
 
@@ -63,8 +63,8 @@ Slices 1 through 5B3, UI Overhaul Phase 1, and Slice 6.5 are implemented locally
 - Settings now has a real profile editing form for durable training context; onboarding remains separate from ongoing profile edits.
 - Slice 5B1 QA found that invalid settings values, such as negative age or weight, need clearer field-level validation guidance.
 - The app remains fully functional without any LLM provider.
-- Near-term AI support is planned as optional external structured draft import, not provider-backed in-app generation.
-- Any imported AI draft must be validated and reviewed before save; the app remains the system of record.
+- Near-term AI support is now available as optional external structured draft import, not provider-backed in-app generation.
+- Imported AI drafts are validated and reviewed before save; the app remains the system of record.
 - The future LLM path should plug into the same setup -> draft -> review/edit -> save flow and never become the system of record.
 - Guided template drafts now have a stronger deterministic baseline by goal track before any LLM support exists.
 - UI Overhaul Phase 1 added a small theme foundation with semantic tokens, `html[data-theme]`, system-default light/dark support, and a local override in the existing authenticated app shell.
@@ -153,26 +153,32 @@ Manual browser verification still needed after the final tiny Slice 6.5 QA follo
 - confirm no unrelated Settings styling changed
 - confirm the Appearance/theme section still looks correct
 
+## Slice 7 Completed Locally
+
+Slice 7 added the provider-free AI-assisted draft-import path inside `/plans/new`.
+
+What changed:
+
+- added a visible `Draft with AI` mode alongside guided setup and manual building
+- generated deterministic prompts from the v1 prompt contract for use with the user's own external AI assistant
+- accepted strict pasted markdown output, validated it locally, and converted it into the existing structured review/edit flow
+- introduced `ai_import` as a distinct creation source for imported AI drafts
+- kept review-before-save and the existing plan write path intact
+
+Verification after Slice 7:
+
+- focused Vitest coverage was added for prompt generation, parser success/failure cases, whitespace normalization, and conversion into the internal structured draft shape
+- typecheck and plan-drafting/save-path tests should be rerun after any follow-up edits in this area
+
 ## Next Active Slice
 
-Slice 7, AI-assisted plan draft import, is now the active docs-aligned next slice.
+Slice 8, contextual dashboard and progression UX, is now the active docs-aligned next slice.
 
 Intent:
 
-- add a `Draft with AI` path inside `/plans/new`
-- generate a structured copyable prompt from the user's plan setup inputs
-- let the user paste structured output from their own external AI assistant
-- validate and normalize that pasted output into the existing setup -> draft -> review/edit -> save flow
-- require review before save and keep the app as the system of record
-
-Boundaries:
-
-- no provider-backed in-app LLM integration
-- no onboarding redesign or AI-onboarding path
-- no workout execution redesign
-- no progression-engine redesign
-- no dashboard/progression UX redesign in this slice
-- reuse the existing plan write architecture and review/edit flow where practical
+- make dashboard copy and next-step prompts more contextual to the active goal, phase, and recent sessions
+- improve progression explanations without redesigning the underlying progression engine
+- build on the current UI foundation and current create/edit/save route boundaries
 
 ## Slice 1 Completed Locally
 
