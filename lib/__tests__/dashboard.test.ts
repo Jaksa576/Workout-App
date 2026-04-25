@@ -205,12 +205,13 @@ describe("dashboard display helpers", () => {
     });
   });
 
-  it("builds a 7-day preview from scheduled active-phase workouts", () => {
+  it("builds a 5-day preview from scheduled active-phase workouts", () => {
     const preview = buildWeeklyWorkoutPreview(plan, new Date("2026-04-20T12:00:00.000Z"));
 
-    expect(preview).toHaveLength(7);
+    expect(preview).toHaveLength(5);
     expect(preview[0]).toMatchObject({
       weekday: "mon",
+      dateLabel: "4/20",
       isToday: true,
       workoutName: "Lower Strength",
       tone: "workout"
@@ -223,6 +224,12 @@ describe("dashboard display helpers", () => {
     expect(preview[2]).toMatchObject({
       weekday: "wed",
       workoutName: "Upper Strength",
+      tone: "workout"
+    });
+    expect(preview[4]).toMatchObject({
+      weekday: "fri",
+      dateLabel: "4/24",
+      workoutName: "Lower Strength",
       tone: "workout"
     });
   });

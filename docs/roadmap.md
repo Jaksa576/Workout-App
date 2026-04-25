@@ -149,18 +149,17 @@ Status: implemented locally.
 Status: implemented locally.
 
 - Built on the UI foundation from Slice 6 with a workout-first dashboard home screen.
-- Added a compact 7-day "This week" preview with safe fallback copy when workout-specific schedules are missing.
+- Added a compact 5-day "This week" preview with safe fallback copy when workout-specific schedules are missing.
 - Added compact workout activity, phase progress, and symptom/pain trend summaries.
 - Fixed the active-phase sync issue by deriving dashboard progression messaging and CTAs from the same active plan, active phase, and `calculatePhaseProgress()` result.
 - Kept explicit user-confirmed phase movement by routing progression CTAs to the existing plan progress surface.
 
-Immediate post-implementation QA follow-up still needed before fully moving on:
+Accepted narrow QA follow-up:
 
-- shrink the weekly preview so it uses less space
-- consider a more compact 5-day preview if that improves layout
-- reduce the vertical space used by each day and keep dates on one line with compact treatment such as `4/26`
-- remove repeated `Keep the streak going` copy from adjacent dashboard cards
-- keep this follow-up dashboard-only rather than broadening it into workout execution or progression-engine work
+- reduced the weekly preview to a compact 5-day view
+- used compact date treatment with right-aligned date pills
+- removed repeated `Keep the streak going` copy from adjacent dashboard cards
+- preserved the active-phase/progression CTA sync and kept the patch dashboard-only
 
 ## 9. Workout Execution UX
 

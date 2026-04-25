@@ -45,7 +45,7 @@ function getWeekday(date: Date) {
 
 function formatDateLabel(date: Date) {
   return date.toLocaleDateString("en-US", {
-    month: "short",
+    month: "numeric",
     day: "numeric",
     timeZone: "UTC"
   });
@@ -82,7 +82,7 @@ export function buildWeeklyWorkoutPreview(
   );
   const planSchedule = plan?.weeklySchedule ?? [];
 
-  return Array.from({ length: 7 }, (_, index) => {
+  return Array.from({ length: 5 }, (_, index) => {
     const date = addUtcDays(start, index);
     const weekday = getWeekday(date);
     const scheduledWorkouts = hasWorkoutSchedule

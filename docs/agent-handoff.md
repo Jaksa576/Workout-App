@@ -41,7 +41,7 @@ The approved refactor direction is additive and migration-safe:
 
 The docs had previously been aligned on Slice 6 as dashboard/progression work. Product direction then intentionally shifted to prioritize UI Overhaul Phase 1 first, ahead of the previously planned dashboard slice.
 
-Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, Slice 7, and the initial Slice 8 implementation are in place locally. The immediate active work is still a narrow Slice 8 QA follow-up patch, and the deferred QA learnings from Slice 7 should remain outside active Slice 8 scope unless explicitly re-scoped.
+Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, Slice 7, and Slice 8 are in place locally. The immediate active work is now Slice 9, and the deferred QA learnings from Slice 7 should remain outside active Slice 9 scope unless explicitly re-scoped.
 
 ## Current Status
 
@@ -66,7 +66,7 @@ Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, Slice 7, and the initial S
 - Near-term AI support is now available as optional external structured draft import, not provider-backed in-app generation.
 - Imported AI drafts are validated and reviewed before save; the app remains the system of record.
 - Slice 7 is now completed locally, including the narrow QA follow-up fixes needed to stabilize the provider-free AI-assisted draft-import path.
-- Slice 8 is implemented locally, including the dashboard active-phase progression source-of-truth fix, but a narrow QA follow-up patch is still needed before moving on.
+- Slice 8 is implemented locally, including the dashboard active-phase progression source-of-truth fix, and the narrow QA follow-up patch is now accepted.
 - The future LLM path should plug into the same setup -> draft -> review/edit -> save flow and never become the system of record.
 - Guided template drafts now have a stronger deterministic baseline by goal track before any LLM support exists.
 - UI Overhaul Phase 1 added a small theme foundation with semantic tokens, `html[data-theme]`, system-default light/dark support, and a local override in the existing authenticated app shell.
@@ -74,7 +74,7 @@ Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, Slice 7, and the initial S
 - `/plans/[planId]/edit` now reads as the clear primary existing-plan edit surface.
 - `/plans/[planId]/edit-setup` now shares the same visual language while remaining explicitly secondary and setup-driven.
 - Shared plan-surface components such as section cards, badges, review/edit panels, and phase/workout cards were refreshed without changing progression logic, save semantics, or history snapshot behavior.
-- The dashboard now reads as a workout home screen with a 7-day weekly preview, compact activity/progress summaries, and progression prompts derived from the same active-phase progress source.
+- The dashboard now reads as a workout home screen with a compact 5-day weekly preview, compact activity/progress summaries, and progression prompts derived from the same active-phase progress source.
 
 ## UI Overhaul Phase 1 Completed Locally
 
@@ -201,30 +201,24 @@ Verification after Slice 8:
 - `npm run typecheck` passed.
 - `npm run build` passed.
 
-Manual browser verification still needed after Slice 8:
+Final accepted Slice 8 QA follow-up:
 
-- confirm the dashboard says "Your workout for today"
-- confirm the dashboard does not overuse "plan" for today's workout
-- confirm the compact weekly preview behaves reasonably on desktop and mobile
-- confirm light and dark mode readability
-- confirm normal ready status noise is minimized
-- confirm caution states remain visible when relevant
-- confirm active phase progress and progression recommendation agree
-- confirm eligible phases show a clear user-confirmed progression path
-- confirm no unrelated onboarding, plan creation, AI import, plan editing, or workout execution regressions
+- reduced the weekly preview from 7 days to a compact 5-day view
+- switched the preview to compact date labels with right-aligned date pills
+- removed repeated `Keep the streak going` copy from adjacent middle dashboard cards while keeping it as a single section-level heading
+- preserved the existing progression title, detail, CTA, and active-phase sync behavior
+- kept random/alternate workouts deferred
 
-Known risks / follow-ups:
+Verification after the accepted Slice 8 QA follow-up:
 
-- the weekly preview uses existing workout `scheduledDays` and plan `weeklySchedule`; older plans with sparse schedule data intentionally show conservative fallback copy rather than invented exact workouts
-- manual QA requires an authenticated local account with representative active plans and session history
+- `npm run test` passed.
+- `npm run typecheck` passed.
+- `npm run build` passed.
 
-Immediate Slice 8 QA follow-up still needed before moving to Slice 9:
+Manual QA outcome after the accepted Slice 8 QA follow-up:
 
-- shrink the dashboard weekly preview so it uses less space
-- consider reducing the preview from 7 days to a more compact 5-day view if that improves layout
-- reduce vertical space in each day row and keep dates on one line with a compact treatment such as `4/26`
-- remove the repeated `Keep the streak going` copy from adjacent middle dashboard cards
-- keep the follow-up dashboard-only; do not pull in workout execution, onboarding, plan creation, schema/RLS, or progression-engine work
+- the dashboard looked good overall after the compact preview and copy cleanup
+- no further Slice 8 changes are needed before moving to Slice 9
 
 Additional deferred idea surfaced during Slice 8 QA:
 
@@ -234,7 +228,7 @@ Additional deferred idea surfaced during Slice 8 QA:
 
 ## Deferred Follow-Up Ideas From Slice 7 QA
 
-These ideas were intentionally deferred so they do not get pulled into active Slice 8 follow-up work by accident.
+These ideas were intentionally deferred so they do not get pulled into active Slice 9 work by accident.
 
 - align Draft with AI more closely with Guided Setup later so `/plans/new` starts with a more consistent plan-type-first structure
 - rename or better explain unclear setup terms such as `Preferred split` and `Temporary focus areas`
@@ -256,7 +250,7 @@ Verification after Slice 7:
 
 ## Next Major Slice
 
-Slice 9, workout execution UX, remains the next major slice after the narrow Slice 8 QA follow-up is complete.
+Slice 9, workout execution UX, is now the active docs-aligned next major slice.
 
 Intent:
 
