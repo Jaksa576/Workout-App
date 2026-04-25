@@ -3,15 +3,21 @@ import { redirect } from "next/navigation";
 import type { Route } from "next";
 import { SectionCard } from "@/components/section-card";
 import { getDashboardData, getProfile } from "@/lib/data";
-import { ProgressBadge } from "@/components/progress-badge";
 import { formatPhaseLabel } from "@/lib/plan-labels";
 
 export default async function HomePage() {
   const [dashboard, profile] = await Promise.all([getDashboardData(), getProfile()]);
   const activePlan = dashboard.activePlan;
   const nextWorkout = dashboard.todayWorkout;
+  const progressPrompt = dashboard.progressionPrompt;
   const exerciseCount = nextWorkout?.exercises.length ?? 0;
   const exerciseLabel = exerciseCount === 1 ? "1 exercise" : `${exerciseCount} exercises`;
+  const readinessWarning =
+    nextWorkout?.readiness === "Review"
+      ? "Review your last check-in before pushing harder."
+      : nextWorkout?.readiness === "Monitor"
+        ? "Take it easier today if that last workout still feels heavy."
+        : null;
 
   if (!profile?.onboardingCompletedAt) {
     redirect("/onboarding" as Route);
@@ -23,145 +29,165 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-5 sm:space-y-6">
-      <section className="rounded-[24px] bg-ink px-5 py-6 text-white shadow-card sm:rounded-[32px] sm:px-7 sm:py-7">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/65">
-          Your plan for today
-        </p>
-        <h1 className="mt-3 max-w-2xl font-display text-3xl leading-tight text-balance sm:text-4xl">
-          Next up: {nextWorkout.name}
-        </h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-white/78">
-          {formatPhaseLabel(activePlan.currentPhase.phaseNumber)}: {activePlan.currentPhase.goal}
-        </p>
-        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <Link
-            href={`/workout?workoutId=${nextWorkout.id}` as Route}
-            className="rounded-full bg-coral px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#f95a2b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
-          >
-            Start Session
-          </Link>
-          <Link
-            href="/plans"
-            className="rounded-full border border-white/20 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
-          >
-            View My Plans
-          </Link>
-        </div>
+      <section className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+        <section className="rounded-[24px] bg-hero px-5 py-6 text-white shadow-card sm:rounded-[32px] sm:px-7 sm:py-7">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/65">
+            Your workout for today
+          </p>
+          <h1 className="mt-3 max-w-2xl font-display text-3xl leading-tight text-balance sm:text-4xl">
+            {nextWorkout.name}
+          </h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-white/78">
+            {nextWorkout.focus} - {exerciseLabel}
+          </p>
+          {readinessWarning ? (
+            <p className="mt-4 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm leading-6 text-white/88">
+              {readinessWarning}
+            </p>
+          ) : null}
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <Link
+              href={`/workout?workoutId=${nextWorkout.id}` as Route}
+              className="ui-button-primary text-center focus-visible:ring-white focus-visible:ring-offset-hero"
+            >
+              Start workout
+            </Link>
+            <Link
+              href={`/workout?workoutId=${nextWorkout.id}&step=check-in` as Route}
+              className="rounded-full border border-white/20 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-hero"
+            >
+              Log past workout
+            </Link>
+          </div>
+        </section>
+
+        <SectionCard title="This week" eyebrow="Up next" compact>
+          <div className="grid gap-2">
+            {dashboard.weekPreview.map((day) => (
+              <div
+                key={day.key}
+                className="grid grid-cols-[3rem_1fr] items-center gap-3 rounded-[18px] border border-border bg-surface-soft px-3 py-2"
+              >
+                <div>
+                  <p className="text-sm font-semibold text-copy">{day.weekdayLabel}</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">
+                    {day.isToday ? "Today" : day.dateLabel}
+                  </p>
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-copy">
+                    {day.workoutName}
+                  </p>
+                  <p className="truncate text-xs text-muted">{day.detail}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </SectionCard>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
-        <SectionCard
-          title={nextWorkout.name}
-          eyebrow="Next session"
-          description={nextWorkout.summary}
-        >
+      <section className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
+        <SectionCard title="How you're doing" eyebrow="Keep the streak going" compact>
           <div className="space-y-5">
-            <div className="rounded-[28px] border border-ink/5 bg-white/75 p-5">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate">
-                    {nextWorkout.focus}
+            <div>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-semibold text-copy">
+                  {dashboard.activitySummary.streakLabel}
+                </p>
+                {dashboard.painTrend ? (
+                  <p
+                    className={
+                      dashboard.painTrend.tone === "caution"
+                        ? "text-xs font-semibold text-warning"
+                        : "text-xs font-semibold text-success"
+                    }
+                  >
+                    {dashboard.painTrend.label}
                   </p>
-                  <p className="mt-2 text-xl font-semibold text-ink">
-                    Ready when you are
-                  </p>
-                </div>
-                <ProgressBadge
-                  label={nextWorkout.readiness}
-                  tone={nextWorkout.readiness === "Review" ? "gold" : "green"}
-                />
+                ) : null}
               </div>
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl bg-mist px-4 py-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate">
-                    Exercises
-                  </p>
-                  <p className="mt-1 text-lg font-semibold text-ink">{exerciseLabel}</p>
-                </div>
-                <div className="rounded-2xl bg-mist px-4 py-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate">
-                    Status
-                  </p>
-                  <p className="mt-1 text-lg font-semibold text-ink">
-                    {nextWorkout.readiness}
-                  </p>
-                </div>
+              <div className="mt-3 grid grid-cols-7 gap-2">
+                {dashboard.activitySummary.days.map((day) => (
+                  <div key={day.key} className="text-center">
+                    <div
+                      title={`${day.weekdayLabel}: ${
+                        day.completed ? "workout logged" : "no workout logged"
+                      }${day.painFlagged ? ", pain flagged" : ""}`}
+                      className={
+                        day.painFlagged
+                          ? "mx-auto h-8 w-8 rounded-full border border-warning bg-warning/20"
+                          : day.completed
+                            ? "mx-auto h-8 w-8 rounded-full border border-success bg-success/30"
+                            : day.isToday
+                              ? "mx-auto h-8 w-8 rounded-full border border-accent bg-accent/10"
+                              : "mx-auto h-8 w-8 rounded-full border border-border bg-surface-soft"
+                      }
+                    />
+                    <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">
+                      {day.weekdayLabel}
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <Link
-                href={`/workout?workoutId=${nextWorkout.id}` as Route}
-                className="inline-flex justify-center rounded-full bg-coral px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#f95a2b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral focus-visible:ring-offset-2 focus-visible:ring-offset-mist"
-              >
-                Start Session
-              </Link>
-              <Link
-                href={`/workout?workoutId=${nextWorkout.id}&step=check-in` as Route}
-                className="inline-flex justify-center rounded-full border border-ink/10 bg-white px-5 py-3 text-sm font-semibold text-ink transition hover:border-coral hover:text-coral focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral focus-visible:ring-offset-2 focus-visible:ring-offset-mist"
-              >
-                Log Past Workout
-              </Link>
-            </div>
+            {dashboard.phaseProgress ? (
+              <div>
+                <div className="flex items-center justify-between gap-3 text-sm">
+                  <p className="font-semibold text-copy">
+                    {formatPhaseLabel(activePlan.currentPhase.phaseNumber)}
+                  </p>
+                  <p className="font-semibold text-copy">
+                    {dashboard.phaseProgress.completionPercent}%
+                  </p>
+                </div>
+                <div className="mt-3 h-3 overflow-hidden rounded-full bg-shell-elevated">
+                  <div
+                    className="h-full rounded-full bg-accent"
+                    style={{ width: `${dashboard.phaseProgress.completionPercent}%` }}
+                  />
+                </div>
+                <p className="mt-3 text-sm leading-6 text-muted">
+                  {dashboard.phaseProgress.cleanSessions} of{" "}
+                  {dashboard.phaseProgress.requiredCleanSessions} clean sessions.
+                </p>
+              </div>
+            ) : null}
           </div>
         </SectionCard>
 
         <SectionCard
-          title={activePlan.name}
-          eyebrow="Current plan"
-          description={activePlan.description}
+          title={progressPrompt?.title ?? "Keep moving"}
+          eyebrow={progressPrompt?.eyebrow ?? "Up next"}
+          compact
         >
-          <div className="space-y-3">
-            <div className="rounded-[28px] bg-white/75 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate">
-                Active Phase
+          <div className="space-y-4">
+            <p className="text-sm leading-6 text-muted">
+              {progressPrompt?.detail ?? activePlan.currentPhase.goal}
+            </p>
+            {progressPrompt?.actionHref && progressPrompt.actionLabel ? (
+              <Link
+                href={progressPrompt.actionHref as Route}
+                className="ui-button-primary inline-flex w-full justify-center sm:w-auto"
+              >
+                {progressPrompt.actionLabel}
+              </Link>
+            ) : (
+              <Link
+                href={`/workout?workoutId=${nextWorkout.id}` as Route}
+                className="ui-button-secondary inline-flex w-full justify-center sm:w-auto"
+              >
+                Start next workout
+              </Link>
+            )}
+            <div className="rounded-[20px] border border-border bg-surface-soft px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                Current plan
               </p>
-              <p className="mt-2 text-lg font-semibold text-ink">
-                {formatPhaseLabel(activePlan.currentPhase.phaseNumber)}
-              </p>
-              <p className="mt-1 text-sm leading-6 text-slate">
+              <p className="mt-2 text-sm font-semibold text-copy">{activePlan.name}</p>
+              <p className="mt-1 text-sm leading-6 text-muted">
                 {activePlan.currentPhase.goal}
               </p>
-              {dashboard.phaseProgress ? (
-                <div className="mt-4">
-                  <div className="flex items-center justify-between gap-3 text-sm">
-                    <p className="font-semibold text-ink">Phase progress</p>
-                    <p className="font-semibold text-ink">
-                      {dashboard.phaseProgress.completionPercent}%
-                    </p>
-                  </div>
-                  <div className="mt-3 h-3 overflow-hidden rounded-full bg-mist">
-                    <div
-                      className="h-full rounded-full bg-coral"
-                      style={{ width: `${dashboard.phaseProgress.completionPercent}%` }}
-                    />
-                  </div>
-                  <p className="mt-3 text-sm leading-6 text-slate">
-                    {dashboard.phaseProgress.cleanSessions} of{" "}
-                    {dashboard.phaseProgress.requiredCleanSessions} clean sessions,{" "}
-                    {dashboard.phaseProgress.painFlags}{" "}
-                    {dashboard.phaseProgress.painFlags === 1 ? "pain flag" : "pain flags"}.
-                  </p>
-                </div>
-              ) : null}
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-              <div className="rounded-[28px] bg-white/75 p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate">
-                  Progress when
-                </p>
-                <p className="mt-2 text-sm leading-6 text-ink">
-                  {activePlan.currentPhase.advanceCriteria}
-                </p>
-              </div>
-              <div className="rounded-[28px] bg-white/75 p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate">
-                  Pause when
-                </p>
-                <p className="mt-2 text-sm leading-6 text-ink">
-                  {activePlan.currentPhase.deloadCriteria}
-                </p>
-              </div>
             </div>
           </div>
         </SectionCard>
@@ -171,13 +197,11 @@ export default async function HomePage() {
         {dashboard.metrics.map((metric) => (
           <section
             key={metric.label}
-            className="rounded-[28px] border border-white/70 bg-[#fffdf9]/85 p-5 shadow-card backdrop-blur"
+            className="surface-card p-5"
           >
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate">
-              {metric.label}
-            </p>
-            <p className="mt-3 text-2xl font-semibold text-ink">{metric.value}</p>
-            <p className="mt-2 text-sm leading-6 text-slate">{metric.detail}</p>
+            <p className="ui-eyebrow">{metric.label}</p>
+            <p className="mt-3 text-2xl font-semibold text-copy">{metric.value}</p>
+            <p className="mt-2 text-sm leading-6 text-muted">{metric.detail}</p>
           </section>
         ))}
       </section>

@@ -1,7 +1,6 @@
 import { getCurrentUser } from "@/lib/auth";
 import {
   type DashboardData,
-  type DashboardMetric,
   type ExerciseEntry,
   type PhaseProgressSummary,
   type ProgressionDecision,
@@ -17,6 +16,13 @@ import {
   type WorkoutTemplate
 } from "@/lib/types";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
+import {
+  buildDashboardActivitySummary,
+  buildDashboardMetrics,
+  buildDashboardPainTrend,
+  buildDashboardProgressionPrompt,
+  buildWeeklyWorkoutPreview
+} from "@/lib/dashboard";
 import { calculatePhaseProgress } from "@/lib/progression";
 import { isPlanSetupInput, normalizeWeekdays } from "@/lib/validation";
 
@@ -362,70 +368,6 @@ function mapPlanFromBundle(
   };
 }
 
-function computeMetrics(
-  plan: WorkoutPlan | null,
-  sessions: SessionRow[]
-): DashboardMetric[] {
-  if (!plan) {
-    return [
-      {
-        label: "Weekly streak",
-        value: "0 workouts",
-        detail: "Create your first plan to begin tracking completed sessions."
-      },
-      {
-        label: "Pain status",
-        value: "No data",
-        detail: "Once you log sessions, pain flags will show here."
-      },
-      {
-        label: "Next decision",
-        value: "Build first plan",
-        detail: "Start with one clear phase and one repeatable workout."
-      }
-    ];
-  }
-
-  const lastSevenDays = new Date();
-  lastSevenDays.setDate(lastSevenDays.getDate() - 7);
-
-  const recentSessions = sessions.filter(
-    (session) => new Date(session.completed_on) >= lastSevenDays
-  );
-  const painCount = recentSessions.filter((session) => session.pain_occurred).length;
-  const painFlagLabel = painCount === 1 ? "1 pain flag" : `${painCount} pain flags`;
-  const advanceReady = recentSessions.filter(
-    (session) =>
-      session.completed &&
-      !session.pain_occurred &&
-      session.perceived_difficulty !== "too_hard"
-  ).length;
-
-  return [
-    {
-      label: "Weekly streak",
-      value: `${recentSessions.length} workouts`,
-      detail: "This counts completed sessions in the last 7 days."
-    },
-    {
-      label: "Pain status",
-      value: painCount === 0 ? "Stable" : painFlagLabel,
-      detail:
-        painCount === 0
-          ? "No recent pain flags detected."
-          : "Review exercise selection or consider a deload before progressing."
-    },
-    {
-      label: "Next decision",
-      value: advanceReady >= 2 ? "Progress check" : "Repeat phase",
-      detail:
-        advanceReady >= 2
-          ? "You have enough clean sessions to consider moving forward."
-          : "Stay in the current phase until more consistent successful sessions are logged."
-    }
-  ];
-}
-
 function toDateString(date: Date) {
   return date.toISOString().slice(0, 10);
 }
@@ -731,11 +673,17 @@ export async function getDashboardData(): Promise<DashboardData> {
   const user = await getCurrentUser();
 
   if (!user) {
+    const activitySummary = buildDashboardActivitySummary([]);
+
     return {
       activePlan: null,
       todayWorkout: null,
-      metrics: computeMetrics(null, []),
-      phaseProgress: null
+      metrics: buildDashboardMetrics(null, activitySummary, null, null),
+      phaseProgress: null,
+      weekPreview: buildWeeklyWorkoutPreview(null),
+      activitySummary,
+      progressionPrompt: null,
+      painTrend: null
     };
   }
 
@@ -746,17 +694,28 @@ export async function getDashboardData(): Promise<DashboardData> {
   const activePlan = getActiveIncompletePlan(mappedPlans);
   const todayWorkout = getRecommendedWorkout(getCurrentPhaseWorkouts(activePlan));
   const recentSessions = bundle.sessions.map(mapSession);
+  const activePlanWorkoutIds = new Set(activePlan?.workouts.map((workout) => workout.id) ?? []);
+  const activePlanSessions = recentSessions.filter(
+    (session) => session.workoutTemplateId && activePlanWorkoutIds.has(session.workoutTemplateId)
+  );
+  const phaseProgress = activePlan
+    ? calculatePhaseProgress({
+        plan: activePlan,
+        currentPhase: activePlan.currentPhase,
+        sessions: activePlanSessions
+      })
+    : null;
+  const activitySummary = buildDashboardActivitySummary(activePlanSessions);
+  const painTrend = buildDashboardPainTrend(activePlan, activePlanSessions, phaseProgress);
 
   return {
     activePlan,
     todayWorkout,
-    metrics: computeMetrics(activePlan, bundle.sessions),
-    phaseProgress: activePlan
-      ? calculatePhaseProgress({
-          plan: activePlan,
-          currentPhase: activePlan.currentPhase,
-          sessions: recentSessions
-        })
-      : null
+    metrics: buildDashboardMetrics(activePlan, activitySummary, phaseProgress, painTrend),
+    phaseProgress,
+    weekPreview: buildWeeklyWorkoutPreview(activePlan),
+    activitySummary,
+    progressionPrompt: buildDashboardProgressionPrompt(activePlan, phaseProgress),
+    painTrend
   };
 }

@@ -146,12 +146,21 @@ Status: implemented locally.
 
 ## 8. Contextual Dashboard And Progression UX
 
-Status: planned.
+Status: implemented locally.
 
-- Build on the UI foundation from Slice 6 instead of trying to redesign dashboard/progression surfaces first.
-- Make dashboard copy and next-step prompts more contextual to the active goal, phase, and recent sessions.
-- Improve progression explanations so users understand why a phase should advance, repeat, or deload.
-- Keep explicit user-confirmed phase movement.
+- Built on the UI foundation from Slice 6 with a workout-first dashboard home screen.
+- Added a compact 7-day "This week" preview with safe fallback copy when workout-specific schedules are missing.
+- Added compact workout activity, phase progress, and symptom/pain trend summaries.
+- Fixed the active-phase sync issue by deriving dashboard progression messaging and CTAs from the same active plan, active phase, and `calculatePhaseProgress()` result.
+- Kept explicit user-confirmed phase movement by routing progression CTAs to the existing plan progress surface.
+
+Immediate post-implementation QA follow-up still needed before fully moving on:
+
+- shrink the weekly preview so it uses less space
+- consider a more compact 5-day preview if that improves layout
+- reduce the vertical space used by each day and keep dates on one line with compact treatment such as `4/26`
+- remove repeated `Keep the streak going` copy from adjacent dashboard cards
+- keep this follow-up dashboard-only rather than broadening it into workout execution or progression-engine work
 
 ## 9. Workout Execution UX
 
@@ -212,6 +221,14 @@ Status: planned if still needed.
 - Add richer session history and progress trend views.
 - Preserve workout and exercise snapshots so deleted plan structure remains readable in history.
 - Keep trend summaries tied to the active plan and phase when appropriate.
+
+## Workout Flexibility
+
+- Consider future plan-aware alternate/random workout support for days when the user wants something different while still keeping momentum.
+- Keep this aligned with structured plans, active phase context, progression safety, and adaptive training logic.
+- Do not turn this into a generic workout picker that undermines the programmed plan.
+- Defer the interaction design for quick user choices or alternate-session selection until a later workout execution/flexibility slice.
+- This is not part of the current Slice 8 dashboard follow-up patch.
 
 ## Deferred AI / LLM Drafting
 

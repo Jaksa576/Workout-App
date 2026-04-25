@@ -21,6 +21,7 @@ The product is evolving from a recovery-first phased workout app into a broader 
 - Theme styling should prefer semantic tokens and shared primitives over hardcoded page-specific colors where practical.
 - Light/dark mode flows through `html[data-theme]` with system preference by default. The current user-facing theme preference control lives in Settings, while the preference itself remains a local client-side override rather than a profile-backed setting.
 - The first shared visual focus is saved-plan surfaces such as plan detail, direct detail editing, and setup/regenerate editing.
+- Dashboard display copy and compact summaries use deterministic helpers in `lib/dashboard.ts`; progression prompts should derive from the active plan, active phase, and server-side phase progress result rather than separate dashboard-only readiness inference.
 - Do not rewrite architecture areas unrelated to that UI foundation when updating this document.
 
 ### Current Domain Engine
@@ -64,6 +65,7 @@ Already implemented:
 - history snapshots for workout and exercise names
 - persisted or reconstructed guided plan setup context on `workout_plans.setup_context`
 - Slice 1 through Slice 5B3 foundation for broader goal-based architecture
+- contextual dashboard weekly preview, activity summary, and progression prompts derived from active-phase progression state
 
 ## Target Direction
 

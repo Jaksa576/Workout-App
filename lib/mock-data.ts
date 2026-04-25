@@ -154,6 +154,46 @@ export const dashboardData: DashboardData = {
     painFlags: 0,
     completionPercent: 75
   },
+  weekPreview: [
+    {
+      key: "2026-04-20",
+      weekday: "mon",
+      weekdayLabel: "Mon",
+      dateLabel: "Apr 20",
+      isToday: true,
+      workoutId: "workout-1",
+      workoutName: "Lower Body + Core",
+      detail: "Strength foundation",
+      tone: "workout"
+    }
+  ],
+  activitySummary: {
+    completedThisWeek: 3,
+    streakLabel: "3 workouts logged",
+    days: [
+      {
+        key: "2026-04-20",
+        weekdayLabel: "Mon",
+        isToday: true,
+        completed: true,
+        painFlagged: false
+      }
+    ]
+  },
+  progressionPrompt: {
+    tone: "steady",
+    eyebrow: "Keep the streak going",
+    title: "Complete 1 more workout before progressing.",
+    detail: "3 of 4 clean sessions logged for Phase 1.",
+    actionLabel: null,
+    actionHref: null
+  },
+  painTrend: {
+    label: "Stable",
+    detail: "No recent pain flags.",
+    painFlags: 0,
+    tone: "stable"
+  },
   metrics: [
     {
       label: "Weekly streak",

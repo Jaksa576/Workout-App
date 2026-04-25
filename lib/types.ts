@@ -138,6 +138,52 @@ export type DashboardData = {
   todayWorkout: WorkoutTemplate | null;
   metrics: DashboardMetric[];
   phaseProgress: PhaseProgressSummary | null;
+  weekPreview: DashboardWeekPreviewItem[];
+  activitySummary: DashboardActivitySummary;
+  progressionPrompt: DashboardProgressionPrompt | null;
+  painTrend: DashboardPainTrend | null;
+};
+
+export type DashboardWeekPreviewItem = {
+  key: string;
+  weekday: Weekday;
+  weekdayLabel: string;
+  dateLabel: string;
+  isToday: boolean;
+  workoutId: string | null;
+  workoutName: string;
+  detail: string;
+  tone: "workout" | "fallback" | "rest";
+};
+
+export type DashboardActivityDay = {
+  key: string;
+  weekdayLabel: string;
+  isToday: boolean;
+  completed: boolean;
+  painFlagged: boolean;
+};
+
+export type DashboardActivitySummary = {
+  completedThisWeek: number;
+  days: DashboardActivityDay[];
+  streakLabel: string;
+};
+
+export type DashboardProgressionPrompt = {
+  tone: "ready" | "complete" | "caution" | "steady";
+  eyebrow: string;
+  title: string;
+  detail: string;
+  actionLabel: string | null;
+  actionHref: string | null;
+};
+
+export type DashboardPainTrend = {
+  label: string;
+  detail: string;
+  painFlags: number;
+  tone: "stable" | "caution";
 };
 
 export type ProgressBarPoint = {
