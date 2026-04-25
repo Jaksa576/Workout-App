@@ -31,12 +31,29 @@ Important rules:
 - Use the exact section labels and field labels shown below.
 - Keep all values concise and parseable.
 - Use only the allowed enum values for goal_track and progression_mode.
+- Respect the selected assigned_days when organizing workouts for the week.
 - Include at least 1 phase.
 - Include at least 1 workout per phase.
 - Include at least 1 exercise per workout.
 - Keep notes short.
 - Do not include medical advice or diagnosis.
 - Do not add extra fields.`;
+
+const GOAL_ROLE_GUIDANCE: Record<TrainingGoalType, string> = {
+  recovery: "Use a rehab-informed, symptom-aware planning voice for this recovery plan.",
+  general_fitness:
+    "Use a concise coaching voice matched to general fitness without adding extra format variation.",
+  strength:
+    "Use a practical coaching voice focused on progressive training structure for this strength plan.",
+  hypertrophy:
+    "Use a practical coaching voice focused on progressive training structure for this hypertrophy plan.",
+  running:
+    "Use a concise coaching voice matched to running without adding extra format variation.",
+  sport_performance:
+    "Use a concise coaching voice matched to sport performance without adding extra format variation.",
+  consistency:
+    "Use a concise coaching voice matched to consistency without adding extra format variation."
+};
 
 const EXACT_OUTPUT_EXAMPLE_BLOCK = `Return the plan in exactly this format:
 
@@ -73,9 +90,11 @@ notes: Stop with 2 reps in reserve`;
 
 const GOAL_GUIDANCE: Record<TrainingGoalType, string> = {
   recovery: `Planning guidance for this goal:
+- Build a progression-based recovery plan with multiple phases when the training goal calls for progression over time.
 - Use conservative progression.
 - Favor symptom-aware exercise selection.
 - Prefer simple, repeatable sessions.
+- Progress from lower-demand work toward higher tolerance or confidence as appropriate.
 - Keep exercise notes practical and caution-oriented.
 - Avoid implying diagnosis or treatment.`,
   general_fitness: `Planning guidance for this goal:
@@ -155,6 +174,10 @@ function formatPromptField(value: string) {
   return value.trim();
 }
 
+function formatAssignedDays(values: Weekday[]) {
+  return values.join(", ");
+}
+
 function formatFocusFromSetup(setup: PlanSetupInput) {
   const parts = [setup.objectiveSummary ?? "", ...setup.focusAreas].filter(Boolean);
   return parts.join(". ").trim();
@@ -166,7 +189,10 @@ function formatLimitations(profile: Profile | null, setup: PlanSetupInput) {
     profile?.limitationsDetail ?? ""
   ].filter(Boolean);
   const setupParts = setup.currentConstraints.filter(Boolean);
-  return [...profileParts, ...setupParts].join(", ").trim();
+  return Array.from(new Set([...profileParts, ...setupParts].map((part) => part.trim())))
+    .filter(Boolean)
+    .join(", ")
+    .trim();
 }
 
 export function buildAiPlanPromptInput({
@@ -261,11 +287,14 @@ export function buildAiPlanPrompt(input: AiPlanPromptInput) {
   return [
     BASE_INSTRUCTION_BLOCK,
     "",
+    GOAL_ROLE_GUIDANCE[normalized.goalTrack],
+    "",
     GOAL_GUIDANCE[normalized.goalTrack],
     "",
     "User context:",
     `goal_track: ${normalized.goalTrack}`,
     `days_per_week: ${normalized.daysPerWeek}`,
+    `assigned_days: ${formatAssignedDays(normalized.weeklySchedule)}`,
     `session_duration_min: ${normalized.sessionDurationMin}`,
     `equipment_access: ${formatPromptField(normalized.equipmentAccess)}`,
     `experience_level: ${formatPromptField(getExperienceLabel(normalized.experienceLevel))}`,
@@ -316,6 +345,20 @@ function parsePositiveInteger(value: string, label: string, context: string) {
 
   if (!Number.isInteger(parsed) || parsed <= 0) {
     throw new Error(`${context}: ${label} must be greater than 0.`);
+  }
+
+  return parsed;
+}
+
+function parseNonNegativeInteger(value: string, label: string, context: string) {
+  if (!/^\d+$/.test(value)) {
+    throw new Error(`${context}: ${label} must be an integer.`);
+  }
+
+  const parsed = Number(value);
+
+  if (!Number.isInteger(parsed) || parsed < 0) {
+    throw new Error(`${context}: ${label} must be greater than or equal to 0.`);
   }
 
   return parsed;
@@ -453,7 +496,7 @@ function parseExercise(lines: string[], index: number, workoutNumber: number, ph
       sets: parsePositiveInteger(sets.value, "sets", context),
       reps: reps.value,
       restSeconds: restSeconds.value
-        ? parsePositiveInteger(restSeconds.value, "rest_seconds", context)
+        ? parseNonNegativeInteger(restSeconds.value, "rest_seconds", context)
         : null,
       notes: notes.value
     } satisfies AiImportedExercise,
@@ -740,30 +783,32 @@ function mapExercise(exercise: AiImportedExercise): StructuredExerciseInput {
     name: exercise.name,
     sets: exercise.sets,
     reps: exercise.reps,
-    rest: exercise.restSeconds ? `${exercise.restSeconds} sec` : "",
+    rest: exercise.restSeconds !== null ? `${exercise.restSeconds} sec` : "",
     coachingNote: exercise.notes,
     videoUrl: ""
   };
 }
 
-function mapWorkout(workout: AiImportedWorkout): StructuredWorkoutInput {
+function mapWorkout(workout: AiImportedWorkout, scheduledDays: Weekday[]): StructuredWorkoutInput {
   return {
     name: workout.name,
     focus: workout.focus,
     summary: buildWorkoutSummary(workout),
-    scheduledDays: [],
+    scheduledDays,
     exercises: workout.exercises.map(mapExercise)
   };
 }
 
-function mapPhase(phase: AiImportedPhase): StructuredPhaseInput {
+function mapPhase(phase: AiImportedPhase, weeklySchedule: Weekday[]): StructuredPhaseInput {
   return {
     goal: buildPhaseGoal(phase),
     advancementPreset: DEFAULT_ADVANCEMENT_PRESET,
     advancementSettings: DEFAULT_ADVANCEMENT_SETTINGS,
     deloadPreset: DEFAULT_DELOAD_PRESET,
     deloadSettings: DEFAULT_DELOAD_SETTINGS,
-    workouts: phase.workouts.map(mapWorkout)
+    workouts: phase.workouts.map((workout, index) =>
+      mapWorkout(workout, weeklySchedule.length ? [weeklySchedule[index % weeklySchedule.length]] : [])
+    )
   };
 }
 
@@ -787,7 +832,7 @@ export function convertAiImportToStructuredPlan({
     progressionMode: importedPlan.progressionMode,
     creationSource: "ai_import",
     weeklySchedule,
-    phases: importedPlan.phases.map(mapPhase)
+    phases: importedPlan.phases.map((phase) => mapPhase(phase, weeklySchedule))
   };
 }
 

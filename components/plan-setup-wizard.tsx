@@ -443,7 +443,11 @@ export function PlanSetupWizard({
               </select>
             </label>
             <label className="block">
-              <span className="text-sm font-semibold text-copy">Preferred split</span>
+              <span className="text-sm font-semibold text-copy">Session structure</span>
+              <p className="mt-2 text-sm leading-6 text-muted">
+                Choose the weekly training layout that best fits this plan. You can change it
+                later without affecting your profile.
+              </p>
               <select
                 value={setup.preferredSplit}
                 onChange={(event) =>
@@ -490,7 +494,11 @@ export function PlanSetupWizard({
 
           <div className="grid gap-4 md:grid-cols-2">
             <label className="block">
-              <span className="text-sm font-semibold text-copy">Temporary focus areas</span>
+              <span className="text-sm font-semibold text-copy">Plan focus areas</span>
+              <p className="mt-2 text-sm leading-6 text-muted">
+                These may be prefilled from your profile interests or preferences, but they only
+                guide this plan draft.
+              </p>
               <input
                 value={joinList(setup.focusAreas)}
                 onChange={(event) =>

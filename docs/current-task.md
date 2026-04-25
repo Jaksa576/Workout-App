@@ -4,9 +4,35 @@
 
 Current active work: Slice 8, contextual dashboard and progression UX.
 
-Slice 7, AI-assisted plan draft import, is complete locally. The next implementation slice is now contextual dashboard and progression UX.
+Slice 7, AI-assisted plan draft import, is completed locally. Slice 8 is now the next active major implementation slice.
 
-## Recently Completed Slice
+## Current Slice
+
+Current active implementation slice: Slice 8, contextual dashboard and progression UX.
+
+Slice 8 should focus on:
+
+- more contextual dashboard copy and next-step guidance
+- clearer progression explanations tied to the active goal, phase, and recent sessions
+- keeping explicit user-confirmed phase movement
+
+Slice 8 should not become:
+
+- a workout execution redesign
+- an onboarding redesign
+- a rewrite of the saved-plan detail/edit/setup boundaries
+- a progression-algorithm rewrite unless explicitly re-scoped
+
+Deferred follow-up from completed Slice 7 QA should stay outside the active Slice 8 scope unless explicitly re-scoped:
+
+- broader `/plans/new` flow alignment and terminology cleanup
+- assigned-day / prompt-specificity polish
+- helper-text layout refinement
+- exercise-media auto-population
+- reducing repeated schedule-selection emphasis across Guided Setup, Manual Builder, and Draft with AI
+- improving external-AI export / copy-paste ergonomics for the structured prompt-and-import handoff
+
+## Recently Implemented Slice
 
 Slice 7, AI-assisted plan draft import, is implemented locally.
 
@@ -19,6 +45,8 @@ That slice delivered:
 - a distinct `ai_import` plan creation source
 - preservation of review-before-save and the existing plan write path
 
+That slice is now complete locally.
+
 That slice did not deliver:
 
 - provider-backed LLM integration
@@ -27,28 +55,9 @@ That slice did not deliver:
 - workout execution redesign
 - progression-engine redesign
 
-## Current Slice
-
-Current active implementation slice: Slice 8, contextual dashboard and progression UX.
-
-Slice 8 should build on the updated plan-creation foundation, including the new external AI-assisted draft-import path, without changing the underlying progression engine.
-
-It should focus on:
-
-- more contextual dashboard copy and next-step guidance
-- clearer progression explanations tied to the active goal, phase, and recent sessions
-- keeping explicit user-confirmed phase movement
-
-It should not become:
-
-- a workout execution redesign
-- an onboarding redesign
-- a rewrite of the saved-plan detail/edit/setup boundaries
-- a progression-algorithm rewrite unless explicitly re-scoped
-
 ## Current Context
 
-Slices 1 through 5B3 are implemented locally, along with the post-5B3 cleanup patch and UI Overhaul Phase 1:
+Slices 1 through 5B3 are implemented locally, along with the post-5B3 cleanup patch, UI Overhaul Phase 1, UI Polish and Theme Refinement, and the initial Slice 7 AI-assisted draft-import implementation:
 
 - richer profile and plan metadata columns
 - nullable `workout_plans.progression_mode`
@@ -73,16 +82,18 @@ Slices 1 through 5B3 are implemented locally, along with the post-5B3 cleanup pa
 
 The app must remain fully functional without any LLM provider.
 
-## Slice 8 Planned Scope
+## Next Major Slice
 
-Contextual dashboard and progression UX should:
+Slice 8, contextual dashboard and progression UX, is now the active next planned major slice.
+
+Slice 8 should:
 
 - build on the shared UI foundation from Slice 6 and the broadened plan-creation flows now available in Slice 7
 - make dashboard copy and next-step prompts more contextual to the active goal, phase, and recent sessions
 - improve progression explanations so users understand why a phase should advance, repeat, or deload
 - keep explicit user-confirmed phase movement
 
-Contextual dashboard and progression UX should not:
+Slice 8 should not:
 
 - redesign workout execution
 - redesign onboarding or guided setup flows
@@ -91,14 +102,14 @@ Contextual dashboard and progression UX should not:
 
 ## Likely Files To Inspect
 
-- `app/page.tsx`
-- `components/phase-progress-panel.tsx`
-- `lib/data.ts`
-- `lib/types.ts`
+- `components/plan-setup-wizard.tsx`
+- `components/plan-builder-form.tsx`
+- `app/plans/new/page.tsx`
+- `lib/ai-plan-import/*`
 - `docs/current-task.md`
 - `docs/agent-handoff.md`
 - `docs/roadmap.md`
-- `docs/architecture.md`
+- `docs/ai-draft-import-prompt-contract.md`
 
 ## Constraints
 
@@ -109,18 +120,18 @@ Contextual dashboard and progression UX should not:
 - Do not weaken Supabase auth or RLS assumptions.
 - Keep changes migration-safe and scoped.
 - Keep the separation between direct detail edits and setup/regenerate clear.
-- Do not redesign the progression engine; dashboard explanations must adapt to the current system rather than redefining it.
-- The next slice after this one is Slice 9, workout execution UX.
+- Do not claim architecture changes that did not happen.
+- Keep deferred Slice 7 QA follow-up ideas out of active Slice 8 scope unless explicitly re-scoped.
 
 ## Non-Goals
 
 - No LLM/provider integration.
+- No onboarding redesign.
 - No workout execution redesign.
-- No onboarding AI flow or provider-backed AI work in this slice.
-- No progression-engine redesign.
+- No progression-engine redesign beyond narrow explanation/display work.
 - No schema or RLS rewrites.
 - No read-only plan sharing.
 
 ## Maintenance Note
 
-After each completed slice, update this file so it points to the next active implementation slice rather than the slice that just finished.
+After Slice 8 is complete, update this file so it points to the next active implementation slice.

@@ -166,6 +166,7 @@ Status: planned.
 Status: planned.
 
 - Expand exercise instruction quality, video/demo surfaces, and coaching notes.
+- Keep any future auto-population of exercise media/video links from generated plan output aligned with this later slice rather than pulling it into Slice 7 stabilization.
 - Keep the exercise catalog deterministic and editable through code until an admin/data workflow exists.
 
 ## 11. Broader Polish And Branding
@@ -175,6 +176,14 @@ Status: planned if still needed.
 - Revisit broader polish, naming, and brand expression only after the UI foundation, dashboard, workout execution, and exercise instruction slices are stronger.
 - Keep this intentionally narrow if it happens; it should not become a vague catch-all redesign bucket.
 - Avoid doing broad branding work before the core training quality and workflow slices are stronger.
+- Deferred product-quality follow-up from Slice 7 QA for `/plans/new` should stay outside the narrow active stabilization patch and outside roadmap resequencing:
+  - align Guided Setup and Draft with AI more closely over time so plan type selection and step order feel more consistent
+  - rename or better explain unclear plan-creation terms such as `Preferred split`, `Temporary focus areas`, and Draft-with-AI `Progression mode`
+  - refine helper-text presentation on plan-creation surfaces so helpful guidance can move into a more compact interaction pattern instead of always showing uneven inline subtext
+  - keep AI prompt generation tightly goal-specific rather than blending multiple goal framings
+  - make assigned-day handling clearer and more consistent across prompt generation, import expectations, and review/edit surfaces
+  - reduce repeated schedule-selection emphasis across Guided Setup, Manual Builder, and Draft with AI so schedule choices feel less redundant across the create-plan flow
+  - improve external-AI export/import ergonomics so structured prompt generation and copy/paste handoff are easier without committing yet to a provider-backed feature or a specific export format
 
 ## Later Product Work
 

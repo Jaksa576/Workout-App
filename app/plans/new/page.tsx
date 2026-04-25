@@ -20,13 +20,13 @@ export default async function NewPlanPage({
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <section>
-        <p className="text-sm uppercase tracking-[0.24em] text-slate">
+        <p className="text-sm uppercase tracking-[0.24em] text-muted">
           Create Plan
         </p>
-        <h1 className="mt-2 font-display text-4xl text-ink">
+        <h1 className="mt-2 font-display text-4xl text-copy">
           Set up the plan you want to train for right now.
         </h1>
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate">
+        <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">
           Use your profile as context, choose a goal track for this plan, then either generate a
           draft in-app, draft with your own external AI assistant, or build the structure manually
           before saving.

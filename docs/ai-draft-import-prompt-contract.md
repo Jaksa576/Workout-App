@@ -65,6 +65,7 @@ These are the app-side inputs used to generate the prompt.
 
 ### Optional fields
 
+- `assigned_days`
 - `progression_mode`
 - `training_environment`
 - `preferences`
@@ -175,7 +176,7 @@ The generated prompt should contain three parts:
 
 ## Stable Instruction Block
 
-Use this as the base instruction block when generating the prompt:
+Use this as the shared base instruction block when generating the prompt:
 
 ```text
 You are drafting a structured workout plan for import into a workout application.
@@ -187,6 +188,7 @@ Important rules:
 - Use the exact section labels and field labels shown below.
 - Keep all values concise and parseable.
 - Use only the allowed enum values for goal_track and progression_mode.
+- Respect the selected assigned_days when organizing workouts for the week.
 - Include at least 1 phase.
 - Include at least 1 workout per phase.
 - Include at least 1 exercise per workout.
@@ -194,6 +196,12 @@ Important rules:
 - Do not include medical advice or diagnosis.
 - Do not add extra fields.
 ```
+
+Add a separate selected-goal-only guidance block after the shared instruction block.
+
+- Include only the role/framing and planning guidance for the chosen `goal_track`.
+- Do not include a multi-goal coaching-style list in the generated prompt.
+- Example: a recovery prompt should include only recovery-specific role framing and recovery planning guidance.
 
 ## App-Supplied User Context Block
 
@@ -203,6 +211,7 @@ The app should inject user inputs into the prompt in a rigid block like this:
 User context:
 goal_track: strength
 days_per_week: 4
+assigned_days: mon, wed, fri, sat
 session_duration_min: 60
 equipment_access: full gym
 experience_level: intermediate
@@ -267,9 +276,11 @@ Add:
 
 ```text
 Planning guidance for this goal:
+- Build a progression-based recovery plan with multiple phases when the training goal calls for progression over time.
 - Use conservative progression.
 - Favor symptom-aware exercise selection.
 - Prefer simple, repeatable sessions.
+- Progress from lower-demand work toward higher tolerance or confidence as appropriate.
 - Keep exercise notes practical and caution-oriented.
 - Avoid implying diagnosis or treatment.
 ```
@@ -369,7 +380,7 @@ The app must validate imported output before it becomes a draft.
 - `name` required
 - `sets` required and must be an integer greater than 0
 - `reps` required as a string
-- `rest_seconds` optional, but must be an integer if present
+- `rest_seconds` optional, but must be an integer greater than or equal to 0 if present
 
 ## Import Failure Behavior
 

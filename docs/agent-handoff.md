@@ -41,7 +41,7 @@ The approved refactor direction is additive and migration-safe:
 
 The docs had previously been aligned on Slice 6 as dashboard/progression work. Product direction then intentionally shifted to prioritize UI Overhaul Phase 1 first, ahead of the previously planned dashboard slice.
 
-Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, and Slice 7 are implemented locally. The immediate next work is now Slice 8, contextual dashboard and progression UX.
+Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, and Slice 7 are implemented locally. The immediate active work is now Slice 8, and the deferred QA learnings from Slice 7 should remain outside active Slice 8 scope unless explicitly re-scoped.
 
 ## Current Status
 
@@ -65,6 +65,7 @@ Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, and Slice 7 are implemente
 - The app remains fully functional without any LLM provider.
 - Near-term AI support is now available as optional external structured draft import, not provider-backed in-app generation.
 - Imported AI drafts are validated and reviewed before save; the app remains the system of record.
+- Slice 7 is now completed locally, including the narrow QA follow-up fixes needed to stabilize the provider-free AI-assisted draft-import path.
 - The future LLM path should plug into the same setup -> draft -> review/edit -> save flow and never become the system of record.
 - Guided template drafts now have a stronger deterministic baseline by goal track before any LLM support exists.
 - UI Overhaul Phase 1 added a small theme foundation with semantic tokens, `html[data-theme]`, system-default light/dark support, and a local override in the existing authenticated app shell.
@@ -165,14 +166,37 @@ What changed:
 - introduced `ai_import` as a distinct creation source for imported AI drafts
 - kept review-before-save and the existing plan write path intact
 
+Final Slice 7 QA outcome:
+
+- stabilized the create-plan surface and AI flow with the narrow post-QA follow-up fixes
+- tightened prompt generation so selected-goal guidance stays narrow and deterministic
+- kept imported drafts inside the existing review/edit/save path without introducing provider-backed generation or roadmap drift
+
+## Deferred Follow-Up Ideas From Slice 7 QA
+
+These ideas were intentionally deferred so they do not get pulled into active Slice 8 work by accident.
+
+- align Draft with AI more closely with Guided Setup later so `/plans/new` starts with a more consistent plan-type-first structure
+- rename or better explain unclear setup terms such as `Preferred split` and `Temporary focus areas`
+- improve Draft-with-AI terminology clarity around `Progression mode`
+- continue refining AI prompt generation so it stays strongly goal-specific and so assigned-day handling is clearer across prompt generation, import, and review/edit
+
+Additional deferred QA learnings to keep out of the active Slice 7 patch:
+
+- refine helper-text presentation on plan-creation surfaces so extra guidance for fields like `Session structure`, `Plan focus areas`, and `How this plan should progress` can move into a more compact pattern instead of always expanding field/dropdown layout inline
+- treat selected-goal-specific prompt generation as a guardrail for the external-AI flow so future prompt work does not reintroduce mixed multi-goal framing in a single prompt
+- keep exercise media/video auto-population from generated plan output deferred to the later exercise media and instruction work rather than pulling it into Slice 7 stabilization
+- reduce repeated schedule-selection emphasis across Guided Setup, Manual Builder, and Draft with AI so the create-plan flow feels less redundant after schedule choices have already been made
+- improve the external-AI export / copy-paste handoff so structured prompt generation and pasted import output are easier to move between the app and the user’s external assistant without committing yet to a specific export format
+
 Verification after Slice 7:
 
 - focused Vitest coverage was added for prompt generation, parser success/failure cases, whitespace normalization, and conversion into the internal structured draft shape
 - typecheck and plan-drafting/save-path tests should be rerun after any follow-up edits in this area
 
-## Next Active Slice
+## Next Major Slice
 
-Slice 8, contextual dashboard and progression UX, is now the active docs-aligned next slice.
+Slice 8, contextual dashboard and progression UX, is now the active docs-aligned next major slice.
 
 Intent:
 

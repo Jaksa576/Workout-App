@@ -206,6 +206,13 @@ export function AiPlanDraftWizard({
             </p>
           </div>
 
+          <div>
+            <p className="text-sm font-semibold text-copy">What type of plan do you want?</p>
+            <p className="mt-2 text-sm leading-6 text-muted">
+              Choose the main goal for this plan so the prompt and imported draft stay aligned.
+            </p>
+          </div>
+
           <div className="grid gap-3 md:grid-cols-2">
             {goalOptions.map((option) => (
               <button
@@ -367,7 +374,13 @@ export function AiPlanDraftWizard({
             </summary>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <label className="block">
-                <span className="text-sm font-semibold text-copy">Progression mode</span>
+                <span className="text-sm font-semibold text-copy">
+                  How this plan should progress
+                </span>
+                <p className="mt-2 text-sm leading-6 text-muted">
+                  Choose the type of progress signal the app should lean on, or leave this blank
+                  to let the draft use its default.
+                </p>
                 <select
                   value={promptInput.progressionMode ?? ""}
                   onChange={(event) =>
@@ -451,7 +464,9 @@ export function AiPlanDraftWizard({
                 />
               </label>
               <label className="block md:col-span-2">
-                <span className="text-sm font-semibold text-copy">Freeform context</span>
+                <span className="text-sm font-semibold text-copy">
+                  Would you like the chatbot to know anything else about the plan?
+                </span>
                 <textarea
                   value={promptInput.freeformContext ?? ""}
                   onChange={(event) =>
