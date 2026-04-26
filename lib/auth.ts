@@ -32,6 +32,6 @@ export async function redirectIfAuthenticated() {
   const user = await getCurrentUser();
 
   if (user) {
-    redirect("/");
+    redirect("/dashboard");
   }
 }

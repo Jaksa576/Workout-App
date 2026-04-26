@@ -9,7 +9,7 @@ import { AppLogo } from "@/components/app-logo";
 import { SignOutButton } from "@/components/sign-out-button";
 
 const navItems = [
-  { href: "/" as Route, label: "Dashboard" },
+  { href: "/dashboard" as Route, label: "Dashboard" },
   { href: "/plans" as Route, label: "Plans" },
   { href: "/workout" as Route, label: "Workout" },
   { href: "/settings" as Route, label: "Settings" }
@@ -23,7 +23,16 @@ export function AppShell({
   user: UserSummary | null;
 }) {
   const pathname = usePathname();
-  const showShell = Boolean(user);
+  const isAppRoute =
+    pathname === "/dashboard" ||
+    pathname === "/onboarding" ||
+    pathname === "/plans" ||
+    pathname.startsWith("/plans/") ||
+    pathname === "/workout" ||
+    pathname === "/settings" ||
+    pathname === "/today" ||
+    pathname === "/check-in";
+  const showShell = Boolean(user) && isAppRoute;
 
   return (
     <div className="min-h-screen px-3 pb-20 pt-4 sm:px-6 sm:pb-24 sm:pt-5 lg:px-8">
@@ -32,7 +41,7 @@ export function AppShell({
           <header className="surface-card mb-5 px-3 py-3 sm:mb-6 sm:px-5 sm:py-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
             <Link
-              href="/"
+              href="/dashboard"
               className="inline-flex rounded-2xl outline-none transition focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-shell"
               aria-label="Adaptive Training dashboard"
             >
@@ -46,7 +55,7 @@ export function AppShell({
               >
                 {navItems.map((item) => {
                   const active =
-                    item.href === "/"
+                    item.href === "/dashboard"
                       ? pathname === item.href
                       : pathname.startsWith(item.href);
 

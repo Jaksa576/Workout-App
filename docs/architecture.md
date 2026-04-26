@@ -26,18 +26,18 @@ The product is evolving from a recovery-first phased workout app into a broader 
 
 ## Public Vs Authenticated Route Boundary
 
-Target route direction for the redesign program:
+Implemented route direction for the redesign program:
 
-- `/` should become the public landing page.
-- `/dashboard` should become the authenticated dashboard.
-- `/plans`, `/plans/new`, `/plans/[planId]`, `/workout`, and `/settings` should remain authenticated app routes.
+- `/` is now the public landing scaffold.
+- `/dashboard` is now the authenticated dashboard.
+- `/plans`, `/plans/new`, `/plans/[planId]`, `/workout`, and `/settings` remain authenticated app routes.
 
 Boundary rules:
 
 - Public landing page components must not become data dependencies on Supabase-authenticated user records.
 - Public previews should use static or deterministic marketing mock data instead of logged-in user data.
 - Protected routes should continue to rely on the existing auth helpers and `proxy.ts` route boundary pattern.
-- The future route split has concrete auth/protected-route QA risk and should be treated as a dedicated implementation slice, not an incidental rename.
+- The route split has concrete auth/protected-route QA risk and should remain a carefully maintained boundary rather than an incidental rename.
 
 ## Selected Visual System Direction
 

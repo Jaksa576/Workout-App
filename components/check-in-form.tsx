@@ -75,7 +75,7 @@ export function CheckInForm({ workout }: { workout: WorkoutTemplate }) {
       }
 
       window.sessionStorage.removeItem(`workout-checklist:${workout.id}`);
-      router.push("/");
+      router.push("/dashboard");
       router.refresh();
     } catch (error) {
       setStatus(
