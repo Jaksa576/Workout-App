@@ -4,7 +4,7 @@
 
 Current production follow-up work: complete locally.
 
-Slice 9C, Public Landing Route + Dashboard Route Split, is implemented locally, including a narrow pre-production follow-up patch.
+Slice 9C, Public Landing Route + Dashboard Route Split, is implemented locally, including a narrow pre-production follow-up patch. The route split is now implemented and patched.
 
 ## Current Slice
 
@@ -49,6 +49,7 @@ That slice delivered:
 - updated the app shell so signed-in users visiting `/` see the public landing scaffold without the authenticated app shell
 - added `?mode=sign-up` support on `/login` to preselect the existing sign-up state for landing-page CTAs
 - restored authenticated app shell/header/nav rendering on `/dashboard`, `/plans`, `/workout`, `/settings`, and other authenticated app routes through a small pre-production follow-up patch
+- centralized route classification in the shared route-boundary helper so the app shell and protected-route logic agree on public versus authenticated surfaces
 - accepted the current signed-in public CTA behavior for 9C; landing CTAs should become more auth-aware in 9D rather than changing auth flow in this patch
 
 That slice did not deliver:

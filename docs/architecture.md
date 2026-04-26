@@ -37,6 +37,7 @@ Boundary rules:
 - Public landing page components must not become data dependencies on Supabase-authenticated user records.
 - Public previews should use static or deterministic marketing mock data instead of logged-in user data.
 - Protected routes should continue to rely on the existing auth helpers and `proxy.ts` route boundary pattern.
+- Shared route classification lives in `lib/app-route-boundary.ts` so route protection and authenticated shell rendering use the same public-versus-app rules.
 - Authenticated shell visibility is route-aware inside `AppShell`; the root layout can safely resolve the current user without showing the app shell on public routes such as `/` or `/login`.
 - The route split has concrete auth/protected-route QA risk and should remain a carefully maintained boundary rather than an incidental rename.
 

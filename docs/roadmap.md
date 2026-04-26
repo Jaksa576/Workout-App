@@ -196,6 +196,7 @@ Status: implemented locally.
 - Treat auth/protected-route QA as a specific risk area in this slice.
 - Implemented `/` as a minimal public landing scaffold and preserved the authenticated dashboard experience at `/dashboard`.
 - A narrow pre-production follow-up patch restored authenticated app shell/header/nav rendering on authenticated app routes without changing the public landing boundary or auth flow.
+- Shared route classification now lives in a single helper so public-route behavior and authenticated shell rendering stay aligned.
 - No schema change, RLS change, auth-model rewrite, LLM/provider integration, or progression-engine change happened in this slice.
 
 ## 9D. Public Landing Page Implementation
@@ -206,6 +207,7 @@ Status: planned.
 - Use warm white/off-white public surfaces, dark navy preview panels, green primary accent, blue secondary accent, and selective coral/orange/purple goal accents.
 - Keep the header simple with brand/logo, `Sign in`, `Get started`, and optionally `Demo` later.
 - Use static or deterministic marketing mock data rather than authenticated user data.
+- Improve signed-in landing CTA behavior with auth-aware options such as `Continue your plan` or `Dashboard` rather than reworking auth flow.
 
 ## 9E. App Icon / PWA Asset Integration
 

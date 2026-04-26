@@ -75,6 +75,7 @@ The previously considered narrow Slice 8 dashboard QA follow-up is superseded by
 - `/dashboard` is now the authenticated dashboard route.
 - `/plans`, `/plans/new`, `/plans/[planId]`, `/workout`, and `/settings` remain authenticated app routes.
 - Protected routes must continue to use the existing auth and `proxy.ts` boundary patterns.
+- Shared route classification now lives in `lib/app-route-boundary.ts`, which is used by both the protected-route boundary and the authenticated shell visibility checks.
 - Public landing page previews should use static or deterministic marketing mock data, not authenticated user data or live Supabase-dependent personalization.
 - The route split is now implemented: `/` is public and `/dashboard` is the authenticated dashboard boundary.
 
@@ -142,6 +143,7 @@ The previously considered narrow Slice 8 dashboard QA follow-up is superseded by
 - Slice 9C adjusted the app shell so signed-in users visiting `/` still see the public landing scaffold rather than the authenticated shell.
 - Slice 9C added `?mode=sign-up` login-page support only to preselect the existing sign-up UI state for landing CTAs.
 - A narrow 9C follow-up patch removed the fragile layout pathname-forwarding dependency and restored authenticated shell/header/nav rendering on `/dashboard`, `/plans`, `/workout`, `/settings`, and related app routes.
+- The authenticated app shell now renders only on authenticated app routes, while `/` remains shell-free even for signed-in users.
 - Signed-in public CTA behavior is accepted for 9C. Improve that UX in 9D with auth-aware public CTAs such as `Continue your plan` or `Dashboard`, not with auth-flow changes in this patch.
 - Slice 9C did not implement the full landing page, app icon integration, authenticated shell redesign, dashboard redesign, schema changes, RLS changes, auth-model rewrites, LLM/provider integration, or progression-engine changes.
 
@@ -319,7 +321,7 @@ Verification after Slice 7:
 
 ## Next Major Slice
 
-Slice 9D, Public Landing Page Implementation, is now the docs-aligned next planned major slice.
+Slice 9D, Public Landing Page Implementation, is now the docs-aligned next planned major slice. Do not revisit 9C unless QA finds a regression in the implemented route/app-shell boundary.
 
 Intent:
 

@@ -28,9 +28,10 @@ Adaptive Training is a mobile-first Progressive Web App for structured plans tha
 The app currently includes:
 
 - Supabase email/password sign-in and account creation
+- Public landing scaffold at `/` with the authenticated dashboard moved to `/dashboard`
 - Protected app routes using Next.js proxy.ts
 - Onboarding page for new users
-- Dashboard with active plan and progress metrics
+- Dashboard with active plan and progress metrics at `/dashboard`
 - Plans listing and detail pages
 - Goal-based guided plan creation with review-before-save drafts
 - Guided setup regeneration for existing plans with review-before-save drafts
@@ -49,7 +50,8 @@ The app currently includes:
 
 ### Pages
 - `app/onboarding/page.tsx` - Onboarding flow
-- `app/page.tsx` - Dashboard
+- `app/page.tsx` - Public landing scaffold
+- `app/dashboard/page.tsx` - Authenticated dashboard
 - `app/plans/page.tsx` - Plans listing
 - `app/plans/[planId]/page.tsx` - Plan detail
 - `app/plans/new/page.tsx` - Plan creation
