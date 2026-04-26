@@ -7,11 +7,15 @@ import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 const defaultSiteUrl = "https://workout-app-seven-delta.vercel.app";
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? defaultSiteUrl).replace(/\/$/, "");
 
-export function LoginForm() {
+export function LoginForm({
+  initialMode = "sign-in"
+}: {
+  initialMode?: "sign-in" | "sign-up";
+}) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [mode, setMode] = useState<"sign-in" | "sign-up">("sign-in");
+  const [mode, setMode] = useState<"sign-in" | "sign-up">(initialMode);
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -29,7 +33,7 @@ export function LoginForm() {
               email,
               password,
               options: {
-                emailRedirectTo: `${siteUrl}/`
+                emailRedirectTo: `${siteUrl}/dashboard`
               }
             });
 
@@ -43,7 +47,7 @@ export function LoginForm() {
       }
 
       setStatus("Signed in. Taking you to your dashboard...");
-      router.push("/");
+      router.push("/dashboard");
       router.refresh();
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Sign-in failed.");

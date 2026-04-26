@@ -8,7 +8,7 @@ export default async function OnboardingPage() {
   const [profile, dashboard] = await Promise.all([getProfile(), getDashboardData()]);
 
   if (profile?.onboardingCompletedAt && dashboard.activePlan) {
-    redirect("/");
+    redirect("/dashboard");
   }
 
   if (profile?.onboardingCompletedAt) {

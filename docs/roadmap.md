@@ -188,12 +188,15 @@ Status: implemented locally.
 
 ## 9C. Public Landing Route + Dashboard Route Split
 
-Status: active.
+Status: implemented locally.
 
 - Move the public landing experience to `/`.
 - Move the authenticated dashboard to `/dashboard`.
 - Preserve protected-route behavior, existing auth/proxy patterns, and authenticated app boundaries.
 - Treat auth/protected-route QA as a specific risk area in this slice.
+- Implemented `/` as a minimal public landing scaffold and preserved the authenticated dashboard experience at `/dashboard`.
+- A narrow pre-production follow-up patch restored authenticated app shell/header/nav rendering on authenticated app routes without changing the public landing boundary or auth flow.
+- No schema change, RLS change, auth-model rewrite, LLM/provider integration, or progression-engine change happened in this slice.
 
 ## 9D. Public Landing Page Implementation
 
@@ -201,7 +204,7 @@ Status: planned.
 
 - Implement a single public landing page outside the authenticated app.
 - Use warm white/off-white public surfaces, dark navy preview panels, green primary accent, blue secondary accent, and selective coral/orange/purple goal accents.
-- Keep the header simple with brand/logo, `Sign in`, `Start free`, and optionally `Demo` later.
+- Keep the header simple with brand/logo, `Sign in`, `Get started`, and optionally `Demo` later.
 - Use static or deterministic marketing mock data rather than authenticated user data.
 
 ## 9E. App Icon / PWA Asset Integration

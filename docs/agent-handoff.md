@@ -50,7 +50,7 @@ The approved refactor direction is additive and migration-safe:
 
 The docs had previously been aligned on Slice 6 as dashboard/progression work. Product direction then intentionally shifted to prioritize UI Overhaul Phase 1 first, ahead of the previously planned dashboard slice.
 
-Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, Slice 7, and Slice 8 are in place locally. Slice 9A completed the docs/planning work that locked the redesign direction, and Slice 9B completed the shared design-system foundation. The immediate active work is now Slice 9C, Public Landing Route + Dashboard Route Split. The deferred QA learnings from Slice 7 should remain outside active Slice 9C scope unless explicitly re-scoped.
+Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, Slice 7, and Slice 8 are in place locally. Slice 9A completed the docs/planning work that locked the redesign direction, Slice 9B completed the shared design-system foundation, and Slice 9C implemented the public/authenticated route split. A narrow pre-production 9C follow-up patch restored authenticated app shell/header/nav rendering on app routes. Slice 9D, Public Landing Page Implementation, remains the next planned slice and has not started yet. The deferred QA learnings from Slice 7 should remain outside Slice 9D scope unless explicitly re-scoped.
 
 The previously considered narrow Slice 8 dashboard QA follow-up is superseded by the broader redesign program unless a blocking bug requires a tiny patch.
 
@@ -65,18 +65,18 @@ The previously considered narrow Slice 8 dashboard QA follow-up is superseded by
 - rounded cards, soft shadows, and clean typography
 - mobile-first layout with responsive implementation
 - single public landing page outside the authenticated app
-- simplified public header with only brand/logo, `Sign in`, `Start free`, and optionally `Demo` later
+- simplified public header with only brand/logo, `Sign in`, `Get started`, and optionally `Demo` later
 - no complex marketing sub-navigation for now
 - public messaging should highlight structured phased training, check-ins/readiness/progress signals, adaptive recommendations, and support for recovery, general fitness, strength, hypertrophy, running, performance, and consistency
 
 ## Public Landing And Route Direction
 
-- `/` should become the public landing page in a later implementation slice.
-- `/dashboard` should become the authenticated dashboard in a later implementation slice.
-- `/plans`, `/plans/new`, `/plans/[planId]`, `/workout`, and `/settings` should remain authenticated app routes.
+- `/` is now the public landing scaffold and will be expanded in Slice 9D.
+- `/dashboard` is now the authenticated dashboard route.
+- `/plans`, `/plans/new`, `/plans/[planId]`, `/workout`, and `/settings` remain authenticated app routes.
 - Protected routes must continue to use the existing auth and `proxy.ts` boundary patterns.
 - Public landing page previews should use static or deterministic marketing mock data, not authenticated user data or live Supabase-dependent personalization.
-- The route split is documentation-only right now; implementation and auth/protected-route QA happen in a dedicated later slice.
+- The route split is now implemented: `/` is public and `/dashboard` is the authenticated dashboard boundary.
 
 ## App Icon Direction
 
@@ -137,6 +137,13 @@ The previously considered narrow Slice 8 dashboard QA follow-up is superseded by
 - Slice 9B evolved `AppLogo` with backward-compatible variants, including an app-icon-ready mark aligned with the future dark-navy/green/blue icon direction.
 - Slice 9B refactored `SectionCard` to use the shared surface primitive and lightly adopted the new foundation in the timer preview and dashboard metric strip.
 - Slice 9B did not implement the public landing page, route split, schema changes, RLS changes, auth behavior changes, LLM/provider integration, or progression-engine changes.
+- Slice 9C moved the dashboard from `/` to `/dashboard` and replaced `/` with a public landing scaffold that uses static marketing content only.
+- Slice 9C preserved protected-route behavior for the authenticated app routes and updated dashboard-intent redirects and links from `/` to `/dashboard`.
+- Slice 9C adjusted the app shell so signed-in users visiting `/` still see the public landing scaffold rather than the authenticated shell.
+- Slice 9C added `?mode=sign-up` login-page support only to preselect the existing sign-up UI state for landing CTAs.
+- A narrow 9C follow-up patch removed the fragile layout pathname-forwarding dependency and restored authenticated shell/header/nav rendering on `/dashboard`, `/plans`, `/workout`, `/settings`, and related app routes.
+- Signed-in public CTA behavior is accepted for 9C. Improve that UX in 9D with auth-aware public CTAs such as `Continue your plan` or `Dashboard`, not with auth-flow changes in this patch.
+- Slice 9C did not implement the full landing page, app icon integration, authenticated shell redesign, dashboard redesign, schema changes, RLS changes, auth-model rewrites, LLM/provider integration, or progression-engine changes.
 
 ## UI Overhaul Phase 1 Completed Locally
 
@@ -312,14 +319,14 @@ Verification after Slice 7:
 
 ## Next Major Slice
 
-Slice 9C, Public Landing Route + Dashboard Route Split, is now the active docs-aligned next major slice.
+Slice 9D, Public Landing Page Implementation, is now the docs-aligned next planned major slice.
 
 Intent:
 
-- move the public landing page boundary to `/`
-- move the authenticated dashboard to `/dashboard`
-- preserve existing auth/proxy protections and current adaptive-training behavior during the route split
-- keep landing-page implementation, broader dashboard redesign, schema changes, auth model changes, and progression-engine changes out of this slice
+- build on the new public `/` route with a more polished landing page
+- keep public content static/deterministic and separate from authenticated user data
+- preserve the authenticated dashboard at `/dashboard` and the existing protected app boundary
+- keep schema changes, auth-model changes, app icon integration, and progression-engine changes out of this slice
 
 ## Slice 1 Completed Locally
 

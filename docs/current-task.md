@@ -2,26 +2,26 @@
 
 ## Goal
 
-Current active work: Slice 9C, Public Landing Route + Dashboard Route Split.
+Current production follow-up work: complete locally.
 
-Slice 9B, Design System Foundation, is implemented locally and complete.
+Slice 9C, Public Landing Route + Dashboard Route Split, is implemented locally, including a narrow pre-production follow-up patch.
 
 ## Current Slice
 
-Current active implementation slice: Slice 9C, Public Landing Route + Dashboard Route Split.
+Current next planned implementation slice: Slice 9D, Public Landing Page Implementation.
 
-Slice 9C should focus on:
+Slice 9D should focus on:
 
-- moving the public landing page experience to `/`
-- moving the authenticated dashboard to `/dashboard`
-- preserving protected-route behavior and existing auth/proxy patterns
-- keeping the route split migration-safe and explicit
+- expanding the new public landing scaffold into a more polished landing page
+- building on the 9B design-system primitives and the 9C public route boundary
+- keeping marketing content static and deterministic
+- preserving the authenticated app boundary and dashboard route split from 9C
 
-The old narrow Slice 8 dashboard compacting follow-up remains superseded by the broader redesign program. A tiny blocking bug patch is still acceptable if needed, but it is not the mainline next slice.
+The old narrow Slice 8 dashboard compacting follow-up remains superseded by the broader redesign program. The small 9C production follow-up patch restored the authenticated app shell/header/nav on app routes without starting 9D.
 
-Slice 9C should not become:
+Slice 9D should not become:
 
-- a full public landing-page polish slice beyond the route boundary move
+- a route-split slice
 - a schema or RLS slice
 - an auth model rewrite
 - a progression-engine slice
@@ -30,12 +30,38 @@ Slice 9C should not become:
 
 ## Current Implementation Goals
 
-- implement the public/authenticated route split documented in 9A
-- preserve current auth protection and route safety during the split
-- keep the adaptive-training engine and authenticated app behavior unchanged apart from route organization
-- prepare the repo for later landing-page implementation and dashboard redesign
+- turn the public landing scaffold into a stronger marketing entry point
+- preserve the new `/` public and `/dashboard` authenticated boundary
+- keep public landing content free of authenticated Supabase data
+- improve signed-in public CTA behavior with auth-aware options such as `Continue your plan` or `Dashboard`
+- prepare the repo for later app icon integration and broader authenticated redesign slices
 
 ## Recently Completed Slice
+
+Slice 9C, Public Landing Route + Dashboard Route Split, is implemented locally.
+
+That slice delivered:
+
+- moved the authenticated dashboard from `/` to `/dashboard` without changing its training, progression, or onboarding behavior
+- replaced `/` with a public landing scaffold that uses static/deterministic marketing content and 9B primitives
+- kept `/dashboard`, `/onboarding`, `/plans`, `/plans/new`, `/plans/[planId]`, `/workout`, and `/settings` protected
+- updated dashboard-intent redirects and links from `/` to `/dashboard`
+- updated the app shell so signed-in users visiting `/` see the public landing scaffold without the authenticated app shell
+- added `?mode=sign-up` support on `/login` to preselect the existing sign-up state for landing-page CTAs
+- restored authenticated app shell/header/nav rendering on `/dashboard`, `/plans`, `/workout`, `/settings`, and other authenticated app routes through a small pre-production follow-up patch
+- accepted the current signed-in public CTA behavior for 9C; landing CTAs should become more auth-aware in 9D rather than changing auth flow in this patch
+
+That slice did not deliver:
+
+- full landing page implementation
+- app icon integration
+- authenticated app shell redesign
+- dashboard redesign
+- schema migrations
+- Supabase RLS changes
+- auth-model rewrites
+- LLM/provider integration
+- progression-engine changes
 
 Slice 9B, Design System Foundation, is implemented locally.
 
@@ -84,7 +110,7 @@ That slice did not deliver:
 - progression-engine rewrite
 - alternate/random workout support
 
-Deferred follow-up from completed Slice 7 QA should stay outside the active Slice 9C scope unless explicitly re-scoped:
+Deferred follow-up from completed Slice 7 QA should stay outside the active Slice 9D scope unless explicitly re-scoped:
 
 - broader `/plans/new` flow alignment and terminology cleanup
 - assigned-day / prompt-specificity polish
@@ -123,18 +149,18 @@ The app must remain fully functional without any LLM provider.
 
 ## Next Major Slice
 
-Slice 9C, Public Landing Route + Dashboard Route Split, is now the active next planned major slice.
+Slice 9D, Public Landing Page Implementation, is now the next planned major slice and is not started by this follow-up patch.
 
-Slice 9C should:
+Slice 9D should:
 
-- move the public landing page boundary to `/`
-- move the authenticated dashboard to `/dashboard`
-- preserve protected-route logic and auth safety during the route split
-- keep the current app functional while changing route organization
+- build out the public landing page on top of the new public `/` route
+- preserve the authenticated dashboard at `/dashboard`
+- keep landing-page preview content static and deterministic
+- improve public presentation without changing training/product behavior
 
-Slice 9C should not:
+Slice 9D should not:
 
-- implement the full landing-page redesign yet
+- undo or revisit the route split itself unless a bug requires a narrow patch
 - change progression algorithms
 - weaken the saved-plan detail/edit/setup boundaries
 - change auth behavior
@@ -148,34 +174,32 @@ Slice 9C should not:
 - `docs/roadmap.md`
 - `docs/architecture.md`
 - `AGENTS.md`
-- `app/layout.tsx`
 - `app/page.tsx`
-- `components/app-shell.tsx`
-- `proxy.ts`
+- `components/*`
+- `app/manifest.ts`
 
 ## Constraints
 
-- Do not change routes in this slice.
+- Do not change the route boundary in this slice unless fixing a narrow bug.
 - Do not add LLM/provider integration.
 - Do not change schema or Supabase RLS.
 - Do not change auth behavior.
 - Do not change progression behavior or the server-side progression engine.
 - Do not rename database tables, API routes, or compatibility fields such as `plan_phases`, `phase-action`, or `currentPhase`.
 - Do not weaken Supabase auth or RLS assumptions.
-- Keep deferred Slice 7 QA ideas out of active Slice 9C scope unless explicitly re-scoped.
+- Keep deferred Slice 7 QA ideas out of active Slice 9D scope unless explicitly re-scoped.
 - Keep the separation between direct detail edits and setup/regenerate clear.
 - Keep alternate/random workouts deferred future workout flexibility work.
 
 ## Non-Goals
 
-- No route changes yet.
-- No landing page implementation yet.
+- No authenticated app redesign yet.
 - No schema or RLS changes.
 - No auth behavior changes.
 - No progression-engine changes.
 - No LLM/provider integration.
-- No full authenticated app redesign in this slice.
+- No dashboard redesign in this slice.
 
 ## Maintenance Note
 
-After Slice 9C is complete, update this file so it points to the next active implementation slice.
+After Slice 9D is complete, update this file so it points to the next active implementation slice.
