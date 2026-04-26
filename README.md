@@ -116,6 +116,7 @@ If you are developing on Windows, the recommended setup for this repo is to use 
 - `.env.local` is local-only and is not expected to come from Git
 - If you clone the repo into WSL, recreate `.env.local` there
 - Use Linux-installed Node/npm inside WSL for this repo
+- Keep this repo under `~/code/Workout-App`, not under `/mnt/c/...`
 
 ### Common WSL troubleshooting
 If `npm install` fails with Windows path errors, `cmd.exe`, or UNC path issues, your WSL shell is probably using Windows Node/npm instead of Linux Node/npm.
@@ -125,6 +126,26 @@ To check:
 ```bash
 which node
 which npm
+```
+
+### WSL resource troubleshooting
+
+If VS Code Remote WSL disconnects or the terminal becomes sluggish, first check whether local dev-server resource pressure is the cause.
+
+```bash
+free -h
+ps aux --sort=-%cpu | head -15
+ss -ltnp | grep -E ':3000|:3001'
+```
+
+To clean up runaway local processes and cached Next output:
+
+```bash
+pkill -f "next-server"
+pkill -f ".next"
+pkill -f "postcss"
+rm -rf .next
+```
 
 ## Database Schema
 
@@ -178,7 +199,7 @@ Run locally:
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3001](http://localhost:3001).
 
 Run type checking:
 

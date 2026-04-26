@@ -213,3 +213,17 @@ Agent guidance:
 - Do not assume Supabase CLI is globally installed; use `npx supabase`
 - Do not assume Windows-installed CLIs are available inside WSL
 - If a CLI is needed, verify availability first with `which <tool>`
+
+## Local development and WSL resource guardrails
+
+- Assume local development runs inside WSL/Ubuntu.
+- Keep the preferred repo location at `~/code/Workout-App`.
+- Avoid running this repo from `/mnt/c/...`.
+- Use Linux-installed Node/npm inside WSL.
+- The local dev port is `3001`.
+- Before starting the dev server, check the port with `ss -ltnp | grep ':3001'`.
+- Do not run multiple dev servers for this repo.
+- Do not run `npm install`, `npm update`, `npm run build`, and `npm run dev` concurrently.
+- If WSL becomes slow, check `free -h` and `ps aux --sort=-%cpu | head -15`.
+- Do not add Tailwind content patterns that scan the whole repo, such as `./**/*`.
+- Do not intentionally scan `.next`, `node_modules`, `dist`, `build`, `coverage`, or `.git`.

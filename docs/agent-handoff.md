@@ -145,6 +145,29 @@ The previously considered narrow Slice 8 dashboard QA follow-up is superseded by
 - Signed-in public CTA behavior is accepted for 9C. Improve that UX in 9D with auth-aware public CTAs such as `Continue your plan` or `Dashboard`, not with auth-flow changes in this patch.
 - Slice 9C did not implement the full landing page, app icon integration, authenticated shell redesign, dashboard redesign, schema changes, RLS changes, auth-model rewrites, LLM/provider integration, or progression-engine changes.
 
+## Known local development risk
+
+VS Code Remote WSL disconnects may be caused by dev-server resource pressure rather than repo corruption. This repo should run its local Next dev server on port `3001`; another local Next app may be using `3000`.
+
+Resource checks:
+
+```bash
+free -h
+ps aux --sort=-%cpu | head -15
+ss -ltnp | grep -E ':3000|:3001'
+```
+
+Cleanup commands for runaway local Next/PostCSS work:
+
+```bash
+pkill -f "next-server"
+pkill -f ".next"
+pkill -f "postcss"
+rm -rf .next
+```
+
+Future agents should not add broad Tailwind scanning patterns such as `./**/*`, and should avoid intentionally scanning `.next`, `node_modules`, `dist`, `build`, `coverage`, or `.git`.
+
 ## UI Overhaul Phase 1 Completed Locally
 
 Slice 6 added the visual foundation for the broader product direction:
