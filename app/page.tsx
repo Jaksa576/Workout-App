@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
+import { MetricCard } from "@/components/metric-card";
 import { SectionCard } from "@/components/section-card";
 import { getDashboardData, getProfile } from "@/lib/data";
 import { formatPhaseLabel } from "@/lib/plan-labels";
@@ -200,14 +201,12 @@ export default async function HomePage() {
 
       <section className="grid gap-4 md:grid-cols-3">
         {dashboard.metrics.map((metric) => (
-          <section
+          <MetricCard
             key={metric.label}
-            className="surface-card p-5"
-          >
-            <p className="ui-eyebrow">{metric.label}</p>
-            <p className="mt-3 text-2xl font-semibold text-copy">{metric.value}</p>
-            <p className="mt-2 text-sm leading-6 text-muted">{metric.detail}</p>
-          </section>
+            label={metric.label}
+            value={metric.value}
+            detail={metric.detail}
+          />
         ))}
       </section>
     </div>

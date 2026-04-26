@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import type { ReactNode } from "react";
+import { SurfaceCard } from "@/components/surface-card";
 
 type PageHeroProps = {
   eyebrow: string;
@@ -23,12 +24,11 @@ export function PageHero({
   const isSecondary = tone === "secondary";
 
   return (
-    <section
-      className={clsx(
-        "rounded-[28px] border p-5 shadow-card backdrop-blur sm:rounded-[36px] sm:p-6",
-        isSecondary ? "border-border/80 bg-surface-soft/92" : "border-border/80 bg-surface/94"
-      )}
-    >
+    <section>
+      <SurfaceCard
+        tone={isSecondary ? "soft" : "default"}
+        className="rounded-[28px] sm:rounded-[36px]"
+      >
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
         <div>
           <p className="ui-eyebrow">{eyebrow}</p>
@@ -43,6 +43,7 @@ export function PageHero({
         </div>
         {aside ? <div className="surface-panel">{aside}</div> : null}
       </div>
+      </SurfaceCard>
     </section>
   );
 }

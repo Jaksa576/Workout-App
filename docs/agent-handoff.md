@@ -50,7 +50,7 @@ The approved refactor direction is additive and migration-safe:
 
 The docs had previously been aligned on Slice 6 as dashboard/progression work. Product direction then intentionally shifted to prioritize UI Overhaul Phase 1 first, ahead of the previously planned dashboard slice.
 
-Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, Slice 7, and Slice 8 are in place locally. The immediate active work is now Slice 9A, a docs-only planning slice that locks the redesign direction before code implementation. The deferred QA learnings from Slice 7 should remain outside active Slice 9A scope unless explicitly re-scoped.
+Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, Slice 7, and Slice 8 are in place locally. Slice 9A completed the docs/planning work that locked the redesign direction, and Slice 9B completed the shared design-system foundation. The immediate active work is now Slice 9C, Public Landing Route + Dashboard Route Split. The deferred QA learnings from Slice 7 should remain outside active Slice 9C scope unless explicitly re-scoped.
 
 The previously considered narrow Slice 8 dashboard QA follow-up is superseded by the broader redesign program unless a blocking bug requires a tiny patch.
 
@@ -132,6 +132,11 @@ The previously considered narrow Slice 8 dashboard QA follow-up is superseded by
 - Shared plan-surface components such as section cards, badges, review/edit panels, and phase/workout cards were refreshed without changing progression logic, save semantics, or history snapshot behavior.
 - The dashboard now reads as a workout home screen with a compact 5-day weekly preview, compact activity/progress summaries, and progression prompts derived from the same active-phase progress source.
 - Agents must preserve the existing plan, phase, workout, session, and progression engine and must not convert the app into a generic workout logger during the redesign sequence.
+- Slice 9B extended the semantic visual token layer with warm app backgrounds, dark product-preview surfaces, primary/secondary accents, goal accents, soft border variants, premium shadows, and focus-ring tokens while keeping the current theme preference behavior intact.
+- Slice 9B added reusable presentational primitives for the redesign sequence: `SurfaceCard`, `MetricCard`, `ProductPreviewCard`, `GoalIconCard`, and `LandingSection`.
+- Slice 9B evolved `AppLogo` with backward-compatible variants, including an app-icon-ready mark aligned with the future dark-navy/green/blue icon direction.
+- Slice 9B refactored `SectionCard` to use the shared surface primitive and lightly adopted the new foundation in the timer preview and dashboard metric strip.
+- Slice 9B did not implement the public landing page, route split, schema changes, RLS changes, auth behavior changes, LLM/provider integration, or progression-engine changes.
 
 ## UI Overhaul Phase 1 Completed Locally
 
@@ -307,15 +312,14 @@ Verification after Slice 7:
 
 ## Next Major Slice
 
-Slice 9A, UI Redesign Direction, Public Landing, and App Icon Planning, is now the active docs-aligned next major slice.
+Slice 9C, Public Landing Route + Dashboard Route Split, is now the active docs-aligned next major slice.
 
 Intent:
 
-- lock the redesign direction in docs before implementation work starts
-- document the public landing page and authenticated dashboard route direction
-- document the app icon direction for later PWA and asset work
-- define the redesign sequence that must land before workout execution UX redesign
-- preserve the current adaptive-training engine, save paths, auth/RLS assumptions, and progression behavior
+- move the public landing page boundary to `/`
+- move the authenticated dashboard to `/dashboard`
+- preserve existing auth/proxy protections and current adaptive-training behavior during the route split
+- keep landing-page implementation, broader dashboard redesign, schema changes, auth model changes, and progression-engine changes out of this slice
 
 ## Slice 1 Completed Locally
 

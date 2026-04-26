@@ -169,7 +169,7 @@ This supersedes the prior narrow Slice 8 dashboard QA follow-up as the active pr
 
 ## 9A. UI Redesign Direction, Public Landing, And App Icon Planning
 
-Status: planned.
+Status: implemented locally.
 
 - Lock the selected premium consumer fitness visual direction in repo docs before implementation begins.
 - Define the future public landing page at `/` and authenticated dashboard at `/dashboard`.
@@ -178,15 +178,17 @@ Status: planned.
 
 ## 9B. Design System Foundation
 
-Status: planned.
+Status: implemented locally.
 
 - Extend the semantic token and shared-primitives layer for the selected redesign direction.
 - Use shared foundations rather than page-specific hardcoded colors or isolated one-off components.
 - Keep the current adaptive-training engine, save semantics, and auth assumptions unchanged.
+- Added shared visual tokens and reusable presentational primitives for the future landing page and authenticated redesign work.
+- No route split, landing-page implementation, schema change, RLS change, auth behavior change, LLM/provider integration, or progression-engine change happened in this slice.
 
 ## 9C. Public Landing Route + Dashboard Route Split
 
-Status: planned.
+Status: active.
 
 - Move the public landing experience to `/`.
 - Move the authenticated dashboard to `/dashboard`.

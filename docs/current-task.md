@@ -2,42 +2,62 @@
 
 ## Goal
 
-Current active work: Slice 9A, UI Redesign Direction, Public Landing, and App Icon Planning.
+Current active work: Slice 9C, Public Landing Route + Dashboard Route Split.
 
-This is a docs-only planning slice and must not modify application code.
+Slice 9B, Design System Foundation, is implemented locally and complete.
 
 ## Current Slice
 
-Current active implementation slice: Slice 9A, UI Redesign Direction, Public Landing, and App Icon Planning.
+Current active implementation slice: Slice 9C, Public Landing Route + Dashboard Route Split.
 
-Slice 9A should focus on:
+Slice 9C should focus on:
 
-- locking the selected clean premium consumer fitness visual direction in repo docs
-- defining `/` as the intended future public landing page route
-- defining `/dashboard` as the intended future authenticated dashboard route
-- defining the selected app icon direction for later PWA and app-store asset work
-- defining mobile-first landing page requirements and the full redesign sequence before workout execution UX
+- moving the public landing page experience to `/`
+- moving the authenticated dashboard to `/dashboard`
+- preserving protected-route behavior and existing auth/proxy patterns
+- keeping the route split migration-safe and explicit
 
-The old narrow Slice 8 dashboard compacting follow-up is intentionally no longer the active priority because the dashboard is being redesigned under the new visual system. A tiny blocking bug patch is still acceptable if needed, but it is not the mainline next slice.
+The old narrow Slice 8 dashboard compacting follow-up remains superseded by the broader redesign program. A tiny blocking bug patch is still acceptable if needed, but it is not the mainline next slice.
 
-Slice 9A should not become:
+Slice 9C should not become:
 
-- a code implementation slice
-- a route-change slice
+- a full public landing-page polish slice beyond the route boundary move
 - a schema or RLS slice
+- an auth model rewrite
 - a progression-engine slice
 - an LLM/provider integration slice
-- a broad redesign implementation pass
+- a full authenticated app redesign
 
 ## Current Implementation Goals
 
-- lock the selected design direction in docs
-- define public `/` and authenticated `/dashboard` direction
-- define the app icon direction
-- define mobile-first public landing page requirements
-- define the full redesign sequence from 9A through 9J
+- implement the public/authenticated route split documented in 9A
+- preserve current auth protection and route safety during the split
+- keep the adaptive-training engine and authenticated app behavior unchanged apart from route organization
+- prepare the repo for later landing-page implementation and dashboard redesign
 
 ## Recently Completed Slice
+
+Slice 9B, Design System Foundation, is implemented locally.
+
+That slice delivered:
+
+- extended semantic CSS tokens for warm public backgrounds, strong white surfaces, dark product-preview surfaces, primary/secondary accents, goal accents, soft borders, premium shadows, and focus-ring color
+- preserved existing `html[data-theme]` support and the Settings-based local theme preference flow
+- added reusable presentational primitives for shared redesign work, including `SurfaceCard`, `MetricCard`, `ProductPreviewCard`, `GoalIconCard`, and `LandingSection`
+- evolved `AppLogo` with backward-compatible visual variants, including an app-icon-ready mark option
+- refactored `SectionCard` to compose `SurfaceCard`
+- updated `PageHero`, `ProgressBadge`, and `TimerCard` to use the shared foundation more cleanly
+- used `MetricCard` for the small dashboard metric strip as a low-risk verification adoption
+
+That slice did not deliver:
+
+- route split
+- public landing page implementation
+- schema migrations
+- Supabase RLS changes
+- auth behavior changes
+- LLM/provider integration
+- progression-engine changes
 
 Slice 8, contextual dashboard and progression UX, is implemented locally and QA accepted.
 
@@ -64,7 +84,7 @@ That slice did not deliver:
 - progression-engine rewrite
 - alternate/random workout support
 
-Deferred follow-up from completed Slice 7 QA should stay outside the active Slice 9A scope unless explicitly re-scoped:
+Deferred follow-up from completed Slice 7 QA should stay outside the active Slice 9C scope unless explicitly re-scoped:
 
 - broader `/plans/new` flow alignment and terminology cleanup
 - assigned-day / prompt-specificity polish
@@ -103,22 +123,21 @@ The app must remain fully functional without any LLM provider.
 
 ## Next Major Slice
 
-Slice 9A, UI Redesign Direction, Public Landing, and App Icon Planning, is now the active next planned major slice.
+Slice 9C, Public Landing Route + Dashboard Route Split, is now the active next planned major slice.
 
-Slice 9A should:
+Slice 9C should:
 
-- document the selected public landing page direction at `/`
-- document the authenticated dashboard direction at `/dashboard`
-- document the visual system for the public landing page and future authenticated redesign
-- document the app icon direction and later asset-integration intent
-- define the redesign implementation order through 9J before workout execution UX work begins
+- move the public landing page boundary to `/`
+- move the authenticated dashboard to `/dashboard`
+- preserve protected-route logic and auth safety during the route split
+- keep the current app functional while changing route organization
 
-Slice 9A should not:
+Slice 9C should not:
 
-- modify application code
-- change route behavior yet
+- implement the full landing-page redesign yet
 - change progression algorithms
 - weaken the saved-plan detail/edit/setup boundaries
+- change auth behavior
 - add LLM/provider integration
 - add schema or RLS changes
 
@@ -129,31 +148,34 @@ Slice 9A should not:
 - `docs/roadmap.md`
 - `docs/architecture.md`
 - `AGENTS.md`
+- `app/layout.tsx`
+- `app/page.tsx`
+- `components/app-shell.tsx`
+- `proxy.ts`
 
 ## Constraints
 
-- Do not modify application code in this slice.
 - Do not change routes in this slice.
 - Do not add LLM/provider integration.
 - Do not change schema or Supabase RLS.
+- Do not change auth behavior.
 - Do not change progression behavior or the server-side progression engine.
 - Do not rename database tables, API routes, or compatibility fields such as `plan_phases`, `phase-action`, or `currentPhase`.
 - Do not weaken Supabase auth or RLS assumptions.
-- Keep the route split documentation-only for now.
+- Keep deferred Slice 7 QA ideas out of active Slice 9C scope unless explicitly re-scoped.
 - Keep the separation between direct detail edits and setup/regenerate clear.
-- Do not claim implementation changes that did not happen.
-- Keep deferred Slice 7 QA ideas out of active Slice 9A scope unless explicitly re-scoped.
 - Keep alternate/random workouts deferred future workout flexibility work.
 
 ## Non-Goals
 
-- No code changes.
 - No route changes yet.
+- No landing page implementation yet.
 - No schema or RLS changes.
+- No auth behavior changes.
 - No progression-engine changes.
 - No LLM/provider integration.
-- No broad implementation in this docs slice.
+- No full authenticated app redesign in this slice.
 
 ## Maintenance Note
 
-After Slice 9A is complete, update this file so it points to the next active implementation slice.
+After Slice 9C is complete, update this file so it points to the next active implementation slice.

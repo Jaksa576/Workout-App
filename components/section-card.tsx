@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { SurfaceCard } from "@/components/surface-card";
 
 type SectionCardProps = {
   title: string;
@@ -16,12 +17,11 @@ export function SectionCard({
   children
 }: SectionCardProps) {
   return (
-    <section
-      className={clsx(
-        "surface-card",
-        compact ? "p-4 sm:p-5" : "p-5 sm:p-6"
-      )}
-    >
+    <section>
+      <SurfaceCard
+        className={clsx("h-full")}
+        padding={compact ? "compact" : "default"}
+      >
       {eyebrow ? (
         <p className="ui-eyebrow">{eyebrow}</p>
       ) : null}
@@ -30,6 +30,7 @@ export function SectionCard({
         <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">{description}</p>
       ) : null}
       <div className="mt-5">{children}</div>
+      </SurfaceCard>
     </section>
   );
 }

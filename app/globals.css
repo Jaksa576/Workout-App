@@ -4,53 +4,93 @@
 
 :root {
   color-scheme: light;
+  --color-app-bg: 244 240 233;
+  --color-bg-soft: 237 232 223;
   --color-shell: 244 239 231;
   --color-shell-elevated: 250 247 241;
   --color-surface: 255 252 247;
   --color-surface-soft: 245 239 230;
+  --color-surface-strong: 255 255 252;
+  --color-surface-dark: 18 27 42;
+  --color-surface-dark-elevated: 28 40 61;
   --color-border: 217 208 196;
+  --color-border-soft: 229 221 211;
+  --color-text-primary: 21 28 39;
+  --color-text-secondary: 93 106 124;
+  --color-text-inverse: 247 250 252;
   --color-copy: 21 28 39;
   --color-muted: 93 106 124;
+  --color-primary: 53 147 98;
+  --color-primary-hover: 39 124 82;
+  --color-secondary: 44 114 243;
+  --color-focus-ring: 44 114 243;
+  --color-goal-green: 70 165 113;
+  --color-goal-blue: 44 114 243;
+  --color-goal-coral: 228 103 74;
+  --color-goal-orange: 219 139 55;
+  --color-goal-purple: 120 98 220;
   --color-accent: 228 103 74;
   --color-accent-contrast: 255 255 255;
   --color-success: 101 136 111;
   --color-warning: 191 144 61;
   --color-hero: 22 29 40;
+  --shadow-soft: 0 24px 60px rgba(12, 17, 24, 0.14);
+  --shadow-premium: 0 28px 80px rgba(16, 24, 40, 0.18);
 }
 
 html[data-theme="dark"] {
   color-scheme: dark;
+  --color-app-bg: 9 13 19;
+  --color-bg-soft: 14 20 29;
   --color-shell: 11 15 22;
   --color-shell-elevated: 17 22 31;
   --color-surface: 21 27 37;
   --color-surface-soft: 26 33 45;
+  --color-surface-strong: 31 40 54;
+  --color-surface-dark: 8 12 18;
+  --color-surface-dark-elevated: 16 23 33;
   --color-border: 73 87 108;
+  --color-border-soft: 91 107 132;
+  --color-text-primary: 241 245 249;
+  --color-text-secondary: 184 195 209;
+  --color-text-inverse: 247 250 252;
   --color-copy: 241 245 249;
   --color-muted: 184 195 209;
+  --color-primary: 82 189 132;
+  --color-primary-hover: 67 166 115;
+  --color-secondary: 98 166 255;
+  --color-focus-ring: 98 166 255;
+  --color-goal-green: 95 200 142;
+  --color-goal-blue: 98 166 255;
+  --color-goal-coral: 240 121 92;
+  --color-goal-orange: 245 179 86;
+  --color-goal-purple: 167 144 255;
   --color-accent: 240 121 92;
   --color-accent-contrast: 14 18 25;
   --color-success: 132 184 149;
   --color-warning: 230 191 108;
   --color-hero: 9 13 19;
+  --shadow-soft: 0 24px 64px rgba(0, 0, 0, 0.3);
+  --shadow-premium: 0 30px 88px rgba(0, 0, 0, 0.42);
 }
 
 html {
   min-height: 100%;
   background:
-    radial-gradient(circle at top left, rgb(var(--color-accent) / 0.18), transparent 34%),
-    radial-gradient(circle at top right, rgb(var(--color-success) / 0.18), transparent 30%),
+    radial-gradient(circle at top left, rgb(var(--color-goal-coral) / 0.12), transparent 34%),
+    radial-gradient(circle at top right, rgb(var(--color-primary) / 0.16), transparent 30%),
     linear-gradient(
       180deg,
-      rgb(var(--color-shell-elevated)) 0%,
-      rgb(var(--color-shell)) 58%,
-      rgb(var(--color-shell-elevated)) 100%
+      rgb(var(--color-bg-soft)) 0%,
+      rgb(var(--color-app-bg)) 58%,
+      rgb(var(--color-bg-soft)) 100%
     );
 }
 
 body {
   min-height: 100vh;
   margin: 0;
-  color: rgb(var(--color-copy));
+  color: rgb(var(--color-text-primary));
   background: transparent;
   font-family: Verdana, Geneva, sans-serif;
 }
@@ -95,6 +135,20 @@ select {
     background-color: rgb(var(--color-surface-soft) / 0.9);
   }
 
+  .surface-card-dark {
+    @apply rounded-[24px] shadow-premium backdrop-blur sm:rounded-[32px];
+    border: 1px solid rgb(var(--color-border-soft) / 0.18);
+    background-color: rgb(var(--color-surface-dark) / 0.98);
+    color: rgb(var(--color-text-inverse));
+  }
+
+  .surface-card-dark-elevated {
+    @apply rounded-[24px] shadow-premium backdrop-blur sm:rounded-[32px];
+    border: 1px solid rgb(var(--color-border-soft) / 0.14);
+    background-color: rgb(var(--color-surface-dark-elevated) / 0.98);
+    color: rgb(var(--color-text-inverse));
+  }
+
   .surface-panel-muted {
     @apply rounded-[20px] p-4;
     border: 1px solid rgb(var(--color-border) / 0.76);
@@ -116,23 +170,23 @@ select {
   }
 
   .ui-input {
-    @apply w-full rounded-[18px] border border-border bg-surface px-4 py-3 text-sm text-copy outline-none transition placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-accent;
+    @apply w-full rounded-[18px] border border-border bg-surface px-4 py-3 text-sm text-copy outline-none transition placeholder:text-muted focus:border-primary focus:ring-2 focus:ring-primary;
   }
 
   .ui-button-primary {
-    @apply rounded-full bg-accent px-5 py-3 text-sm font-semibold text-accent-contrast transition hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-shell;
+    @apply rounded-full bg-primary px-5 py-3 text-sm font-semibold text-[rgb(var(--color-text-inverse))] transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-shell;
   }
 
   .ui-button-secondary {
-    @apply rounded-full border border-border bg-surface-soft px-5 py-3 text-sm font-semibold text-copy transition hover:border-accent hover:bg-surface hover:text-copy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-shell;
+    @apply rounded-full border border-border bg-surface-soft px-5 py-3 text-sm font-semibold text-copy transition hover:border-secondary hover:bg-surface hover:text-copy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-shell;
   }
 
   .ui-button-ghost {
-    @apply rounded-full border border-border bg-transparent px-5 py-3 text-sm font-semibold text-muted transition hover:border-accent hover:bg-surface hover:text-copy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-shell;
+    @apply rounded-full border border-border bg-transparent px-5 py-3 text-sm font-semibold text-muted transition hover:border-secondary hover:bg-surface hover:text-copy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-shell;
   }
 
   .ui-step-chip {
-    @apply rounded-full border border-border bg-surface-soft px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-copy transition hover:border-accent hover:bg-surface hover:text-copy sm:px-4;
+    @apply rounded-full border border-border bg-surface-soft px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-copy transition hover:border-secondary hover:bg-surface hover:text-copy sm:px-4;
   }
 
   .ui-step-chip-active {
