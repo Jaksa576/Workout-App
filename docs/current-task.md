@@ -2,13 +2,13 @@
 
 ## Goal
 
-Current active work: Slice 9D, Public Landing Page Implementation.
+Current production follow-up work: complete locally.
 
-Slice 9C, Public Landing Route + Dashboard Route Split, is implemented locally and complete.
+Slice 9C, Public Landing Route + Dashboard Route Split, is implemented locally, including a narrow pre-production follow-up patch.
 
 ## Current Slice
 
-Current active implementation slice: Slice 9D, Public Landing Page Implementation.
+Current next planned implementation slice: Slice 9D, Public Landing Page Implementation.
 
 Slice 9D should focus on:
 
@@ -17,7 +17,7 @@ Slice 9D should focus on:
 - keeping marketing content static and deterministic
 - preserving the authenticated app boundary and dashboard route split from 9C
 
-The old narrow Slice 8 dashboard compacting follow-up remains superseded by the broader redesign program. A tiny blocking bug patch is still acceptable if needed, but it is not the mainline next slice.
+The old narrow Slice 8 dashboard compacting follow-up remains superseded by the broader redesign program. The small 9C production follow-up patch restored the authenticated app shell/header/nav on app routes without starting 9D.
 
 Slice 9D should not become:
 
@@ -33,6 +33,7 @@ Slice 9D should not become:
 - turn the public landing scaffold into a stronger marketing entry point
 - preserve the new `/` public and `/dashboard` authenticated boundary
 - keep public landing content free of authenticated Supabase data
+- improve signed-in public CTA behavior with auth-aware options such as `Continue your plan` or `Dashboard`
 - prepare the repo for later app icon integration and broader authenticated redesign slices
 
 ## Recently Completed Slice
@@ -47,6 +48,8 @@ That slice delivered:
 - updated dashboard-intent redirects and links from `/` to `/dashboard`
 - updated the app shell so signed-in users visiting `/` see the public landing scaffold without the authenticated app shell
 - added `?mode=sign-up` support on `/login` to preselect the existing sign-up state for landing-page CTAs
+- restored authenticated app shell/header/nav rendering on `/dashboard`, `/plans`, `/workout`, `/settings`, and other authenticated app routes through a small pre-production follow-up patch
+- accepted the current signed-in public CTA behavior for 9C; landing CTAs should become more auth-aware in 9D rather than changing auth flow in this patch
 
 That slice did not deliver:
 
@@ -146,7 +149,7 @@ The app must remain fully functional without any LLM provider.
 
 ## Next Major Slice
 
-Slice 9D, Public Landing Page Implementation, is now the active next planned major slice.
+Slice 9D, Public Landing Page Implementation, is now the next planned major slice and is not started by this follow-up patch.
 
 Slice 9D should:
 

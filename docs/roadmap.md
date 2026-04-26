@@ -195,11 +195,12 @@ Status: implemented locally.
 - Preserve protected-route behavior, existing auth/proxy patterns, and authenticated app boundaries.
 - Treat auth/protected-route QA as a specific risk area in this slice.
 - Implemented `/` as a minimal public landing scaffold and preserved the authenticated dashboard experience at `/dashboard`.
+- A narrow pre-production follow-up patch restored authenticated app shell/header/nav rendering on authenticated app routes without changing the public landing boundary or auth flow.
 - No schema change, RLS change, auth-model rewrite, LLM/provider integration, or progression-engine change happened in this slice.
 
 ## 9D. Public Landing Page Implementation
 
-Status: active.
+Status: planned.
 
 - Implement a single public landing page outside the authenticated app.
 - Use warm white/off-white public surfaces, dark navy preview panels, green primary accent, blue secondary accent, and selective coral/orange/purple goal accents.

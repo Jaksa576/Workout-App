@@ -7,6 +7,7 @@ import clsx from "clsx";
 import type { UserSummary } from "@/lib/types";
 import { AppLogo } from "@/components/app-logo";
 import { SignOutButton } from "@/components/sign-out-button";
+import { isAuthenticatedShellRoute } from "@/lib/app-route-boundary";
 
 const navItems = [
   { href: "/dashboard" as Route, label: "Dashboard" },
@@ -23,16 +24,7 @@ export function AppShell({
   user: UserSummary | null;
 }) {
   const pathname = usePathname();
-  const isAppRoute =
-    pathname === "/dashboard" ||
-    pathname === "/onboarding" ||
-    pathname === "/plans" ||
-    pathname.startsWith("/plans/") ||
-    pathname === "/workout" ||
-    pathname === "/settings" ||
-    pathname === "/today" ||
-    pathname === "/check-in";
-  const showShell = Boolean(user) && isAppRoute;
+  const showShell = Boolean(user) && isAuthenticatedShellRoute(pathname);
 
   return (
     <div className="min-h-screen px-3 pb-20 pt-4 sm:px-6 sm:pb-24 sm:pt-5 lg:px-8">

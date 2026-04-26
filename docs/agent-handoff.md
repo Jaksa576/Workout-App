@@ -50,7 +50,7 @@ The approved refactor direction is additive and migration-safe:
 
 The docs had previously been aligned on Slice 6 as dashboard/progression work. Product direction then intentionally shifted to prioritize UI Overhaul Phase 1 first, ahead of the previously planned dashboard slice.
 
-Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, Slice 7, and Slice 8 are in place locally. Slice 9A completed the docs/planning work that locked the redesign direction, Slice 9B completed the shared design-system foundation, and Slice 9C implemented the public/authenticated route split. The immediate active work is now Slice 9D, Public Landing Page Implementation. The deferred QA learnings from Slice 7 should remain outside active Slice 9D scope unless explicitly re-scoped.
+Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, Slice 7, and Slice 8 are in place locally. Slice 9A completed the docs/planning work that locked the redesign direction, Slice 9B completed the shared design-system foundation, and Slice 9C implemented the public/authenticated route split. A narrow pre-production 9C follow-up patch restored authenticated app shell/header/nav rendering on app routes. Slice 9D, Public Landing Page Implementation, remains the next planned slice and has not started yet. The deferred QA learnings from Slice 7 should remain outside Slice 9D scope unless explicitly re-scoped.
 
 The previously considered narrow Slice 8 dashboard QA follow-up is superseded by the broader redesign program unless a blocking bug requires a tiny patch.
 
@@ -141,6 +141,8 @@ The previously considered narrow Slice 8 dashboard QA follow-up is superseded by
 - Slice 9C preserved protected-route behavior for the authenticated app routes and updated dashboard-intent redirects and links from `/` to `/dashboard`.
 - Slice 9C adjusted the app shell so signed-in users visiting `/` still see the public landing scaffold rather than the authenticated shell.
 - Slice 9C added `?mode=sign-up` login-page support only to preselect the existing sign-up UI state for landing CTAs.
+- A narrow 9C follow-up patch removed the fragile layout pathname-forwarding dependency and restored authenticated shell/header/nav rendering on `/dashboard`, `/plans`, `/workout`, `/settings`, and related app routes.
+- Signed-in public CTA behavior is accepted for 9C. Improve that UX in 9D with auth-aware public CTAs such as `Continue your plan` or `Dashboard`, not with auth-flow changes in this patch.
 - Slice 9C did not implement the full landing page, app icon integration, authenticated shell redesign, dashboard redesign, schema changes, RLS changes, auth-model rewrites, LLM/provider integration, or progression-engine changes.
 
 ## UI Overhaul Phase 1 Completed Locally
@@ -317,7 +319,7 @@ Verification after Slice 7:
 
 ## Next Major Slice
 
-Slice 9D, Public Landing Page Implementation, is now the active docs-aligned next major slice.
+Slice 9D, Public Landing Page Implementation, is now the docs-aligned next planned major slice.
 
 Intent:
 

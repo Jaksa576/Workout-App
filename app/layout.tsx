@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { headers } from "next/headers";
 import "./globals.css";
 import { AppShell } from "@/components/app-shell";
 import { ThemeScript } from "@/components/theme-script";
@@ -27,18 +26,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const headerStore = await headers();
-  const pathname = headerStore.get("x-pathname") ?? "";
-  const shouldLoadUser =
-    pathname === "/dashboard" ||
-    pathname === "/onboarding" ||
-    pathname === "/plans" ||
-    pathname.startsWith("/plans/") ||
-    pathname === "/workout" ||
-    pathname === "/settings" ||
-    pathname === "/today" ||
-    pathname === "/check-in";
-  const user = shouldLoadUser ? await getCurrentUser() : null;
+  const user = await getCurrentUser();
 
   return (
     <html lang="en" suppressHydrationWarning>
