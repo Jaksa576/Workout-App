@@ -24,6 +24,31 @@ The product is evolving from a recovery-first phased workout app into a broader 
 - Dashboard display copy and compact summaries use deterministic helpers in `lib/dashboard.ts`; progression prompts should derive from the active plan, active phase, and server-side phase progress result rather than separate dashboard-only readiness inference.
 - Do not rewrite architecture areas unrelated to that UI foundation when updating this document.
 
+## Public Vs Authenticated Route Boundary
+
+Target route direction for the redesign program:
+
+- `/` should become the public landing page.
+- `/dashboard` should become the authenticated dashboard.
+- `/plans`, `/plans/new`, `/plans/[planId]`, `/workout`, and `/settings` should remain authenticated app routes.
+
+Boundary rules:
+
+- Public landing page components must not become data dependencies on Supabase-authenticated user records.
+- Public previews should use static or deterministic marketing mock data instead of logged-in user data.
+- Protected routes should continue to rely on the existing auth helpers and `proxy.ts` route boundary pattern.
+- The future route split has concrete auth/protected-route QA risk and should be treated as a dedicated implementation slice, not an incidental rename.
+
+## Selected Visual System Direction
+
+- Use a clean premium consumer fitness app aesthetic.
+- Favor warm white and off-white public surfaces with dark navy product preview panels.
+- Use green as the primary brand accent and blue as the secondary action/accent color.
+- Use selective coral, orange, and purple accents for goal-category support where helpful.
+- Favor rounded cards, soft shadows, clean typography, and mobile-first responsive layout.
+- Reuse semantic tokens and shared primitives rather than introducing page-specific hardcoded colors.
+- Keep public landing page styling and authenticated-app redesign work aligned through shared foundations where practical.
+
 ### Current Domain Engine
 
 The current database and app model is:
@@ -147,6 +172,7 @@ The same review/edit stage now supports:
 - Goal-aware draft templates improve exercise selection and plan structure.
 - Progression modes handle symptom-based, adherence-based, performance-based, and hybrid logic.
 - Profile/settings field ownership may be refined over time as the product clarifies which data is durable account context versus plan-specific context.
+- The authenticated app redesign should preserve domain behavior, progression logic, auth assumptions, and current engine boundaries while updating presentation and route organization.
 
 ### Deferred / Future
 

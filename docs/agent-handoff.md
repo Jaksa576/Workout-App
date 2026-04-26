@@ -35,13 +35,69 @@ The approved refactor direction is additive and migration-safe:
 6.5. UI Polish and Theme Refinement.
 7. AI-assisted plan draft import.
 8. Contextual dashboard and progression UX.
-9. Workout execution UX.
+9A. UI Redesign Direction, Public Landing, and App Icon Planning.
+9B. Design System Foundation.
+9C. Public Landing Route + Dashboard Route Split.
+9D. Public Landing Page Implementation.
+9E. App Icon / PWA Asset Integration.
+9F. Authenticated App Shell Redesign.
+9G. Dashboard Redesign.
+9H. Plans / Phase UX Redesign.
+9I. Workout Execution UX Redesign.
+9J. Plan Creation / Settings Polish.
 10. Exercise media and instruction layer.
 11. Broader polish/branding if still needed.
 
 The docs had previously been aligned on Slice 6 as dashboard/progression work. Product direction then intentionally shifted to prioritize UI Overhaul Phase 1 first, ahead of the previously planned dashboard slice.
 
-Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, Slice 7, and Slice 8 are in place locally. The immediate active work is now Slice 9, and the deferred QA learnings from Slice 7 should remain outside active Slice 9 scope unless explicitly re-scoped.
+Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, Slice 7, and Slice 8 are in place locally. The immediate active work is now Slice 9A, a docs-only planning slice that locks the redesign direction before code implementation. The deferred QA learnings from Slice 7 should remain outside active Slice 9A scope unless explicitly re-scoped.
+
+The previously considered narrow Slice 8 dashboard QA follow-up is superseded by the broader redesign program unless a blocking bug requires a tiny patch.
+
+## Selected UI Redesign Direction
+
+- clean premium consumer fitness app aesthetic
+- warm white and off-white public surfaces
+- dark navy product preview panels
+- green primary brand accent
+- blue secondary action and accent
+- selective coral, orange, and purple goal-category accents
+- rounded cards, soft shadows, and clean typography
+- mobile-first layout with responsive implementation
+- single public landing page outside the authenticated app
+- simplified public header with only brand/logo, `Sign in`, `Start free`, and optionally `Demo` later
+- no complex marketing sub-navigation for now
+- public messaging should highlight structured phased training, check-ins/readiness/progress signals, adaptive recommendations, and support for recovery, general fitness, strength, hypertrophy, running, performance, and consistency
+
+## Public Landing And Route Direction
+
+- `/` should become the public landing page in a later implementation slice.
+- `/dashboard` should become the authenticated dashboard in a later implementation slice.
+- `/plans`, `/plans/new`, `/plans/[planId]`, `/workout`, and `/settings` should remain authenticated app routes.
+- Protected routes must continue to use the existing auth and `proxy.ts` boundary patterns.
+- Public landing page previews should use static or deterministic marketing mock data, not authenticated user data or live Supabase-dependent personalization.
+- The route split is documentation-only right now; implementation and auth/protected-route QA happen in a dedicated later slice.
+
+## App Icon Direction
+
+- dark navy rounded-square background
+- green or teal geometric A mark
+- blue dumbbell as the A crossbar
+- no text in the icon
+- replace or add PWA and app icon assets in a later dedicated slice
+
+## Implementation Order
+
+1. `9A`: UI Redesign Direction, Public Landing, and App Icon Planning
+2. `9B`: Design System Foundation
+3. `9C`: Public Landing Route + Dashboard Route Split
+4. `9D`: Public Landing Page Implementation
+5. `9E`: App Icon / PWA Asset Integration
+6. `9F`: Authenticated App Shell Redesign
+7. `9G`: Dashboard Redesign
+8. `9H`: Plans / Phase UX Redesign
+9. `9I`: Workout Execution UX Redesign
+10. `9J`: Plan Creation / Settings Polish
 
 ## Current Status
 
@@ -75,6 +131,7 @@ Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, Slice 7, and Slice 8 are i
 - `/plans/[planId]/edit-setup` now shares the same visual language while remaining explicitly secondary and setup-driven.
 - Shared plan-surface components such as section cards, badges, review/edit panels, and phase/workout cards were refreshed without changing progression logic, save semantics, or history snapshot behavior.
 - The dashboard now reads as a workout home screen with a compact 5-day weekly preview, compact activity/progress summaries, and progression prompts derived from the same active-phase progress source.
+- Agents must preserve the existing plan, phase, workout, session, and progression engine and must not convert the app into a generic workout logger during the redesign sequence.
 
 ## UI Overhaul Phase 1 Completed Locally
 
@@ -250,13 +307,15 @@ Verification after Slice 7:
 
 ## Next Major Slice
 
-Slice 9, workout execution UX, is now the active docs-aligned next major slice.
+Slice 9A, UI Redesign Direction, Public Landing, and App Icon Planning, is now the active docs-aligned next major slice.
 
 Intent:
 
-- improve in-session workout usability and check-in flow clarity
-- keep workout history snapshots readable after plan edits
-- build on the current dashboard context, UI foundation, and existing progression engine
+- lock the redesign direction in docs before implementation work starts
+- document the public landing page and authenticated dashboard route direction
+- document the app icon direction for later PWA and asset work
+- define the redesign sequence that must land before workout execution UX redesign
+- preserve the current adaptive-training engine, save paths, auth/RLS assumptions, and progression behavior
 
 ## Slice 1 Completed Locally
 

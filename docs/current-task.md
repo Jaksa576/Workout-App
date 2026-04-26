@@ -2,40 +2,40 @@
 
 ## Goal
 
-Current active work: Slice 9, workout execution UX.
+Current active work: Slice 9A, UI Redesign Direction, Public Landing, and App Icon Planning.
 
-Slice 8, contextual dashboard and progression UX, is implemented locally and accepted after the narrow QA follow-up patch.
+This is a docs-only planning slice and must not modify application code.
 
 ## Current Slice
 
-Current active implementation slice: Slice 9, workout execution UX.
+Current active implementation slice: Slice 9A, UI Redesign Direction, Public Landing, and App Icon Planning.
 
-Slice 9 should focus on:
+Slice 9A should focus on:
 
-- improving in-session workout usability
-- improving logging and check-in flow clarity
-- keeping workout history snapshots readable after plan edits
-- building on the Slice 6 UI foundation and Slice 8 dashboard context
-- preserving server-side progression evaluation and explicit user-confirmed phase movement
+- locking the selected clean premium consumer fitness visual direction in repo docs
+- defining `/` as the intended future public landing page route
+- defining `/dashboard` as the intended future authenticated dashboard route
+- defining the selected app icon direction for later PWA and app-store asset work
+- defining mobile-first landing page requirements and the full redesign sequence before workout execution UX
 
-Slice 9 should not become:
+The old narrow Slice 8 dashboard compacting follow-up is intentionally no longer the active priority because the dashboard is being redesigned under the new visual system. A tiny blocking bug patch is still acceptable if needed, but it is not the mainline next slice.
 
-- an onboarding redesign
-- a guided setup redesign
-- a plan creation redesign
-- a saved-plan detail/edit/setup boundary rewrite
-- LLM/provider integration
-- schema or RLS changes
-- a progression-algorithm rewrite unless explicitly re-scoped
+Slice 9A should not become:
 
-Deferred follow-up from completed Slice 7 QA should stay outside the active Slice 9 scope unless explicitly re-scoped:
+- a code implementation slice
+- a route-change slice
+- a schema or RLS slice
+- a progression-engine slice
+- an LLM/provider integration slice
+- a broad redesign implementation pass
 
-- broader `/plans/new` flow alignment and terminology cleanup
-- assigned-day / prompt-specificity polish
-- helper-text layout refinement
-- exercise-media auto-population
-- reducing repeated schedule-selection emphasis across Guided Setup, Manual Builder, and Draft with AI
-- improving external-AI export / copy-paste ergonomics for the structured prompt-and-import handoff
+## Current Implementation Goals
+
+- lock the selected design direction in docs
+- define public `/` and authenticated `/dashboard` direction
+- define the app icon direction
+- define mobile-first public landing page requirements
+- define the full redesign sequence from 9A through 9J
 
 ## Recently Completed Slice
 
@@ -56,12 +56,22 @@ That slice did not deliver:
 
 - provider-backed LLM integration
 - onboarding redesign
-- workout execution redesign
-- plan creation or plan editing redesign
-- setup/regenerate resurfacing
+- public landing page work
+- authenticated route split work
+- app icon integration
+- full dashboard redesign under the new visual system
 - schema migrations or Supabase RLS changes
 - progression-engine rewrite
 - alternate/random workout support
+
+Deferred follow-up from completed Slice 7 QA should stay outside the active Slice 9A scope unless explicitly re-scoped:
+
+- broader `/plans/new` flow alignment and terminology cleanup
+- assigned-day / prompt-specificity polish
+- helper-text layout refinement
+- exercise-media auto-population
+- reducing repeated schedule-selection emphasis across Guided Setup, Manual Builder, and Draft with AI
+- improving external-AI export / copy-paste ergonomics for the structured prompt-and-import handoff
 
 ## Current Context
 
@@ -93,59 +103,57 @@ The app must remain fully functional without any LLM provider.
 
 ## Next Major Slice
 
-Slice 9, workout execution UX, is now the active next planned major slice.
+Slice 9A, UI Redesign Direction, Public Landing, and App Icon Planning, is now the active next planned major slice.
 
-Slice 9 should:
+Slice 9A should:
 
-- improve the in-session workout and check-in experience
-- keep workout history readable after plan edits
-- build on the current dashboard context, UI foundation, and existing progression engine
-- preserve explicit user-confirmed phase movement
+- document the selected public landing page direction at `/`
+- document the authenticated dashboard direction at `/dashboard`
+- document the visual system for the public landing page and future authenticated redesign
+- document the app icon direction and later asset-integration intent
+- define the redesign implementation order through 9J before workout execution UX work begins
 
-Slice 9 should not:
+Slice 9A should not:
 
-- redesign onboarding or guided setup flows
-- change progression algorithms beyond narrow explanation/display work unless explicitly re-scoped
+- modify application code
+- change route behavior yet
+- change progression algorithms
 - weaken the saved-plan detail/edit/setup boundaries
 - add LLM/provider integration
 - add schema or RLS changes
 
 ## Likely Files To Inspect
 
-- `components/workout-flow.tsx`
-- `components/workout-checklist.tsx`
-- `components/check-in-form.tsx`
-- `app/workout/page.tsx`
-- `app/api/sessions/route.ts`
-- `lib/data.ts`
 - `docs/current-task.md`
 - `docs/agent-handoff.md`
 - `docs/roadmap.md`
 - `docs/architecture.md`
+- `AGENTS.md`
 
 ## Constraints
 
+- Do not modify application code in this slice.
+- Do not change routes in this slice.
 - Do not add LLM/provider integration.
-- Do not redesign onboarding broadly.
-- Do not redesign guided setup or plan creation.
+- Do not change schema or Supabase RLS.
+- Do not change progression behavior or the server-side progression engine.
 - Do not rename database tables, API routes, or compatibility fields such as `plan_phases`, `phase-action`, or `currentPhase`.
 - Do not weaken Supabase auth or RLS assumptions.
-- Keep changes migration-safe and scoped.
+- Keep the route split documentation-only for now.
 - Keep the separation between direct detail edits and setup/regenerate clear.
-- Do not claim architecture changes that did not happen.
-- Keep deferred Slice 7 QA ideas out of active Slice 9 scope unless explicitly re-scoped.
+- Do not claim implementation changes that did not happen.
+- Keep deferred Slice 7 QA ideas out of active Slice 9A scope unless explicitly re-scoped.
 - Keep alternate/random workouts deferred future workout flexibility work.
 
 ## Non-Goals
 
+- No code changes.
+- No route changes yet.
+- No schema or RLS changes.
+- No progression-engine changes.
 - No LLM/provider integration.
-- No onboarding redesign.
-- No guided setup redesign.
-- No plan creation redesign.
-- No progression-engine redesign beyond narrow explanation/display work.
-- No schema or RLS rewrites.
-- No read-only plan sharing.
+- No broad implementation in this docs slice.
 
 ## Maintenance Note
 
-After Slice 9 is complete, update this file so it points to the next active implementation slice.
+After Slice 9A is complete, update this file so it points to the next active implementation slice.

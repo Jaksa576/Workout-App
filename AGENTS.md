@@ -133,6 +133,19 @@ Prefer this sequence unless the repo strongly suggests a better one:
 7. LLM-ready draftPlan abstraction
 8. docs and cleanup
 
+## Current UI Redesign Priority
+
+The immediate priority is the landing page, app icon, and full app UX redesign sequence before workout execution UX.
+
+Guardrails for this phase:
+- docs first
+- work in PR-sized slices
+- preserve auth and RLS behavior
+- preserve plan, phase, workout, session, and progression behavior
+- no LLM/provider integration
+- avoid broad destructive route changes outside the dedicated route-split slice
+- use `GPT-5.4` where practical for token efficiency; reserve higher-reasoning models for route/auth regressions or hard architectural conflicts
+
 ## Prompt handling expectations
 
 When given a large redesign task:

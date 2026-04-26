@@ -161,13 +161,94 @@ Accepted narrow QA follow-up:
 - removed repeated `Keep the streak going` copy from adjacent dashboard cards
 - preserved the active-phase/progression CTA sync and kept the patch dashboard-only
 
-## 9. Workout Execution UX
+## Next Priority: Full UI Redesign Program
+
+The next major work is a broader public landing, app-shell, dashboard, and plans redesign program.
+
+This supersedes the prior narrow Slice 8 dashboard QA follow-up as the active priority unless a blocking bug requires a tiny patch. Keep the accepted Slice 8 QA adjustments intact, but do not treat them as the mainline next work.
+
+## 9A. UI Redesign Direction, Public Landing, And App Icon Planning
+
+Status: planned.
+
+- Lock the selected premium consumer fitness visual direction in repo docs before implementation begins.
+- Define the future public landing page at `/` and authenticated dashboard at `/dashboard`.
+- Define the public landing page message, mobile-first requirements, and app icon direction.
+- Keep this slice docs-only and do not modify application code.
+
+## 9B. Design System Foundation
+
+Status: planned.
+
+- Extend the semantic token and shared-primitives layer for the selected redesign direction.
+- Use shared foundations rather than page-specific hardcoded colors or isolated one-off components.
+- Keep the current adaptive-training engine, save semantics, and auth assumptions unchanged.
+
+## 9C. Public Landing Route + Dashboard Route Split
+
+Status: planned.
+
+- Move the public landing experience to `/`.
+- Move the authenticated dashboard to `/dashboard`.
+- Preserve protected-route behavior, existing auth/proxy patterns, and authenticated app boundaries.
+- Treat auth/protected-route QA as a specific risk area in this slice.
+
+## 9D. Public Landing Page Implementation
+
+Status: planned.
+
+- Implement a single public landing page outside the authenticated app.
+- Use warm white/off-white public surfaces, dark navy preview panels, green primary accent, blue secondary accent, and selective coral/orange/purple goal accents.
+- Keep the header simple with brand/logo, `Sign in`, `Start free`, and optionally `Demo` later.
+- Use static or deterministic marketing mock data rather than authenticated user data.
+
+## 9E. App Icon / PWA Asset Integration
+
+Status: planned.
+
+- Replace or add app icon and PWA assets based on the selected icon direction.
+- Target a dark navy rounded-square icon with a green/teal geometric A and blue dumbbell crossbar.
+- Keep the icon text-free and ready for PWA/app-store style usage.
+
+## 9F. Authenticated App Shell Redesign
+
+Status: planned.
+
+- Redesign the authenticated shell around the new visual system while preserving auth, route protection, and current domain behavior.
+- Keep mobile-first layout and responsive behavior as the default implementation approach.
+- Do not turn this slice into a domain-model rewrite.
+
+## 9G. Dashboard Redesign
+
+Status: planned.
+
+- Redesign the authenticated dashboard within the new app shell and visual system.
+- Preserve the current dashboard’s active-plan, active-phase, and server-side progression source-of-truth rules.
+- Keep explicit user-confirmed phase movement intact.
+
+## 9H. Plans / Phase UX Redesign
+
+Status: planned.
+
+- Redesign plans, plan detail, and phase/workout hierarchy surfaces under the new visual system.
+- Preserve the current plan, phase, workout, save-path, and history-snapshot engine.
+- Keep direct detail editing and setup/regenerate boundaries clear.
+
+## 9I. Workout Execution UX Redesign
 
 Status: planned.
 
 - Improve in-session workout usability, logging flow, and check-in feedback.
 - Keep workout history snapshots readable after plan edits.
 - Avoid changing progression algorithms in this slice unless a narrow display change requires it.
+
+## 9J. Plan Creation / Settings Polish
+
+Status: planned.
+
+- Polish `/plans/new`, profile/settings surfaces, and supporting copy after the larger redesign system is in place.
+- Preserve the existing plan drafting abstraction, compatible save paths, and durable-profile boundaries unless a scoped follow-up intentionally changes them.
+- Keep provider-backed LLM work out of scope.
 
 ## 10. Exercise Media And Instruction Layer
 
@@ -181,7 +262,7 @@ Status: planned.
 
 Status: planned if still needed.
 
-- Revisit broader polish, naming, and brand expression only after the UI foundation, dashboard, workout execution, and exercise instruction slices are stronger.
+- Revisit broader polish, naming, and brand expression only after the redesign foundation, route split, public landing, authenticated shell, dashboard, plans, workout execution, and exercise instruction slices are stronger.
 - Keep this intentionally narrow if it happens; it should not become a vague catch-all redesign bucket.
 - Avoid doing broad branding work before the core training quality and workflow slices are stronger.
 - Deferred product-quality follow-up from Slice 7 QA for `/plans/new` should stay outside the narrow active stabilization patch and outside roadmap resequencing:
@@ -227,7 +308,7 @@ Status: planned if still needed.
 - Keep this aligned with structured plans, active phase context, progression safety, and adaptive training logic.
 - Do not turn this into a generic workout picker that undermines the programmed plan.
 - Defer the interaction design for quick user choices or alternate-session selection until a later workout execution/flexibility slice.
-- This is not part of the current Slice 8 dashboard follow-up patch.
+- This is not part of the current redesign-priority sequence unless a later slice explicitly pulls it in.
 
 ## Deferred AI / LLM Drafting
 
