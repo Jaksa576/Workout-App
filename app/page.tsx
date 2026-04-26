@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Route } from "next";
 import type { ReactNode } from "react";
+import { AppLogo } from "@/components/app-logo";
 import { getCurrentUser } from "@/lib/auth";
 
 type IconName =
@@ -83,16 +84,16 @@ export default async function HomePage() {
     : { href: "/login?mode=sign-up" as Route, label: "Create your account" };
 
   return (
-    <div className="-mx-3 -mb-20 -mt-4 overflow-x-clip bg-[#f8f4ed] px-3 pb-20 pt-4 text-[#101827] sm:-mx-6 sm:-mt-5 sm:px-6 sm:pt-5 lg:-mx-8 lg:px-8">
+    <div className="-mx-3 -mb-20 -mt-4 bg-[#f8f4ed] px-3 pb-20 pt-4 text-[#101827] sm:-mx-6 sm:-mt-5 sm:px-6 sm:pt-5 lg:-mx-8 lg:px-8">
       <Header primary={headerPrimary} secondary={headerSecondary} />
 
-      <section className="mx-auto grid max-w-[1180px] gap-12 py-12 sm:py-16 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-16 lg:py-24">
+      <section className="mx-auto grid max-w-[1180px] gap-10 py-12 sm:py-14 lg:grid-cols-[0.88fr_1.12fr] lg:items-center lg:gap-16 lg:py-20">
         <div className="relative z-10">
           <div className="absolute -left-16 top-16 hidden h-72 w-72 rounded-full bg-emerald-200/30 blur-3xl lg:block" />
           <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-700 sm:text-sm">
             Smarter training. Better results.
           </p>
-          <h1 className="mt-5 max-w-[620px] text-5xl font-black leading-[0.98] tracking-normal text-[#0e1726] sm:text-6xl lg:text-7xl">
+          <h1 className="mt-5 max-w-[600px] text-4xl font-black leading-[1.04] tracking-normal text-[#0e1726] sm:text-5xl lg:text-6xl">
             Structured training that evolves with you.
           </h1>
           <p className="mt-6 max-w-[560px] text-lg leading-8 text-slate-600 sm:text-xl">
@@ -120,8 +121,8 @@ export default async function HomePage() {
         <ProductMockup />
       </section>
 
-      <section id="how-it-works" className="mx-auto max-w-[1180px] py-12 sm:py-16 lg:py-20">
-        <div className="grid gap-5 rounded-[28px] border border-slate-200 bg-white/86 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-6 lg:grid-cols-3 lg:p-7">
+      <section id="how-it-works" className="mx-auto max-w-[1180px] py-10 sm:py-14 lg:py-16">
+        <div className="grid gap-4 rounded-[28px] border border-slate-200 bg-white/90 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-5 lg:grid-cols-3 lg:p-6">
           <StepCard
             number="1"
             title="You check in"
@@ -146,14 +147,14 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-[1180px] py-12 text-center sm:py-16 lg:py-20">
+      <section className="mx-auto max-w-[1180px] py-10 text-center sm:py-14 lg:py-16">
         <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-emerald-700">
           Built around your goals
         </p>
         <h2 className="mx-auto mt-4 max-w-3xl text-3xl font-black leading-tight text-[#0e1726] sm:text-4xl">
           Whatever you&apos;re training for, we&apos;ll adapt to it.
         </h2>
-        <div className="mt-9 grid gap-5 sm:grid-cols-2 lg:grid-cols-7">
+        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {goalCards.map((goal) => (
             <GoalCard key={goal.title} {...goal} />
           ))}
@@ -162,8 +163,8 @@ export default async function HomePage() {
 
       <ReturningUserBanner signedIn={isSignedIn} />
 
-      <section className="mx-auto max-w-[1180px] py-12 sm:py-16">
-        <div className="grid gap-4 rounded-[28px] border border-slate-200 bg-white/86 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.06)] sm:p-6 md:grid-cols-4">
+      <section className="mx-auto max-w-[1180px] py-10 sm:py-14">
+        <div className="grid gap-5 rounded-[28px] border border-slate-200 bg-white/90 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.06)] sm:grid-cols-2 sm:p-6 lg:grid-cols-4">
           <TrustItem icon="shield" title="Evidence-based" description="Built around proven training principles." />
           <TrustItem icon="user" title="Personalized" description="Plans reflect your goals and schedule." />
           <TrustItem icon="lock" title="Privacy-first" description="Your training data stays yours." />
@@ -185,15 +186,10 @@ function Header({
     <header className="mx-auto flex max-w-[1180px] items-center justify-between gap-4 py-5">
       <Link
         href="/"
-        className="inline-flex items-center gap-3 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f8f4ed]"
+        className="inline-flex rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f8f4ed]"
         aria-label="Adaptive Training home"
       >
-        <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#071426] text-emerald-400 shadow-sm sm:h-11 sm:w-11">
-          <LogoMark />
-        </span>
-        <span className="text-sm font-black uppercase tracking-[0.18em] text-slate-950 sm:text-base">
-          Adaptive Training
-        </span>
+        <AppLogo compact showTagline={false} iconClassName="h-10 w-10 rounded-2xl sm:h-11 sm:w-11" />
       </Link>
       <nav className="flex shrink-0 items-center gap-2 sm:gap-3" aria-label="Public navigation">
         <Link
@@ -215,14 +211,21 @@ function Header({
 
 function ProductMockup() {
   return (
-    <div className="relative mx-auto w-full max-w-[660px] lg:mr-0">
-      <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-emerald-300/30 blur-3xl" />
-      <div className="absolute -bottom-8 left-8 h-36 w-36 rounded-full bg-blue-300/20 blur-3xl" />
-      <div className="relative rounded-[30px] border border-slate-200 bg-white p-3 shadow-[0_34px_90px_rgba(15,23,42,0.16)] sm:p-4 lg:p-5">
-        <div className="grid min-h-[520px] overflow-hidden rounded-[24px] border border-slate-200 bg-white md:grid-cols-[128px_1fr]">
-          <aside className="hidden bg-[#071426] p-5 text-white md:block">
-            <LogoMark className="h-8 w-8 text-emerald-400" />
-            <div className="mt-8 space-y-3 text-xs font-bold text-white/70">
+    <div className="relative mx-auto w-full max-w-[640px] lg:mr-0 lg:pb-8">
+      <div className="pointer-events-none absolute -right-3 -top-6 h-28 w-28 rounded-full bg-emerald-300/30 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-4 left-8 h-28 w-28 rounded-full bg-blue-300/20 blur-3xl" />
+      <div className="relative rounded-[28px] border border-slate-200 bg-white p-2.5 shadow-[0_28px_78px_rgba(15,23,42,0.14)] sm:p-3 lg:p-4">
+        <div className="grid overflow-hidden rounded-[22px] border border-slate-200 bg-white md:grid-cols-[112px_1fr]">
+          <aside className="hidden bg-[#071426] p-4 text-white md:block">
+            <img
+              src="/icon-192.png"
+              alt=""
+              className="h-9 w-9 rounded-2xl object-cover"
+              width="36"
+              height="36"
+              decoding="async"
+            />
+            <div className="mt-7 space-y-2 text-[11px] font-bold text-white/70">
               {["Dashboard", "Training", "Calendar", "Progress", "Check-ins"].map((item, index) => (
                 <div
                   key={item}
@@ -233,27 +236,27 @@ function ProductMockup() {
               ))}
             </div>
           </aside>
-          <div className="min-w-0 bg-white p-5 sm:p-6">
-            <p className="text-2xl font-black text-slate-950">Dashboard</p>
+          <div className="min-w-0 bg-white p-4 sm:p-5">
+            <p className="text-xl font-black text-slate-950 sm:text-2xl">Dashboard</p>
             <p className="mt-1 text-sm font-semibold text-slate-500">Wednesday, May 13</p>
 
-            <div className="mt-6 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-              <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_16px_42px_rgba(15,23,42,0.06)]">
+            <div className="mt-5 grid gap-3 lg:grid-cols-[0.9fr_1.1fr]">
+              <div className="rounded-[22px] border border-slate-200 bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
                 <p className="text-sm font-black text-slate-900">Readiness</p>
-                <div className="mx-auto mt-5 flex h-32 w-32 items-center justify-center rounded-full border-[12px] border-slate-100 border-t-emerald-600 border-r-emerald-600">
+                <div className="mx-auto mt-4 flex h-28 w-28 items-center justify-center rounded-full border-[10px] border-slate-100 border-r-emerald-600 border-t-emerald-600">
                   <div className="text-center">
-                    <p className="text-4xl font-black text-slate-950">82</p>
+                    <p className="text-3xl font-black text-slate-950">82</p>
                     <p className="text-sm font-bold text-slate-600">/100</p>
                   </div>
                 </div>
-                <p className="mt-5 text-center text-base font-black text-emerald-700">Good to go</p>
-                <p className="mt-2 text-center text-sm leading-6 text-slate-600">
+                <p className="mt-4 text-center text-base font-black text-emerald-700">Good to go</p>
+                <p className="mt-2 text-center text-sm leading-5 text-slate-600">
                   Your body is ready for a challenging workout.
                 </p>
               </div>
 
-              <div className="grid gap-4">
-                <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_16px_42px_rgba(15,23,42,0.06)]">
+              <div className="grid gap-3">
+                <div className="rounded-[22px] border border-slate-200 bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
                   <p className="text-sm font-black text-slate-900">This week</p>
                   <div className="mt-4 grid grid-cols-[0.8fr_1.2fr] gap-4">
                     <div>
@@ -266,14 +269,14 @@ function ProductMockup() {
                   </div>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-2">
                   <MiniInfoCard title="Current phase" value="Strength Foundation" meta="Weeks 3-6 of 12" />
-                  <MiniInfoCard title="Next workout" value="Lower Body Strength" meta="45 min &middot; 8 exercises" action="Start workout" />
+                  <MiniInfoCard title="Next workout" value="Lower Body Strength" meta="45 min - 8 exercises" action="Start workout" />
                 </div>
               </div>
             </div>
 
-            <div className="mt-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_16px_42px_rgba(15,23,42,0.06)]">
+            <div className="mt-3 rounded-[22px] border border-slate-200 bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
               <p className="text-sm font-black text-slate-900">Check-in</p>
               <p className="mt-3 text-sm font-bold text-slate-600">How are you feeling?</p>
               <div className="mt-4 grid grid-cols-5 gap-2 text-center text-2xl">
@@ -302,8 +305,8 @@ function ProductMockup() {
 
 function MobilePlanPreview() {
   return (
-    <div className="relative mx-auto -mt-8 w-[min(88%,340px)] rounded-[34px] border border-slate-900 bg-[#081321] p-3 shadow-[0_26px_70px_rgba(15,23,42,0.28)] sm:absolute sm:-bottom-10 sm:left-10 sm:mt-0 sm:w-[310px]">
-      <div className="rounded-[28px] border border-white/10 bg-[#0b1624] p-5 text-white">
+    <div className="relative mx-auto mt-4 w-full max-w-[330px] rounded-[32px] border border-slate-900 bg-[#081321] p-2.5 shadow-[0_22px_60px_rgba(15,23,42,0.24)] lg:absolute lg:-bottom-5 lg:left-8 lg:mt-0 lg:w-[280px]">
+      <div className="rounded-[26px] border border-white/10 bg-[#0b1624] p-4 text-white">
         <div className="flex items-center justify-between text-xs font-bold text-white/70">
           <span>9:41</span>
           <span>Week 3</span>
@@ -328,10 +331,10 @@ function MobilePlanPreview() {
             <div className="h-full w-[40%] rounded-full bg-emerald-500" />
           </div>
         </div>
-        <div className="mt-4 space-y-3">
+        <div className="mt-4 space-y-2">
           {["Lower Body Strength", "Upper Body Strength", "Active Recovery"].map((workout, index) => (
-            <div key={workout} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-400/70 to-blue-500/60" />
+            <div key={workout} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-2.5">
+              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-emerald-400/70 to-blue-500/60" />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-black">{workout}</p>
                 <p className="text-xs font-bold text-white/55">45 min</p>
@@ -357,7 +360,7 @@ function MiniInfoCard({
   action?: string;
 }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-[0_16px_42px_rgba(15,23,42,0.06)]">
+    <div className="rounded-[22px] border border-slate-200 bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
       <p className="text-sm font-black text-slate-900">{title}</p>
       <p className="mt-3 text-sm font-black text-slate-950">{value}</p>
       <p className="mt-1 text-xs font-bold text-slate-500">{meta}</p>
@@ -375,7 +378,7 @@ function MiniInfoCard({
 
 function MiniBars() {
   return (
-    <div className="flex h-28 items-end justify-between gap-2 border-l border-b border-slate-100 px-3 pb-2">
+    <div className="flex h-24 items-end justify-between gap-2 border-b border-l border-slate-100 px-3 pb-2">
       {[52, 76, 36, 68, 24, 20, 28].map((height, index) => (
         <span
           key={index}
@@ -416,8 +419,8 @@ function StepCard({
   }[tone];
 
   return (
-    <div className="relative flex gap-5 rounded-3xl border border-slate-100 bg-white p-5 sm:p-6">
-      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-black ${toneClass}`}>
+    <div className="relative flex min-h-[180px] gap-5 rounded-[24px] border border-slate-100 bg-white p-5 shadow-[0_14px_36px_rgba(15,23,42,0.05)] sm:p-6">
+      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-black ${toneClass}`}>
         {number}
       </span>
       <div className="min-w-0">
@@ -431,9 +434,9 @@ function StepCard({
 
 function GoalCard({ title, description, icon, tone }: (typeof goalCards)[number]) {
   return (
-    <div className={`rounded-3xl border p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)] ${tone}`}>
-      <Icon name={icon} className="mx-auto h-14 w-14" />
-      <h3 className="mt-4 text-base font-black text-slate-950">{title}</h3>
+    <div className={`flex min-h-[210px] flex-col items-center justify-center rounded-[26px] border p-6 shadow-[0_18px_45px_rgba(15,23,42,0.07)] ${tone}`}>
+      <Icon name={icon} className="h-14 w-14" />
+      <h3 className="mt-5 text-base font-black text-slate-950">{title}</h3>
       <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
     </div>
   );
@@ -441,12 +444,16 @@ function GoalCard({ title, description, icon, tone }: (typeof goalCards)[number]
 
 function ReturningUserBanner({ signedIn }: { signedIn: boolean }) {
   return (
-    <section className="mx-auto max-w-[1180px] py-12 sm:py-16 lg:py-20">
-      <div className="grid gap-8 overflow-hidden rounded-[30px] bg-[#071426] p-6 text-white shadow-[0_30px_80px_rgba(15,23,42,0.2)] sm:p-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+    <section className="mx-auto max-w-[1180px] py-10 sm:py-14 lg:py-16">
+      <div className="grid gap-7 overflow-hidden rounded-[30px] bg-[#071426] p-6 text-white shadow-[0_30px_80px_rgba(15,23,42,0.2)] sm:p-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
         <div>
-          <p className="text-3xl font-black leading-tight sm:text-4xl">Returning user?</p>
+          <p className="text-3xl font-black leading-tight sm:text-4xl">
+            {signedIn ? "Welcome back" : "Returning user?"}
+          </p>
           <p className="mt-4 max-w-md text-lg leading-8 text-white/78">
-            Pick up where you left off and keep your momentum going.
+            {signedIn
+              ? "Continue your plan and keep your momentum going."
+              : "Sign in to continue your plan and pick up where you left off."}
           </p>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
             <Link
@@ -468,7 +475,7 @@ function ReturningUserBanner({ signedIn }: { signedIn: boolean }) {
             ) : null}
           </div>
         </div>
-        <div className="rounded-[26px] border border-white/10 bg-white/[0.04] p-4">
+        <div className="rounded-[26px] border border-white/10 bg-white/[0.04] p-4 sm:p-5">
           <p className="text-sm font-black text-white">Weekly progress</p>
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
             <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
@@ -516,21 +523,6 @@ function TrustItem({
         <p className="mt-1 text-sm leading-6 text-slate-600">{description}</p>
       </div>
     </div>
-  );
-}
-
-function LogoMark({ className = "h-7 w-7" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 48 48" className={className} fill="none" aria-hidden="true">
-      <path
-        d="M13 36L24 10L35 36"
-        stroke="currentColor"
-        strokeWidth="5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path d="M18 28H30" stroke="#2f80ed" strokeWidth="5" strokeLinecap="round" />
-    </svg>
   );
 }
 

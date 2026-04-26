@@ -4,39 +4,68 @@
 
 Current production follow-up work: complete locally.
 
-Slice 9C, Public Landing Route + Dashboard Route Split, is implemented locally, including a narrow pre-production follow-up patch. The route split is now implemented and patched.
+Slice 9D, Public Landing Page Implementation, is implemented locally with an immediate visual QA polish patch. Slice 9E, App Icon / PWA Asset Integration, is also implemented locally as part of the same polish pass.
 
 ## Current Slice
 
-Current next planned implementation slice: Slice 9D, Public Landing Page Implementation.
+Current next planned implementation slice: Slice 9F, Authenticated App Shell Redesign, unless landing QA finds another narrow visual-only issue.
 
-Slice 9D should focus on:
+Slice 9F should focus on:
 
-- expanding the new public landing scaffold into a more polished landing page
-- building on the 9B design-system primitives and the 9C public route boundary
-- keeping marketing content static and deterministic
-- preserving the authenticated app boundary and dashboard route split from 9C
+- redesigning the authenticated app shell around the selected visual system
+- preserving `/`, `/dashboard`, and protected-route behavior from 9C
+- preserving the existing plan, phase, workout, session, and progression behavior
+- avoiding dashboard or protected-route product redesign unless explicitly scoped
 
-The old narrow Slice 8 dashboard compacting follow-up remains superseded by the broader redesign program. The small 9C production follow-up patch restored the authenticated app shell/header/nav on app routes without starting 9D.
+The old narrow Slice 8 dashboard compacting follow-up remains superseded by the broader redesign program. The small 9C production follow-up patch restored the authenticated app shell/header/nav on app routes before 9D.
 
-Slice 9D should not become:
+Slice 9F should not become:
 
 - a route-split slice
 - a schema or RLS slice
 - an auth model rewrite
 - a progression-engine slice
 - an LLM/provider integration slice
-- a full authenticated app redesign
+- a dashboard/product redesign beyond the authenticated shell
 
 ## Current Implementation Goals
 
-- turn the public landing scaffold into a stronger marketing entry point
-- preserve the new `/` public and `/dashboard` authenticated boundary
-- keep public landing content free of authenticated Supabase data
-- improve signed-in public CTA behavior with auth-aware options such as `Continue your plan` or `Dashboard`
-- prepare the repo for later app icon integration and broader authenticated redesign slices
+- preserve the completed public landing and app icon work
+- keep `/` public and shell-free while `/dashboard` remains authenticated
+- move next into authenticated shell redesign only if the landing/icon polish is accepted
+- keep schema, RLS, progression, and LLM/provider behavior unchanged
 
-## Recently Completed Slice
+## Recently Completed Slices
+
+Slice 9D, Public Landing Page Implementation, is implemented locally.
+
+That slice delivered:
+
+- replaced the minimal public landing scaffold at `/` with a warm off-white landing page
+- added auth-aware public CTAs while keeping `/` shell-free
+- added deterministic coded product preview, how-it-works cards, goal cards, returning-user banner, and trust strip
+- completed an immediate visual QA polish pass to reduce hero scale, bound the preview, tighten section spacing, strengthen goals/step/trust cards, and preserve mobile behavior
+- kept marketing content static and deterministic
+
+Slice 9E, App Icon / PWA Asset Integration, is implemented locally.
+
+That slice delivered:
+
+- added production PNG, SVG, favicon, and Apple touch icon assets from the approved dark-navy / green-A / blue-dumbbell reference
+- updated app metadata and the PWA manifest to use the new icon files
+- updated shared logo rendering so public and authenticated headers use the approved icon direction
+
+These slices did not deliver:
+
+- authenticated app shell redesign
+- dashboard redesign
+- schema migrations
+- Supabase RLS changes
+- auth-model rewrites
+- LLM/provider integration
+- progression-engine changes
+
+## Previous Completed Slice
 
 Slice 9C, Public Landing Route + Dashboard Route Split, is implemented locally.
 
@@ -111,7 +140,7 @@ That slice did not deliver:
 - progression-engine rewrite
 - alternate/random workout support
 
-Deferred follow-up from completed Slice 7 QA should stay outside the active Slice 9D scope unless explicitly re-scoped:
+Deferred follow-up from completed Slice 7 QA should stay outside the active Slice 9F scope unless explicitly re-scoped:
 
 - broader `/plans/new` flow alignment and terminology cleanup
 - assigned-day / prompt-specificity polish
@@ -150,16 +179,16 @@ The app must remain fully functional without any LLM provider.
 
 ## Next Major Slice
 
-Slice 9D, Public Landing Page Implementation, is now the next planned major slice and is not started by this follow-up patch.
+Slice 9F, Authenticated App Shell Redesign, is now the docs-aligned next planned major slice if landing/icon QA is acceptable. If QA still finds significant public landing issues, do one final narrow 9D visual-only polish patch before starting 9F.
 
-Slice 9D should:
+Slice 9F should:
 
-- build out the public landing page on top of the new public `/` route
+- redesign the authenticated shell/header/navigation around the new icon and visual system
 - preserve the authenticated dashboard at `/dashboard`
-- keep landing-page preview content static and deterministic
-- improve public presentation without changing training/product behavior
+- preserve protected-route behavior for `/plans`, `/workout`, `/settings`, `/onboarding`, and related app routes
+- avoid changing dashboard data, progression logic, schema, RLS, or LLM/provider behavior
 
-Slice 9D should not:
+Slice 9F should not:
 
 - undo or revisit the route split itself unless a bug requires a narrow patch
 - change progression algorithms
@@ -178,6 +207,9 @@ Slice 9D should not:
 - `app/page.tsx`
 - `components/*`
 - `app/manifest.ts`
+- `public/icon-192.png`
+- `public/icon-512.png`
+- `public/apple-touch-icon.png`
 
 ## Constraints
 
@@ -188,7 +220,7 @@ Slice 9D should not:
 - Do not change progression behavior or the server-side progression engine.
 - Do not rename database tables, API routes, or compatibility fields such as `plan_phases`, `phase-action`, or `currentPhase`.
 - Do not weaken Supabase auth or RLS assumptions.
-- Keep deferred Slice 7 QA ideas out of active Slice 9D scope unless explicitly re-scoped.
+- Keep deferred Slice 7 QA ideas out of active Slice 9F scope unless explicitly re-scoped.
 - Keep the separation between direct detail edits and setup/regenerate clear.
 - Keep alternate/random workouts deferred future workout flexibility work.
 
@@ -203,4 +235,4 @@ Slice 9D should not:
 
 ## Maintenance Note
 
-After Slice 9D is complete, update this file so it points to the next active implementation slice.
+After Slice 9F is complete, update this file so it points to the next active implementation slice.

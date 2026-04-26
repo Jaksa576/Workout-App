@@ -50,7 +50,7 @@ The approved refactor direction is additive and migration-safe:
 
 The docs had previously been aligned on Slice 6 as dashboard/progression work. Product direction then intentionally shifted to prioritize UI Overhaul Phase 1 first, ahead of the previously planned dashboard slice.
 
-Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, Slice 7, and Slice 8 are in place locally. Slice 9A completed the docs/planning work that locked the redesign direction, Slice 9B completed the shared design-system foundation, and Slice 9C implemented the public/authenticated route split. A narrow pre-production 9C follow-up patch restored authenticated app shell/header/nav rendering on app routes. Slice 9D, Public Landing Page Implementation, remains the next planned slice and has not started yet. The deferred QA learnings from Slice 7 should remain outside Slice 9D scope unless explicitly re-scoped.
+Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, Slice 7, and Slice 8 are in place locally. Slice 9A completed the docs/planning work that locked the redesign direction, Slice 9B completed the shared design-system foundation, and Slice 9C implemented the public/authenticated route split. A narrow pre-production 9C follow-up patch restored authenticated app shell/header/nav rendering on app routes. Slice 9D implemented and polished the public landing page, and Slice 9E integrated the approved app icon/PWA assets. Slice 9F, Authenticated App Shell Redesign, is the next planned slice unless QA calls for one final narrow 9D visual-only polish pass. The deferred QA learnings from Slice 7 should remain outside Slice 9F scope unless explicitly re-scoped.
 
 The previously considered narrow Slice 8 dashboard QA follow-up is superseded by the broader redesign program unless a blocking bug requires a tiny patch.
 
@@ -71,7 +71,7 @@ The previously considered narrow Slice 8 dashboard QA follow-up is superseded by
 
 ## Public Landing And Route Direction
 
-- `/` is now the public landing scaffold and will be expanded in Slice 9D.
+- `/` is now the public landing page and was polished in Slice 9D.
 - `/dashboard` is now the authenticated dashboard route.
 - `/plans`, `/plans/new`, `/plans/[planId]`, `/workout`, and `/settings` remain authenticated app routes.
 - Protected routes must continue to use the existing auth and `proxy.ts` boundary patterns.
@@ -85,7 +85,7 @@ The previously considered narrow Slice 8 dashboard QA follow-up is superseded by
 - green or teal geometric A mark
 - blue dumbbell as the A crossbar
 - no text in the icon
-- replace or add PWA and app icon assets in a later dedicated slice
+- Slice 9E has now added PWA and app icon assets from the approved reference image.
 
 ## Implementation Order
 
@@ -146,6 +146,10 @@ The previously considered narrow Slice 8 dashboard QA follow-up is superseded by
 - The authenticated app shell now renders only on authenticated app routes, while `/` remains shell-free even for signed-in users.
 - Signed-in public CTA behavior is accepted for 9C. Improve that UX in 9D with auth-aware public CTAs such as `Continue your plan` or `Dashboard`, not with auth-flow changes in this patch.
 - Slice 9C did not implement the full landing page, app icon integration, authenticated shell redesign, dashboard redesign, schema changes, RLS changes, auth-model rewrites, LLM/provider integration, or progression-engine changes.
+- Slice 9D replaced the minimal public landing scaffold with a warm off-white public landing page, auth-aware public CTAs, deterministic product mockups, how-it-works cards, goals cards, a returning-user banner, and a trust strip.
+- The immediate post-9D polish patch tightened hero scale, product-preview bounds, section spacing, goals card treatment, icon sizing, returning-user banner copy/layout, trust strip layout, and header branding without changing route/auth behavior.
+- Slice 9E added high-quality app icon assets from the approved dark-navy rounded-square, green/teal A, and blue dumbbell reference; metadata and manifest now point at PNG/favicon/Apple touch assets.
+- Slice 9D/9E did not implement authenticated app shell redesign, dashboard redesign, schema changes, RLS changes, auth-model rewrites, LLM/provider integration, or progression-engine changes.
 
 ## Known local development risk
 
@@ -344,14 +348,13 @@ Verification after Slice 7:
 
 ## Next Major Slice
 
-Slice 9D, Public Landing Page Implementation, is now the docs-aligned next planned major slice. Do not revisit 9C unless QA finds a regression in the implemented route/app-shell boundary.
+Slice 9F, Authenticated App Shell Redesign, is now the docs-aligned next planned major slice if landing/icon QA is acceptable. Do not revisit 9C unless QA finds a regression in the implemented route/app-shell boundary, and do not start 9G/dashboard redesign until the shell slice is explicitly scoped.
 
 Intent:
 
-- build on the new public `/` route with a more polished landing page
-- keep public content static/deterministic and separate from authenticated user data
+- redesign the authenticated shell/header/navigation around the new visual system and icon
 - preserve the authenticated dashboard at `/dashboard` and the existing protected app boundary
-- keep schema changes, auth-model changes, app icon integration, and progression-engine changes out of this slice
+- keep schema changes, auth-model changes, dashboard redesign, and progression-engine changes out of this slice
 
 ## Slice 1 Completed Locally
 

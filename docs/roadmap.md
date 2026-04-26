@@ -201,21 +201,23 @@ Status: implemented locally.
 
 ## 9D. Public Landing Page Implementation
 
-Status: planned.
+Status: implemented locally, with immediate visual polish follow-up completed.
 
 - Implement a single public landing page outside the authenticated app.
 - Use warm white/off-white public surfaces, dark navy preview panels, green primary accent, blue secondary accent, and selective coral/orange/purple goal accents.
 - Keep the header simple with brand/logo, `Sign in`, `Get started`, and optionally `Demo` later.
 - Use static or deterministic marketing mock data rather than authenticated user data.
 - Improve signed-in landing CTA behavior with auth-aware options such as `Continue your plan` or `Dashboard` rather than reworking auth flow.
+- Follow-up polish tightened the hero scale, product-preview bounds, section rhythm, goals cards, step cards, returning-user banner, trust strip, and public header branding without changing route/auth behavior.
 
 ## 9E. App Icon / PWA Asset Integration
 
-Status: planned.
+Status: implemented locally.
 
 - Replace or add app icon and PWA assets based on the selected icon direction.
 - Target a dark navy rounded-square icon with a green/teal geometric A and blue dumbbell crossbar.
 - Keep the icon text-free and ready for PWA/app-store style usage.
+- Added PNG, SVG, favicon, Apple touch, metadata, and manifest references based on the approved icon reference.
 
 ## 9F. Authenticated App Shell Redesign
 

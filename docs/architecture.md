@@ -50,6 +50,7 @@ Boundary rules:
 - Favor rounded cards, soft shadows, clean typography, and mobile-first responsive layout.
 - Reuse semantic tokens and shared primitives rather than introducing page-specific hardcoded colors.
 - Keep public landing page styling and authenticated-app redesign work aligned through shared foundations where practical.
+- App icon and PWA surfaces use the approved dark navy rounded-square icon with a green/teal geometric A and blue dumbbell crossbar. Metadata and manifest references should continue to point at the generated PNG/favicon/Apple touch assets in `public/` and `app/favicon.ico`.
 
 ### Current Domain Engine
 

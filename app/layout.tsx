@@ -9,8 +9,11 @@ export const metadata: Metadata = {
   description: "Structured plans that progress with you.",
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: "/icon-192.svg",
-    apple: "/icon-192.svg"
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon-192.png", type: "image/png", sizes: "192x192" }
+    ],
+    apple: "/apple-touch-icon.png"
   }
 };
 
