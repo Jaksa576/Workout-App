@@ -2,41 +2,64 @@
 
 ## Goal
 
-Current production follow-up work: complete locally through Slice 9F.
+Current production follow-up work: complete locally through Slice 9G.
 
-Slice 9D, Public Landing Page Implementation, is implemented locally with an immediate visual QA polish patch. Slice 9E, App Icon / PWA Asset Integration, is also implemented locally as part of the same polish pass. Slice 9F, Authenticated App Shell Redesign, is implemented locally.
+Slice 9D, Public Landing Page Implementation, is implemented locally with an immediate visual QA polish patch. Slice 9E, App Icon / PWA Asset Integration, is also implemented locally as part of the same polish pass. Slice 9F, Authenticated App Shell Redesign, is implemented locally. Slice 9G, Dashboard Redesign, is implemented locally.
 
 ## Current Slice
 
-Current next planned implementation slice: Slice 9G, Dashboard Redesign, after the Slice 9F post-slice review and pushed branch.
+Current next planned implementation slice: Slice 9H, Plans / Phase UX Redesign, after the Slice 9G post-slice review and pushed branch.
 
-Slice 9G should focus on:
+Slice 9H should focus on:
 
-- redesigning the authenticated dashboard around the selected visual system
-- making today's training guidance, current plan/phase, weekly progress, and progression-aware next actions easier to scan
+- redesigning the plans list, plan detail, and phase/workout hierarchy around the selected visual system
+- making active plan state, current phase, workouts under phases, and plan actions easier to understand
 - preserving `/`, `/dashboard`, and protected-route behavior from 9C
 - preserving the existing plan, phase, workout, session, and progression behavior
-- using real existing dashboard data rather than replacing authenticated data with static mock data
+- preserving saved-plan edit versus setup/regenerate boundaries
 
 The old narrow Slice 8 dashboard compacting follow-up remains superseded by the broader redesign program. The small 9C production follow-up patch restored the authenticated app shell/header/nav on app routes before 9D.
 
-Slice 9G should not become:
+Slice 9H should not become:
 
 - a route-split slice
 - a schema or RLS slice
 - an auth model rewrite
 - a progression-engine slice
 - an LLM/provider integration slice
-- a plan creation, plans/detail, or workout execution redesign
+- a plan builder rewrite or workout execution redesign
 
 ## Current Implementation Goals
 
 - preserve the completed public landing and app icon work
 - keep `/` public and shell-free while `/dashboard` remains authenticated
-- move next into dashboard redesign only after the Slice 9F branch is pushed and the post-slice review finds no blocker
+- move next into plans/phase UX redesign only after the Slice 9G branch is pushed and the post-slice review finds no blocker
 - keep schema, RLS, progression, and LLM/provider behavior unchanged
 
 ## Recently Completed Slices
+
+Slice 9G, Dashboard Redesign, is implemented locally.
+
+That slice delivered:
+
+- rebuilt `/dashboard` around a stronger today's-workout hero
+- made current phase progress and progression-aware next steps more visible
+- added a clearer 5-day weekly training rhythm card
+- refreshed recent activity, pain/symptom trend framing, metric cards, and current-plan snapshot
+- added a real no-active-plan/no-workout dashboard empty state that routes to plan creation or plan review
+- kept dashboard data sourced from `getDashboardData()` and existing progression helpers
+
+This slice did not deliver:
+
+- plans/detail redesign
+- workout execution redesign
+- plan creation/settings polish
+- route-boundary rewrites
+- schema migrations
+- Supabase RLS changes
+- auth-model rewrites
+- LLM/provider integration
+- progression-engine changes
 
 Slice 9F, Authenticated App Shell Redesign, is implemented locally.
 
@@ -165,7 +188,7 @@ That slice did not deliver:
 - progression-engine rewrite
 - alternate/random workout support
 
-Deferred follow-up from completed Slice 7 QA should stay outside the active Slice 9G scope unless explicitly re-scoped:
+Deferred follow-up from completed Slice 7 QA should stay outside the active Slice 9H scope unless explicitly re-scoped:
 
 - broader `/plans/new` flow alignment and terminology cleanup
 - assigned-day / prompt-specificity polish
@@ -204,18 +227,18 @@ The app must remain fully functional without any LLM provider.
 
 ## Next Major Slice
 
-Slice 9G, Dashboard Redesign, is now the docs-aligned next planned major slice after Slice 9F post-slice review.
+Slice 9H, Plans / Phase UX Redesign, is now the docs-aligned next planned major slice after Slice 9G post-slice review.
 
-Slice 9G should:
+Slice 9H should:
 
-- redesign the authenticated dashboard within the new app shell and visual system
-- preserve the current dashboard's active-plan, active-phase, and server-side progression source-of-truth rules
-- keep explicit user-confirmed phase movement intact
+- redesign plans, plan detail, and phase/workout hierarchy surfaces under the new visual system
+- preserve the current plan, phase, workout, save-path, and history-snapshot engine
+- keep direct detail editing and setup/regenerate boundaries clear
 - preserve the authenticated dashboard at `/dashboard`
 - preserve protected-route behavior for `/plans`, `/workout`, `/settings`, `/onboarding`, and related app routes
 - avoid changing progression logic, schema, RLS, auth, or LLM/provider behavior
 
-Slice 9G should not:
+Slice 9H should not:
 
 - undo or revisit the route split itself unless a bug requires a narrow patch
 - change progression algorithms
@@ -231,14 +254,10 @@ Slice 9G should not:
 - `docs/roadmap.md`
 - `docs/architecture.md`
 - `AGENTS.md`
-- `app/page.tsx`
-- `app/dashboard/page.tsx`
-- dashboard-specific helpers/components
+- `app/plans/page.tsx`
+- `app/plans/[planId]/page.tsx`
+- plan detail and phase/workout display components
 - shared display/card primitives if needed
-- `app/manifest.ts`
-- `public/icon-192.png`
-- `public/icon-512.png`
-- `public/apple-touch-icon.png`
 
 ## Constraints
 
@@ -249,13 +268,12 @@ Slice 9G should not:
 - Do not change progression behavior or the server-side progression engine.
 - Do not rename database tables, API routes, or compatibility fields such as `plan_phases`, `phase-action`, or `currentPhase`.
 - Do not weaken Supabase auth or RLS assumptions.
-- Keep deferred Slice 7 QA ideas out of active Slice 9G scope unless explicitly re-scoped.
+- Keep deferred Slice 7 QA ideas out of active Slice 9H scope unless explicitly re-scoped.
 - Keep the separation between direct detail edits and setup/regenerate clear.
 - Keep alternate/random workouts deferred future workout flexibility work.
 
 ## Non-Goals
 
-- No plans/detail redesign yet.
 - No workout execution redesign yet.
 - No plan creation/settings polish yet.
 - No schema or RLS changes.
@@ -266,4 +284,4 @@ Slice 9G should not:
 
 ## Maintenance Note
 
-After Slice 9G is complete, update this file so it points to the next active implementation slice.
+After Slice 9H is complete, update this file so it points to the next active implementation slice.

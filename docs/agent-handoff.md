@@ -50,7 +50,7 @@ The approved refactor direction is additive and migration-safe:
 
 The docs had previously been aligned on Slice 6 as dashboard/progression work. Product direction then intentionally shifted to prioritize UI Overhaul Phase 1 first, ahead of the previously planned dashboard slice.
 
-Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, Slice 7, and Slice 8 are in place locally. Slice 9A completed the docs/planning work that locked the redesign direction, Slice 9B completed the shared design-system foundation, and Slice 9C implemented the public/authenticated route split. A narrow pre-production 9C follow-up patch restored authenticated app shell/header/nav rendering on app routes. Slice 9D implemented and polished the public landing page, Slice 9E integrated the approved app icon/PWA assets, and Slice 9F redesigned the authenticated app shell. Slice 9G, Dashboard Redesign, is the next planned slice after the 9F post-slice review and pushed branch. The deferred QA learnings from Slice 7 should remain outside Slice 9G scope unless explicitly re-scoped.
+Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, Slice 7, and Slice 8 are in place locally. Slice 9A completed the docs/planning work that locked the redesign direction, Slice 9B completed the shared design-system foundation, and Slice 9C implemented the public/authenticated route split. A narrow pre-production 9C follow-up patch restored authenticated app shell/header/nav rendering on app routes. Slice 9D implemented and polished the public landing page, Slice 9E integrated the approved app icon/PWA assets, Slice 9F redesigned the authenticated app shell, and Slice 9G redesigned the authenticated dashboard. Slice 9H, Plans / Phase UX Redesign, is the next planned slice after the 9G post-slice review and pushed branch. The deferred QA learnings from Slice 7 should remain outside Slice 9H scope unless explicitly re-scoped.
 
 The previously considered narrow Slice 8 dashboard QA follow-up is superseded by the broader redesign program unless a blocking bug requires a tiny patch.
 
@@ -151,7 +151,9 @@ The previously considered narrow Slice 8 dashboard QA follow-up is superseded by
 - Slice 9E added high-quality app icon assets from the approved dark-navy rounded-square, green/teal A, and blue dumbbell reference; metadata and manifest now point at PNG/favicon/Apple touch assets.
 - Slice 9F replaced the authenticated top navigation card with a dark navy desktop rail, compact mobile header, fixed bottom mobile navigation, icon-backed active states, and shell-specific sign-out treatment.
 - Slice 9F kept shell visibility route-aware through `lib/app-route-boundary.ts` and did not change route protection, schema, RLS, auth behavior, progression logic, or LLM/provider behavior.
-- Slice 9D/9E/9F did not implement dashboard redesign, plans/detail redesign, workout execution redesign, plan creation/settings polish, schema changes, RLS changes, auth-model rewrites, LLM/provider integration, or progression-engine changes.
+- Slice 9G rebuilt `/dashboard` around today's workout, current phase progress, weekly rhythm, progression-aware next action, recent activity, and a current-plan snapshot.
+- Slice 9G added a real no-active-plan/no-workout dashboard empty state that routes to plan creation or plan review without replacing authenticated app data with static mock data.
+- Slice 9D/9E/9F/9G did not implement plans/detail redesign, workout execution redesign, plan creation/settings polish, schema changes, RLS changes, auth-model rewrites, LLM/provider integration, or progression-engine changes.
 
 ## Known local development risk
 
@@ -350,14 +352,49 @@ Verification after Slice 7:
 
 ## Next Major Slice
 
-Slice 9G, Dashboard Redesign, is now the docs-aligned next planned major slice after the Slice 9F post-slice review and pushed branch. Do not revisit 9C unless QA finds a regression in the implemented route/app-shell boundary.
+Slice 9H, Plans / Phase UX Redesign, is now the docs-aligned next planned major slice after the Slice 9G post-slice review and pushed branch. Do not revisit 9C unless QA finds a regression in the implemented route/app-shell boundary.
 
 Intent:
 
-- redesign the authenticated dashboard within the new shell and visual system
-- make today's training guidance, active plan/phase, weekly progress, and progression-aware next actions easier to scan
+- redesign the plans list, plan detail, and phase/workout hierarchy under the new shell and visual system
+- make active plan state, current phase, workouts under phases, and plan actions easier to understand
 - preserve the authenticated dashboard at `/dashboard` and the existing protected app boundary
-- keep schema changes, auth-model changes, plan-domain rewrites, workout execution redesign, and progression-engine changes out of this slice
+- keep schema changes, auth-model changes, saved-plan contract rewrites, workout execution redesign, and progression-engine changes out of this slice
+
+## Slice 9G Completed Locally
+
+Slice 9G redesigned the authenticated dashboard while preserving the existing dashboard data and progression source of truth:
+
+- rebuilt `/dashboard` around a dark today's-workout hero with real workout, phase, readiness, and workload details
+- made current phase progress and progression-aware next action more prominent
+- refreshed the 5-day weekly training rhythm, recent activity, pain/symptom trend, and metric presentation
+- added a current-plan snapshot with real schedule, phase count, and today-workout exercises
+- added a no-active-plan/no-workout empty state that routes users to plan creation or plan review
+- left data loading, auth/proxy behavior, schema/RLS files, API routes, and progression logic unchanged
+
+Verification for Slice 9G:
+
+- `.next` cleanup was attempted before verification.
+- `npm run typecheck` passed.
+- `npm run test` passed: 8 files, 48 tests.
+- `npm run build` passed and confirmed `/`, `/dashboard`, `/plans`, `/plans/new`, `/workout`, and `/settings` remain in the route list.
+- `next-env.d.ts` changed as a generated build artifact and was restored before commit.
+
+Manual QA still recommended after Slice 9G:
+
+- signed-out `/`
+- signed-in `/`
+- signed-out `/dashboard`
+- signed-in `/dashboard`
+- active-plan dashboard state
+- no-active-plan dashboard empty state
+- `/plans`
+- `/plans/new`
+- `/workout`
+- `/settings`
+- mobile viewport
+- dark mode
+- light mode
 
 ## Slice 9F Completed Locally
 
@@ -691,9 +728,9 @@ Remaining recovery work:
 
 ## Next Best Step
 
-Slice 9G, Dashboard Redesign, is the next campaign slice after the Slice 9F post-slice review and pushed branch.
+Slice 9H, Plans / Phase UX Redesign, is the next campaign slice after the Slice 9G post-slice review and pushed branch.
 
-It should build on the new authenticated shell and visual foundation while making dashboard copy, hierarchy, current plan/phase visibility, weekly progress, and progression-aware next-step prompts more specific. It must use existing authenticated dashboard data and must not change the core progression engine.
+It should build on the new authenticated shell and dashboard visual foundation while making plans list, active plan state, plan detail, current phase, phase cards, and workouts under phases easier to scan. It must preserve the existing plan save/edit/setup boundaries and must not change the core progression engine.
 
 If needed, a small Slice 5B1 follow-up patch is still available for profile/settings field-level validation messaging:
 

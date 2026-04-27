@@ -232,11 +232,14 @@ Status: implemented locally.
 
 ## 9G. Dashboard Redesign
 
-Status: planned.
+Status: implemented locally.
 
 - Redesign the authenticated dashboard within the new app shell and visual system.
 - Preserve the current dashboard’s active-plan, active-phase, and server-side progression source-of-truth rules.
 - Keep explicit user-confirmed phase movement intact.
+- Rebuilt the dashboard hierarchy around today's workout, current phase progress, weekly rhythm, progression-aware next action, recent activity, and a current-plan snapshot.
+- Added a real no-active-plan/no-workout empty state that routes users to plan creation or plan review without replacing authenticated data with static mock data.
+- No schema change, RLS change, auth behavior change, route-boundary rewrite, progression-engine change, or LLM/provider integration happened in this slice.
 
 ## 9H. Plans / Phase UX Redesign
 
