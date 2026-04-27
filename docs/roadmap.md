@@ -254,11 +254,14 @@ Status: implemented locally.
 
 ## 9I. Workout Execution UX Redesign
 
-Status: planned.
+Status: implemented locally.
 
 - Improve in-session workout usability, logging flow, and check-in feedback.
 - Keep workout history snapshots readable after plan edits.
 - Avoid changing progression algorithms in this slice unless a narrow display change requires it.
+- Refreshed the workout execution surface, exercise checklist, rest timer, check-in controls, recent logs, and saved-session feedback around the new visual system.
+- Preserved the existing `/api/sessions` save path, workout/session payload shape, local checklist behavior, and server-side progression result display.
+- No schema change, RLS change, auth behavior change, route-boundary rewrite, workout-domain model rewrite, progression-engine change, or LLM/provider integration happened in this slice.
 
 ## 9J. Plan Creation / Settings Polish
 

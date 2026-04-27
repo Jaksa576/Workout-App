@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SectionCard } from "@/components/section-card";
 import { ProductPreviewCard } from "@/components/product-preview-card";
+import { SurfaceCard } from "@/components/surface-card";
 
 export function TimerCard() {
   const [secondsLeft, setSecondsLeft] = useState(90);
@@ -24,13 +24,15 @@ export function TimerCard() {
   const seconds = String(secondsLeft % 60).padStart(2, "0");
 
   return (
-    <SectionCard
-      title="Rest timer"
-      eyebrow="Built in"
-      description="Time your rest without leaving the workout."
-    >
+    <SurfaceCard className="h-full">
+      <p className="ui-eyebrow">Built in</p>
+      <h2 className="mt-2 text-2xl font-black leading-tight text-copy">Rest timer</h2>
+      <p className="mt-3 text-sm leading-6 text-muted">
+        Time your rest without leaving the workout.
+      </p>
+      <div className="mt-5">
       <ProductPreviewCard eyebrow="Default rest" title="Focused workout timing">
-        <p className="font-display text-6xl text-text-inverse">
+        <p className="text-6xl font-black text-text-inverse">
           {minutes}:{seconds}
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
@@ -51,6 +53,7 @@ export function TimerCard() {
           </button>
         </div>
       </ProductPreviewCard>
-    </SectionCard>
+      </div>
+    </SurfaceCard>
   );
 }

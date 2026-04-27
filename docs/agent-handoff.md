@@ -50,7 +50,7 @@ The approved refactor direction is additive and migration-safe:
 
 The docs had previously been aligned on Slice 6 as dashboard/progression work. Product direction then intentionally shifted to prioritize UI Overhaul Phase 1 first, ahead of the previously planned dashboard slice.
 
-Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, Slice 7, and Slice 8 are in place locally. Slice 9A completed the docs/planning work that locked the redesign direction, Slice 9B completed the shared design-system foundation, and Slice 9C implemented the public/authenticated route split. A narrow pre-production 9C follow-up patch restored authenticated app shell/header/nav rendering on app routes. Slice 9D implemented and polished the public landing page, Slice 9E integrated the approved app icon/PWA assets, Slice 9F redesigned the authenticated app shell, Slice 9G redesigned the authenticated dashboard, and Slice 9H redesigned plans/phase UX. Slice 9I, Workout Execution UX Redesign, is the next planned slice after the 9H post-slice review and pushed branch. The deferred QA learnings from Slice 7 should remain outside Slice 9I scope unless explicitly re-scoped.
+Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, Slice 7, and Slice 8 are in place locally. Slice 9A completed the docs/planning work that locked the redesign direction, Slice 9B completed the shared design-system foundation, and Slice 9C implemented the public/authenticated route split. A narrow pre-production 9C follow-up patch restored authenticated app shell/header/nav rendering on app routes. Slice 9D implemented and polished the public landing page, Slice 9E integrated the approved app icon/PWA assets, Slice 9F redesigned the authenticated app shell, Slice 9G redesigned the authenticated dashboard, Slice 9H redesigned plans/phase UX, and Slice 9I redesigned workout execution UX. Slice 9J, Plan Creation / Settings Polish, is the next planned slice after the 9I post-slice review and pushed branch. Deferred Slice 7 plan creation QA learnings may be considered only if they fit the approved 9J polish scope without introducing provider-backed AI or a plan-builder rewrite.
 
 The previously considered narrow Slice 8 dashboard QA follow-up is superseded by the broader redesign program unless a blocking bug requires a tiny patch.
 
@@ -155,7 +155,8 @@ The previously considered narrow Slice 8 dashboard QA follow-up is superseded by
 - Slice 9G added a real no-active-plan/no-workout dashboard empty state that routes to plan creation or plan review without replacing authenticated app data with static mock data.
 - Slice 9H rebuilt `/plans`, saved plan detail, and phase cards around active-plan visibility, current phase clarity, workouts under phases, and discoverable plan actions.
 - Slice 9H preserved plan activation, direct detail editing, archive action, video-link editing, phase progress display, saved-plan contracts, and setup/regenerate boundaries.
-- Slice 9D/9E/9F/9G/9H did not implement workout execution redesign, plan creation/settings polish, schema changes, RLS changes, auth-model rewrites, LLM/provider integration, or progression-engine changes.
+- Slice 9I refreshed workout execution, exercise checklist cards, rest timer, check-in controls, recent logs, and saved-session feedback while preserving session save behavior and server-side progression results.
+- Slice 9D/9E/9F/9G/9H/9I did not implement plan creation/settings polish, schema changes, RLS changes, auth-model rewrites, LLM/provider integration, or progression-engine changes.
 
 ## Known local development risk
 
@@ -354,14 +355,50 @@ Verification after Slice 7:
 
 ## Next Major Slice
 
-Slice 9I, Workout Execution UX Redesign, is now the docs-aligned next planned major slice after the Slice 9H post-slice review and pushed branch. Do not revisit 9C unless QA finds a regression in the implemented route/app-shell boundary.
+Slice 9J, Plan Creation / Settings Polish, is now the docs-aligned next planned major slice after the Slice 9I post-slice review and pushed branch. Do not revisit 9C unless QA finds a regression in the implemented route/app-shell boundary.
 
 Intent:
 
-- redesign the in-workout experience under the new shell and visual system
-- make exercise order, mobile logging, save/finish behavior, and post-save feedback easier to use
+- polish plan creation and settings under the new shell and visual system
+- make `/plans/new`, setup/review presentation, settings/profile forms, and theme controls visually consistent
 - preserve the authenticated dashboard at `/dashboard` and the existing protected app boundary
-- keep schema changes, auth-model changes, workout-domain model rewrites, new exercise-catalog work, and progression-engine changes out of this slice
+- keep schema changes, auth-model changes, provider-backed AI, onboarding rewrites, new settings data models, and progression-engine changes out of this slice
+
+## Slice 9I Completed Locally
+
+Slice 9I redesigned workout execution while preserving the existing session engine:
+
+- refreshed `WorkoutFlow` with a dark workout hero, clearer recommended-workout selector, semantic-token cards, check-in controls, suggested next-step display, recent logs, saved-session feedback, and progression links
+- redesigned `WorkoutChecklist` exercise cards with stronger numbering, larger tap targets, completion summary, and clearer coaching/rest/demo details
+- refreshed `TimerCard` to align with the new authenticated visual system
+- preserved local checklist storage, selected-workout routing, `/api/sessions` payloads, save behavior, session history merge behavior, and server-side progression result display
+- left data loading, auth/proxy behavior, schema/RLS files, API routes, workout-domain models, and progression logic unchanged
+
+Verification for Slice 9I:
+
+- `.next` cleanup was attempted before verification.
+- `npm run typecheck` passed.
+- `npm run test` passed: 8 files, 48 tests.
+- `npm run build` passed and confirmed `/`, `/dashboard`, `/plans`, `/plans/new`, `/workout`, and `/settings` remain in the route list.
+- `next-env.d.ts` changed as a generated build artifact and was restored before commit.
+
+Manual QA still recommended after Slice 9I:
+
+- signed-out `/`
+- signed-in `/`
+- signed-out `/dashboard`
+- signed-in `/dashboard`
+- `/workout` default recommended workout
+- alternate workout selection
+- exercise checklist persistence
+- finish workout -> check-in flow
+- save workout and post-save feedback
+- phase-ready progression CTA when applicable
+- recent logs
+- rest timer
+- mobile viewport
+- dark mode
+- light mode
 
 ## Slice 9H Completed Locally
 
@@ -765,9 +802,9 @@ Remaining recovery work:
 
 ## Next Best Step
 
-Slice 9I, Workout Execution UX Redesign, is the next campaign slice after the Slice 9H post-slice review and pushed branch.
+Slice 9J, Plan Creation / Settings Polish, is the next campaign slice after the Slice 9I post-slice review and pushed branch.
 
-It should build on the new authenticated shell, dashboard, and plans visual foundation while making workout execution, exercise logging, completion, and post-save feedback easier to use. It must preserve existing session save behavior and must not change the core progression engine.
+It should build on the new authenticated shell, dashboard, plans, and workout visual foundation while polishing `/plans/new`, plan setup/review presentation, settings/profile forms, and theme controls. It must preserve provider-free operation, review-before-save plan creation, existing settings/profile behavior, and the core progression engine.
 
 If needed, a small Slice 5B1 follow-up patch is still available for profile/settings field-level validation messaging:
 
@@ -904,10 +941,12 @@ Most recent post-5B3 cleanup patch verification:
 - `npm run typecheck` passed.
 - `npm run build` passed.
 
-Most recent UI Overhaul Phase 1 verification:
+Most recent Slice 9I verification:
 
 - `npm run typecheck` passed.
-- `npm run build` passed.
+- `npm run test` passed: 8 files, 48 tests.
+- `npm run build` passed and confirmed `/`, `/dashboard`, `/plans`, `/plans/new`, `/workout`, and `/settings` remain in the route list.
+- `next-env.d.ts` changed as a generated build artifact and was restored before commit.
 
 Manual browser verification still needed:
 
