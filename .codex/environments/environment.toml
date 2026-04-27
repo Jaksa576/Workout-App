@@ -5,17 +5,16 @@ name = "Workout-App"
 [setup]
 script = ""
 
-[setup.linux]
+[setup.win32]
 script = '''
-export NVM_DIR="$HOME/.nvm"
-if [ -s "$NVM_DIR/nvm.sh" ]; then
-  . "$NVM_DIR/nvm.sh"
-fi
-
 node -v
 npm -v
 git --version
 gh --version
+
+if (-not (Test-Path ".env.local")) { throw ".env.local missing" }
+if (-not (Select-String -Path ".env.local" -Pattern '^NEXT_PUBLIC_SUPABASE_URL=' -Quiet)) { throw "NEXT_PUBLIC_SUPABASE_URL missing from .env.local" }
+if (-not (Select-String -Path ".env.local" -Pattern '^NEXT_PUBLIC_SUPABASE_ANON_KEY=' -Quiet)) { throw "NEXT_PUBLIC_SUPABASE_ANON_KEY missing from .env.local" }
 
 npm install
 '''
