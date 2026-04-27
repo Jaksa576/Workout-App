@@ -279,7 +279,8 @@ export function PlanSetupWizard({
     <div className="space-y-6">
       <div className="surface-panel flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-sm font-semibold text-copy">Guided setup</p>
+          <p className="ui-eyebrow">Current path</p>
+          <p className="mt-2 text-lg font-semibold text-copy">Guided setup</p>
           <p className="mt-1 text-sm leading-6 text-muted">
             {isEditing
               ? "Update this plan's setup inputs, regenerate a draft, then review before saving."
@@ -304,6 +305,28 @@ export function PlanSetupWizard({
             </button>
           ) : null}
         </div>
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-3">
+        {[
+          {
+            title: "Setup",
+            body: "Pick the goal, schedule, focus areas, and constraints for this plan only."
+          },
+          {
+            title: "Draft",
+            body: "Generate a structured template draft without changing profile or auth state."
+          },
+          {
+            title: "Review",
+            body: "Edit the same plan form used by manual and imported drafts before saving."
+          }
+        ].map((item) => (
+          <div key={item.title} className="surface-panel">
+            <p className="text-sm font-semibold text-copy">{item.title}</p>
+            <p className="mt-2 text-sm leading-6 text-muted">{item.body}</p>
+          </div>
+        ))}
       </div>
 
       {setupContextNotices.length ? (
@@ -333,7 +356,14 @@ export function PlanSetupWizard({
         </div>
       ) : null}
 
-      <div className="surface-panel-muted grid grid-cols-2 gap-2 p-3 sm:flex sm:flex-wrap">
+      <div className="surface-panel-muted space-y-3 p-3">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
+            Step {stepIndex + 1} of {steps.length}
+          </p>
+          <p className="text-sm font-semibold text-copy">{step.label}</p>
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
         {steps.map((item, index) => (
           <button
             key={item.id}
@@ -352,6 +382,7 @@ export function PlanSetupWizard({
         <span className="rounded-full border border-border bg-surface px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-muted sm:px-4">
           5. Save
         </span>
+        </div>
       </div>
 
       {step.id === "goal" ? (
@@ -623,6 +654,7 @@ export function PlanSetupWizard({
       ) : null}
 
       {step.id !== "review" ? (
+        <div className="ui-mobile-actions">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:flex-wrap">
           <button
             type="button"
@@ -650,6 +682,7 @@ export function PlanSetupWizard({
             Continue
           </button>
         )}
+        </div>
         </div>
       ) : null}
     </div>

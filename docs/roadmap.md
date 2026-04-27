@@ -221,43 +221,59 @@ Status: implemented locally.
 
 ## 9F. Authenticated App Shell Redesign
 
-Status: planned.
+Status: implemented locally.
 
 - Redesign the authenticated shell around the new visual system while preserving auth, route protection, and current domain behavior.
 - Keep mobile-first layout and responsive behavior as the default implementation approach.
 - Do not turn this slice into a domain-model rewrite.
+- Added a dark navy desktop navigation rail, mobile header, thumb-friendly bottom navigation, icon-backed nav states, and shell-specific sign-out presentation.
+- Kept authenticated shell visibility route-aware through the existing route-boundary helper.
+- No schema change, RLS change, auth behavior change, route-boundary rewrite, progression-engine change, or LLM/provider integration happened in this slice.
 
 ## 9G. Dashboard Redesign
 
-Status: planned.
+Status: implemented locally.
 
 - Redesign the authenticated dashboard within the new app shell and visual system.
 - Preserve the current dashboard’s active-plan, active-phase, and server-side progression source-of-truth rules.
 - Keep explicit user-confirmed phase movement intact.
+- Rebuilt the dashboard hierarchy around today's workout, current phase progress, weekly rhythm, progression-aware next action, recent activity, and a current-plan snapshot.
+- Added a real no-active-plan/no-workout empty state that routes users to plan creation or plan review without replacing authenticated data with static mock data.
+- No schema change, RLS change, auth behavior change, route-boundary rewrite, progression-engine change, or LLM/provider integration happened in this slice.
 
 ## 9H. Plans / Phase UX Redesign
 
-Status: planned.
+Status: implemented locally.
 
 - Redesign plans, plan detail, and phase/workout hierarchy surfaces under the new visual system.
 - Preserve the current plan, phase, workout, save-path, and history-snapshot engine.
 - Keep direct detail editing and setup/regenerate boundaries clear.
+- Rebuilt the plans list around an active-plan spotlight, saved-plan archive cards, and clearer empty state.
+- Reworked saved plan detail and phase cards so current phase, progression rules, workouts, and exercise counts are easier to scan.
+- No schema change, RLS change, auth behavior change, route-boundary rewrite, saved-plan contract rewrite, progression-engine change, or LLM/provider integration happened in this slice.
 
 ## 9I. Workout Execution UX Redesign
 
-Status: planned.
+Status: implemented locally.
 
 - Improve in-session workout usability, logging flow, and check-in feedback.
 - Keep workout history snapshots readable after plan edits.
 - Avoid changing progression algorithms in this slice unless a narrow display change requires it.
+- Refreshed the workout execution surface, exercise checklist, rest timer, check-in controls, recent logs, and saved-session feedback around the new visual system.
+- Preserved the existing `/api/sessions` save path, workout/session payload shape, local checklist behavior, and server-side progression result display.
+- No schema change, RLS change, auth behavior change, route-boundary rewrite, workout-domain model rewrite, progression-engine change, or LLM/provider integration happened in this slice.
 
 ## 9J. Plan Creation / Settings Polish
 
-Status: planned.
+Status: implemented locally.
 
 - Polish `/plans/new`, profile/settings surfaces, and supporting copy after the larger redesign system is in place.
 - Preserve the existing plan drafting abstraction, compatible save paths, and durable-profile boundaries unless a scoped follow-up intentionally changes them.
 - Keep provider-backed LLM work out of scope.
+- Refreshed `/plans/new` with clearer creation-path framing, plan setup step context, and mobile-friendly actions.
+- Improved the shared plan review/builder surface with a compact summary strip and readable exercise fields on mobile.
+- Grouped profile/settings fields into durable-profile sections and replaced the theme dropdown with a segmented preference control.
+- No route-boundary rewrite, schema change, RLS change, auth behavior change, new settings data model, LLM/provider integration, or progression-engine change happened in this slice.
 
 ## 10. Exercise Media And Instruction Layer
 

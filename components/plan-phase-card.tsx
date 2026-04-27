@@ -1,6 +1,8 @@
+import clsx from "clsx";
+import { ProgressBadge } from "@/components/progress-badge";
+import { SurfaceCard } from "@/components/surface-card";
 import { formatPhaseLabel } from "@/lib/plan-labels";
 import type { PhaseProgressSummary, PlanPhase, WorkoutTemplate } from "@/lib/types";
-import { ProgressBadge } from "@/components/progress-badge";
 
 type PlanPhaseCardProps = {
   phase: PlanPhase;
@@ -19,89 +21,134 @@ export function PlanPhaseCard({
     (total, workout) => total + workout.exercises.length,
     0
   );
+  const progressPercent = progress?.completionPercent ?? 0;
 
   return (
-    <section className="surface-card-soft p-5 sm:p-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <ProgressBadge label={formatPhaseLabel(phase.phaseNumber)} tone="ink" />
-            <ProgressBadge label={isCurrent ? "Current phase" : "Saved phase"} tone={isCurrent ? "gold" : "green"} />
+    <SurfaceCard className={clsx(isCurrent && "border-primary/30 bg-primary/8")}>
+      <div className="grid gap-5 lg:grid-cols-[180px_minmax(0,1fr)]">
+        <div className="flex gap-4 lg:block">
+          <div
+            className={clsx(
+              "flex h-16 w-16 shrink-0 items-center justify-center rounded-[24px] text-2xl font-black",
+              isCurrent ? "bg-hero text-white" : "bg-surface-soft text-copy"
+            )}
+          >
+            {phase.phaseNumber}
           </div>
-          <h3 className="mt-4 text-xl font-semibold text-copy sm:text-2xl">{phase.goal}</h3>
-          <p className="mt-2 text-sm leading-6 text-muted">
-            {workouts.length} {workouts.length === 1 ? "workout" : "workouts"} and {exerciseTotal}{" "}
-            {exerciseTotal === 1 ? "exercise" : "exercises"} in this phase.
-          </p>
-        </div>
-        <div className="surface-panel-muted min-w-[13rem]">
-          <p className="ui-eyebrow">Structure</p>
-          <p className="mt-2 text-sm font-semibold text-copy">
-            {workouts.length} {workouts.length === 1 ? "workout" : "workouts"}
-          </p>
-          <p className="mt-1 text-sm leading-6 text-muted">
-            Weekly work stays readable here even after future plan edits.
-          </p>
-        </div>
-      </div>
-
-      {isCurrent && progress ? (
-        <div className="surface-panel mt-5">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="ui-eyebrow">Current progress</p>
-              <p className="mt-2 text-base font-semibold text-copy">{progress.recommendation}</p>
+          <div className="min-w-0 lg:mt-5">
+            <p className="ui-eyebrow">{formatPhaseLabel(phase.phaseNumber)}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <ProgressBadge
+                label={isCurrent ? "Current phase" : "Saved phase"}
+                tone={isCurrent ? "green" : "blue"}
+              />
             </div>
-            <p className="text-sm font-semibold text-copy">{progress.completionPercent}%</p>
           </div>
-          <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-shell-elevated">
-            <div
-              className="h-full rounded-full bg-accent"
-              style={{ width: `${progress.completionPercent}%` }}
-            />
-          </div>
-          <p className="mt-3 text-sm leading-6 text-muted">
-            {progress.cleanSessions} of {progress.requiredCleanSessions} clean sessions and{" "}
-            {progress.painFlags} {progress.painFlags === 1 ? "pain flag" : "pain flags"}.
-          </p>
         </div>
-      ) : null}
 
-      <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-        <div className="surface-panel">
-          <p className="ui-eyebrow">Rules</p>
-          <div className="mt-3 space-y-3 text-sm leading-6 text-copy">
-            <p>
-              <span className="font-semibold">Advance:</span> {phase.advanceCriteria}
-            </p>
-            <p>
-              <span className="font-semibold">Deload:</span> {phase.deloadCriteria}
-            </p>
+        <div className="min-w-0">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+            <div className="min-w-0">
+              <h3 className="text-2xl font-black leading-tight text-copy">{phase.goal}</h3>
+              <p className="mt-3 text-sm leading-6 text-muted">
+                {workouts.length} {workouts.length === 1 ? "workout" : "workouts"} and{" "}
+                {exerciseTotal} {exerciseTotal === 1 ? "exercise" : "exercises"} in this phase.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:min-w-[18rem]">
+              <PhaseStat label="Workouts" value={String(workouts.length)} />
+              <PhaseStat label="Exercises" value={String(exerciseTotal)} />
+            </div>
           </div>
-        </div>
-        <div className="surface-panel">
-          <p className="ui-eyebrow">Workouts</p>
-          <div className="mt-3 space-y-3">
-            {workouts.map((workout) => (
-              <div
-                key={workout.id}
-                className="rounded-[18px] border border-border/70 bg-surface px-4 py-3"
-              >
-                <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <p className="font-semibold text-copy">{workout.name}</p>
-                    <p className="text-sm leading-6 text-muted">{workout.focus}</p>
-                  </div>
-                  <p className="text-sm font-semibold text-copy">
-                    {workout.exercises.length}{" "}
-                    {workout.exercises.length === 1 ? "exercise" : "exercises"}
+
+          {isCurrent && progress ? (
+            <div className="mt-5 rounded-[24px] border border-primary/25 bg-surface p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="ui-eyebrow">Progression signal</p>
+                  <p className="mt-2 text-sm font-semibold leading-6 text-copy">
+                    {progress.recommendation}
                   </p>
                 </div>
+                <span className="rounded-full bg-primary/12 px-3 py-1.5 text-xs font-bold text-primary">
+                  {progressPercent}%
+                </span>
               </div>
-            ))}
+              <div className="mt-4 h-3 overflow-hidden rounded-full bg-shell-elevated">
+                <div
+                  className="h-full rounded-full bg-primary"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+              <p className="mt-3 text-sm leading-6 text-muted">
+                {progress.cleanSessions} of {progress.requiredCleanSessions} clean sessions and{" "}
+                {progress.painFlags} {progress.painFlags === 1 ? "pain flag" : "pain flags"}.
+              </p>
+            </div>
+          ) : null}
+
+          <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)]">
+            <div className="rounded-[24px] border border-border bg-surface-soft p-4">
+              <p className="ui-eyebrow">Rules</p>
+              <div className="mt-4 grid gap-3">
+                <RuleCard label="Advance" value={phase.advanceCriteria} />
+                <RuleCard label="Deload" value={phase.deloadCriteria} />
+              </div>
+            </div>
+
+            <div className="rounded-[24px] border border-border bg-surface-soft p-4">
+              <div className="flex items-center justify-between gap-3">
+                <p className="ui-eyebrow">Workouts</p>
+                <span className="text-xs font-bold text-muted">
+                  {workouts.length} total
+                </span>
+              </div>
+              <div className="mt-4 grid gap-3">
+                {workouts.map((workout) => (
+                  <div
+                    key={workout.id}
+                    className="rounded-[20px] border border-border/70 bg-surface px-4 py-3"
+                  >
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0">
+                        <p className="font-black text-copy">{workout.name}</p>
+                        <p className="mt-1 text-sm leading-6 text-muted">{workout.focus}</p>
+                      </div>
+                      <span className="shrink-0 rounded-full bg-surface-soft px-3 py-1.5 text-xs font-bold text-muted">
+                        {workout.exercises.length}{" "}
+                        {workout.exercises.length === 1 ? "exercise" : "exercises"}
+                      </span>
+                    </div>
+                    {workout.scheduledDays.length > 0 ? (
+                      <p className="mt-3 text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+                        {workout.scheduledDays.join(" / ")}
+                      </p>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </section>
+    </SurfaceCard>
+  );
+}
+
+function PhaseStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-border bg-surface-soft p-3">
+      <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">{label}</p>
+      <p className="mt-2 text-2xl font-black text-copy">{value}</p>
+    </div>
+  );
+}
+
+function RuleCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl bg-surface px-3 py-3">
+      <p className="text-xs font-bold uppercase tracking-[0.12em] text-muted">{label}</p>
+      <p className="mt-2 text-sm font-semibold leading-6 text-copy">{value}</p>
+    </div>
   );
 }

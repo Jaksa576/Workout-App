@@ -59,7 +59,7 @@ export function WorkoutChecklist({
 
   return (
     <div className="space-y-5">
-      <div className="surface-panel">
+      <div className="rounded-[24px] border border-border bg-surface-soft p-4">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-semibold text-copy">Completion</p>
@@ -73,37 +73,42 @@ export function WorkoutChecklist({
         </div>
       </div>
       <div className="space-y-3">
-        {workout.exercises.map((exercise) => {
+        {workout.exercises.map((exercise, index) => {
           const active = checked.includes(exercise.id);
           const checkboxId = `exercise-check-${exercise.id}`;
 
           return (
             <div
               key={exercise.id}
-              className="flex items-start gap-4 rounded-3xl border border-border/70 bg-surface-soft/85 p-4 transition hover:border-accent/35"
+              className="grid gap-4 rounded-[24px] border border-border/70 bg-surface p-4 transition hover:border-primary/40 sm:grid-cols-[auto_minmax(0,1fr)]"
             >
-              <input
-                id={checkboxId}
-                type="checkbox"
-                className="mt-1 h-5 w-5 accent-[#ff6a3d]"
-                checked={active}
-                onChange={() =>
-                  setNextChecked(
-                    active
-                      ? checked.filter((id) => id !== exercise.id)
-                      : [...checked, exercise.id]
-                  )
-                }
-              />
+              <div className="flex items-start gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-surface-soft text-sm font-black text-copy">
+                  {index + 1}
+                </span>
+                <input
+                  id={checkboxId}
+                  type="checkbox"
+                  className="mt-2 h-6 w-6 accent-[rgb(var(--color-primary))]"
+                  checked={active}
+                  onChange={() =>
+                    setNextChecked(
+                      active
+                        ? checked.filter((id) => id !== exercise.id)
+                        : [...checked, exercise.id]
+                    )
+                  }
+                />
+              </div>
               <div className="flex-1">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <label
                     htmlFor={checkboxId}
-                    className="cursor-pointer text-base font-semibold text-copy"
+                    className="cursor-pointer text-lg font-black leading-tight text-copy"
                   >
                     {exercise.name}
                   </label>
-                  <p className="text-xs uppercase tracking-[0.2em] text-muted">
+                  <p className="shrink-0 rounded-full bg-surface-soft px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-muted">
                     {exercise.sets} sets - {exercise.reps}
                   </p>
                 </div>
