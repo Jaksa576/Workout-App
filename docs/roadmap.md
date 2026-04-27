@@ -221,11 +221,14 @@ Status: implemented locally.
 
 ## 9F. Authenticated App Shell Redesign
 
-Status: planned.
+Status: implemented locally.
 
 - Redesign the authenticated shell around the new visual system while preserving auth, route protection, and current domain behavior.
 - Keep mobile-first layout and responsive behavior as the default implementation approach.
 - Do not turn this slice into a domain-model rewrite.
+- Added a dark navy desktop navigation rail, mobile header, thumb-friendly bottom navigation, icon-backed nav states, and shell-specific sign-out presentation.
+- Kept authenticated shell visibility route-aware through the existing route-boundary helper.
+- No schema change, RLS change, auth behavior change, route-boundary rewrite, progression-engine change, or LLM/provider integration happened in this slice.
 
 ## 9G. Dashboard Redesign
 

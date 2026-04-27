@@ -3,6 +3,8 @@ import clsx from "clsx";
 type AppLogoProps = {
   className?: string;
   iconClassName?: string;
+  textClassName?: string;
+  taglineClassName?: string;
   variant?: "default" | "mark" | "appIconReady";
   compact?: boolean;
   showTagline?: boolean;
@@ -11,6 +13,8 @@ type AppLogoProps = {
 export function AppLogo({
   className,
   iconClassName,
+  textClassName,
+  taglineClassName,
   variant = "default",
   compact = false,
   showTagline = true
@@ -37,21 +41,22 @@ export function AppLogo({
         />
       </span>
       {!markOnly ? (
-      <span>
-        <span
-          className={clsx(
-            "block font-black uppercase leading-none tracking-[0.12em] text-copy",
-            compact ? "text-sm sm:text-base" : "text-base sm:text-lg"
-          )}
-        >
-          Adaptive Training
-        </span>
-        {showTagline ? (
-          <span className="mt-1 block text-xs font-medium text-muted">
-            Structured plans that progress with you.
+        <span>
+          <span
+            className={clsx(
+              "block font-black uppercase leading-none tracking-[0.12em] text-copy",
+              compact ? "text-sm sm:text-base" : "text-base sm:text-lg",
+              textClassName
+            )}
+          >
+            Adaptive Training
           </span>
-        ) : null}
-      </span>
+          {showTagline ? (
+            <span className={clsx("mt-1 block text-xs font-medium text-muted", taglineClassName)}>
+              Structured plans that progress with you.
+            </span>
+          ) : null}
+        </span>
       ) : null}
     </span>
   );
