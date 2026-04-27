@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   isThemePreference,
   resolveAppliedTheme,
@@ -8,6 +8,8 @@ import {
   type AppliedTheme,
   type ThemePreference
 } from "@/lib/theme";
+
+const themeOptions: ThemePreference[] = ["system", "light", "dark"];
 
 function applyTheme(preference: ThemePreference) {
   const root = document.documentElement;
@@ -30,6 +32,7 @@ function applyTheme(preference: ThemePreference) {
 export function ThemeToggle() {
   const [preference, setPreference] = useState<ThemePreference>("system");
   const [appliedTheme, setAppliedTheme] = useState<AppliedTheme>("light");
+  const optionRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   useEffect(() => {
     const storedValue = window.localStorage.getItem(themeStorageKey);
@@ -65,27 +68,75 @@ export function ThemeToggle() {
     return preference === "dark" ? "Dark" : "Light";
   }, [appliedTheme, preference]);
 
+  function selectTheme(nextPreference: ThemePreference) {
+    setPreference(nextPreference);
+    setAppliedTheme(applyTheme(nextPreference));
+  }
+
+  function focusThemeOption(nextPreference: ThemePreference) {
+    const nextIndex = themeOptions.indexOf(nextPreference);
+    optionRefs.current[nextIndex]?.focus();
+  }
+
   return (
-    <label className="flex w-full items-center gap-2 rounded-full border border-border/80 bg-surface-soft/90 px-3 py-2 text-sm text-muted sm:w-auto">
-      <span className="sr-only">Theme</span>
-      <span aria-hidden="true" className="text-xs font-semibold uppercase tracking-[0.16em]">
-        Theme
-      </span>
-      <select
+    <div className="w-full space-y-2 sm:w-auto">
+      <div
+        role="radiogroup"
         aria-label="Theme"
-        value={preference}
-        onChange={(event) => {
-          const nextPreference = event.target.value as ThemePreference;
-          setPreference(nextPreference);
-          setAppliedTheme(applyTheme(nextPreference));
-        }}
-        className="theme-select min-w-0 flex-1 rounded-full border border-border/70 bg-surface px-3 py-2 text-sm font-semibold text-copy outline-none sm:flex-none"
+        className="grid w-full grid-cols-3 gap-2 rounded-[20px] border border-border/80 bg-surface-soft/90 p-2 sm:w-auto"
       >
-        <option value="system">System</option>
-        <option value="light">Light</option>
-        <option value="dark">Dark</option>
-      </select>
-      <span className="hidden text-xs text-muted sm:inline">{label}</span>
-    </label>
+        {themeOptions.map((option, index) => {
+          const active = preference === option;
+
+          return (
+            <button
+              key={option}
+              ref={(node) => {
+                optionRefs.current[index] = node;
+              }}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              tabIndex={active ? 0 : -1}
+              onClick={() => {
+                selectTheme(option);
+              }}
+              onKeyDown={(event) => {
+                const currentIndex = themeOptions.indexOf(preference);
+                const lastIndex = themeOptions.length - 1;
+                let nextIndex = currentIndex;
+
+                if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+                  nextIndex = currentIndex === lastIndex ? 0 : currentIndex + 1;
+                } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+                  nextIndex = currentIndex === 0 ? lastIndex : currentIndex - 1;
+                } else if (event.key === "Home") {
+                  nextIndex = 0;
+                } else if (event.key === "End") {
+                  nextIndex = lastIndex;
+                } else {
+                  return;
+                }
+
+                event.preventDefault();
+                const nextPreference = themeOptions[nextIndex];
+                selectTheme(nextPreference);
+                focusThemeOption(nextPreference);
+              }}
+              className={`rounded-full px-3 py-2 text-sm font-semibold capitalize transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary ${
+                active
+                  ? "bg-hero text-white shadow-sm"
+                  : "border border-border/70 bg-surface text-copy hover:border-secondary"
+              }`}
+            >
+              {option}
+            </button>
+          );
+        })}
+      </div>
+      <p className="text-xs leading-5 text-muted sm:text-right">
+        Active theme: <span className="font-semibold text-copy">{label}</span>
+      </p>
+    </div>
   );
 }

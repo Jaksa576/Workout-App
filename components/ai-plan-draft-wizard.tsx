@@ -72,7 +72,7 @@ const goalOptions: Array<{
   {
     value: "running",
     label: "Running",
-    helper: "Draft a running-supportive plan in the app’s current shape."
+    helper: "Draft a running-supportive plan in the app's current shape."
   },
   {
     value: "sport_performance",
@@ -175,7 +175,14 @@ export function AiPlanDraftWizard({
 
   return (
     <div className="space-y-6">
-      <div className="surface-panel-muted grid grid-cols-2 gap-2 p-3 sm:flex sm:flex-wrap">
+      <div className="surface-panel-muted space-y-3 p-3">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
+            Step {stepIndex + 1} of {steps.length}
+          </p>
+          <p className="text-sm font-semibold text-copy">{step.label}</p>
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
         {steps.map((item, index) => (
           <button
             key={item.id}
@@ -194,6 +201,7 @@ export function AiPlanDraftWizard({
         <span className="rounded-full border border-border bg-surface px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-muted sm:px-4">
           5. Save
         </span>
+        </div>
       </div>
 
       {step.id === "details" ? (
@@ -578,6 +586,7 @@ export function AiPlanDraftWizard({
       ) : null}
 
       {step.id !== "review" ? (
+        <div className="ui-mobile-actions">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:flex-wrap">
           <button
             type="button"
@@ -611,9 +620,10 @@ export function AiPlanDraftWizard({
               onClick={importDraft}
               className="ui-button-primary"
             >
-              Import to Review
-            </button>
-          ) : null}
+            Import to Review
+          </button>
+        ) : null}
+        </div>
         </div>
       ) : null}
     </div>

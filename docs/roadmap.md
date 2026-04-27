@@ -265,11 +265,15 @@ Status: implemented locally.
 
 ## 9J. Plan Creation / Settings Polish
 
-Status: planned.
+Status: implemented locally.
 
 - Polish `/plans/new`, profile/settings surfaces, and supporting copy after the larger redesign system is in place.
 - Preserve the existing plan drafting abstraction, compatible save paths, and durable-profile boundaries unless a scoped follow-up intentionally changes them.
 - Keep provider-backed LLM work out of scope.
+- Refreshed `/plans/new` with clearer creation-path framing, plan setup step context, and mobile-friendly actions.
+- Improved the shared plan review/builder surface with a compact summary strip and readable exercise fields on mobile.
+- Grouped profile/settings fields into durable-profile sections and replaced the theme dropdown with a segmented preference control.
+- No route-boundary rewrite, schema change, RLS change, auth behavior change, new settings data model, LLM/provider integration, or progression-engine change happened in this slice.
 
 ## 10. Exercise Media And Instruction Layer
 

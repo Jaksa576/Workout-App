@@ -50,7 +50,7 @@ The approved refactor direction is additive and migration-safe:
 
 The docs had previously been aligned on Slice 6 as dashboard/progression work. Product direction then intentionally shifted to prioritize UI Overhaul Phase 1 first, ahead of the previously planned dashboard slice.
 
-Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, Slice 7, and Slice 8 are in place locally. Slice 9A completed the docs/planning work that locked the redesign direction, Slice 9B completed the shared design-system foundation, and Slice 9C implemented the public/authenticated route split. A narrow pre-production 9C follow-up patch restored authenticated app shell/header/nav rendering on app routes. Slice 9D implemented and polished the public landing page, Slice 9E integrated the approved app icon/PWA assets, Slice 9F redesigned the authenticated app shell, Slice 9G redesigned the authenticated dashboard, Slice 9H redesigned plans/phase UX, and Slice 9I redesigned workout execution UX. Slice 9J, Plan Creation / Settings Polish, is the next planned slice after the 9I post-slice review and pushed branch. Deferred Slice 7 plan creation QA learnings may be considered only if they fit the approved 9J polish scope without introducing provider-backed AI or a plan-builder rewrite.
+Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, Slice 7, and Slice 8 are in place locally. Slice 9A completed the docs/planning work that locked the redesign direction, Slice 9B completed the shared design-system foundation, and Slice 9C implemented the public/authenticated route split. A narrow pre-production 9C follow-up patch restored authenticated app shell/header/nav rendering on app routes. Slice 9D implemented and polished the public landing page, Slice 9E integrated the approved app icon/PWA assets, Slice 9F redesigned the authenticated app shell, Slice 9G redesigned the authenticated dashboard, Slice 9H redesigned plans/phase UX, Slice 9I redesigned workout execution UX, and Slice 9J polished plan creation/settings UX. The approved Slice 9F through Slice 9J campaign has no further implementation slice after 9J. Deferred Slice 7 plan creation QA learnings that remain should become future scoped work rather than being pulled into this completed campaign.
 
 The previously considered narrow Slice 8 dashboard QA follow-up is superseded by the broader redesign program unless a blocking bug requires a tiny patch.
 
@@ -99,6 +99,8 @@ The previously considered narrow Slice 8 dashboard QA follow-up is superseded by
 8. `9H`: Plans / Phase UX Redesign
 9. `9I`: Workout Execution UX Redesign
 10. `9J`: Plan Creation / Settings Polish
+
+The Slice 9F through Slice 9J campaign is now complete locally through the final approved slice. No Slice 9K or follow-on implementation slice is authorized by the campaign brief.
 
 ## Current Status
 
@@ -156,7 +158,8 @@ The previously considered narrow Slice 8 dashboard QA follow-up is superseded by
 - Slice 9H rebuilt `/plans`, saved plan detail, and phase cards around active-plan visibility, current phase clarity, workouts under phases, and discoverable plan actions.
 - Slice 9H preserved plan activation, direct detail editing, archive action, video-link editing, phase progress display, saved-plan contracts, and setup/regenerate boundaries.
 - Slice 9I refreshed workout execution, exercise checklist cards, rest timer, check-in controls, recent logs, and saved-session feedback while preserving session save behavior and server-side progression results.
-- Slice 9D/9E/9F/9G/9H/9I did not implement plan creation/settings polish, schema changes, RLS changes, auth-model rewrites, LLM/provider integration, or progression-engine changes.
+- Slice 9J refreshed `/plans/new`, plan setup/review presentation, external-AI import ergonomics, settings/profile grouping, and theme preference readability while preserving existing save/profile/theme behavior.
+- Slice 9D/9E/9F/9G/9H/9I/9J did not implement schema changes, RLS changes, auth-model rewrites, LLM/provider integration, route-boundary rewrites, or progression-engine changes.
 
 ## Known local development risk
 
@@ -355,14 +358,42 @@ Verification after Slice 7:
 
 ## Next Major Slice
 
-Slice 9J, Plan Creation / Settings Polish, is now the docs-aligned next planned major slice after the Slice 9I post-slice review and pushed branch. Do not revisit 9C unless QA finds a regression in the implemented route/app-shell boundary.
+No next implementation slice is authorized in the approved Slice 9F through Slice 9J campaign. Do not revisit 9C unless QA finds a regression in the implemented route/app-shell boundary.
 
-Intent:
+Completed 9J intent:
 
 - polish plan creation and settings under the new shell and visual system
 - make `/plans/new`, setup/review presentation, settings/profile forms, and theme controls visually consistent
 - preserve the authenticated dashboard at `/dashboard` and the existing protected app boundary
-- keep schema changes, auth-model changes, provider-backed AI, onboarding rewrites, new settings data models, and progression-engine changes out of this slice
+- kept schema changes, auth-model changes, provider-backed AI, onboarding rewrites, new settings data models, and progression-engine changes out of this slice
+
+## Slice 9J Completed Locally
+
+Slice 9J polished plan creation and settings while preserving the existing plan/profile contracts:
+
+- refreshed `/plans/new` with a stronger creation hero and clearer guided/manual/external-AI path framing
+- improved `PlanSetupWizard` and `AiPlanDraftWizard` with explicit step context and sticky mobile action bars
+- improved `PlanBuilderForm` review/edit presentation with a compact plan summary and visible exercise-field labels on mobile
+- grouped `ProfileSettingsForm` into durable-profile sections for background, context, availability, and preferences
+- replaced the Settings theme dropdown with a segmented local theme preference control
+- preserved `/api/plan-drafts`, `/api/plans`, `/api/profile`, route protection, schema/RLS files, LLM/provider boundaries, and progression behavior
+
+Verification for Slice 9J:
+
+- `.next` cleanup was attempted before verification and completed.
+- `npm run typecheck` passed.
+- `npm run test` passed: 8 files, 48 tests.
+- `npm run build` passed and confirmed `/`, `/dashboard`, `/plans`, `/plans/new`, `/workout`, and `/settings` remain in the route list.
+- `next-env.d.ts` changed as a generated build artifact and was restored before commit.
+
+Manual QA still recommended after Slice 9J:
+
+- guided `/plans/new` setup -> draft -> review/edit -> save
+- manual `/plans/new?mode=manual` save
+- external-AI prompt copy, markdown import, review/edit, and save
+- `/settings` profile save and validation messaging
+- theme preference switching and persistence across refresh/navigation
+- mobile layout usability on `/plans/new`, the review builder, and `/settings`
 
 ## Slice 9I Completed Locally
 
@@ -802,9 +833,9 @@ Remaining recovery work:
 
 ## Next Best Step
 
-Slice 9J, Plan Creation / Settings Polish, is the next campaign slice after the Slice 9I post-slice review and pushed branch.
+The approved Slice 9F through Slice 9J campaign is complete locally through Slice 9J. The next best step is human review and manual QA before merge decisions for the pushed redesign branches.
 
-It should build on the new authenticated shell, dashboard, plans, and workout visual foundation while polishing `/plans/new`, plan setup/review presentation, settings/profile forms, and theme controls. It must preserve provider-free operation, review-before-save plan creation, existing settings/profile behavior, and the core progression engine.
+Manual QA should focus on authenticated plan creation and settings paths: guided `/plans/new` draft generation, manual `/plans/new?mode=manual`, external-AI prompt/import/review, generated plan edit/save, profile settings save, theme preference persistence, and mobile usability across `/plans/new` and `/settings`.
 
 If needed, a small Slice 5B1 follow-up patch is still available for profile/settings field-level validation messaging:
 
@@ -941,7 +972,7 @@ Most recent post-5B3 cleanup patch verification:
 - `npm run typecheck` passed.
 - `npm run build` passed.
 
-Most recent Slice 9I verification:
+Most recent Slice 9J verification:
 
 - `npm run typecheck` passed.
 - `npm run test` passed: 8 files, 48 tests.

@@ -2,15 +2,15 @@
 
 ## Goal
 
-Current production follow-up work: complete locally through Slice 9I.
+Current production follow-up work: complete locally through Slice 9J.
 
-Slice 9D, Public Landing Page Implementation, is implemented locally with an immediate visual QA polish patch. Slice 9E, App Icon / PWA Asset Integration, is also implemented locally as part of the same polish pass. Slice 9F, Authenticated App Shell Redesign, Slice 9G, Dashboard Redesign, Slice 9H, Plans / Phase UX Redesign, and Slice 9I, Workout Execution UX Redesign, are implemented locally.
+Slice 9D, Public Landing Page Implementation, is implemented locally with an immediate visual QA polish patch. Slice 9E, App Icon / PWA Asset Integration, is also implemented locally as part of the same polish pass. Slice 9F, Authenticated App Shell Redesign, Slice 9G, Dashboard Redesign, Slice 9H, Plans / Phase UX Redesign, Slice 9I, Workout Execution UX Redesign, and Slice 9J, Plan Creation / Settings Polish, are implemented locally.
 
 ## Current Slice
 
-Current next planned implementation slice: Slice 9J, Plan Creation / Settings Polish, after the Slice 9I post-slice review and pushed branch.
+Current campaign implementation status: Slice 9J, Plan Creation / Settings Polish, is implemented locally. There is no next implementation slice in the approved Slice 9F through Slice 9J campaign.
 
-Slice 9J should focus on:
+Slice 9J focused on:
 
 - polishing `/plans/new`, plan setup/review presentation, and settings/profile forms around the selected visual system
 - preserving the existing setup -> draft -> review/edit -> save contract
@@ -20,7 +20,7 @@ Slice 9J should focus on:
 
 The old narrow Slice 8 dashboard compacting follow-up remains superseded by the broader redesign program. The small 9C production follow-up patch restored the authenticated app shell/header/nav on app routes before 9D.
 
-Slice 9J should not become:
+Slice 9J did not become:
 
 - a route-split slice
 - a schema or RLS slice
@@ -33,10 +33,31 @@ Slice 9J should not become:
 
 - preserve the completed public landing and app icon work
 - keep `/` public and shell-free while `/dashboard` remains authenticated
-- move next into plan creation/settings polish only after the Slice 9I branch is pushed and the post-slice review finds no blocker
+- stop campaign implementation after Slice 9J
 - keep schema, RLS, progression, and LLM/provider behavior unchanged
 
 ## Recently Completed Slices
+
+Slice 9J, Plan Creation / Settings Polish, is implemented locally.
+
+That slice delivered:
+
+- refreshed `/plans/new` with a stronger creation hero and clearer guided/manual/external-AI path framing
+- improved plan setup and AI import step navigation with explicit step context and mobile-sticky actions
+- improved the shared plan review/builder presentation with a compact summary strip and mobile-readable exercise field labels
+- grouped settings/profile editing into clearer durable-profile sections
+- replaced the theme dropdown with a more legible segmented preference control
+- preserved the existing setup -> draft -> review/edit -> save contract, profile PATCH behavior, and local theme preference behavior
+
+This slice did not deliver:
+
+- route-boundary rewrites
+- schema migrations
+- Supabase RLS changes
+- auth-model rewrites
+- new settings data model
+- provider-backed AI or LLM integration
+- progression-engine changes
 
 Slice 9I, Workout Execution UX Redesign, is implemented locally.
 
@@ -269,9 +290,9 @@ The app must remain fully functional without any LLM provider.
 
 ## Next Major Slice
 
-Slice 9J, Plan Creation / Settings Polish, is now the docs-aligned next planned major slice after Slice 9I post-slice review.
+No next implementation slice is approved in the Slice 9F through Slice 9J campaign. The next decision should be a human review/merge decision for the completed redesign branches, plus any manual QA findings that should become future scoped work.
 
-Slice 9J should:
+The completed Slice 9J work:
 
 - polish `/plans/new`, plan setup/review presentation, and settings/profile surfaces under the new visual system
 - preserve existing manual/guided setup behavior, review-before-save drafts, settings/profile forms, and theme controls
@@ -326,4 +347,4 @@ Slice 9J should not:
 
 ## Maintenance Note
 
-After Slice 9J is complete, update this file so it records campaign completion and recommended next human decision.
+Slice 9J is complete locally. The next recommended human decision is whether to review and merge the pushed Slice 9F through Slice 9J branches, and which manual QA findings should become future scoped work.

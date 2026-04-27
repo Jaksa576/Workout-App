@@ -22,13 +22,13 @@ import type {
 
 type Step = "basics" | "schedule" | "phases" | "workouts" | "criteria" | "review";
 
-const steps: Array<{ id: Step; label: string }> = [
-  { id: "basics", label: "Basics" },
-  { id: "schedule", label: "Schedule" },
-  { id: "phases", label: "Phases" },
-  { id: "workouts", label: "Workouts" },
-  { id: "criteria", label: "Progression" },
-  { id: "review", label: "Review" }
+const steps: Array<{ id: Step; label: string; helper: string }> = [
+  { id: "basics", label: "Basics", helper: "Name the plan and set its intent." },
+  { id: "schedule", label: "Schedule", helper: "Choose the weekly rhythm." },
+  { id: "phases", label: "Phases", helper: "Shape the plan blocks." },
+  { id: "workouts", label: "Workouts", helper: "Edit workouts and exercise details." },
+  { id: "criteria", label: "Progression", helper: "Confirm phase advancement rules." },
+  { id: "review", label: "Review", helper: "Check the saved structure before submitting." }
 ];
 
 const weekdayOptions: Array<{ value: Weekday; label: string }> = [
@@ -297,7 +297,14 @@ export function PlanBuilderForm({
 
   return (
     <div className="space-y-6">
-      <div className="surface-panel-muted grid grid-cols-2 gap-2 p-3 sm:flex sm:flex-wrap">
+      <div className="surface-panel-muted space-y-3 p-3">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
+            Step {stepIndex + 1} of {steps.length}
+          </p>
+          <p className="text-sm leading-6 text-muted">{currentStep.helper}</p>
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
         {steps.map((step, index) => (
           <button
             key={step.id}
@@ -312,6 +319,30 @@ export function PlanBuilderForm({
             {index + 1}. {step.label}
           </button>
         ))}
+        </div>
+      </div>
+
+      <div className="surface-panel grid gap-3 text-sm leading-6 text-muted md:grid-cols-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">Plan</p>
+          <p className="mt-1 font-semibold text-copy">{name || "Untitled plan"}</p>
+        </div>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">Schedule</p>
+          <p className="mt-1 font-semibold text-copy">
+            {weeklySchedule.length ? weeklySchedule.join(", ") : "No days selected"}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">Phases</p>
+          <p className="mt-1 font-semibold text-copy">{phases.length}</p>
+        </div>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">Source</p>
+          <p className="mt-1 font-semibold capitalize text-copy">
+            {creationSource.replace("_", " ")}
+          </p>
+        </div>
       </div>
 
       {currentStep.id === "basics" ? (
@@ -513,74 +544,104 @@ export function PlanBuilderForm({
                   <div className="mt-5 space-y-3">
                     {workout.exercises.map((exercise, exerciseIndex) => (
                       <div key={exerciseIndex} className="grid gap-3 rounded-[20px] border border-border/70 bg-surface px-4 py-4 md:grid-cols-4">
-                        <input
-                          value={exercise.name}
-                          onChange={(event) =>
-                            updateExercise(phaseIndex, workoutIndex, exerciseIndex, {
-                              ...exercise,
-                              name: event.target.value
-                            })
-                          }
-                          aria-label="Exercise name"
-                          className="ui-input px-3 py-2"
-                        />
-                        <input
-                          type="number"
-                          min={1}
-                          value={exercise.sets}
-                          onChange={(event) =>
-                            updateExercise(phaseIndex, workoutIndex, exerciseIndex, {
-                              ...exercise,
-                              sets: Number(event.target.value)
-                            })
-                          }
-                          aria-label="Sets"
-                          className="ui-input px-3 py-2"
-                        />
-                        <input
-                          value={exercise.reps}
-                          onChange={(event) =>
-                            updateExercise(phaseIndex, workoutIndex, exerciseIndex, {
-                              ...exercise,
-                              reps: event.target.value
-                            })
-                          }
-                          aria-label="Reps"
-                          className="ui-input px-3 py-2"
-                        />
-                        <input
-                          value={exercise.rest}
-                          onChange={(event) =>
-                            updateExercise(phaseIndex, workoutIndex, exerciseIndex, {
-                              ...exercise,
-                              rest: event.target.value
-                            })
-                          }
-                          aria-label="Rest"
-                          className="ui-input px-3 py-2"
-                        />
-                        <input
-                          value={exercise.coachingNote}
-                          onChange={(event) =>
-                            updateExercise(phaseIndex, workoutIndex, exerciseIndex, {
-                              ...exercise,
-                              coachingNote: event.target.value
-                            })
-                          }
-                          aria-label="Coaching note"
-                          className="ui-input px-3 py-2 md:col-span-2"
-                        />
-                        <input
-                          value={exercise.videoUrl ?? ""}
-                          onChange={(event) =>
-                            updateExercise(phaseIndex, workoutIndex, exerciseIndex, {
-                              ...exercise,
-                              videoUrl: event.target.value
-                            })
-                          }
-                          aria-label="Exercise video link"
-                          className="ui-input px-3 py-2 md:col-span-2"
-                        />
+                        <label className="block">
+                          <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+                            Exercise
+                          </span>
+                          <input
+                            value={exercise.name}
+                            onChange={(event) =>
+                              updateExercise(phaseIndex, workoutIndex, exerciseIndex, {
+                                ...exercise,
+                                name: event.target.value
+                              })
+                            }
+                            aria-label="Exercise name"
+                            className="ui-input mt-2 px-3 py-2"
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+                            Sets
+                          </span>
+                          <input
+                            type="number"
+                            min={1}
+                            value={exercise.sets}
+                            onChange={(event) =>
+                              updateExercise(phaseIndex, workoutIndex, exerciseIndex, {
+                                ...exercise,
+                                sets: Number(event.target.value)
+                              })
+                            }
+                            aria-label="Sets"
+                            className="ui-input mt-2 px-3 py-2"
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+                            Reps
+                          </span>
+                          <input
+                            value={exercise.reps}
+                            onChange={(event) =>
+                              updateExercise(phaseIndex, workoutIndex, exerciseIndex, {
+                                ...exercise,
+                                reps: event.target.value
+                              })
+                            }
+                            aria-label="Reps"
+                            className="ui-input mt-2 px-3 py-2"
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+                            Rest
+                          </span>
+                          <input
+                            value={exercise.rest}
+                            onChange={(event) =>
+                              updateExercise(phaseIndex, workoutIndex, exerciseIndex, {
+                                ...exercise,
+                                rest: event.target.value
+                              })
+                            }
+                            aria-label="Rest"
+                            className="ui-input mt-2 px-3 py-2"
+                          />
+                        </label>
+                        <label className="block md:col-span-2">
+                          <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+                            Coaching note
+                          </span>
+                          <input
+                            value={exercise.coachingNote}
+                            onChange={(event) =>
+                              updateExercise(phaseIndex, workoutIndex, exerciseIndex, {
+                                ...exercise,
+                                coachingNote: event.target.value
+                              })
+                            }
+                            aria-label="Coaching note"
+                            className="ui-input mt-2 px-3 py-2"
+                          />
+                        </label>
+                        <label className="block md:col-span-2">
+                          <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+                            Video link
+                          </span>
+                          <input
+                            value={exercise.videoUrl ?? ""}
+                            onChange={(event) =>
+                              updateExercise(phaseIndex, workoutIndex, exerciseIndex, {
+                                ...exercise,
+                                videoUrl: event.target.value
+                              })
+                            }
+                            aria-label="Exercise video link"
+                            className="ui-input mt-2 px-3 py-2"
+                          />
+                        </label>
                         <button
                           type="button"
                           onClick={() => deleteExercise(phaseIndex, workoutIndex, exerciseIndex)}

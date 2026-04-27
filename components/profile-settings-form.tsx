@@ -153,6 +153,13 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
 
   return (
     <div className="space-y-6">
+      <section className="surface-panel space-y-4">
+      <div>
+        <p className="text-sm font-semibold text-copy">Body and training background</p>
+        <p className="mt-1 text-sm leading-6 text-muted">
+          These optional details help future plan drafts choose an appropriate starting point.
+        </p>
+      </div>
       <div className="grid gap-4 md:grid-cols-2">
         <Field label="Age">
           <input
@@ -221,8 +228,15 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
           </select>
         </Field>
       </div>
+      </section>
 
-      <div className="grid gap-5">
+      <section className="surface-panel space-y-5">
+        <div>
+          <p className="text-sm font-semibold text-copy">Training context</p>
+          <p className="mt-1 text-sm leading-6 text-muted">
+            Equipment, environment, and limitations stay reusable across new plans.
+          </p>
+        </div>
         <Field label="Training environment">
           <select
             value={form.trainingEnvironment ?? ""}
@@ -271,8 +285,15 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
             className="ui-input min-h-[7.5rem]"
           />
         </Field>
-      </div>
+      </section>
 
+      <section className="surface-panel space-y-4">
+      <div>
+        <p className="text-sm font-semibold text-copy">Availability</p>
+        <p className="mt-1 text-sm leading-6 text-muted">
+          This is your normal rhythm. Individual plans can still use their own schedule.
+        </p>
+      </div>
       <div className="grid gap-4 md:grid-cols-2">
         <Field label="Typical days per week">
           <input
@@ -305,8 +326,15 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
           </select>
         </Field>
       </div>
+      </section>
 
-      <div className="grid gap-5">
+      <section className="surface-panel space-y-5">
+        <div>
+          <p className="text-sm font-semibold text-copy">Preferences</p>
+          <p className="mt-1 text-sm leading-6 text-muted">
+            Use these as gentle defaults, not hard locks, when creating a new plan.
+          </p>
+        </div>
         <OptionButtons
           label="Exercise preferences"
           options={exercisePreferenceOptions}
@@ -327,9 +355,10 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
           values={form.sportsInterests ?? []}
           onChange={(values) => setForm((current) => ({ ...current, sportsInterests: values }))}
         />
-      </div>
+      </section>
 
-      <div className="flex flex-col gap-3 border-t border-border/70 pt-5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="ui-mobile-actions">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <button
           type="button"
           onClick={handleSave}
@@ -339,6 +368,7 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
           {saving || isPending ? "Saving..." : "Save Profile Settings"}
         </button>
         {status ? <p className="text-sm leading-6 text-muted">{status}</p> : null}
+      </div>
       </div>
     </div>
   );
