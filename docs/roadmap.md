@@ -243,11 +243,14 @@ Status: implemented locally.
 
 ## 9H. Plans / Phase UX Redesign
 
-Status: planned.
+Status: implemented locally.
 
 - Redesign plans, plan detail, and phase/workout hierarchy surfaces under the new visual system.
 - Preserve the current plan, phase, workout, save-path, and history-snapshot engine.
 - Keep direct detail editing and setup/regenerate boundaries clear.
+- Rebuilt the plans list around an active-plan spotlight, saved-plan archive cards, and clearer empty state.
+- Reworked saved plan detail and phase cards so current phase, progression rules, workouts, and exercise counts are easier to scan.
+- No schema change, RLS change, auth behavior change, route-boundary rewrite, saved-plan contract rewrite, progression-engine change, or LLM/provider integration happened in this slice.
 
 ## 9I. Workout Execution UX Redesign
 
