@@ -98,56 +98,76 @@ In Supabase Auth URL Configuration, set the Site URL and add this redirect URL f
 ```
 https://workout-app-seven-delta.vercel.app/
 ```
-## Windows + WSL Development Workflow
+## Local Development Workflow
 
-If you are developing on Windows, the recommended setup for this repo is to use VS Code with a WSL workspace.
+The standard local development environment is now Windows-native.
 
-### Recommended daily startup
-1. Open Ubuntu
-2. `cd ~/code/Workout-App`
-3. `code .`
-4. Confirm VS Code shows `WSL: Ubuntu` in the bottom-left
-5. Run project commands from the VS Code terminal in that WSL window
+- Repository location: `C:\Code\Workout-App`
+- Primary agent/tool: Codex app running as a Windows-native agent
+- Editor: VS Code in standard Windows mode, not Remote-WSL
+- Terminal: PowerShell
+- Preferred execution model for Codex-driven implementation: git worktrees
 
-### Why this is recommended
-- Keeps the repo in the Linux filesystem used by WSL
-- Avoids cross-environment path issues between Windows and Linux tools
-- Makes Node/npm behavior more consistent inside the project
+WSL-based workflows were previously tested, but they caused instability with Codex worktrees. WSL is no longer the default or recommended environment for this project. All autonomous workflows should assume Windows-native tooling unless a task explicitly overrides that assumption.
 
-### Environment notes
-- `.env.local` is local-only and is not expected to come from Git
-- If you clone the repo into WSL, recreate `.env.local` there
-- Use Linux-installed Node/npm inside WSL for this repo
-- Keep this repo under `~/code/Workout-App`, not under `/mnt/c/...`
+### Codex App Usage Pattern
 
-### Common WSL troubleshooting
-If `npm install` fails with Windows path errors, `cmd.exe`, or UNC path issues, your WSL shell is probably using Windows Node/npm instead of Linux Node/npm.
+Codex app is used for implementation execution:
 
-To check:
+- slice implementation
+- worktree execution
+- commit and push workflow
 
-```bash
-which node
-which npm
+ChatGPT project chat is used for planning work:
+
+- strategy
+- roadmap planning
+- slice design
+- QA triage
+- prompt generation
+
+Standard slice workflow:
+
+1. Plan the slice in ChatGPT.
+2. Generate the Codex prompt.
+3. Run the prompt in Codex app using a worktree.
+4. Codex creates a branch, implements the slice, runs checks, updates docs, commits, and pushes.
+5. Review the branch through the Vercel preview.
+6. Merge manually after QA.
+
+### Codex Worktrees And Local Environment
+
+Codex worktrees are created under:
+
+```powershell
+C:\Users\<user>\.codex\worktrees\...
 ```
 
-### WSL resource troubleshooting
+Worktrees do not include `.env.local` automatically. This is intentional because `.env.local` remains gitignored and local-only.
 
-If VS Code Remote WSL disconnects or the terminal becomes sluggish, first check whether local dev-server resource pressure is the cause.
+The Codex local environment setup script is responsible for:
 
-```bash
-free -h
-ps aux --sort=-%cpu | head -15
-ss -ltnp | grep -E ':3000|:3001'
+- copying `.env.local` from `C:\Code\Workout-App\.env.local`
+- validating required variables:
+  - `NEXT_PUBLIC_SUPABASE_URL`
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- running `npm install`
+
+### Windows Tooling Notes
+
+Run project commands from PowerShell in the repo or active Codex worktree. Before starting a local dev server, check whether port `3001` is already in use:
+
+```powershell
+Get-NetTCPConnection -LocalPort 3001 -ErrorAction SilentlyContinue
 ```
 
-To clean up runaway local processes and cached Next output:
+If local Next.js processes need inspection:
 
-```bash
-pkill -f "next-server"
-pkill -f ".next"
-pkill -f "postcss"
-rm -rf .next
+```powershell
+Get-Process node -ErrorAction SilentlyContinue
 ```
+
+Do not run multiple dev servers for this repo at the same time, and do not run `npm install`, `npm update`, `npm run build`, and `npm run dev` concurrently.
 
 ## Database Schema
 
@@ -191,13 +211,13 @@ on conflict (id) do nothing;
 
 Install dependencies:
 
-```bash
+```powershell
 npm install
 ```
 
 Run locally:
 
-```bash
+```powershell
 npm run dev
 ```
 
@@ -205,13 +225,13 @@ Open [http://localhost:3001](http://localhost:3001).
 
 Run type checking:
 
-```bash
+```powershell
 npm run typecheck
 ```
 
 Run a production build:
 
-```bash
+```powershell
 npm run build
 ```
 
@@ -232,7 +252,7 @@ Before deploying, confirm:
 
 Commit and push:
 
-```bash
+```powershell
 git status
 git add .
 git commit -m "Update workout app"

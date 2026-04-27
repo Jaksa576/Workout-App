@@ -335,6 +335,8 @@ Slice 9J should not:
 - Keep deferred Slice 7 QA ideas bounded to approved Slice 9J plan creation/settings polish if touched at all.
 - Keep the separation between direct detail edits and setup/regenerate clear.
 - Keep alternate/random workouts deferred future workout flexibility work.
+- Run future Codex implementation slices in Windows-native Codex app worktrees unless a task explicitly overrides the environment.
+- Do not assume WSL or bash for autonomous workflows.
 
 ## Non-Goals
 

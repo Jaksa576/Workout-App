@@ -367,5 +367,7 @@ When implemented:
 - Preserve recovery-first roots and symptom-aware progression as an important supported mode.
 - Keep manual plan creation available.
 - Keep Supabase auth and row-level security expectations intact.
+- Use the Windows-native Codex app + worktree workflow for implementation slices unless explicitly overridden.
+- Keep `.env.local` local-only and gitignored; Codex worktree setup should copy it from `C:\Code\Workout-App\.env.local` and validate required Supabase public variables.
 - Update `docs/current-task.md` to the next slice after each completed slice.
 - Update `docs/agent-handoff.md` after major implementation steps.

@@ -161,25 +161,24 @@ The Slice 9F through Slice 9J campaign is now complete locally through the final
 - Slice 9J refreshed `/plans/new`, plan setup/review presentation, external-AI import ergonomics, settings/profile grouping, and theme preference readability while preserving existing save/profile/theme behavior.
 - Slice 9D/9E/9F/9G/9H/9I/9J did not implement schema changes, RLS changes, auth-model rewrites, LLM/provider integration, route-boundary rewrites, or progression-engine changes.
 
-## Known local development risk
+## Workflow Notes
 
-VS Code Remote WSL disconnects may be caused by dev-server resource pressure rather than repo corruption. This repo should run its local Next dev server on port `3001`; another local Next app may be using `3000`.
+This project now uses Codex app worktree execution in a Windows-native development environment.
 
-Resource checks:
+Each implementation slice should:
 
-```bash
-free -h
-ps aux --sort=-%cpu | head -15
-ss -ltnp | grep -E ':3000|:3001'
-```
+- run in a Codex worktree
+- use a dedicated branch
+- pass typecheck, tests, and build before continuation when code changes are made
 
-Cleanup commands for runaway local Next/PostCSS work:
+Codex worktrees are created under `C:\Users\<user>\.codex\worktrees\...`. They do not include `.env.local` automatically. The local environment setup script is responsible for copying `.env.local` from `C:\Code\Workout-App\.env.local`, validating `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and running `npm install`. `.env.local` remains gitignored and local-only by design.
 
-```bash
-pkill -f "next-server"
-pkill -f ".next"
-pkill -f "postcss"
-rm -rf .next
+Do not assume WSL or bash unless explicitly stated. WSL-based workflows were previously tested but caused instability with Codex worktrees, so Windows-native PowerShell commands are the default.
+
+This repo should run its local Next dev server on port `3001`; another local Next app may be using `3000`. Before starting the dev server, check the port from PowerShell:
+
+```powershell
+Get-NetTCPConnection -LocalPort 3001 -ErrorAction SilentlyContinue
 ```
 
 Future agents should not add broad Tailwind scanning patterns such as `./**/*`, and should avoid intentionally scanning `.next`, `node_modules`, `dist`, `build`, `coverage`, or `.git`.

@@ -191,11 +191,14 @@ If you are unsure, preserve compatibility and leave a clear extension point rath
 ## Local tooling available
 
 Primary development environment:
-- On Windows, prefer opening this repo in a WSL VS Code workspace
-- Preferred repo location for WSL use: `~/code/Workout-App`
-- Prefer Linux-installed Node/npm inside WSL for all project commands
+- Use the Windows-native local development environment by default.
+- Keep the main repository at `C:\Code\Workout-App`.
+- Use the Codex app as the Windows-native implementation agent.
+- Use VS Code in standard Windows mode, not Remote-WSL.
+- Use PowerShell for local commands unless a task explicitly says otherwise.
+- Prefer Codex worktrees for implementation slices.
 
-The local development environment may include these CLIs inside WSL:
+The local development environment may include these CLIs in PowerShell:
 
 - `gh` (GitHub CLI)
 - `jq`
@@ -211,19 +214,53 @@ Agent guidance:
 - Use `gh` when GitHub CLI is helpful for repo inspection or PR workflows
 - Use `vercel` for deployment/log/environment workflows when relevant
 - Do not assume Supabase CLI is globally installed; use `npx supabase`
-- Do not assume Windows-installed CLIs are available inside WSL
-- If a CLI is needed, verify availability first with `which <tool>`
+- If a CLI is needed, verify availability first with `Get-Command <tool>`
 
-## Local development and WSL resource guardrails
+## Local Execution Assumptions
 
-- Assume local development runs inside WSL/Ubuntu.
-- Keep the preferred repo location at `~/code/Workout-App`.
-- Avoid running this repo from `/mnt/c/...`.
-- Use Linux-installed Node/npm inside WSL.
+- Default environment = Windows native.
+- Shell = PowerShell.
+- Repo path = `C:\Code\Workout-App`.
+- Codex runs in worktrees, not the main working directory.
+- Codex worktrees are created under `C:\Users\<user>\.codex\worktrees\...`.
+- All commands should be Windows-compatible unless otherwise specified.
+- WSL-based workflows were previously tested but caused instability with Codex worktrees.
+- WSL is no longer the default or recommended environment for this project.
+- All autonomous workflows should assume Windows-native execution unless explicitly overridden.
+
+## Codex App Workflow
+
+Codex app is used for:
+
+- slice implementation
+- worktree execution
+- commit and push workflow
+
+ChatGPT project chat is used for:
+
+- strategy
+- roadmap planning
+- slice design
+- QA triage
+- prompt generation
+
+Standard execution flow:
+
+1. Plan the slice in ChatGPT.
+2. Generate the Codex prompt.
+3. Run the prompt in Codex app using a worktree.
+4. Codex creates a branch, implements the slice, runs checks, updates docs, commits, and pushes.
+5. Review the branch through the Vercel preview.
+6. Merge manually after QA.
+
+## Local development and worktree guardrails
+
 - The local dev port is `3001`.
-- Before starting the dev server, check the port with `ss -ltnp | grep ':3001'`.
+- Before starting the dev server, check the port with `Get-NetTCPConnection -LocalPort 3001 -ErrorAction SilentlyContinue`.
 - Do not run multiple dev servers for this repo.
 - Do not run `npm install`, `npm update`, `npm run build`, and `npm run dev` concurrently.
-- If WSL becomes slow, check `free -h` and `ps aux --sort=-%cpu | head -15`.
+- Worktrees do not include `.env.local` automatically.
+- The Codex local environment setup script should copy `.env.local` from `C:\Code\Workout-App\.env.local`, validate `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and run `npm install`.
+- `.env.local` remains gitignored and local-only.
 - Do not add Tailwind content patterns that scan the whole repo, such as `./**/*`.
 - Do not intentionally scan `.next`, `node_modules`, `dist`, `build`, `coverage`, or `.git`.

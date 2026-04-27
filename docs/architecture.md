@@ -15,6 +15,31 @@ The product is evolving from a recovery-first phased workout app into a broader 
 - Data loading lives mostly in `lib/data.ts`.
 - Writes generally flow through API route handlers, validation helpers, and the authenticated Supabase server client.
 
+### Local Development Workflow
+
+The standard local development environment is Windows-native:
+
+- Repository location: `C:\Code\Workout-App`
+- Agent: Codex app running as a Windows-native agent
+- Editor: VS Code in standard Windows mode, not Remote-WSL
+- Terminal: PowerShell
+- Preferred Codex execution model: git worktrees
+
+WSL-based workflows were previously tested but caused instability with Codex worktrees. WSL is no longer the default or recommended environment for this project. All autonomous workflows should assume Windows-native execution unless explicitly overridden.
+
+Codex app is used for slice implementation, worktree execution, and commit/push workflow. ChatGPT project chat is used for strategy, roadmap planning, slice design, QA triage, and prompt generation.
+
+Standard slice flow:
+
+1. Plan the slice in ChatGPT.
+2. Generate the Codex prompt.
+3. Run the prompt in Codex app using a worktree.
+4. Codex creates a branch, implements the slice, runs checks, updates docs, commits, and pushes.
+5. Review the branch through the Vercel preview.
+6. Merge manually after QA.
+
+Codex worktrees are created under `C:\Users\<user>\.codex\worktrees\...`. Worktrees do not include `.env.local` automatically. The Codex local environment setup script copies `.env.local` from `C:\Code\Workout-App\.env.local`, validates `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and runs `npm install`. `.env.local` remains gitignored; this is intentional.
+
 ### UI Foundation Conventions
 
 - UI Overhaul Phase 1 adds a small visual foundation layer without changing the domain engine.

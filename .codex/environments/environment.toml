@@ -7,14 +7,31 @@ script = ""
 
 [setup.win32]
 script = '''
+Write-Host "Working directory:" (Get-Location)
+
 node -v
 npm -v
 git --version
 gh --version
 
-if (-not (Test-Path ".env.local")) { throw ".env.local missing" }
-if (-not (Select-String -Path ".env.local" -Pattern '^NEXT_PUBLIC_SUPABASE_URL=' -Quiet)) { throw "NEXT_PUBLIC_SUPABASE_URL missing from .env.local" }
-if (-not (Select-String -Path ".env.local" -Pattern '^NEXT_PUBLIC_SUPABASE_ANON_KEY=' -Quiet)) { throw "NEXT_PUBLIC_SUPABASE_ANON_KEY missing from .env.local" }
+$sourceEnv = "C:\Code\Workout-App\.env.local"
+Write-Host "Source env path:" $sourceEnv
+
+if (-not (Test-Path ".env.local")) {
+  Write-Host ".env.local not found in worktree. Attempting copy from source repo..."
+  if (-not (Test-Path $sourceEnv)) {
+    throw ".env.local missing in worktree and source repo: $sourceEnv"
+  }
+  Copy-Item $sourceEnv .env.local -Force
+}
+
+if (-not (Select-String -Path ".env.local" -Pattern '^NEXT_PUBLIC_SUPABASE_URL=' -Quiet)) {
+  throw "NEXT_PUBLIC_SUPABASE_URL missing from .env.local"
+}
+
+if (-not (Select-String -Path ".env.local" -Pattern '^NEXT_PUBLIC_SUPABASE_ANON_KEY=' -Quiet)) {
+  throw "NEXT_PUBLIC_SUPABASE_ANON_KEY missing from .env.local"
+}
 
 npm install
 '''
