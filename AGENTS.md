@@ -133,9 +133,9 @@ Prefer this sequence unless the repo strongly suggests a better one:
 7. LLM-ready draftPlan abstraction
 8. docs and cleanup
 
-## Current UI Redesign Priority
+## Current Planning Priority
 
-The immediate priority is the landing page, app icon, and full app UX redesign sequence before workout execution UX.
+The landing page, app icon, and full app UX redesign sequence is complete locally through Slice 9J. The immediate planning priority is Slice 9K-9M, AI Draft Plan UX Campaign, before Slice 10 Exercise Media And Instruction Layer.
 
 Guardrails for this phase:
 - docs first
@@ -143,6 +143,7 @@ Guardrails for this phase:
 - preserve auth and RLS behavior
 - preserve plan, phase, workout, session, and progression behavior
 - no LLM/provider integration
+- preserve the provider-free Draft with AI setup -> draft -> review/edit -> save contract
 - avoid broad destructive route changes outside the dedicated route-split slice
 - use `GPT-5.4` where practical for token efficiency; reserve higher-reasoning models for route/auth regressions or hard architectural conflicts
 

@@ -100,6 +100,10 @@ The previously considered narrow Slice 8 dashboard QA follow-up is superseded by
 8. `9H`: Plans / Phase UX Redesign
 9. `9I`: Workout Execution UX Redesign
 10. `9J`: Plan Creation / Settings Polish
+11. `9K`: AI Draft Setup Wizard
+12. `9L`: External LLM Handoff UX
+13. `9M`: AI Draft Import Ergonomics
+14. `10`: Exercise Media And Instruction Layer
 
 The Slice 9F through Slice 9J campaign is now complete locally through the final approved slice. The next planning target before Slice 10 is the AI Draft Plan UX Campaign.
 
@@ -371,6 +375,8 @@ Additional deferred QA learnings to keep out of the active Slice 7 patch:
 - keep exercise media/video auto-population from generated plan output deferred to the later exercise media and instruction work rather than pulling it into Slice 7 stabilization
 - reduce repeated schedule-selection emphasis across Guided Setup, Manual Builder, and Draft with AI so the create-plan flow feels less redundant after schedule choices have already been made
 - improve the external-AI export / copy-paste handoff so structured prompt generation and pasted import output are easier to move between the app and the user’s external assistant without committing yet to a specific export format
+
+For Slice 9K-9M, only pull these learnings forward where they relate to Draft with AI setup, external LLM handoff, import ergonomics, clearer copy, assigned-day handling, prompt specificity, or validation guidance. Exercise media/video auto-population remains deferred to Slice 10 or later exercise media work.
 
 Verification after Slice 7:
 

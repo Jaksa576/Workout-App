@@ -290,9 +290,10 @@ Deferred follow-up from completed Slice 7 QA can be considered for the AI Draft 
 - broader `/plans/new` flow alignment and terminology cleanup
 - assigned-day / prompt-specificity polish
 - helper-text layout refinement
-- exercise-media auto-population
 - reducing repeated schedule-selection emphasis across Guided Setup, Manual Builder, and Draft with AI
 - improving external-AI export / copy-paste ergonomics for the structured prompt-and-import handoff
+
+Exercise-media auto-population from generated plan output remains deferred to Slice 10 or later exercise media work, not Slice 9K-9M.
 
 ## Current Context
 

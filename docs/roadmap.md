@@ -161,11 +161,11 @@ Accepted narrow QA follow-up:
 - removed repeated `Keep the streak going` copy from adjacent dashboard cards
 - preserved the active-phase/progression CTA sync and kept the patch dashboard-only
 
-## Next Priority: Full UI Redesign Program
+## Completed Priority: Full UI Redesign Program
 
-The next major work is a broader public landing, app-shell, dashboard, and plans redesign program.
+The broader public landing, app-shell, dashboard, plans, workout execution, and plan creation/settings redesign program is implemented locally through Slice 9J.
 
-This supersedes the prior narrow Slice 8 dashboard QA follow-up as the active priority unless a blocking bug requires a tiny patch. Keep the accepted Slice 8 QA adjustments intact, but do not treat them as the mainline next work.
+The next planned campaign before Slice 10 is Slice 9K-9M, AI Draft Plan UX Campaign. Keep the accepted Slice 8 QA adjustments and Slice 9A-9J redesign work intact, but do not treat broad dashboard or app-wide polish as the mainline next work unless explicitly rescoped.
 
 ## 9A. UI Redesign Direction, Public Landing, And App Icon Planning
 
@@ -342,7 +342,7 @@ Status: planned if still needed.
 - Revisit broader polish, naming, and brand expression only after the redesign foundation, route split, public landing, authenticated shell, dashboard, plans, workout execution, and exercise instruction slices are stronger.
 - Keep this intentionally narrow if it happens; it should not become a vague catch-all redesign bucket.
 - Avoid doing broad branding work before the core training quality and workflow slices are stronger.
-- Deferred product-quality follow-up from Slice 7 QA for `/plans/new` should stay outside the narrow active stabilization patch and outside roadmap resequencing:
+- Deferred product-quality follow-up from Slice 7 QA for `/plans/new` may feed Slice 9K-9M only where it relates to Draft with AI setup, handoff, import ergonomics, clearer copy, assigned-day handling, prompt specificity, or validation guidance:
   - align Guided Setup and Draft with AI more closely over time so plan type selection and step order feel more consistent
   - rename or better explain unclear plan-creation terms such as `Preferred split`, `Temporary focus areas`, and Draft-with-AI `Progression mode`
   - refine helper-text presentation on plan-creation surfaces so helpful guidance can move into a more compact interaction pattern instead of always showing uneven inline subtext
