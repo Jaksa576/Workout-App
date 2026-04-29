@@ -15,9 +15,13 @@ The app must continue to use the existing user-directed workflow:
 
 ## Campaign Status
 
-Slice 9K-9M is a planned implementation campaign before Slice 10.
+Slice 9K is implemented and pushed on `codex/slice-9k-ai-draft-setup-wizard`.
 
-This document cleanup is docs-only. It does not implement Slice 9K, 9L, or 9M.
+Slice 9L is implemented and pushed on `codex/slice-9l-external-llm-handoff-ux`.
+
+Slice 9M is implemented locally on `codex/slice-9m-ai-draft-import-ergonomics`.
+
+The full Slice 9K-9M campaign is implemented locally. Slice 10, Exercise Media And Instruction Layer, is next unless local docs are updated to specify otherwise.
 
 ## Non-goals
 
@@ -80,6 +84,30 @@ Not allowed in future Slice 9K-9M implementation PRs:
 
 Make Draft with AI feel closer to Guided Setup.
 
+### Status
+
+Implemented locally in Slice 9K.
+
+What changed:
+
+- Split Draft with AI setup into focused Goal, Schedule, Context, and Optional steps.
+- Kept prompt generation, import parsing, strict validation, review/edit, and save behavior on the existing path.
+- Preserved Guided Setup and Manual Builder.
+- Added no provider-backed LLM integration.
+
+Validation:
+
+- `npm run typecheck` passed.
+- `npm run test` passed: 8 files, 48 tests. The first sandboxed attempt hit Windows `spawn EPERM`; rerun with approval passed.
+- `npm run build` passed and confirmed the expected route list. The first sandboxed attempt hit Windows `spawn EPERM`; rerun with approval passed.
+- `npm run lint` is not functional with the current Next 16 setup: `next lint` is interpreted as a project directory named `lint`.
+
+Manual smoke notes:
+
+- Guided Setup and Manual Builder remain reachable from `/plans/new`.
+- Draft with AI now proceeds through the new setup wizard before prompt generation.
+- Prompt generation, import, and review/edit/save remain on the existing provider-free contract.
+
 ### Expected Outcome
 
 Draft with AI setup becomes a mobile-first step flow with clearer choices, less long-form friction, and better setup progression.
@@ -117,6 +145,34 @@ Draft with AI setup becomes a mobile-first step flow with clearer choices, less 
 ### Goal
 
 Make it obvious how to use the generated prompt with an external LLM.
+
+### Status
+
+Implemented locally in Slice 9L.
+
+What changed:
+
+- Made copy-prompt the primary handoff action.
+- Added plain-language round-trip instructions for copy, external tool use, generated output, return, and import.
+- Presented ChatGPT as the recommended external option, with Claude and Gemini as alternatives.
+- Added simple outbound links while making clear these tools are external and not app integrations.
+- Preserved the 9K setup wizard and the existing provider-free prompt/import/review/save contract.
+
+Validation:
+
+- `npm run typecheck` passed.
+- `npm run test` passed: 8 files, 48 tests. The first sandboxed attempt hit Windows `spawn EPERM`; rerun with approval passed.
+- `npm run build` passed and confirmed the expected route list. The first sandboxed attempt hit Windows `spawn EPERM`; rerun with approval passed.
+- `npm run lint` is not functional with the current Next 16 setup: `next lint` is interpreted as a project directory named `lint`.
+
+Manual smoke notes:
+
+- Draft with AI setup wizard still works.
+- Prompt generation still works.
+- Copy-prompt remains the primary action.
+- External handoff instructions are clear on mobile and desktop.
+- Guided Setup and Manual Builder remain reachable.
+- No provider-backed LLM behavior exists.
 
 ### Expected Outcome
 
@@ -166,6 +222,37 @@ The user understands:
 ### Goal
 
 Make generated output easier to bring back into the app.
+
+### Status
+
+Implemented locally in Slice 9M.
+
+What changed:
+
+- Updated generated prompt instructions to request one fenced `adaptive-training-plan` transfer block.
+- Preserved the strict internal plan markdown contract and existing raw `PLAN` paste compatibility.
+- Added parser support for extracting the strict plan payload from the preferred fenced transfer block.
+- Improved import UI instructions so users know to paste the fenced block or strict `PLAN` content.
+- Improved validation error guidance without adding an unvalidated save path.
+- Added tests for valid fenced transfer import and invalid fenced transfer failure.
+
+Validation:
+
+- `npm run typecheck` passed.
+- `npm run test` passed: 8 files, 50 tests. The first sandboxed attempt hit Windows `spawn EPERM`; rerun with approval passed.
+- `npm run build` passed and confirmed the expected route list. The first sandboxed attempt hit Windows `spawn EPERM`; rerun with approval passed.
+- `npm run lint` is not functional with the current Next 16 setup: `next lint` is interpreted as a project directory named `lint`.
+
+Manual smoke notes:
+
+- Draft with AI setup wizard still works.
+- External LLM handoff still works.
+- Prompt generation requests a cleaner fenced transfer format.
+- Valid fenced transfer output imports successfully.
+- Invalid fenced transfer output fails safely with actionable guidance.
+- Review/edit/save remains mandatory.
+- Guided Setup and Manual Builder remain reachable.
+- No provider-backed LLM behavior exists.
 
 ### Expected Outcome
 

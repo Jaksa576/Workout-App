@@ -277,7 +277,7 @@ Status: implemented locally.
 
 ## 9K-9M. AI Draft Plan UX Campaign
 
-Status: planned.
+Status: implemented locally through Slice 9M.
 
 Purpose:
 Improve the existing provider-free Draft with AI flow before beginning Slice 10.
@@ -286,36 +286,35 @@ Suggested slices:
 
 ### 9K. AI Draft Setup Wizard
 
-Status: planned.
+Status: implemented locally.
 
-- Convert Draft with AI setup from a long-form page into a guided, mobile-first step flow.
-- Align the interaction model more closely with Guided Setup.
-- Ask for one or a small number of choices per step.
-- Reduce redundant setup choices where Guided Setup, Manual Builder, and Draft with AI overlap.
-- Preserve existing validation, draft, review/edit, and save behavior.
-- Do not add provider-backed LLM integration.
+- Converted Draft with AI setup from a long-form page into a guided, mobile-first step flow.
+- Split setup into focused Goal, Schedule, Context, and Optional steps.
+- Preserved existing prompt generation, strict import validation, review/edit, and save behavior.
+- Preserved Guided Setup and Manual Builder.
+- Added no provider-backed LLM integration.
 
 ### 9L. External LLM Handoff UX
 
-Status: planned.
+Status: implemented and pushed.
 
-- Replace confusing "external assistance" language with clear copy/paste instructions.
-- Recommend ChatGPT as the default external LLM option.
-- Also provide Claude and Gemini as alternatives.
-- Provide simple external links and a primary copy-prompt action.
-- Explain that the user copies the prompt, opens an LLM, pastes the prompt, then returns with the generated plan.
-- Keep this as a user-directed workflow, not an in-app provider integration.
+- Replaced vague external-assistance copy with clear copy/paste instructions.
+- Recommended ChatGPT as the default external LLM option.
+- Provided Claude and Gemini as alternatives.
+- Added simple external links and a primary copy-prompt action.
+- Explained that the user copies the prompt, opens an LLM, pastes the prompt, then returns with the generated plan.
+- Kept this as a user-directed workflow, not an in-app provider integration.
 
 ### 9M. AI Draft Import Ergonomics
 
-Status: planned.
+Status: implemented locally.
 
-- Improve the import step so users can easily paste or upload the generated plan.
-- Update the generated prompt instructions so external LLMs return a cleaner transfer format.
-- Consider a fenced markdown block and/or downloadable markdown file guidance.
-- Improve paste/import instructions and error guidance.
-- Preserve strict validation and review-before-save behavior.
-- Do not weaken parser validation just to accept messy output.
+- Improved the import step so users know exactly what generated plan text to paste.
+- Updated generated prompt instructions so external LLMs return a cleaner fenced transfer format.
+- Added parser support for a fenced `adaptive-training-plan` block while preserving strict internal validation.
+- Improved paste/import instructions and error guidance.
+- Preserved strict validation and review-before-save behavior.
+- Did not weaken parser validation just to accept messy output.
 
 ### Future UX Polish Candidates
 

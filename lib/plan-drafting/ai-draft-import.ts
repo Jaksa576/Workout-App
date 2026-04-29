@@ -25,7 +25,10 @@ import { isProgressionMode, isTrainingGoalType } from "@/lib/validation";
 const BASE_INSTRUCTION_BLOCK = `You are drafting a structured workout plan for import into a workout application.
 
 Important rules:
-- Return ONLY the required markdown format.
+- Return ONLY one fenced markdown transfer block.
+- Start the transfer block with \`\`\`adaptive-training-plan.
+- Put the required plan markdown inside that block.
+- End the transfer block with \`\`\`.
 - Do not include commentary before or after the plan.
 - Do not use bullet points, tables, or JSON.
 - Use the exact section labels and field labels shown below.
@@ -55,8 +58,9 @@ const GOAL_ROLE_GUIDANCE: Record<TrainingGoalType, string> = {
     "Use a concise coaching voice matched to consistency without adding extra format variation."
 };
 
-const EXACT_OUTPUT_EXAMPLE_BLOCK = `Return the plan in exactly this format:
+const EXACT_OUTPUT_EXAMPLE_BLOCK = `Return the plan in exactly this fenced transfer block:
 
+\`\`\`adaptive-training-plan
 PLAN
 title: Example Plan
 goal_track: strength
@@ -86,7 +90,8 @@ name: Romanian Deadlift
 sets: 3
 reps: 8
 rest_seconds: 90
-notes: Stop with 2 reps in reserve`;
+notes: Stop with 2 reps in reserve
+\`\`\``;
 
 const GOAL_GUIDANCE: Record<TrainingGoalType, string> = {
   recovery: `Planning guidance for this goal:
@@ -322,8 +327,24 @@ function normalizeImportedMarkdown(input: string) {
     .trim();
 }
 
+function extractFencedTransferBlock(input: string) {
+  const normalized = normalizeImportedMarkdown(input);
+  const fencePattern = /```(?:adaptive-training-plan|markdown)?\s*\n([\s\S]*?)```/gi;
+  let match: RegExpExecArray | null;
+
+  while ((match = fencePattern.exec(normalized)) !== null) {
+    const content = normalizeImportedMarkdown(match[1] ?? "");
+
+    if (content.startsWith("PLAN")) {
+      return content;
+    }
+  }
+
+  return normalized;
+}
+
 function getNonEmptyLines(input: string) {
-  return normalizeImportedMarkdown(input)
+  return extractFencedTransferBlock(input)
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean);
@@ -641,7 +662,7 @@ function parsePhase(lines: string[], index: number, expectedPhaseNumber: number)
 }
 
 export function parseAiPlanImport(input: string): AiImportParseResult {
-  const normalized = normalizeImportedMarkdown(input);
+  const normalized = extractFencedTransferBlock(input);
 
   if (!normalized) {
     return createFailure("Paste the AI draft first.");
