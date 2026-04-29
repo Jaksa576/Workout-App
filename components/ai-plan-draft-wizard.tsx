@@ -96,6 +96,27 @@ const progressionModeOptions: Array<{ value: ProgressionMode; label: string }> =
   { value: "hybrid", label: "Hybrid" }
 ];
 
+const externalAssistantOptions = [
+  {
+    name: "ChatGPT",
+    href: "https://chatgpt.com/",
+    label: "Recommended",
+    helper: "Best first choice for copying the prompt and bringing the plan back here."
+  },
+  {
+    name: "Claude",
+    href: "https://claude.ai/",
+    label: "Alternative",
+    helper: "Also works if you prefer Claude."
+  },
+  {
+    name: "Gemini",
+    href: "https://gemini.google.com/",
+    label: "Alternative",
+    helper: "Also works if you prefer Gemini."
+  }
+];
+
 function toggleWeekday(values: Weekday[], value: Weekday) {
   return values.includes(value) ? values.filter((item) => item !== value) : [...values, value];
 }
@@ -545,13 +566,73 @@ export function AiPlanDraftWizard({
           <div className="surface-panel">
             <p className="ui-eyebrow">Draft with AI</p>
             <h2 className="mt-2 font-display text-3xl text-copy">
-              Copy the prompt for your external assistant
+              Copy the prompt into an external AI tool
             </h2>
             <p className="mt-3 text-sm leading-6 text-muted">
-              This prompt uses the v1 import contract. Ask for a single strict markdown plan, then
-              paste that response into the next step.
+              The app does not connect to ChatGPT, Claude, or Gemini. You copy the prompt, use
+              one of those tools yourself, then return here with the generated plan.
             </p>
           </div>
+
+          <div className="grid gap-3 md:grid-cols-3">
+            {externalAssistantOptions.map((assistant) => (
+              <a
+                key={assistant.name}
+                href={assistant.href}
+                target="_blank"
+                rel="noreferrer"
+                className={`rounded-[24px] border p-4 text-left transition sm:rounded-[28px] ${
+                  assistant.name === "ChatGPT"
+                    ? "border-accent/30 bg-accent/10 text-copy hover:border-accent"
+                    : "border-border/70 bg-surface text-copy hover:border-secondary"
+                }`}
+              >
+                <span className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
+                  {assistant.label}
+                </span>
+                <span className="mt-2 block text-lg font-semibold">{assistant.name}</span>
+                <span className="mt-2 block text-sm leading-6 text-muted">
+                  {assistant.helper}
+                </span>
+              </a>
+            ))}
+          </div>
+
+          <div className="surface-panel">
+            <p className="text-sm font-semibold text-copy">Round trip</p>
+            <ol className="mt-3 grid gap-2 text-sm leading-6 text-muted md:grid-cols-5">
+              {[
+                "Copy the prompt.",
+                "Open ChatGPT, Claude, or Gemini.",
+                "Paste the prompt.",
+                "Copy or download the generated plan.",
+                "Return here and import it."
+              ].map((item, index) => (
+                <li key={item} className="rounded-[20px] border border-border/70 bg-surface px-4 py-3">
+                  <span className="block text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                    {index + 1}
+                  </span>
+                  <span className="mt-1 block font-semibold text-copy">{item}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          <div className="surface-panel flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-copy">Prompt ready</p>
+              <p className="mt-1 text-sm leading-6 text-muted">
+                Copy this first, then open your preferred external tool.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 sm:items-end">
+              <button type="button" onClick={copyPrompt} className="ui-button-primary">
+                Copy Prompt
+              </button>
+              {copyStatus ? <p className="text-sm text-muted">{copyStatus}</p> : null}
+            </div>
+          </div>
+
           <label className="block">
             <span className="text-sm font-semibold text-copy">
               Prompt for {selectedGoal?.label.toLowerCase() ?? "this plan"}
@@ -563,12 +644,6 @@ export function AiPlanDraftWizard({
               className="ui-input mt-3 min-h-[28rem] font-mono text-xs leading-6"
             />
           </label>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <button type="button" onClick={copyPrompt} className="ui-button-primary">
-              Copy Prompt
-            </button>
-            {copyStatus ? <p className="text-sm text-muted">{copyStatus}</p> : null}
-          </div>
         </div>
       ) : null}
 

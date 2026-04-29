@@ -4,7 +4,7 @@
 
 Current implementation target: continue the AI Draft Plan UX Campaign before Slice 10.
 
-Slice 9J, Plan Creation / Settings Polish, is implemented locally. Slice 9K, AI Draft Setup Wizard, is implemented locally on `codex/slice-9k-ai-draft-setup-wizard`. Before beginning Slice 10, Exercise Media And Instruction Layer, the next roadmap priority is continuing the Slice 9K-9M AI Draft Plan UX Campaign.
+Slice 9J, Plan Creation / Settings Polish, is implemented locally. Slice 9K, AI Draft Setup Wizard, is implemented and pushed. Slice 9L, External LLM Handoff UX, is implemented locally on `codex/slice-9l-external-llm-handoff-ux`. Before beginning Slice 10, Exercise Media And Instruction Layer, the next roadmap priority is completing Slice 9M.
 
 The campaign should improve the existing provider-free Draft with AI flow in `/plans/new`:
 
@@ -16,7 +16,7 @@ This campaign should preserve the existing setup -> draft -> review/edit -> save
 
 ## Current Slice
 
-Current campaign status: Slice 9K is implemented locally. Slice 9L, External LLM Handoff UX, is next.
+Current campaign status: Slice 9K is implemented and pushed. Slice 9L is implemented locally. Slice 9M, AI Draft Import Ergonomics, is next.
 
 Slice 9K delivered:
 
@@ -26,13 +26,14 @@ Slice 9K delivered:
 - preserved Guided Setup and Manual Builder
 - avoided provider-backed LLM integration
 
-Slice 9L should focus on:
+Slice 9L delivered:
 
-- replacing confusing "external assistance" language with clear copy/paste instructions
-- recommending ChatGPT as the default external LLM option
-- also providing Claude and Gemini as alternatives
-- providing simple external links and a primary copy-prompt action
-- explaining that the user copies the prompt, opens an LLM, pastes the prompt, then returns with the generated plan
+- clearer copy/paste handoff instructions
+- ChatGPT as the recommended external option
+- Claude and Gemini as alternatives
+- simple outbound links that do not imply provider integration
+- copy-prompt as the primary action
+- a clear round trip from prompt copy to external tool to import
 
 Slice 9M should focus on:
 
@@ -71,6 +72,34 @@ Slice 9J did not become:
 - keep schema, RLS, progression, and LLM/provider behavior unchanged
 
 ## Recently Completed Slices
+
+Slice 9L, External LLM Handoff UX, is implemented locally.
+
+That slice delivered:
+
+- added clearer handoff copy after prompt generation
+- presented ChatGPT as the recommended external option, with Claude and Gemini as alternatives
+- made copy-prompt the primary action
+- added a plain-language round-trip checklist for using an external tool and returning to import
+- preserved the 9K setup wizard and the existing prompt/import/review/save contract
+- added no provider SDK, API key handling, runtime LLM dependency, schema change, RLS change, auth change, or progression change
+
+Verification after Slice 9L:
+
+- `npm run typecheck` passed.
+- `npm run test` passed: 8 files, 48 tests. The first sandboxed run hit Windows `spawn EPERM`; rerun with approval passed.
+- `npm run build` passed and confirmed `/`, `/dashboard`, `/plans`, `/plans/new`, `/workout`, and `/settings` remain in the route list. The first sandboxed run hit Windows `spawn EPERM`; rerun with approval passed.
+- `npm run lint` is not functional with the current Next 16 setup: `next lint` is interpreted as a project directory named `lint`.
+
+Manual smoke notes for Slice 9L:
+
+- Draft with AI setup wizard still works.
+- Prompt generation still works.
+- Copy-prompt action works.
+- External handoff instructions are understandable on mobile and desktop.
+- Guided Setup still opens and proceeds.
+- Manual Builder still opens and proceeds.
+- No provider-backed LLM behavior exists.
 
 Slice 9K, AI Draft Setup Wizard, is implemented locally.
 

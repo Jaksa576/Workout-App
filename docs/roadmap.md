@@ -277,7 +277,7 @@ Status: implemented locally.
 
 ## 9K-9M. AI Draft Plan UX Campaign
 
-Status: in progress. Slice 9K is implemented locally; Slice 9L is next.
+Status: in progress. Slice 9K is implemented and pushed; Slice 9L is implemented locally; Slice 9M is next.
 
 Purpose:
 Improve the existing provider-free Draft with AI flow before beginning Slice 10.
@@ -296,18 +296,18 @@ Status: implemented locally.
 
 ### 9L. External LLM Handoff UX
 
-Status: next.
+Status: implemented locally.
 
-- Replace confusing "external assistance" language with clear copy/paste instructions.
-- Recommend ChatGPT as the default external LLM option.
-- Also provide Claude and Gemini as alternatives.
-- Provide simple external links and a primary copy-prompt action.
-- Explain that the user copies the prompt, opens an LLM, pastes the prompt, then returns with the generated plan.
-- Keep this as a user-directed workflow, not an in-app provider integration.
+- Replaced vague external-assistance copy with clear copy/paste instructions.
+- Recommended ChatGPT as the default external LLM option.
+- Provided Claude and Gemini as alternatives.
+- Added simple external links and a primary copy-prompt action.
+- Explained that the user copies the prompt, opens an LLM, pastes the prompt, then returns with the generated plan.
+- Kept this as a user-directed workflow, not an in-app provider integration.
 
 ### 9M. AI Draft Import Ergonomics
 
-Status: planned.
+Status: next.
 
 - Improve the import step so users can easily paste or upload the generated plan.
 - Update the generated prompt instructions so external LLMs return a cleaner transfer format.

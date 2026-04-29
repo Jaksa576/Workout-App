@@ -15,9 +15,11 @@ The app must continue to use the existing user-directed workflow:
 
 ## Campaign Status
 
-Slice 9K is implemented locally on `codex/slice-9k-ai-draft-setup-wizard`.
+Slice 9K is implemented and pushed on `codex/slice-9k-ai-draft-setup-wizard`.
 
-Slice 9L and Slice 9M remain planned implementation slices before Slice 10. Slice 9L is next.
+Slice 9L is implemented locally on `codex/slice-9l-external-llm-handoff-ux`.
+
+Slice 9M remains planned before Slice 10. Slice 9M is next.
 
 ## Non-goals
 
@@ -141,6 +143,34 @@ Draft with AI setup becomes a mobile-first step flow with clearer choices, less 
 ### Goal
 
 Make it obvious how to use the generated prompt with an external LLM.
+
+### Status
+
+Implemented locally in Slice 9L.
+
+What changed:
+
+- Made copy-prompt the primary handoff action.
+- Added plain-language round-trip instructions for copy, external tool use, generated output, return, and import.
+- Presented ChatGPT as the recommended external option, with Claude and Gemini as alternatives.
+- Added simple outbound links while making clear these tools are external and not app integrations.
+- Preserved the 9K setup wizard and the existing provider-free prompt/import/review/save contract.
+
+Validation:
+
+- `npm run typecheck` passed.
+- `npm run test` passed: 8 files, 48 tests. The first sandboxed attempt hit Windows `spawn EPERM`; rerun with approval passed.
+- `npm run build` passed and confirmed the expected route list. The first sandboxed attempt hit Windows `spawn EPERM`; rerun with approval passed.
+- `npm run lint` is not functional with the current Next 16 setup: `next lint` is interpreted as a project directory named `lint`.
+
+Manual smoke notes:
+
+- Draft with AI setup wizard still works.
+- Prompt generation still works.
+- Copy-prompt remains the primary action.
+- External handoff instructions are clear on mobile and desktop.
+- Guided Setup and Manual Builder remain reachable.
+- No provider-backed LLM behavior exists.
 
 ### Expected Outcome
 
