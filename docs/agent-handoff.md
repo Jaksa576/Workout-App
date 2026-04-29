@@ -45,12 +45,13 @@ The approved refactor direction is additive and migration-safe:
 9H. Plans / Phase UX Redesign.
 9I. Workout Execution UX Redesign.
 9J. Plan Creation / Settings Polish.
+9K-9M. AI Draft Plan UX Campaign.
 10. Exercise media and instruction layer.
 11. Broader polish/branding if still needed.
 
 The docs had previously been aligned on Slice 6 as dashboard/progression work. Product direction then intentionally shifted to prioritize UI Overhaul Phase 1 first, ahead of the previously planned dashboard slice.
 
-Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, Slice 7, and Slice 8 are in place locally. Slice 9A completed the docs/planning work that locked the redesign direction, Slice 9B completed the shared design-system foundation, and Slice 9C implemented the public/authenticated route split. A narrow pre-production 9C follow-up patch restored authenticated app shell/header/nav rendering on app routes. Slice 9D implemented and polished the public landing page, Slice 9E integrated the approved app icon/PWA assets, Slice 9F redesigned the authenticated app shell, Slice 9G redesigned the authenticated dashboard, Slice 9H redesigned plans/phase UX, Slice 9I redesigned workout execution UX, and Slice 9J polished plan creation/settings UX. The approved Slice 9F through Slice 9J campaign has no further implementation slice after 9J. Deferred Slice 7 plan creation QA learnings that remain should become future scoped work rather than being pulled into this completed campaign.
+Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, Slice 7, and Slice 8 are in place locally. Slice 9A completed the docs/planning work that locked the redesign direction, Slice 9B completed the shared design-system foundation, and Slice 9C implemented the public/authenticated route split. A narrow pre-production 9C follow-up patch restored authenticated app shell/header/nav rendering on app routes. Slice 9D implemented and polished the public landing page, Slice 9E integrated the approved app icon/PWA assets, Slice 9F redesigned the authenticated app shell, Slice 9G redesigned the authenticated dashboard, Slice 9H redesigned plans/phase UX, Slice 9I redesigned workout execution UX, and Slice 9J polished plan creation/settings UX. The next planned work is the AI Draft Plan UX Campaign before Slice 10. Deferred Slice 7 plan creation QA learnings that remain should feed that campaign only where they relate to Draft with AI setup, handoff, or import ergonomics.
 
 The previously considered narrow Slice 8 dashboard QA follow-up is superseded by the broader redesign program unless a blocking bug requires a tiny patch.
 
@@ -100,7 +101,28 @@ The previously considered narrow Slice 8 dashboard QA follow-up is superseded by
 9. `9I`: Workout Execution UX Redesign
 10. `9J`: Plan Creation / Settings Polish
 
-The Slice 9F through Slice 9J campaign is now complete locally through the final approved slice. No Slice 9K or follow-on implementation slice is authorized by the campaign brief.
+The Slice 9F through Slice 9J campaign is now complete locally through the final approved slice. The next planning target before Slice 10 is the AI Draft Plan UX Campaign.
+
+## Next Planning Target
+
+The next planning target is the AI Draft Plan UX Campaign before Slice 10.
+
+Recommended sequence:
+
+1. Slice 9K: AI Draft Setup Wizard.
+2. Slice 9L: External LLM Handoff UX.
+3. Slice 9M: AI Draft Import Ergonomics.
+
+Preserve:
+
+- existing setup -> draft -> review/edit -> save flow
+- Guided Setup
+- Manual Builder
+- provider-free external AI workflow
+- validation before save
+- no schema, RLS, auth, progression-engine, or provider-backed LLM changes
+
+Broader desktop/dashboard/copy/theme cleanup should remain future UX polish unless explicitly rescoped.
 
 ## Current Status
 
@@ -357,7 +379,7 @@ Verification after Slice 7:
 
 ## Next Major Slice
 
-No next implementation slice is authorized in the approved Slice 9F through Slice 9J campaign. Do not revisit 9C unless QA finds a regression in the implemented route/app-shell boundary.
+The next planning target is the AI Draft Plan UX Campaign before Slice 10. Do not revisit 9C unless QA finds a regression in the implemented route/app-shell boundary.
 
 Completed 9J intent:
 
@@ -832,9 +854,9 @@ Remaining recovery work:
 
 ## Next Best Step
 
-The approved Slice 9F through Slice 9J campaign is complete locally through Slice 9J. The next best step is human review and manual QA before merge decisions for the pushed redesign branches.
+The approved Slice 9F through Slice 9J campaign is complete locally through Slice 9J. The next best step is planning the AI Draft Plan UX Campaign before Slice 10.
 
-Manual QA should focus on authenticated plan creation and settings paths: guided `/plans/new` draft generation, manual `/plans/new?mode=manual`, external-AI prompt/import/review, generated plan edit/save, profile settings save, theme preference persistence, and mobile usability across `/plans/new` and `/settings`.
+That campaign should focus on authenticated plan creation paths: Draft with AI setup, generated prompt handoff to ChatGPT/Claude/Gemini, paste/upload import ergonomics, strict validation, review/edit, and save. Manual QA from Slice 9J remains useful context, but broader desktop/dashboard/copy/theme cleanup should stay future UX polish unless explicitly rescoped.
 
 If needed, a small Slice 5B1 follow-up patch is still available for profile/settings field-level validation messaging:
 

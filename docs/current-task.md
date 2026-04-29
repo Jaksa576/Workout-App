@@ -2,15 +2,47 @@
 
 ## Goal
 
-Current production follow-up work: complete locally through Slice 9J.
+Current planning target: define the AI Draft Plan UX Campaign before Slice 10.
 
-Slice 9D, Public Landing Page Implementation, is implemented locally with an immediate visual QA polish patch. Slice 9E, App Icon / PWA Asset Integration, is also implemented locally as part of the same polish pass. Slice 9F, Authenticated App Shell Redesign, Slice 9G, Dashboard Redesign, Slice 9H, Plans / Phase UX Redesign, Slice 9I, Workout Execution UX Redesign, and Slice 9J, Plan Creation / Settings Polish, are implemented locally.
+Slice 9J, Plan Creation / Settings Polish, is implemented locally. Before beginning Slice 10, Exercise Media And Instruction Layer, the next roadmap priority is the planned Slice 9K-9M AI Draft Plan UX Campaign.
+
+The campaign should improve the existing provider-free Draft with AI flow in `/plans/new`:
+
+- Slice 9K: AI Draft Setup Wizard.
+- Slice 9L: External LLM Handoff UX.
+- Slice 9M: AI Draft Import Ergonomics.
+
+This campaign should preserve the existing setup -> draft -> review/edit -> save contract and must not add provider-backed LLM integration.
 
 ## Current Slice
 
-Current campaign implementation status: Slice 9J, Plan Creation / Settings Polish, is implemented locally. There is no next implementation slice in the approved Slice 9F through Slice 9J campaign.
+Current campaign planning status: Slice 9K-9M, AI Draft Plan UX Campaign, is planned before Slice 10.
 
-Slice 9J focused on:
+Slice 9K should focus on:
+
+- converting Draft with AI setup from a long-form page into a guided, mobile-first step flow
+- aligning the interaction model more closely with Guided Setup
+- asking for one or a small number of choices per step
+- reducing redundant setup choices where Guided Setup, Manual Builder, and Draft with AI overlap
+- preserving existing validation, draft, review/edit, and save behavior
+
+Slice 9L should focus on:
+
+- replacing confusing "external assistance" language with clear copy/paste instructions
+- recommending ChatGPT as the default external LLM option
+- also providing Claude and Gemini as alternatives
+- providing simple external links and a primary copy-prompt action
+- explaining that the user copies the prompt, opens an LLM, pastes the prompt, then returns with the generated plan
+
+Slice 9M should focus on:
+
+- improving the import step so users can easily paste or upload the generated plan
+- updating generated prompt instructions so external LLMs return a cleaner transfer format
+- considering fenced markdown block and/or downloadable markdown file guidance
+- improving paste/import instructions and validation error guidance
+- preserving strict validation and review-before-save behavior
+
+Slice 9J remains completed background context. It focused on:
 
 - polishing `/plans/new`, plan setup/review presentation, and settings/profile forms around the selected visual system
 - preserving the existing setup -> draft -> review/edit -> save contract
@@ -31,9 +63,11 @@ Slice 9J did not become:
 
 ## Current Implementation Goals
 
-- preserve the completed public landing and app icon work
-- keep `/` public and shell-free while `/dashboard` remains authenticated
-- stop campaign implementation after Slice 9J
+- improve Draft with AI setup, external LLM handoff, and import ergonomics before Slice 10
+- preserve the provider-free copy/paste workflow with external LLMs
+- preserve Guided Setup and Manual Builder as existing plan creation paths
+- preserve the existing setup -> draft -> review/edit -> save contract
+- preserve strict validation before imported AI output reaches review/edit/save
 - keep schema, RLS, progression, and LLM/provider behavior unchanged
 
 ## Recently Completed Slices
@@ -251,7 +285,7 @@ That slice did not deliver:
 - progression-engine rewrite
 - alternate/random workout support
 
-Deferred follow-up from completed Slice 7 QA can be considered for Slice 9J only if it fits the approved plan creation/settings polish scope and does not become a provider-backed AI or plan-builder rewrite.
+Deferred follow-up from completed Slice 7 QA can be considered for the AI Draft Plan UX Campaign only if it fits Draft with AI setup, external LLM handoff, or import ergonomics and does not become a provider-backed AI or plan-builder rewrite.
 
 - broader `/plans/new` flow alignment and terminology cleanup
 - assigned-day / prompt-specificity polish
@@ -290,9 +324,24 @@ The app must remain fully functional without any LLM provider.
 
 ## Next Major Slice
 
-No next implementation slice is approved in the Slice 9F through Slice 9J campaign. The next decision should be a human review/merge decision for the completed redesign branches, plus any manual QA findings that should become future scoped work.
+The next major planned work is the AI Draft Plan UX Campaign before Slice 10, Exercise Media And Instruction Layer.
 
-The completed Slice 9J work:
+The campaign should improve the existing provider-free Draft with AI path in `/plans/new`:
+
+- Slice 9K: convert Draft with AI setup into a guided, mobile-first setup wizard closer to Guided Setup.
+- Slice 9L: clarify the external LLM handoff with direct copy/paste instructions, recommended ChatGPT usage, and Claude/Gemini alternatives.
+- Slice 9M: improve import ergonomics so generated output is easier to paste or upload while preserving strict validation.
+
+The Draft with AI flow should remain:
+
+- setup -> draft -> review/edit -> save
+- user-directed copy/paste with an external LLM
+- provider-free, with no API keys or runtime LLM dependency
+- validated before review/edit/save
+
+Broader dashboard, desktop, typography, copy-reduction, and dark-mode cleanup should be tracked separately as future UX polish unless explicitly rescoped.
+
+Completed Slice 9J background context:
 
 - polish `/plans/new`, plan setup/review presentation, and settings/profile surfaces under the new visual system
 - preserve existing manual/guided setup behavior, review-before-save drafts, settings/profile forms, and theme controls
@@ -301,7 +350,7 @@ The completed Slice 9J work:
 - preserve protected-route behavior for `/plans`, `/workout`, `/settings`, `/onboarding`, and related app routes
 - avoid changing progression logic, schema, RLS, auth, or LLM/provider behavior
 
-Slice 9J should not:
+The AI Draft Plan UX Campaign should not:
 
 - undo or revisit the route split itself unless a bug requires a narrow patch
 - change progression algorithms
@@ -316,12 +365,12 @@ Slice 9J should not:
 - `docs/agent-handoff.md`
 - `docs/roadmap.md`
 - `docs/architecture.md`
+- `docs/campaigns/ai-draft-plan-ux.md`
 - `AGENTS.md`
 - `app/plans/new/page.tsx`
 - plan setup and draft/review components
-- `app/settings/page.tsx`
-- settings/profile components
-- shared display/card primitives if needed
+- AI prompt generation and import parser helpers
+- shared plan setup/review components if needed
 
 ## Constraints
 
@@ -332,7 +381,7 @@ Slice 9J should not:
 - Do not change progression behavior or the server-side progression engine.
 - Do not rename database tables, API routes, or compatibility fields such as `plan_phases`, `phase-action`, or `currentPhase`.
 - Do not weaken Supabase auth or RLS assumptions.
-- Keep deferred Slice 7 QA ideas bounded to approved Slice 9J plan creation/settings polish if touched at all.
+- Keep deferred Slice 7 QA ideas bounded to Draft with AI setup, handoff, or import ergonomics if touched at all.
 - Keep the separation between direct detail edits and setup/regenerate clear.
 - Keep alternate/random workouts deferred future workout flexibility work.
 - Run future Codex implementation slices in Windows-native Codex app worktrees unless a task explicitly overrides the environment.
@@ -340,13 +389,13 @@ Slice 9J should not:
 
 ## Non-Goals
 
-- No slices beyond 9J in this campaign.
+- No provider-backed LLM integration.
+- No broad dashboard, desktop, typography, or dark-mode cleanup inside the AI Draft Plan UX campaign unless explicitly rescoped.
 - No schema or RLS changes.
 - No auth behavior changes.
 - No progression-engine changes.
-- No LLM/provider integration.
 - No route-boundary rewrite.
 
 ## Maintenance Note
 
-Slice 9J is complete locally. The next recommended human decision is whether to review and merge the pushed Slice 9F through Slice 9J branches, and which manual QA findings should become future scoped work.
+Slice 9J is complete locally. The next planning target is the AI Draft Plan UX Campaign before Slice 10, with broader visual polish tracked separately unless explicitly rescoped.

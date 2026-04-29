@@ -275,6 +275,58 @@ Status: implemented locally.
 - Grouped profile/settings fields into durable-profile sections and replaced the theme dropdown with a segmented preference control.
 - No route-boundary rewrite, schema change, RLS change, auth behavior change, new settings data model, LLM/provider integration, or progression-engine change happened in this slice.
 
+## 9K-9M. AI Draft Plan UX Campaign
+
+Status: planned.
+
+Purpose:
+Improve the existing provider-free Draft with AI flow before beginning Slice 10.
+
+Suggested slices:
+
+### 9K. AI Draft Setup Wizard
+
+Status: planned.
+
+- Convert Draft with AI setup from a long-form page into a guided, mobile-first step flow.
+- Align the interaction model more closely with Guided Setup.
+- Ask for one or a small number of choices per step.
+- Reduce redundant setup choices where Guided Setup, Manual Builder, and Draft with AI overlap.
+- Preserve existing validation, draft, review/edit, and save behavior.
+- Do not add provider-backed LLM integration.
+
+### 9L. External LLM Handoff UX
+
+Status: planned.
+
+- Replace confusing "external assistance" language with clear copy/paste instructions.
+- Recommend ChatGPT as the default external LLM option.
+- Also provide Claude and Gemini as alternatives.
+- Provide simple external links and a primary copy-prompt action.
+- Explain that the user copies the prompt, opens an LLM, pastes the prompt, then returns with the generated plan.
+- Keep this as a user-directed workflow, not an in-app provider integration.
+
+### 9M. AI Draft Import Ergonomics
+
+Status: planned.
+
+- Improve the import step so users can easily paste or upload the generated plan.
+- Update the generated prompt instructions so external LLMs return a cleaner transfer format.
+- Consider a fenced markdown block and/or downloadable markdown file guidance.
+- Improve paste/import instructions and error guidance.
+- Preserve strict validation and review-before-save behavior.
+- Do not weaken parser validation just to accept messy output.
+
+### Future UX Polish Candidates
+
+Status: planned, sequencing TBD.
+
+- Desktop responsive polish.
+- Dashboard simplification and content-density cleanup.
+- App-wide copy reduction.
+- Typography consistency.
+- Theme and dark-mode readability QA.
+
 ## 10. Exercise Media And Instruction Layer
 
 Status: planned.
