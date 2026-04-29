@@ -45,13 +45,14 @@ The approved refactor direction is additive and migration-safe:
 9H. Plans / Phase UX Redesign.
 9I. Workout Execution UX Redesign.
 9J. Plan Creation / Settings Polish.
-9K-9M. AI Draft Plan UX Campaign.
+9K. AI Draft Setup Wizard.
+9L-9M. Remaining AI Draft Plan UX Campaign.
 10. Exercise media and instruction layer.
 11. Broader polish/branding if still needed.
 
 The docs had previously been aligned on Slice 6 as dashboard/progression work. Product direction then intentionally shifted to prioritize UI Overhaul Phase 1 first, ahead of the previously planned dashboard slice.
 
-Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, Slice 7, and Slice 8 are in place locally. Slice 9A completed the docs/planning work that locked the redesign direction, Slice 9B completed the shared design-system foundation, and Slice 9C implemented the public/authenticated route split. A narrow pre-production 9C follow-up patch restored authenticated app shell/header/nav rendering on app routes. Slice 9D implemented and polished the public landing page, Slice 9E integrated the approved app icon/PWA assets, Slice 9F redesigned the authenticated app shell, Slice 9G redesigned the authenticated dashboard, Slice 9H redesigned plans/phase UX, Slice 9I redesigned workout execution UX, and Slice 9J polished plan creation/settings UX. The next planned work is the AI Draft Plan UX Campaign before Slice 10. Deferred Slice 7 plan creation QA learnings that remain should feed that campaign only where they relate to Draft with AI setup, handoff, or import ergonomics.
+Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, Slice 7, and Slice 8 are in place locally. Slice 9A completed the docs/planning work that locked the redesign direction, Slice 9B completed the shared design-system foundation, and Slice 9C implemented the public/authenticated route split. A narrow pre-production 9C follow-up patch restored authenticated app shell/header/nav rendering on app routes. Slice 9D implemented and polished the public landing page, Slice 9E integrated the approved app icon/PWA assets, Slice 9F redesigned the authenticated app shell, Slice 9G redesigned the authenticated dashboard, Slice 9H redesigned plans/phase UX, Slice 9I redesigned workout execution UX, Slice 9J polished plan creation/settings UX, and Slice 9K added the AI Draft Setup Wizard. The next planned work is Slice 9L, External LLM Handoff UX, before Slice 9M and Slice 10. Deferred Slice 7 plan creation QA learnings that remain should feed that campaign only where they relate to Draft with AI setup, handoff, or import ergonomics.
 
 The previously considered narrow Slice 8 dashboard QA follow-up is superseded by the broader redesign program unless a blocking bug requires a tiny patch.
 
@@ -100,22 +101,21 @@ The previously considered narrow Slice 8 dashboard QA follow-up is superseded by
 8. `9H`: Plans / Phase UX Redesign
 9. `9I`: Workout Execution UX Redesign
 10. `9J`: Plan Creation / Settings Polish
-11. `9K`: AI Draft Setup Wizard
-12. `9L`: External LLM Handoff UX
+11. `9K`: AI Draft Setup Wizard (implemented locally)
+12. `9L`: External LLM Handoff UX (next)
 13. `9M`: AI Draft Import Ergonomics
 14. `10`: Exercise Media And Instruction Layer
 
-The Slice 9F through Slice 9J campaign is now complete locally through the final approved slice. The next planning target before Slice 10 is the AI Draft Plan UX Campaign.
+The Slice 9F through Slice 9J campaign is complete locally, and Slice 9K is implemented locally. The next implementation target before Slice 10 is Slice 9L.
 
 ## Next Planning Target
 
-The next planning target is the AI Draft Plan UX Campaign before Slice 10.
+The current implementation target is the remaining AI Draft Plan UX Campaign before Slice 10.
 
 Recommended sequence:
 
-1. Slice 9K: AI Draft Setup Wizard.
-2. Slice 9L: External LLM Handoff UX.
-3. Slice 9M: AI Draft Import Ergonomics.
+1. Slice 9L: External LLM Handoff UX.
+2. Slice 9M: AI Draft Import Ergonomics.
 
 Preserve:
 
@@ -185,7 +185,8 @@ Broader desktop/dashboard/copy/theme cleanup should remain future UX polish unle
 - Slice 9H preserved plan activation, direct detail editing, archive action, video-link editing, phase progress display, saved-plan contracts, and setup/regenerate boundaries.
 - Slice 9I refreshed workout execution, exercise checklist cards, rest timer, check-in controls, recent logs, and saved-session feedback while preserving session save behavior and server-side progression results.
 - Slice 9J refreshed `/plans/new`, plan setup/review presentation, external-AI import ergonomics, settings/profile grouping, and theme preference readability while preserving existing save/profile/theme behavior.
-- Slice 9D/9E/9F/9G/9H/9I/9J did not implement schema changes, RLS changes, auth-model rewrites, LLM/provider integration, route-boundary rewrites, or progression-engine changes.
+- Slice 9K split Draft with AI setup into focused Goal, Schedule, Context, and Optional steps while preserving prompt generation, strict import validation, review/edit/save, Guided Setup, Manual Builder, and the provider-free external AI workflow.
+- Slice 9D/9E/9F/9G/9H/9I/9J/9K did not implement schema changes, RLS changes, auth-model rewrites, LLM/provider integration, route-boundary rewrites, or progression-engine changes.
 
 ## Workflow Notes
 
@@ -1004,6 +1005,14 @@ Most recent Slice 9J verification:
 - `npm run typecheck` passed.
 - `npm run test` passed: 8 files, 48 tests.
 - `npm run build` passed and confirmed `/`, `/dashboard`, `/plans`, `/plans/new`, `/workout`, and `/settings` remain in the route list.
+- `next-env.d.ts` changed as a generated build artifact and was restored before commit.
+
+Most recent Slice 9K verification:
+
+- `npm run typecheck` passed.
+- `npm run test` passed: 8 files, 48 tests. The first sandboxed run hit Windows `spawn EPERM`; rerun with approval passed.
+- `npm run build` passed and confirmed `/`, `/dashboard`, `/plans`, `/plans/new`, `/workout`, and `/settings` remain in the route list. The first sandboxed run hit Windows `spawn EPERM`; rerun with approval passed.
+- `npm run lint` is not functional with the current Next 16 setup: `next lint` is interpreted as a project directory named `lint`.
 - `next-env.d.ts` changed as a generated build artifact and was restored before commit.
 
 Manual browser verification still needed:

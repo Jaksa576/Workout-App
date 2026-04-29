@@ -277,7 +277,7 @@ Status: implemented locally.
 
 ## 9K-9M. AI Draft Plan UX Campaign
 
-Status: planned.
+Status: in progress. Slice 9K is implemented locally; Slice 9L is next.
 
 Purpose:
 Improve the existing provider-free Draft with AI flow before beginning Slice 10.
@@ -286,18 +286,17 @@ Suggested slices:
 
 ### 9K. AI Draft Setup Wizard
 
-Status: planned.
+Status: implemented locally.
 
-- Convert Draft with AI setup from a long-form page into a guided, mobile-first step flow.
-- Align the interaction model more closely with Guided Setup.
-- Ask for one or a small number of choices per step.
-- Reduce redundant setup choices where Guided Setup, Manual Builder, and Draft with AI overlap.
-- Preserve existing validation, draft, review/edit, and save behavior.
-- Do not add provider-backed LLM integration.
+- Converted Draft with AI setup from a long-form page into a guided, mobile-first step flow.
+- Split setup into focused Goal, Schedule, Context, and Optional steps.
+- Preserved existing prompt generation, strict import validation, review/edit, and save behavior.
+- Preserved Guided Setup and Manual Builder.
+- Added no provider-backed LLM integration.
 
 ### 9L. External LLM Handoff UX
 
-Status: planned.
+Status: next.
 
 - Replace confusing "external assistance" language with clear copy/paste instructions.
 - Recommend ChatGPT as the default external LLM option.

@@ -15,9 +15,9 @@ The app must continue to use the existing user-directed workflow:
 
 ## Campaign Status
 
-Slice 9K-9M is a planned implementation campaign before Slice 10.
+Slice 9K is implemented locally on `codex/slice-9k-ai-draft-setup-wizard`.
 
-This document cleanup is docs-only. It does not implement Slice 9K, 9L, or 9M.
+Slice 9L and Slice 9M remain planned implementation slices before Slice 10. Slice 9L is next.
 
 ## Non-goals
 
@@ -79,6 +79,30 @@ Not allowed in future Slice 9K-9M implementation PRs:
 ### Goal
 
 Make Draft with AI feel closer to Guided Setup.
+
+### Status
+
+Implemented locally in Slice 9K.
+
+What changed:
+
+- Split Draft with AI setup into focused Goal, Schedule, Context, and Optional steps.
+- Kept prompt generation, import parsing, strict validation, review/edit, and save behavior on the existing path.
+- Preserved Guided Setup and Manual Builder.
+- Added no provider-backed LLM integration.
+
+Validation:
+
+- `npm run typecheck` passed.
+- `npm run test` passed: 8 files, 48 tests. The first sandboxed attempt hit Windows `spawn EPERM`; rerun with approval passed.
+- `npm run build` passed and confirmed the expected route list. The first sandboxed attempt hit Windows `spawn EPERM`; rerun with approval passed.
+- `npm run lint` is not functional with the current Next 16 setup: `next lint` is interpreted as a project directory named `lint`.
+
+Manual smoke notes:
+
+- Guided Setup and Manual Builder remain reachable from `/plans/new`.
+- Draft with AI now proceeds through the new setup wizard before prompt generation.
+- Prompt generation, import, and review/edit/save remain on the existing provider-free contract.
 
 ### Expected Outcome
 

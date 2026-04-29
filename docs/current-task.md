@@ -2,9 +2,9 @@
 
 ## Goal
 
-Current planning target: define the AI Draft Plan UX Campaign before Slice 10.
+Current implementation target: continue the AI Draft Plan UX Campaign before Slice 10.
 
-Slice 9J, Plan Creation / Settings Polish, is implemented locally. Before beginning Slice 10, Exercise Media And Instruction Layer, the next roadmap priority is the planned Slice 9K-9M AI Draft Plan UX Campaign.
+Slice 9J, Plan Creation / Settings Polish, is implemented locally. Slice 9K, AI Draft Setup Wizard, is implemented locally on `codex/slice-9k-ai-draft-setup-wizard`. Before beginning Slice 10, Exercise Media And Instruction Layer, the next roadmap priority is continuing the Slice 9K-9M AI Draft Plan UX Campaign.
 
 The campaign should improve the existing provider-free Draft with AI flow in `/plans/new`:
 
@@ -16,15 +16,15 @@ This campaign should preserve the existing setup -> draft -> review/edit -> save
 
 ## Current Slice
 
-Current campaign planning status: Slice 9K-9M, AI Draft Plan UX Campaign, is planned before Slice 10.
+Current campaign status: Slice 9K is implemented locally. Slice 9L, External LLM Handoff UX, is next.
 
-Slice 9K should focus on:
+Slice 9K delivered:
 
-- converting Draft with AI setup from a long-form page into a guided, mobile-first step flow
-- aligning the interaction model more closely with Guided Setup
-- asking for one or a small number of choices per step
-- reducing redundant setup choices where Guided Setup, Manual Builder, and Draft with AI overlap
-- preserving existing validation, draft, review/edit, and save behavior
+- converted Draft with AI setup from one long details page into focused Goal, Schedule, Context, and Optional steps
+- aligned the AI setup interaction model more closely with Guided Setup step navigation
+- preserved existing prompt generation, import validation, review/edit, and save behavior
+- preserved Guided Setup and Manual Builder
+- avoided provider-backed LLM integration
 
 Slice 9L should focus on:
 
@@ -71,6 +71,30 @@ Slice 9J did not become:
 - keep schema, RLS, progression, and LLM/provider behavior unchanged
 
 ## Recently Completed Slices
+
+Slice 9K, AI Draft Setup Wizard, is implemented locally.
+
+That slice delivered:
+
+- split the Draft with AI setup form into a mobile-first wizard with Goal, Schedule, Context, and Optional steps
+- kept the generated prompt, strict markdown import parser, review/edit stage, and compatible save path unchanged
+- kept Guided Setup and Manual Builder reachable from `/plans/new`
+- preserved the provider-free external AI workflow without API keys, provider SDKs, schema changes, RLS changes, auth changes, or progression changes
+
+Verification after Slice 9K:
+
+- `npm run typecheck` passed.
+- `npm run test` passed: 8 files, 48 tests. The first sandboxed run hit Windows `spawn EPERM`; rerun with approval passed.
+- `npm run build` passed and confirmed `/`, `/dashboard`, `/plans`, `/plans/new`, `/workout`, and `/settings` remain in the route list. The first sandboxed run hit Windows `spawn EPERM`; rerun with approval passed.
+- `npm run lint` is not functional with the current Next 16 setup: `next lint` is interpreted as a project directory named `lint`.
+
+Manual smoke notes for Slice 9K:
+
+- Guided Setup still opens and proceeds.
+- Manual Builder still opens and proceeds.
+- Draft with AI proceeds through the new setup wizard.
+- Prompt generation still works from the completed AI setup.
+- No provider-backed LLM behavior exists.
 
 Slice 9J, Plan Creation / Settings Polish, is implemented locally.
 

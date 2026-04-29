@@ -30,18 +30,21 @@ import type {
   Weekday
 } from "@/lib/types";
 
-type AiWizardStep = "details" | "prompt" | "import" | "review";
+type AiWizardStep = "goal" | "schedule" | "context" | "optional" | "prompt" | "import" | "review";
 
 type AiPlanDraftWizardProps = {
   profile: Profile | null;
   initialSetup: PlanSetupInput;
 };
 
-const steps: Array<{ id: AiWizardStep; label: string }> = [
-  { id: "details", label: "Details" },
-  { id: "prompt", label: "Prompt" },
-  { id: "import", label: "Import" },
-  { id: "review", label: "Review" }
+const steps: Array<{ id: AiWizardStep; label: string; helper: string }> = [
+  { id: "goal", label: "Goal", helper: "Choose the main plan direction." },
+  { id: "schedule", label: "Schedule", helper: "Set the weekly rhythm." },
+  { id: "context", label: "Context", helper: "Add the required drafting context." },
+  { id: "optional", label: "Optional", helper: "Add extra preferences if helpful." },
+  { id: "prompt", label: "Prompt", helper: "Copy the generated external prompt." },
+  { id: "import", label: "Import", helper: "Paste the generated plan for validation." },
+  { id: "review", label: "Review", helper: "Review and edit before saving." }
 ];
 
 const goalOptions: Array<{
@@ -150,7 +153,7 @@ export function AiPlanDraftWizard({
     }
 
     setDetailErrors([]);
-    setStepIndex(1);
+    setStepById("prompt");
   }
 
   function importDraft() {
@@ -170,17 +173,26 @@ export function AiPlanDraftWizard({
     setImportErrors([]);
     setDraft(structuredDraft);
     setDraftKey((current) => current + 1);
-    setStepIndex(3);
+    setStepById("review");
+  }
+
+  function continueToNextStep() {
+    setDetailErrors([]);
+    setStepIndex((index) => Math.min(steps.length - 1, index + 1));
+  }
+
+  function setStepById(nextStep: AiWizardStep) {
+    setStepIndex(steps.findIndex((item) => item.id === nextStep));
   }
 
   return (
     <div className="space-y-6">
       <div className="surface-panel-muted space-y-3 p-3">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
             Step {stepIndex + 1} of {steps.length}
           </p>
-          <p className="text-sm font-semibold text-copy">{step.label}</p>
+          <p className="text-sm leading-6 text-muted">{step.helper}</p>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
         {steps.map((item, index) => (
@@ -188,7 +200,7 @@ export function AiPlanDraftWizard({
             key={item.id}
             type="button"
             onClick={() => setStepIndex(index)}
-            disabled={index === 3 && !draft}
+            disabled={item.id === "review" && !draft}
             className={`ui-step-chip ${
               step.id === item.id
                 ? "ui-step-chip-active"
@@ -199,25 +211,18 @@ export function AiPlanDraftWizard({
           </button>
         ))}
         <span className="rounded-full border border-border bg-surface px-3 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-muted sm:px-4">
-          5. Save
+          8. Save
         </span>
         </div>
       </div>
 
-      {step.id === "details" ? (
+      {step.id === "goal" ? (
         <div className="space-y-5">
           <div>
-            <h2 className="font-display text-3xl text-copy">AI draft details</h2>
+            <h2 className="font-display text-3xl text-copy">What should the draft focus on?</h2>
             <p className="mt-2 text-sm leading-6 text-muted">
-              Generate a copyable prompt, use your own external AI assistant, then paste the
-              structured markdown back here for validation and review.
-            </p>
-          </div>
-
-          <div>
-            <p className="text-sm font-semibold text-copy">What type of plan do you want?</p>
-            <p className="mt-2 text-sm leading-6 text-muted">
-              Choose the main goal for this plan so the prompt and imported draft stay aligned.
+              Pick the main goal for this plan. The prompt and imported draft will stay aligned
+              to this choice.
             </p>
           </div>
 
@@ -242,6 +247,18 @@ export function AiPlanDraftWizard({
                 <span className="mt-2 block text-sm leading-6 opacity-80">{option.helper}</span>
               </button>
             ))}
+          </div>
+        </div>
+      ) : null}
+
+      {step.id === "schedule" ? (
+        <div className="space-y-5">
+          <div>
+            <h2 className="font-display text-3xl text-copy">When will this plan fit?</h2>
+            <p className="mt-2 text-sm leading-6 text-muted">
+              Set the training rhythm the external draft should respect. You can edit the final
+              schedule again before saving.
+            </p>
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
@@ -271,28 +288,6 @@ export function AiPlanDraftWizard({
                 {[30, 45, 60, 75].map((minutes) => (
                   <option key={minutes} value={minutes}>
                     {minutes} minutes
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block">
-              <span className="text-sm font-semibold text-copy">Experience level</span>
-                <select
-                  value={promptInput.experienceLevel ?? ""}
-                  onChange={(event) =>
-                    setPromptInput((current) => ({
-                      ...current,
-                      experienceLevel: event.target.value
-                        ? (event.target.value as TrainingExperience)
-                        : null
-                    }))
-                  }
-                  className="ui-input mt-3"
-              >
-                <option value="">Select experience</option>
-                {trainingExperienceOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
                   </option>
                 ))}
               </select>
@@ -327,21 +322,58 @@ export function AiPlanDraftWizard({
               ))}
             </div>
           </div>
+        </div>
+      ) : null}
 
-          <label className="block">
-            <span className="text-sm font-semibold text-copy">Equipment access</span>
-            <input
-              value={promptInput.equipmentAccess}
-              onChange={(event) =>
-                setPromptInput((current) => ({
-                  ...current,
-                  equipmentAccess: event.target.value
-                }))
-              }
-              placeholder={equipmentOptions.join(", ")}
-              className="ui-input mt-3"
-            />
-          </label>
+      {step.id === "context" ? (
+        <div className="space-y-5">
+          <div>
+            <h2 className="font-display text-3xl text-copy">What should the assistant know?</h2>
+            <p className="mt-2 text-sm leading-6 text-muted">
+              These required details keep the prompt practical and help the app validate the
+              imported plan before review.
+            </p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="block">
+              <span className="text-sm font-semibold text-copy">Experience level</span>
+                <select
+                  value={promptInput.experienceLevel ?? ""}
+                  onChange={(event) =>
+                    setPromptInput((current) => ({
+                      ...current,
+                      experienceLevel: event.target.value
+                        ? (event.target.value as TrainingExperience)
+                        : null
+                    }))
+                  }
+                  className="ui-input mt-3"
+              >
+                <option value="">Select experience</option>
+                {trainingExperienceOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block">
+              <span className="text-sm font-semibold text-copy">Equipment access</span>
+              <input
+                value={promptInput.equipmentAccess}
+                onChange={(event) =>
+                  setPromptInput((current) => ({
+                    ...current,
+                    equipmentAccess: event.target.value
+                  }))
+                }
+                placeholder={equipmentOptions.join(", ")}
+                className="ui-input mt-3"
+              />
+            </label>
+          </div>
 
           <div className="grid gap-4 md:grid-cols-2">
             <label className="block">
@@ -376,11 +408,27 @@ export function AiPlanDraftWizard({
             </label>
           </div>
 
-          <details className="surface-panel">
-            <summary className="cursor-pointer text-sm font-semibold text-copy">
-              Optional context
-            </summary>
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
+          {detailErrors.length ? (
+            <div className="rounded-[24px] border border-accent/25 bg-accent/10 p-4 text-sm leading-6 text-muted sm:rounded-[28px]">
+              {detailErrors.map((error) => (
+                <p key={error}>{error}</p>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      {step.id === "optional" ? (
+        <div className="space-y-5">
+          <div>
+            <h2 className="font-display text-3xl text-copy">Any preferences to include?</h2>
+            <p className="mt-2 text-sm leading-6 text-muted">
+              These are optional. Leave anything blank if it does not matter for this draft.
+            </p>
+          </div>
+
+          <div className="surface-panel">
+            <div className="grid gap-4 md:grid-cols-2">
               <label className="block">
                 <span className="text-sm font-semibold text-copy">
                   How this plan should progress
@@ -488,15 +536,7 @@ export function AiPlanDraftWizard({
                 />
               </label>
             </div>
-          </details>
-
-          {detailErrors.length ? (
-            <div className="rounded-[24px] border border-accent/25 bg-accent/10 p-4 text-sm leading-6 text-muted sm:rounded-[28px]">
-              {detailErrors.map((error) => (
-                <p key={error}>{error}</p>
-              ))}
-            </div>
-          ) : null}
+          </div>
         </div>
       ) : null}
 
@@ -596,19 +636,46 @@ export function AiPlanDraftWizard({
           >
             Back
           </button>
-          {step.id === "details" ? (
+          {["goal", "schedule"].includes(step.id) ? (
             <button
               type="button"
-              onClick={continueFromDetails}
+              onClick={continueToNextStep}
               className="ui-button-primary"
             >
               Continue
             </button>
           ) : null}
+          {step.id === "context" ? (
+            <button
+              type="button"
+              onClick={() => {
+                const errors = validateAiPlanPromptInput(promptInput);
+
+                if (errors.length) {
+                  setDetailErrors(errors);
+                  return;
+                }
+
+                continueToNextStep();
+              }}
+              className="ui-button-primary"
+            >
+              Continue
+            </button>
+          ) : null}
+          {step.id === "optional" ? (
+            <button
+              type="button"
+              onClick={continueFromDetails}
+              className="ui-button-primary"
+            >
+              Generate Prompt
+            </button>
+          ) : null}
           {step.id === "prompt" ? (
             <button
               type="button"
-              onClick={() => setStepIndex(2)}
+              onClick={() => setStepById("import")}
               className="ui-button-primary"
             >
               Continue to Import
