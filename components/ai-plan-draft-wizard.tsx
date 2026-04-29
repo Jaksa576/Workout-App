@@ -621,8 +621,9 @@ export function AiPlanDraftWizard({
           <div className="surface-panel flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-semibold text-copy">Prompt ready</p>
-              <p className="mt-1 text-sm leading-6 text-muted">
-                Copy this first, then open your preferred external tool.
+            <p className="mt-1 text-sm leading-6 text-muted">
+                Copy this first, then open your preferred external tool. Ask it to return the
+                fenced transfer block exactly as requested.
               </p>
             </div>
             <div className="flex flex-col gap-2 sm:items-end">
@@ -650,27 +651,36 @@ export function AiPlanDraftWizard({
       {step.id === "import" ? (
         <div className="space-y-5">
           <div className="surface-panel">
-            <p className="text-sm font-semibold text-copy">Paste strict markdown output</p>
+            <p className="text-sm font-semibold text-copy">Paste the transfer block</p>
             <p className="mt-2 text-sm leading-6 text-muted">
-              Paste only the structured markdown response. v1 rejects bullets, JSON, commentary,
-              and unsupported extra fields.
+              Paste the fenced block that starts with{" "}
+              <span className="font-mono text-copy">```adaptive-training-plan</span>. If your
+              external tool only gave you the plan text, paste the strict markdown beginning with{" "}
+              <span className="font-mono text-copy">PLAN</span>. Validation still rejects bullets,
+              JSON, commentary inside the plan, and unsupported extra fields.
             </p>
           </div>
           <label className="block">
-            <span className="text-sm font-semibold text-copy">AI response</span>
+            <span className="text-sm font-semibold text-copy">Generated plan text</span>
             <textarea
               value={importText}
               onChange={(event) => setImportText(event.target.value)}
               rows={22}
-              placeholder={`PLAN\ntitle: Example Plan\ngoal_track: strength\nprogression_mode: performance_based\n...`}
+              placeholder={`\`\`\`adaptive-training-plan\nPLAN\ntitle: Example Plan\ngoal_track: strength\nprogression_mode: performance_based\n...\n\`\`\``}
               className="ui-input mt-3 min-h-[28rem] font-mono text-xs leading-6"
             />
           </label>
           {importErrors.length ? (
             <div className="rounded-[24px] border border-accent/25 bg-accent/10 p-4 text-sm leading-6 text-muted sm:rounded-[28px]">
+              <p className="font-semibold text-copy">Import needs a quick fix.</p>
               {importErrors.map((error) => (
-                <p key={error}>{error}</p>
+                <p key={error} className="mt-2">{error}</p>
               ))}
+              <p className="mt-3">
+                Check that the pasted text includes one plan, starts with `PLAN` inside the
+                transfer block, keeps the required field order, and does not include bullets,
+                JSON, tables, or extra fields.
+              </p>
             </div>
           ) : null}
         </div>

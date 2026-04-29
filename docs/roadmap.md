@@ -277,7 +277,7 @@ Status: implemented locally.
 
 ## 9K-9M. AI Draft Plan UX Campaign
 
-Status: in progress. Slice 9K is implemented and pushed; Slice 9L is implemented locally; Slice 9M is next.
+Status: implemented locally through Slice 9M.
 
 Purpose:
 Improve the existing provider-free Draft with AI flow before beginning Slice 10.
@@ -296,7 +296,7 @@ Status: implemented locally.
 
 ### 9L. External LLM Handoff UX
 
-Status: implemented locally.
+Status: implemented and pushed.
 
 - Replaced vague external-assistance copy with clear copy/paste instructions.
 - Recommended ChatGPT as the default external LLM option.
@@ -307,14 +307,14 @@ Status: implemented locally.
 
 ### 9M. AI Draft Import Ergonomics
 
-Status: next.
+Status: implemented locally.
 
-- Improve the import step so users can easily paste or upload the generated plan.
-- Update the generated prompt instructions so external LLMs return a cleaner transfer format.
-- Consider a fenced markdown block and/or downloadable markdown file guidance.
-- Improve paste/import instructions and error guidance.
-- Preserve strict validation and review-before-save behavior.
-- Do not weaken parser validation just to accept messy output.
+- Improved the import step so users know exactly what generated plan text to paste.
+- Updated generated prompt instructions so external LLMs return a cleaner fenced transfer format.
+- Added parser support for a fenced `adaptive-training-plan` block while preserving strict internal validation.
+- Improved paste/import instructions and error guidance.
+- Preserved strict validation and review-before-save behavior.
+- Did not weaken parser validation just to accept messy output.
 
 ### Future UX Polish Candidates
 

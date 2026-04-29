@@ -17,9 +17,11 @@ The app must continue to use the existing user-directed workflow:
 
 Slice 9K is implemented and pushed on `codex/slice-9k-ai-draft-setup-wizard`.
 
-Slice 9L is implemented locally on `codex/slice-9l-external-llm-handoff-ux`.
+Slice 9L is implemented and pushed on `codex/slice-9l-external-llm-handoff-ux`.
 
-Slice 9M remains planned before Slice 10. Slice 9M is next.
+Slice 9M is implemented locally on `codex/slice-9m-ai-draft-import-ergonomics`.
+
+The full Slice 9K-9M campaign is implemented locally. Slice 10, Exercise Media And Instruction Layer, is next unless local docs are updated to specify otherwise.
 
 ## Non-goals
 
@@ -220,6 +222,37 @@ The user understands:
 ### Goal
 
 Make generated output easier to bring back into the app.
+
+### Status
+
+Implemented locally in Slice 9M.
+
+What changed:
+
+- Updated generated prompt instructions to request one fenced `adaptive-training-plan` transfer block.
+- Preserved the strict internal plan markdown contract and existing raw `PLAN` paste compatibility.
+- Added parser support for extracting the strict plan payload from the preferred fenced transfer block.
+- Improved import UI instructions so users know to paste the fenced block or strict `PLAN` content.
+- Improved validation error guidance without adding an unvalidated save path.
+- Added tests for valid fenced transfer import and invalid fenced transfer failure.
+
+Validation:
+
+- `npm run typecheck` passed.
+- `npm run test` passed: 8 files, 50 tests. The first sandboxed attempt hit Windows `spawn EPERM`; rerun with approval passed.
+- `npm run build` passed and confirmed the expected route list. The first sandboxed attempt hit Windows `spawn EPERM`; rerun with approval passed.
+- `npm run lint` is not functional with the current Next 16 setup: `next lint` is interpreted as a project directory named `lint`.
+
+Manual smoke notes:
+
+- Draft with AI setup wizard still works.
+- External LLM handoff still works.
+- Prompt generation requests a cleaner fenced transfer format.
+- Valid fenced transfer output imports successfully.
+- Invalid fenced transfer output fails safely with actionable guidance.
+- Review/edit/save remains mandatory.
+- Guided Setup and Manual Builder remain reachable.
+- No provider-backed LLM behavior exists.
 
 ### Expected Outcome
 

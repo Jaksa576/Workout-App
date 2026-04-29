@@ -91,6 +91,14 @@ rest_seconds: 60
 notes: Smooth reps`;
 }
 
+function makeFencedImportedMarkdown() {
+  return `Here is the transfer block:
+
+\`\`\`adaptive-training-plan
+${makeImportedMarkdown()}
+\`\`\``;
+}
+
 function makeZeroRestImportedMarkdown() {
   return `PLAN
 title: Running Builder
@@ -133,7 +141,9 @@ describe("ai draft import", () => {
     expect(prompt).toContain("dislikes: ");
     expect(prompt).toContain("sports_interests: ");
     expect(prompt).toContain("freeform_context: ");
-    expect(prompt).toContain("Return the plan in exactly this format:");
+    expect(prompt).toContain("Return ONLY one fenced markdown transfer block.");
+    expect(prompt).toContain("```adaptive-training-plan");
+    expect(prompt).toContain("Return the plan in exactly this fenced transfer block:");
   });
 
   it.each([
@@ -235,6 +245,40 @@ describe("ai draft import", () => {
     expect(result.data.phases[0].workouts).toHaveLength(2);
     expect(result.data.phases[1].workouts[0].exercises).toHaveLength(2);
     expect(result.data.phases[1].workouts[0].exercises[0].restSeconds).toBeNull();
+  });
+
+  it("parses a valid fenced transfer block without relaxing the plan contract", () => {
+    const result = parseAiPlanImport(makeFencedImportedMarkdown());
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.data.title).toBe("Strength Builder");
+    expect(result.data.phases).toHaveLength(2);
+    expect(result.data.phases[0].workouts[0].exercises[0].name).toBe("Goblet Squat");
+  });
+
+  it("rejects invalid content inside a fenced transfer block", () => {
+    const input = `\`\`\`adaptive-training-plan
+PLAN
+title: Strength Builder
+goal_track: strength
+days_per_week: 3
+progression_mode: performance_based
+session_duration_min: 45
+summary: Three-day strength split
+\`\`\``;
+
+    const result = parseAiPlanImport(input);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.errors[0]).toMatch(/out-of-order field `days_per_week`/);
   });
 
   it("rejects duplicate fields within a section", () => {

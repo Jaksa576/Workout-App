@@ -4,7 +4,9 @@
 
 Current implementation target: continue the AI Draft Plan UX Campaign before Slice 10.
 
-Slice 9J, Plan Creation / Settings Polish, is implemented locally. Slice 9K, AI Draft Setup Wizard, is implemented and pushed. Slice 9L, External LLM Handoff UX, is implemented locally on `codex/slice-9l-external-llm-handoff-ux`. Before beginning Slice 10, Exercise Media And Instruction Layer, the next roadmap priority is completing Slice 9M.
+Slice 9J, Plan Creation / Settings Polish, is implemented locally. Slice 9K, AI Draft Setup Wizard, is implemented and pushed. Slice 9L, External LLM Handoff UX, is implemented and pushed. Slice 9M, AI Draft Import Ergonomics, is implemented locally on `codex/slice-9m-ai-draft-import-ergonomics`.
+
+The Slice 9K-9M AI Draft Plan UX Campaign is complete locally. The next roadmap priority is Slice 10, Exercise Media And Instruction Layer, unless local docs are updated to specify otherwise.
 
 The campaign should improve the existing provider-free Draft with AI flow in `/plans/new`:
 
@@ -16,7 +18,7 @@ This campaign should preserve the existing setup -> draft -> review/edit -> save
 
 ## Current Slice
 
-Current campaign status: Slice 9K is implemented and pushed. Slice 9L is implemented locally. Slice 9M, AI Draft Import Ergonomics, is next.
+Current campaign status: Slice 9K and Slice 9L are implemented and pushed. Slice 9M is implemented locally. The full AI Draft Plan UX Campaign is complete locally.
 
 Slice 9K delivered:
 
@@ -35,13 +37,13 @@ Slice 9L delivered:
 - copy-prompt as the primary action
 - a clear round trip from prompt copy to external tool to import
 
-Slice 9M should focus on:
+Slice 9M delivered:
 
-- improving the import step so users can easily paste or upload the generated plan
-- updating generated prompt instructions so external LLMs return a cleaner transfer format
-- considering fenced markdown block and/or downloadable markdown file guidance
-- improving paste/import instructions and validation error guidance
-- preserving strict validation and review-before-save behavior
+- prompt instructions that request a fenced `adaptive-training-plan` transfer block
+- parser support for extracting strict plan markdown from the preferred fenced block
+- import instructions that explain exactly what to paste
+- clearer validation error guidance
+- strict validation and review-before-save behavior preserved
 
 Slice 9J remains completed background context. It focused on:
 
@@ -73,7 +75,37 @@ Slice 9J did not become:
 
 ## Recently Completed Slices
 
-Slice 9L, External LLM Handoff UX, is implemented locally.
+Slice 9M, AI Draft Import Ergonomics, is implemented locally.
+
+That slice delivered:
+
+- updated generated prompt instructions to request one fenced `adaptive-training-plan` transfer block
+- kept the strict plan markdown format inside the transfer block
+- added parser support for fenced transfer blocks while retaining raw `PLAN` paste compatibility
+- improved import UI instructions and validation failure guidance
+- added tests for valid and invalid fenced transfer imports
+- preserved review/edit before save and added no provider-backed LLM behavior
+
+Verification after Slice 9M:
+
+- `npm run typecheck` passed.
+- `npm run test` passed: 8 files, 50 tests. The first sandboxed run hit Windows `spawn EPERM`; rerun with approval passed.
+- `npm run build` passed and confirmed `/`, `/dashboard`, `/plans`, `/plans/new`, `/workout`, and `/settings` remain in the route list. The first sandboxed run hit Windows `spawn EPERM`; rerun with approval passed.
+- `npm run lint` is not functional with the current Next 16 setup: `next lint` is interpreted as a project directory named `lint`.
+
+Manual smoke notes for Slice 9M:
+
+- Draft with AI setup wizard still works.
+- External LLM handoff still works.
+- Prompt generation still works and requests the fenced transfer block.
+- Valid AI draft transfer can be imported.
+- Invalid AI draft transfer fails safely with guidance.
+- Review/edit/save remains mandatory.
+- Guided Setup still opens and proceeds.
+- Manual Builder still opens and proceeds.
+- No provider-backed LLM behavior exists.
+
+Slice 9L, External LLM Handoff UX, is implemented and pushed.
 
 That slice delivered:
 
