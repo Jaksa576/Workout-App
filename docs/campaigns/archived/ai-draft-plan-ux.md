@@ -15,13 +15,15 @@ The app must continue to use the existing user-directed workflow:
 
 ## Campaign Status
 
+This campaign is complete and archived as reference material.
+
 Slice 9K is implemented and pushed on `codex/slice-9k-ai-draft-setup-wizard`.
 
 Slice 9L is implemented and pushed on `codex/slice-9l-external-llm-handoff-ux`.
 
-Slice 9M is implemented locally on `codex/slice-9m-ai-draft-import-ergonomics`.
+Slice 9M is implemented.
 
-The full Slice 9K-9M campaign is implemented locally. Slice 10, Exercise Media And Instruction Layer, is next unless local docs are updated to specify otherwise.
+Remaining AI Draft QA cleanup discovered after Slice 9K-9M is handled by Slice 9N, Comprehensive UX Cleanup And AI Draft QA Patch, rather than reopening this completed campaign. Slice 10, Exercise Media And Instruction Layer, remains planned after Slice 9N.
 
 ## Non-goals
 
@@ -58,16 +60,16 @@ Not allowed in docs-only planning passes:
 - Provider-backed LLM integration.
 - Implementation of Slice 9K, 9L, or 9M.
 
-### Future Implementation Scope
+### Historical Implementation Scope
 
-Allowed in future Slice 9K-9M implementation PRs:
+Completed by Slice 9K-9M:
 
 - Improve Draft with AI setup UX.
 - Improve external LLM handoff copy, links, and copy-prompt actions.
 - Improve import instructions, transfer format guidance, and validation error guidance.
 - Update tests or focused QA coverage for changed behavior.
 
-Not allowed in future Slice 9K-9M implementation PRs:
+Still not allowed when using this campaign as reference:
 
 - Provider-backed LLM calls.
 - API-key collection or storage.
@@ -330,9 +332,9 @@ Stop and ask for clarification before continuing if a proposed change requires:
 - Slice 10 exercise media or instruction-layer work.
 - A parser change that weakens validation just to accept messy output.
 
-## One-Slice Execution Guidance
+## Historical Execution Guidance
 
-Implement one slice at a time:
+This campaign was implemented one slice at a time:
 
 1. Start with Slice 9K, AI Draft Setup Wizard.
 2. Then implement Slice 9L, External LLM Handoff UX.

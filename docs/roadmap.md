@@ -165,7 +165,7 @@ Accepted narrow QA follow-up:
 
 The broader public landing, app-shell, dashboard, plans, workout execution, and plan creation/settings redesign program is implemented locally through Slice 9J.
 
-The next planned campaign before Slice 10 is Slice 9K-9M, AI Draft Plan UX Campaign. Keep the accepted Slice 8 QA adjustments and Slice 9A-9J redesign work intact, but do not treat broad dashboard or app-wide polish as the mainline next work unless explicitly rescoped.
+The Slice 9K-9M AI Draft Plan UX Campaign is complete. The accepted immediate cleanup campaign before Slice 10 is Slice 9N, Comprehensive UX Cleanup And AI Draft QA Patch.
 
 ## 9A. UI Redesign Direction, Public Landing, And App Icon Planning
 
@@ -277,7 +277,7 @@ Status: implemented locally.
 
 ## 9K-9M. AI Draft Plan UX Campaign
 
-Status: implemented locally through Slice 9M.
+Status: complete.
 
 Purpose:
 Improve the existing provider-free Draft with AI flow before beginning Slice 10.
@@ -316,9 +316,9 @@ Status: implemented locally.
 - Preserved strict validation and review-before-save behavior.
 - Did not weaken parser validation just to accept messy output.
 
-### Future UX Polish Candidates
+### Remaining AI Draft QA Cleanup
 
-Status: planned, sequencing TBD.
+Status: moved into Slice 9N.
 
 - Desktop responsive polish.
 - Dashboard simplification and content-density cleanup.
@@ -326,9 +326,35 @@ Status: planned, sequencing TBD.
 - Typography consistency.
 - Theme and dark-mode readability QA.
 
+## 9N. Comprehensive UX Cleanup And AI Draft QA Patch
+
+Status: accepted immediate campaign before Slice 10.
+
+Purpose:
+Stabilize and clean up the current UX before adding exercise media and instruction-layer work.
+
+Scope:
+
+- fix AI Draft schedule control and selected-day consistency
+- fix AI Draft wizard scrolling and header density
+- update prompt naming guidance so scheduled weekdays are not duplicated in workout names
+- preserve valid scheduled day fields through AI draft import/review
+- simplify dashboard density and reduce redundant Current Plan / Keep the streak going content
+- reduce oversized dashboard copy and broader app verbiage
+- normalize typography on touched screens
+- fix dark-mode readability, especially sign-in/login
+- improve desktop responsive polish
+
+Guardrails:
+
+- no schema, RLS, auth, or progression-engine changes
+- no provider-backed LLM integration, API-key handling, or runtime LLM dependency
+- no unvalidated AI draft save path
+- no Slice 10 exercise media or instruction-layer work
+
 ## 10. Exercise Media And Instruction Layer
 
-Status: planned.
+Status: planned after Slice 9N.
 
 - Expand exercise instruction quality, video/demo surfaces, and coaching notes.
 - Keep any future auto-population of exercise media/video links from generated plan output aligned with this later slice rather than pulling it into Slice 7 stabilization.
