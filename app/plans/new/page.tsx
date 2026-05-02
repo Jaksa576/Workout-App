@@ -25,12 +25,11 @@ export default async function NewPlanPage({
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/65">
             Create Plan
           </p>
-          <h1 className="mt-3 font-display text-4xl leading-tight text-white sm:text-5xl">
-            Set up the plan you want to train for right now.
+          <h1 className="mt-3 font-display text-3xl leading-tight text-white sm:text-4xl">
+            Set up your next plan.
           </h1>
           <p className="mt-4 max-w-3xl text-sm leading-6 text-white/72">
-            Use your profile as context, choose a goal track for this plan, then draft, review,
-            edit, and save through the same plan contract.
+            Choose a path, draft the structure, then review and save.
           </p>
         </SurfaceCard>
         <SurfaceCard tone="soft" padding="comfortable">
@@ -38,15 +37,15 @@ export default async function NewPlanPage({
           <div className="mt-4 space-y-3 text-sm leading-6 text-muted">
             <p>
               <span className="font-semibold text-copy">Guided setup</span> is the default path
-              for a structured template draft.
+              for templates.
             </p>
             <p>
               <span className="font-semibold text-copy">Draft with AI</span> uses your own
-              external assistant and imports markdown for review.
+              external assistant.
             </p>
             <p>
               <span className="font-semibold text-copy">Manual builder</span> remains available
-              for precise edits and plans you already know.
+              for known plans.
             </p>
           </div>
         </SurfaceCard>
@@ -55,7 +54,7 @@ export default async function NewPlanPage({
       <SectionCard
         title="Create a goal-based plan"
         eyebrow="Plan setup"
-        description="Guided setup stays the default path. Draft with AI is an optional helper, and manual building is still available for advanced edits."
+        description="Guided, AI-assisted, and manual plans all move through review before save."
       >
         <PlanSetupWizard profile={profile} initialMode={initialMode} />
       </SectionCard>

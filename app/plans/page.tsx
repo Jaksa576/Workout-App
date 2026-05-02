@@ -23,11 +23,11 @@ export default async function PlansPage() {
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/58">
               Plans
             </p>
-            <h1 className="mt-4 text-3xl font-black leading-tight text-balance sm:text-5xl">
+            <h1 className="mt-4 text-3xl font-black leading-tight text-balance sm:text-4xl">
               Your structured training library.
             </h1>
-            <p className="mt-4 text-base leading-7 text-white/72">
-              Keep one plan active, preserve saved plans, and review the phase structure before you train.
+            <p className="mt-4 text-sm leading-6 text-white/72 sm:text-base">
+              Keep one plan active and review phase structure before you train.
             </p>
           </div>
           <Link
@@ -61,7 +61,7 @@ export default async function PlansPage() {
             {savedPlans.length === 0 ? (
               <SurfaceCard>
                 <p className="text-sm leading-6 text-muted">
-                  Your active plan is the only saved plan right now. Create another plan when your goals change.
+                  Your active plan is the only saved plan. Create another when your goals change.
                 </p>
               </SurfaceCard>
             ) : (
@@ -87,7 +87,7 @@ function EmptyPlansState() {
           Create your first phase-based plan.
         </h2>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
-          Plans organize your goal, weekly rhythm, phases, workouts, and progression rules so the app can guide what comes next.
+          Plans organize your goal, rhythm, phases, workouts, and progression rules.
         </p>
         <Link href="/plans/new" className="ui-button-primary mt-6 inline-flex justify-center">
           Create your first plan

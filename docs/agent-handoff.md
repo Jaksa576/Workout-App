@@ -54,7 +54,7 @@ The approved refactor direction is additive and migration-safe:
 
 The docs had previously been aligned on Slice 6 as dashboard/progression work. Product direction then intentionally shifted to prioritize UI Overhaul Phase 1 first, ahead of the previously planned dashboard slice.
 
-Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, Slice 7, and Slice 8 are in place locally. Slice 9A completed the docs/planning work that locked the redesign direction, Slice 9B completed the shared design-system foundation, and Slice 9C implemented the public/authenticated route split. A narrow pre-production 9C follow-up patch restored authenticated app shell/header/nav rendering on app routes. Slice 9D implemented and polished the public landing page, Slice 9E integrated the approved app icon/PWA assets, Slice 9F redesigned the authenticated app shell, Slice 9G redesigned the authenticated dashboard, Slice 9H redesigned plans/phase UX, Slice 9I redesigned workout execution UX, Slice 9J polished plan creation/settings UX, Slice 9K added the AI Draft Setup Wizard, Slice 9L improved external LLM handoff UX, and Slice 9M improved AI draft import ergonomics. The full Slice 9K-9M campaign is complete locally. The next implementation target is Slice 9N, Comprehensive UX Cleanup And AI Draft QA Patch, before Slice 10, Exercise Media And Instruction Layer.
+Slices 1 through 5B3, UI Overhaul Phase 1, Slice 6.5, Slice 7, and Slice 8 are in place locally. Slice 9A completed the docs/planning work that locked the redesign direction, Slice 9B completed the shared design-system foundation, and Slice 9C implemented the public/authenticated route split. A narrow pre-production 9C follow-up patch restored authenticated app shell/header/nav rendering on app routes. Slice 9D implemented and polished the public landing page, Slice 9E integrated the approved app icon/PWA assets, Slice 9F redesigned the authenticated app shell, Slice 9G redesigned the authenticated dashboard, Slice 9H redesigned plans/phase UX, Slice 9I redesigned workout execution UX, Slice 9J polished plan creation/settings UX, Slice 9K added the AI Draft Setup Wizard, Slice 9L improved external LLM handoff UX, Slice 9M improved AI draft import ergonomics, and Slice 9N completed the comprehensive UX cleanup and AI Draft QA patch. The next major implementation target after Slice 9N review/merge is Slice 10, Exercise Media And Instruction Layer.
 
 The previously considered narrow Slice 8 dashboard QA follow-up is superseded by the broader redesign program unless a blocking bug requires a tiny patch.
 
@@ -106,121 +106,68 @@ The previously considered narrow Slice 8 dashboard QA follow-up is superseded by
 11. `9K`: AI Draft Setup Wizard (implemented locally)
 12. `9L`: External LLM Handoff UX (implemented locally)
 13. `9M`: AI Draft Import Ergonomics (implemented locally)
-14. `9N`: Comprehensive UX Cleanup And AI Draft QA Patch
+14. `9N`: Comprehensive UX Cleanup And AI Draft QA Patch (implemented locally)
 15. `10`: Exercise Media And Instruction Layer
 
-The Slice 9F through Slice 9J campaign is complete locally, and Slice 9K through Slice 9M are complete. The next implementation target is Slice 9N. Slice 10 remains planned after Slice 9N.
+The Slice 9F through Slice 9J campaign is complete locally, Slice 9K through Slice 9M are complete, and Slice 9N is implemented locally. Slice 10 remains planned after Slice 9N.
 
-## Next Planning Target
+## Slice 9N Completed Locally
 
-The immediate implementation target is Slice 9N, Comprehensive UX Cleanup And AI Draft QA Patch.
-
-Recommended implementation branch:
+Slice 9N was implemented locally on:
 
 ```text
 codex/slice-9n-comprehensive-ux-cleanup
 ```
 
-Use `docs/campaigns/comprehensive-ux-cleanup.md` as the detailed source of truth. Treat `docs/campaigns/archived/ai-draft-plan-ux.md` as reference context for the completed Slice 9K-9M campaign.
+Implemented scope:
 
-Source-of-truth docs to inspect before implementation:
+- Draft with AI days-per-week now uses fixed 1-7 choices.
+- Days-per-week changes reset selected days to Monday; Monday/Thursday; Monday/Wednesday/Friday; Monday/Tuesday/Thursday/Friday; Monday-Friday; Monday-Saturday; or all seven days.
+- Draft with AI selected weekdays stay count-aligned with selected days-per-week.
+- Step navigation scrolls the Draft with AI wizard back to the active step top.
+- Draft with AI wizard headers and supporting copy are more compact.
+- Prompt export tells external LLMs not to include weekdays in workout names and to provide scheduled day separately in the workout `day` field.
+- AI import parses valid workout `day` values, preserves them through review/structured conversion, and rejects invalid day values without weakening validation.
+- Dashboard Current Plan snapshot was removed; today, current phase, weekly rhythm, recent activity, progression prompt, and compact metrics remain.
+- Dashboard, plans, plan detail, plan creation, workout, and settings copy/type scale were tightened where touched.
+- Login form dark-mode readability was fixed by replacing legacy hardcoded text/input styling with semantic tokens.
 
-- `docs/campaigns/comprehensive-ux-cleanup.md`
-- `docs/campaigns/archived/ai-draft-plan-ux.md`
-- `docs/current-task.md`
-- `docs/agent-handoff.md`
-- `docs/roadmap.md`
-- `docs/architecture.md`
-- `AGENTS.md`
+Validation:
 
-Readiness gate before implementation:
+- `npm run typecheck` passed.
+- `npm run test` passed: 8 files, 52 tests. A sandboxed run hit Windows `spawn EPERM`; approved rerun passed.
+- `npm run build` passed and retained `/`, `/dashboard`, `/login`, `/plans`, `/plans/[planId]`, `/plans/new`, `/workout`, and `/settings` in the route list. A sandboxed build hit Windows `spawn EPERM`; approved rerun passed.
+- `npm run lint` still fails because the current Next 16 setup interprets `next lint` as a project directory named `lint`.
 
-- run `git status`
-- run `git fetch origin`
-- confirm the current branch
-- confirm `docs/campaigns/comprehensive-ux-cleanup.md` exists
-- confirm the working tree has no unrelated uncommitted changes
-- confirm local docs show Slice 9J, 9K, 9L, and 9M complete
-- confirm local docs show Slice 9N before Slice 10
+Manual browser QA:
 
-Scope summary:
+- Not performed in Codex during implementation.
+- Vercel preview review should smoke test Draft with AI, Guided Setup, Manual Builder, dashboard hierarchy, sign-in dark mode, and mobile/desktop layouts for touched authenticated routes.
 
-- fix AI Draft schedule control and selected-day consistency
-- fix AI Draft wizard step scrolling and compact the wizard headers
-- update prompt guidance so workout names do not include scheduled weekdays
-- preserve valid scheduled day fields through AI draft import/review
-- simplify dashboard density, especially Current Plan and Keep the streak going blocks
-- reduce oversized dashboard copy and app-wide verbiage
-- normalize typography on touched screens
-- fix dark-mode readability, especially sign-in/login
-- improve desktop responsive polish while preserving mobile-first behavior
+Preserved boundaries:
 
-Preserve:
+- no schema migration
+- no Supabase/RLS changes
+- no auth changes
+- no progression-engine changes
+- no provider-backed LLM integration
+- no API-key handling
+- no runtime LLM dependency
+- no unvalidated AI draft save path
+- Guided Setup, Manual Builder, and Draft with AI remain available
+- Slice 10 exercise media/instruction-layer work was not implemented
 
-- existing setup -> draft -> review/edit -> save flow
-- Guided Setup
-- Manual Builder
-- provider-free external AI workflow
-- validation before save
-- no schema, RLS, auth, progression-engine, or provider-backed LLM changes
-- no Slice 10 exercise media or instruction-layer work
+## Next Planning Target
 
-Likely files and areas to inspect:
+The next major implementation target after Slice 9N review and merge is Slice 10, Exercise Media And Instruction Layer.
 
-- `components/ai-plan-draft-wizard.tsx`
-- AI prompt generation helpers
-- AI draft import/normalization helpers and tests
-- `app/dashboard/page.tsx`
-- dashboard-specific components and `lib/dashboard.ts`
-- `app/plans/page.tsx`
-- `app/plans/[planId]/page.tsx`
-- `app/plans/new/page.tsx`
-- `app/workout/page.tsx`
-- `app/settings/page.tsx`
-- `app/login/page.tsx`
-- shared UI, theme, typography, and shell primitives
+Recommended future implementation branch:
 
-Validation expectations:
+```text
+codex/slice-10-exercise-media-instruction-layer
+```
 
-- run `npm run typecheck`
-- run `npm run test`
-- run `npm run build`
-- run `npm run lint`
-- report the known lint-script issue if `next lint` is still interpreted as a project directory named `lint`
-
-Manual QA expectations:
-
-- Draft with AI setup, prompt export, import/review, and review-before-save
-- Guided Setup and Manual Builder still open and proceed
-- dashboard hierarchy, copy density, and current-phase/today/week/recent-activity visibility
-- sign-in/login dark-mode readability
-- light/dark readability on touched authenticated screens
-- mobile and desktop layouts for `/dashboard`, `/plans`, `/plans/[planId]`, `/plans/new`, `/workout`, and `/settings`
-
-Final reporting expectations:
-
-- branch name and commit hash
-- files changed
-- AI Draft QA fixes completed
-- dashboard cleanup completed
-- app-wide UX polish completed
-- validation commands and results
-- manual smoke checks performed or not performed
-- docs updated
-- guardrails preserved
-- deferred follow-ups
-- whether the branch was pushed
-
-Stop conditions:
-
-- local docs conflict about Slice 9N sequencing or 9K-9M completion
-- scheduled-day preservation requires schema changes
-- import validation would need to be weakened
-- dashboard cleanup requires progression logic changes
-- desktop cleanup requires route restructuring
-- dark-mode fixes require replacing the theme system
-- provider-backed LLM integration appears necessary
-- branch state or working-tree state becomes ambiguous
+Do not start Slice 10 until the Slice 9N branch is reviewed, QA'd, and merged.
 
 ## Current Status
 
@@ -482,7 +429,7 @@ Verification after Slice 7:
 
 ## Next Major Slice
 
-The next implementation target is Slice 9N, Comprehensive UX Cleanup And AI Draft QA Patch, before Slice 10. Do not revisit 9C unless QA finds a regression in the implemented route/app-shell boundary.
+The next major implementation target after Slice 9N review/merge is Slice 10, Exercise Media And Instruction Layer. Do not revisit 9C unless QA finds a regression in the implemented route/app-shell boundary.
 
 Completed 9J intent:
 
@@ -957,9 +904,9 @@ Remaining recovery work:
 
 ## Next Best Step
 
-The approved Slice 9F through Slice 9J campaign is complete, and Slice 9K through Slice 9M are complete. The next best step is implementing Slice 9N, Comprehensive UX Cleanup And AI Draft QA Patch, before Slice 10.
+The approved Slice 9F through Slice 9J campaign is complete, Slice 9K through Slice 9M are complete, and Slice 9N is implemented locally. The next best step is human review of the Slice 9N branch, followed by Vercel preview QA and manual merge if acceptable.
 
-Slice 9N should use `docs/campaigns/comprehensive-ux-cleanup.md` as the detailed source of truth. It combines post-9K-9M AI Draft QA fixes with the explicitly rescoped dashboard, desktop, copy, typography, and dark-mode polish that now belongs before Slice 10.
+After Slice 9N is reviewed and merged, the next major roadmap item remains Slice 10, Exercise Media And Instruction Layer. Do not begin Slice 10 work inside the Slice 9N branch.
 
 If needed, a small Slice 5B1 follow-up patch is still available for profile/settings field-level validation messaging:
 

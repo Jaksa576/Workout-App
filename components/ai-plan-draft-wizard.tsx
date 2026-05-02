@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { PlanBuilderForm } from "@/components/plan-builder-form";
 import {
   equipmentOptions,
@@ -19,6 +19,7 @@ import {
   parseCommaSeparatedInput,
   validateAiPlanPromptInput
 } from "@/lib/plan-drafting/ai-draft-import";
+import { getDefaultSchedule } from "@/lib/plan-setup-context";
 import type {
   AiPlanPromptInput,
   PlanSetupInput,
@@ -96,6 +97,8 @@ const progressionModeOptions: Array<{ value: ProgressionMode; label: string }> =
   { value: "hybrid", label: "Hybrid" }
 ];
 
+const daysPerWeekOptions = [1, 2, 3, 4, 5, 6, 7];
+
 const externalAssistantOptions = [
   {
     name: "ChatGPT",
@@ -121,6 +124,21 @@ function toggleWeekday(values: Weekday[], value: Weekday) {
   return values.includes(value) ? values.filter((item) => item !== value) : [...values, value];
 }
 
+function normalizeWeekdayCount(values: Weekday[], daysPerWeek: number) {
+  const selected = weekdayOptions
+    .map((day) => day.value)
+    .filter((day) => values.includes(day));
+  const defaults = getDefaultSchedule(daysPerWeek);
+  const filled = [...selected, ...defaults.filter((day) => !selected.includes(day))];
+
+  return filled.slice(0, daysPerWeek);
+}
+
+function selectWeekday(values: Weekday[], value: Weekday, daysPerWeek: number) {
+  const toggled = toggleWeekday(values, value);
+  return normalizeWeekdayCount(toggled, daysPerWeek);
+}
+
 export function AiPlanDraftWizard({
   profile,
   initialSetup
@@ -137,6 +155,8 @@ export function AiPlanDraftWizard({
     null
   );
   const [draftKey, setDraftKey] = useState(0);
+  const stepTopRef = useRef<HTMLDivElement | null>(null);
+  const hasMountedRef = useRef(false);
 
   const step = steps[stepIndex];
   const selectedGoal = goalOptions.find((option) => option.value === promptInput.goalTrack);
@@ -146,13 +166,22 @@ export function AiPlanDraftWizard({
     [promptInput]
   );
 
+  useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      stepTopRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
+    });
+  }, [stepIndex]);
+
   function updateDaysPerWeek(daysPerWeek: number) {
     setPromptInput((current) => ({
       ...current,
       daysPerWeek,
-      weeklySchedule: current.weeklySchedule.length
-        ? current.weeklySchedule.slice(0, daysPerWeek)
-        : current.weeklySchedule
+      weeklySchedule: getDefaultSchedule(daysPerWeek)
     }));
   }
 
@@ -199,15 +228,19 @@ export function AiPlanDraftWizard({
 
   function continueToNextStep() {
     setDetailErrors([]);
-    setStepIndex((index) => Math.min(steps.length - 1, index + 1));
+    setStepByIndex(Math.min(steps.length - 1, stepIndex + 1));
   }
 
   function setStepById(nextStep: AiWizardStep) {
-    setStepIndex(steps.findIndex((item) => item.id === nextStep));
+    setStepByIndex(steps.findIndex((item) => item.id === nextStep));
+  }
+
+  function setStepByIndex(nextIndex: number) {
+    setStepIndex(Math.max(0, Math.min(steps.length - 1, nextIndex)));
   }
 
   return (
-    <div className="space-y-6">
+    <div ref={stepTopRef} className="scroll-mt-4 space-y-6">
       <div className="surface-panel-muted space-y-3 p-3">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
@@ -220,7 +253,7 @@ export function AiPlanDraftWizard({
           <button
             key={item.id}
             type="button"
-            onClick={() => setStepIndex(index)}
+            onClick={() => setStepByIndex(index)}
             disabled={item.id === "review" && !draft}
             className={`ui-step-chip ${
               step.id === item.id
@@ -240,10 +273,9 @@ export function AiPlanDraftWizard({
       {step.id === "goal" ? (
         <div className="space-y-5">
           <div>
-            <h2 className="font-display text-3xl text-copy">What should the draft focus on?</h2>
+            <h2 className="font-display text-2xl text-copy sm:text-3xl">What should the draft focus on?</h2>
             <p className="mt-2 text-sm leading-6 text-muted">
-              Pick the main goal for this plan. The prompt and imported draft will stay aligned
-              to this choice.
+              Pick the main goal for this plan.
             </p>
           </div>
 
@@ -275,25 +307,33 @@ export function AiPlanDraftWizard({
       {step.id === "schedule" ? (
         <div className="space-y-5">
           <div>
-            <h2 className="font-display text-3xl text-copy">When will this plan fit?</h2>
+            <h2 className="font-display text-2xl text-copy sm:text-3xl">When will this plan fit?</h2>
             <p className="mt-2 text-sm leading-6 text-muted">
-              Set the training rhythm the external draft should respect. You can edit the final
-              schedule again before saving.
+              Choose the weekly rhythm the external draft should respect.
             </p>
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
-            <label className="block">
+            <div className="md:col-span-2">
               <span className="text-sm font-semibold text-copy">Days per week</span>
-              <input
-                type="number"
-                min={1}
-                max={7}
-                value={promptInput.daysPerWeek}
-                onChange={(event) => updateDaysPerWeek(Number(event.target.value))}
-                className="ui-input mt-3"
-              />
-            </label>
+              <div className="mt-3 grid grid-cols-7 gap-2">
+                {daysPerWeekOptions.map((days) => (
+                  <button
+                    key={days}
+                    type="button"
+                    onClick={() => updateDaysPerWeek(days)}
+                    className={`rounded-full border px-3 py-2 text-sm font-semibold transition ${
+                      promptInput.daysPerWeek === days
+                        ? "border-transparent bg-accent text-accent-contrast"
+                        : "border-border bg-surface text-copy hover:border-secondary"
+                    }`}
+                    aria-pressed={promptInput.daysPerWeek === days}
+                  >
+                    {days}
+                  </button>
+                ))}
+              </div>
+            </div>
             <label className="block">
               <span className="text-sm font-semibold text-copy">Session length</span>
               <select
@@ -318,8 +358,7 @@ export function AiPlanDraftWizard({
           <div>
             <p className="text-sm font-semibold text-copy">Exact training days</p>
             <p className="mt-2 text-sm leading-6 text-muted">
-              These days stay in the app as your initial schedule. You can adjust them again in
-              review before saving.
+              Select exactly {promptInput.daysPerWeek} day{promptInput.daysPerWeek === 1 ? "" : "s"}.
             </p>
             <div className="mt-3 flex flex-wrap gap-3">
               {weekdayOptions.map((day) => (
@@ -329,7 +368,11 @@ export function AiPlanDraftWizard({
                   onClick={() =>
                     setPromptInput((current) => ({
                       ...current,
-                      weeklySchedule: toggleWeekday(current.weeklySchedule, day.value)
+                      weeklySchedule: selectWeekday(
+                        current.weeklySchedule,
+                        day.value,
+                        current.daysPerWeek
+                      )
                     }))
                   }
                   className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
@@ -349,10 +392,9 @@ export function AiPlanDraftWizard({
       {step.id === "context" ? (
         <div className="space-y-5">
           <div>
-            <h2 className="font-display text-3xl text-copy">What should the assistant know?</h2>
+            <h2 className="font-display text-2xl text-copy sm:text-3xl">What should the assistant know?</h2>
             <p className="mt-2 text-sm leading-6 text-muted">
-              These required details keep the prompt practical and help the app validate the
-              imported plan before review.
+              Add the required drafting context.
             </p>
           </div>
 
@@ -442,7 +484,7 @@ export function AiPlanDraftWizard({
       {step.id === "optional" ? (
         <div className="space-y-5">
           <div>
-            <h2 className="font-display text-3xl text-copy">Any preferences to include?</h2>
+            <h2 className="font-display text-2xl text-copy sm:text-3xl">Any preferences to include?</h2>
             <p className="mt-2 text-sm leading-6 text-muted">
               These are optional. Leave anything blank if it does not matter for this draft.
             </p>
@@ -565,7 +607,7 @@ export function AiPlanDraftWizard({
         <div className="space-y-5">
           <div className="surface-panel">
             <p className="ui-eyebrow">Draft with AI</p>
-            <h2 className="mt-2 font-display text-3xl text-copy">
+            <h2 className="mt-2 font-display text-2xl text-copy sm:text-3xl">
               Copy the prompt into an external AI tool
             </h2>
             <p className="mt-3 text-sm leading-6 text-muted">
@@ -716,7 +758,7 @@ export function AiPlanDraftWizard({
           <button
             type="button"
             disabled={stepIndex === 0}
-            onClick={() => setStepIndex((index) => Math.max(0, index - 1))}
+            onClick={() => setStepByIndex(stepIndex - 1)}
             className="ui-button-secondary disabled:opacity-40"
           >
             Back

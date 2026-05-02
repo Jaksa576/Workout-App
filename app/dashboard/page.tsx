@@ -81,19 +81,17 @@ export default async function DashboardPage() {
 
       <section className="grid gap-5 xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
         <ActivityCard activity={dashboard.activitySummary} painTrend={dashboard.painTrend} />
-        <PlanSnapshot plan={activePlan} workout={nextWorkout} />
-      </section>
-
-      <section className="grid gap-4 md:grid-cols-3">
-        {dashboard.metrics.map((metric, index) => (
-          <MetricCard
-            key={metric.label}
-            label={metric.label}
-            value={metric.value}
-            detail={metric.detail}
-            tone={index === 1 ? "secondary" : index === 2 ? "success" : "default"}
-          />
-        ))}
+        <section className="grid gap-4 md:grid-cols-3 xl:grid-cols-1">
+          {dashboard.metrics.map((metric, index) => (
+            <MetricCard
+              key={metric.label}
+              label={metric.label}
+              value={metric.value}
+              detail={metric.detail}
+              tone={index === 1 ? "secondary" : index === 2 ? "success" : "default"}
+            />
+          ))}
+        </section>
       </section>
     </div>
   );
@@ -106,13 +104,13 @@ function DashboardEmptyState({ hasPlan }: { hasPlan: boolean }) {
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/58">
           Dashboard
         </p>
-        <h1 className="mt-4 max-w-2xl text-3xl font-black leading-tight text-balance sm:text-5xl">
+        <h1 className="mt-4 max-w-2xl text-3xl font-black leading-tight text-balance sm:text-4xl">
           {hasPlan ? "Choose your next workout." : "Build your first adaptive plan."}
         </h1>
-        <p className="mt-4 max-w-2xl text-base leading-7 text-white/72 sm:text-lg">
+        <p className="mt-4 max-w-2xl text-sm leading-6 text-white/72 sm:text-base">
           {hasPlan
-            ? "Your active plan does not have an available workout for today. Review the plan structure to keep moving."
-            : "Create a structured program with phases, workouts, and progression rules before your dashboard fills in."}
+            ? "Your active plan does not have a workout for today. Review the plan to keep moving."
+            : "Create a structured program before your dashboard fills in."}
         </p>
         <div className="mt-7 flex flex-col gap-3 sm:flex-row">
           <Link
@@ -133,12 +131,11 @@ function DashboardEmptyState({ hasPlan }: { hasPlan: boolean }) {
       <SurfaceCard className="flex h-full flex-col justify-between">
         <div>
           <p className="ui-eyebrow">What happens next</p>
-          <h2 className="mt-2 text-2xl font-black leading-tight text-copy">
+          <h2 className="mt-2 text-xl font-black leading-tight text-copy">
             Your plan powers the dashboard.
           </h2>
           <p className="mt-3 text-sm leading-6 text-muted">
-            Once a plan is active, this page shows today&apos;s workout, current phase,
-            weekly schedule, and progression guidance from your logged sessions.
+            Once a plan is active, this page shows today, this phase, the week, and recent progress.
           </p>
         </div>
         <div className="mt-6 grid gap-3">
@@ -175,7 +172,7 @@ function TodayWorkoutHero({
             <Pill tone="green">Today&apos;s training</Pill>
             <Pill tone="blue">{goalLabel}</Pill>
           </div>
-          <h1 className="mt-5 max-w-3xl text-3xl font-black leading-tight text-balance sm:text-5xl">
+          <h1 className="mt-5 max-w-3xl text-3xl font-black leading-tight text-balance sm:text-4xl">
             {workout.name}
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-white/74">
@@ -331,7 +328,7 @@ function NextStepCard({
           </Pill>
         ) : null}
       </div>
-      <h2 className="mt-4 text-2xl font-black leading-tight text-copy sm:text-3xl">
+      <h2 className="mt-4 text-2xl font-black leading-tight text-copy">
         {prompt?.title ?? "Keep building this phase."}
       </h2>
       <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
@@ -437,58 +434,11 @@ function ActivityCard({
   );
 }
 
-function PlanSnapshot({ plan, workout }: { plan: WorkoutPlan; workout: WorkoutTemplate }) {
-  const exercises = workout.exercises.slice(0, 4);
-
-  return (
-    <SurfaceCard>
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-        <div>
-          <p className="ui-eyebrow">Current plan</p>
-          <h2 className="mt-2 text-2xl font-black leading-tight text-copy">{plan.name}</h2>
-          <p className="mt-3 text-sm leading-6 text-muted">{plan.description}</p>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-            <PlanFact label="Schedule" value={plan.scheduleSummary} />
-            <PlanFact label="Phase count" value={`${plan.phases.length} phases`} />
-          </div>
-        </div>
-        <div className="rounded-[24px] border border-border bg-surface-soft p-4">
-          <p className="text-sm font-black text-copy">In today&apos;s workout</p>
-          <div className="mt-4 grid gap-2">
-            {exercises.map((exercise) => (
-              <div key={exercise.id} className="rounded-2xl bg-surface px-3 py-2">
-                <p className="truncate text-sm font-bold text-copy">{exercise.name}</p>
-                <p className="mt-1 text-xs font-semibold text-muted">
-                  {exercise.sets} sets - {exercise.reps}
-                </p>
-              </div>
-            ))}
-          </div>
-          {workout.exercises.length > exercises.length ? (
-            <p className="mt-3 text-xs font-bold text-muted">
-              + {workout.exercises.length - exercises.length} more in the workout
-            </p>
-          ) : null}
-        </div>
-      </div>
-    </SurfaceCard>
-  );
-}
-
 function HeroStat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-[22px] border border-white/10 bg-white/[0.06] p-4">
       <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/45">{label}</p>
       <p className="mt-2 text-base font-black leading-tight text-white">{value}</p>
-    </div>
-  );
-}
-
-function PlanFact({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-border bg-surface-soft px-4 py-3">
-      <p className="text-xs font-bold uppercase tracking-[0.12em] text-muted">{label}</p>
-      <p className="mt-1 text-sm font-black text-copy">{value}</p>
     </div>
   );
 }

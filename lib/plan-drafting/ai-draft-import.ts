@@ -35,6 +35,7 @@ Important rules:
 - Keep all values concise and parseable.
 - Use only the allowed enum values for goal_track and progression_mode.
 - Respect the selected assigned_days when organizing workouts for the week.
+- Do not include the scheduled day of the week in the workout name. The scheduled day should be provided separately in the workout's day field.
 - Include at least 1 phase.
 - Include at least 1 workout per phase.
 - Include at least 1 exercise per workout.
@@ -76,6 +77,7 @@ objective: Build base tolerance and movement quality
 
 WORKOUT
 name: Lower A
+day: Monday
 focus: Squat and hinge emphasis
 
 EXERCISE
@@ -181,6 +183,44 @@ function formatPromptField(value: string) {
 
 function formatAssignedDays(values: Weekday[]) {
   return values.join(", ");
+}
+
+const weekdayAliases: Record<string, Weekday> = {
+  mon: "mon",
+  monday: "mon",
+  tue: "tue",
+  tues: "tue",
+  tuesday: "tue",
+  wed: "wed",
+  wednesday: "wed",
+  thu: "thu",
+  thur: "thu",
+  thurs: "thu",
+  thursday: "thu",
+  fri: "fri",
+  friday: "fri",
+  sat: "sat",
+  saturday: "sat",
+  sun: "sun",
+  sunday: "sun"
+};
+
+function parseOptionalWeekday(value: string, context: string) {
+  const normalized = value.trim().toLowerCase();
+
+  if (!normalized) {
+    return null;
+  }
+
+  const weekday = weekdayAliases[normalized];
+
+  if (!weekday) {
+    throw new Error(
+      `${context}: \`day\` must be one of Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, or Sunday.`
+    );
+  }
+
+  return weekday;
 }
 
 function formatFocusFromSetup(setup: PlanSetupInput) {
@@ -527,7 +567,7 @@ function parseExercise(lines: string[], index: number, workoutNumber: number, ph
 
 function parseWorkout(lines: string[], index: number, workoutNumber: number, phaseNumber: number) {
   const context = `Phase ${phaseNumber}, Workout ${workoutNumber}`;
-  const fieldLabels = ["name", "focus"];
+  const fieldLabels = ["name", "day", "focus"];
   const seenLabels = new Set<string>();
   let nextIndex = expectHeader({
     lines,
@@ -545,6 +585,21 @@ function parseWorkout(lines: string[], index: number, workoutNumber: number, pha
     seenLabels
   });
   nextIndex = name.nextIndex;
+  let scheduledDay: Weekday | null = null;
+
+  if (lines[nextIndex]?.startsWith("day:")) {
+    const day = parseRequiredField({
+      lines,
+      index: nextIndex,
+      label: "day",
+      context,
+      knownLabels: fieldLabels,
+      seenLabels
+    });
+    scheduledDay = parseOptionalWeekday(day.value, context);
+    nextIndex = day.nextIndex;
+  }
+
   const focus = parseRequiredField({
     lines,
     index: nextIndex,
@@ -577,6 +632,7 @@ function parseWorkout(lines: string[], index: number, workoutNumber: number, pha
     data: {
       name: name.value,
       focus: focus.value,
+      scheduledDay,
       exercises
     } satisfies AiImportedWorkout,
     nextIndex
@@ -815,7 +871,7 @@ function mapWorkout(workout: AiImportedWorkout, scheduledDays: Weekday[]): Struc
     name: workout.name,
     focus: workout.focus,
     summary: buildWorkoutSummary(workout),
-    scheduledDays,
+    scheduledDays: workout.scheduledDay ? [workout.scheduledDay] : scheduledDays,
     exercises: workout.exercises.map(mapExercise)
   };
 }

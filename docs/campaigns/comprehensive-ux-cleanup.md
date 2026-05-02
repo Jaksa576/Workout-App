@@ -4,7 +4,32 @@
 
 Slice 9N — Comprehensive UX Cleanup And AI Draft QA Patch
 
-## Campaign status and starting point
+## Campaign status
+
+Status: implemented locally on `codex/slice-9n-comprehensive-ux-cleanup`.
+
+Implementation summary:
+
+- Draft with AI now uses a fixed 1-7 days-per-week control and resets selected days to the required default weekday mappings.
+- Draft with AI selected weekdays stay aligned with selected days-per-week.
+- Draft with AI step navigation scrolls to the active step top and wizard headers are more compact.
+- Prompt export tells external LLMs not to include weekdays in workout names and to provide scheduled day separately in the workout `day` field.
+- Valid imported workout days are preserved through import/review/structured conversion; invalid days fail validation.
+- Dashboard Current Plan snapshot was removed, while today's training, current phase, weekly rhythm, recent activity, progression prompt, and compact metrics remain.
+- Touched dashboard, plans, plan detail, plan creation, workout, settings, and login surfaces received copy, typography, desktop rhythm, and dark-mode readability cleanup.
+
+Validation:
+
+- `npm run typecheck` passed.
+- `npm run test` passed: 8 files, 52 tests. A sandboxed run hit Windows `spawn EPERM`; approved rerun passed.
+- `npm run build` passed. A sandboxed build hit Windows `spawn EPERM`; approved rerun passed.
+- `npm run lint` failed with the known Next 16 setup issue where `next lint` is interpreted as a project directory named `lint`.
+
+Manual browser QA was not performed in Codex. Vercel preview review should cover the manual smoke checklist before merge.
+
+Preserved boundaries: no provider-backed LLM integration, no API-key handling, no runtime LLM dependency, no schema migration, no Supabase/RLS changes, no auth changes, no progression-engine changes, no unvalidated AI draft save path, and no Slice 10 exercise media/instruction-layer work.
+
+## Starting point
 
 This campaign starts after the Slice 9K–9M AI Draft Plan UX Campaign has been implemented.
 

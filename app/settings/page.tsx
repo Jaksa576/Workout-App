@@ -16,27 +16,25 @@ export default async function SettingsPage() {
         <p className="ui-eyebrow">
           Profile settings
         </p>
-        <h1 className="mt-2 font-display text-4xl text-copy">
-          Keep your training profile current.
+        <h1 className="mt-2 font-display text-3xl text-copy sm:text-4xl">
+          Keep your profile current.
         </h1>
         <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">
-          These details help future guided plans account for your availability, equipment,
-          preferences, and limitations.
+          These details help future plans reflect your availability, equipment, and limitations.
         </p>
       </section>
 
       <SectionCard
         title="Appearance"
         eyebrow="Theme"
-        description="Choose how the app looks on this device. System follows your device theme."
+        description="Choose how the app looks on this device."
         compact
       >
         <div className="surface-panel flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-2">
             <p className="text-sm font-semibold text-copy">Theme preference</p>
             <p className="max-w-2xl text-sm leading-6 text-muted">
-              This preference stays on this device and continues to apply across navigation and
-              refresh.
+              System follows your device theme.
             </p>
           </div>
           <ThemeToggle />
@@ -46,7 +44,7 @@ export default async function SettingsPage() {
       <SectionCard
         title="Training profile"
         eyebrow="Profile"
-        description="Update your reusable training context without going back through onboarding."
+        description="Update reusable training context without repeating onboarding."
       >
         {profile ? (
           <ProfileSettingsForm profile={profile} />

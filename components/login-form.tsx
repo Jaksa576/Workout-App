@@ -63,58 +63,58 @@ export function LoginForm({
           type="button"
           onClick={() => setMode("sign-in")}
           className={`rounded-full px-4 py-2 text-sm font-semibold ${
-            mode === "sign-in" ? "bg-ink text-white" : "bg-mist text-slate"
+            mode === "sign-in" ? "bg-hero text-white" : "bg-surface-soft text-muted"
           }`}
         >
-          Sign In
+          Sign in
         </button>
         <button
           type="button"
           onClick={() => setMode("sign-up")}
           className={`rounded-full px-4 py-2 text-sm font-semibold ${
-            mode === "sign-up" ? "bg-ink text-white" : "bg-mist text-slate"
+            mode === "sign-up" ? "bg-hero text-white" : "bg-surface-soft text-muted"
           }`}
         >
-          Create Account
+          Create account
         </button>
       </div>
 
       <label className="block">
-        <span className="text-sm font-semibold text-ink">Email</span>
+        <span className="text-sm font-semibold text-copy">Email</span>
         <input
           type="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           placeholder="you@example.com"
-          className="mt-3 w-full rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+          className="ui-input mt-3"
         />
       </label>
 
       <label className="block">
-        <span className="text-sm font-semibold text-ink">Password</span>
+        <span className="text-sm font-semibold text-copy">Password</span>
         <input
           type="password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           placeholder="Your password"
-          className="mt-3 w-full rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
+          className="ui-input mt-3"
         />
       </label>
 
       <button
-        className="w-full rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white disabled:opacity-60"
+        className="ui-button-primary w-full disabled:opacity-60"
         disabled={loading}
       >
         {loading
           ? mode === "sign-in"
-            ? "Signing In..."
-            : "Creating Account..."
+            ? "Signing in..."
+            : "Creating account..."
           : mode === "sign-in"
-            ? "Sign In"
-            : "Create Account"}
+            ? "Sign in"
+            : "Create account"}
       </button>
 
-      {status ? <p className="text-sm leading-6 text-slate">{status}</p> : null}
+      {status ? <p className="text-sm leading-6 text-muted">{status}</p> : null}
     </form>
   );
 }

@@ -17,10 +17,19 @@ export type PlanSetupContextResult = {
   notices: string[];
 };
 
-const defaultDays: Weekday[] = ["mon", "wed", "fri", "tue", "thu", "sat", "sun"];
+const defaultSchedules: Record<number, Weekday[]> = {
+  1: ["mon"],
+  2: ["mon", "thu"],
+  3: ["mon", "wed", "fri"],
+  4: ["mon", "tue", "thu", "fri"],
+  5: ["mon", "tue", "wed", "thu", "fri"],
+  6: ["mon", "tue", "wed", "thu", "fri", "sat"],
+  7: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+};
 
 export function getDefaultSchedule(daysPerWeek: number) {
-  return defaultDays.slice(0, Math.max(1, Math.min(daysPerWeek, 7)));
+  const boundedDays = Math.max(1, Math.min(daysPerWeek, 7));
+  return defaultSchedules[boundedDays] ?? defaultSchedules[3];
 }
 
 export function getDefaultPlanSplit(

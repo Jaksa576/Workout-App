@@ -152,7 +152,7 @@ describe("plan setup context", () => {
     });
 
     expect(result.setup.goalType).toBe("running");
-    expect(result.setup.weeklySchedule).toEqual(["mon", "wed", "fri", "tue"]);
+    expect(result.setup.weeklySchedule).toEqual(["mon", "tue", "thu", "fri"]);
     expect(result.missingFields).toContain("goal track");
     expect(result.missingFields).toContain("weekly schedule");
   });

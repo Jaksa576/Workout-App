@@ -119,9 +119,9 @@ function ProgressSummary({ summary }: { summary: WorkoutProgressSummary }) {
   return (
     <section id="progress" className="surface-card p-5 sm:p-6">
       <p className="ui-eyebrow">Progress</p>
-      <h2 className="mt-2 text-2xl font-black leading-tight text-copy sm:text-3xl">Workout rhythm</h2>
+      <h2 className="mt-2 text-2xl font-black leading-tight text-copy">Workout rhythm</h2>
       <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">
-        A simple look at how your recent workouts line up with the plan.
+        Recent workouts against the plan rhythm.
       </p>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
@@ -286,11 +286,11 @@ export function WorkoutFlow({
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/58">
               Workout
             </p>
-            <h1 className="mt-4 max-w-3xl text-3xl font-black leading-tight text-balance sm:text-5xl">
+            <h1 className="mt-4 max-w-3xl text-3xl font-black leading-tight text-balance sm:text-4xl">
               Execute today&apos;s session.
             </h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-white/72">
-              Move through the exercise list, check in honestly, and save the session so progression stays grounded in your real training.
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-white/72 sm:text-base">
+              Move through the list, check in honestly, and save the session.
             </p>
           </div>
           <div className="grid grid-cols-3 gap-3">
@@ -348,7 +348,7 @@ export function WorkoutFlow({
           <p className="ui-eyebrow">
             {step === "saved" ? "Workout saved" : step === "check-in" ? "Check-in" : "Exercises"}
           </p>
-          <h2 className="mt-2 text-2xl font-black leading-tight text-copy sm:text-3xl">{workout.name}</h2>
+          <h2 className="mt-2 text-2xl font-black leading-tight text-copy">{workout.name}</h2>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">{workout.summary}</p>
 
           {latestSession ? (
@@ -583,7 +583,7 @@ export function WorkoutFlow({
       {sessionHistory.length > 0 ? (
         <section className="surface-card p-5 sm:p-6">
           <p className="ui-eyebrow">Recent logs</p>
-          <h2 className="mt-2 text-2xl font-black leading-tight text-copy sm:text-3xl">Recent workouts</h2>
+          <h2 className="mt-2 text-2xl font-black leading-tight text-copy">Recent workouts</h2>
           <div className="mt-5 grid gap-3">
             {sessionHistory.slice(0, 4).map((session) => (
               <div key={session.id} className="rounded-[24px] border border-border bg-surface-soft p-4 text-sm">

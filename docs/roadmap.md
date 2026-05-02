@@ -328,7 +328,7 @@ Status: moved into Slice 9N.
 
 ## 9N. Comprehensive UX Cleanup And AI Draft QA Patch
 
-Status: accepted immediate campaign before Slice 10.
+Status: implemented locally.
 
 Purpose:
 Stabilize and clean up the current UX before adding exercise media and instruction-layer work.
@@ -345,6 +345,18 @@ Scope:
 - fix dark-mode readability, especially sign-in/login
 - improve desktop responsive polish
 
+Implemented:
+
+- replaced Draft with AI days-per-week manual entry with a fixed 1-7 choice control
+- reset selected training days to the required default weekday mappings whenever days-per-week changes
+- kept selected Draft with AI weekdays count-aligned with the selected weekly count
+- added step navigation scroll-to-top behavior and compacted Draft with AI wizard headers
+- updated AI prompt export to request a separate workout `day` field and to avoid weekday names in workout names
+- preserved valid imported workout days through import, review, and structured plan conversion while rejecting invalid days
+- removed the redundant dashboard Current Plan snapshot and simplified dashboard copy/typography
+- fixed login form dark-mode readability by moving legacy hardcoded text/input styles to semantic UI tokens
+- tightened copy and type scale on touched dashboard, plan, plan-creation, workout, settings, and plan-detail surfaces
+
 Guardrails:
 
 - no schema, RLS, auth, or progression-engine changes
@@ -354,7 +366,7 @@ Guardrails:
 
 ## 10. Exercise Media And Instruction Layer
 
-Status: planned after Slice 9N.
+Status: next planned major roadmap item after Slice 9N.
 
 - Expand exercise instruction quality, video/demo surfaces, and coaching notes.
 - Keep any future auto-population of exercise media/video links from generated plan output aligned with this later slice rather than pulling it into Slice 7 stabilization.

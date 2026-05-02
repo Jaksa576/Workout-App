@@ -218,7 +218,7 @@ export function buildDashboardProgressionPrompt(
     eyebrow: shouldUseCautionCopy
       ? "Take it easier today"
       : progress.decision === "repeat"
-        ? "Keep the streak going"
+        ? "Keep going"
         : "Up next",
     title:
       shouldUseCautionCopy

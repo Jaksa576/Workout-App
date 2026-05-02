@@ -144,6 +144,10 @@ describe("ai draft import", () => {
     expect(prompt).toContain("Return ONLY one fenced markdown transfer block.");
     expect(prompt).toContain("```adaptive-training-plan");
     expect(prompt).toContain("Return the plan in exactly this fenced transfer block:");
+    expect(prompt).toContain(
+      "Do not include the scheduled day of the week in the workout name."
+    );
+    expect(prompt).toContain("day: Monday");
   });
 
   it.each([
@@ -361,6 +365,103 @@ notes: Controlled tempo`;
     expect(plan.phases[0].workouts[1].scheduledDays).toEqual(["thu"]);
     expect(plan.phases[1].workouts[0].scheduledDays).toEqual(["tue"]);
     expect(plan.phases[1].workouts[0].exercises[0].rest).toBe("");
+  });
+
+  it("preserves valid scheduled days from imported workouts", () => {
+    const input = `PLAN
+title: Strength Builder
+goal_track: strength
+progression_mode: performance_based
+days_per_week: 2
+session_duration_min: 45
+summary: Two-day strength split
+
+PHASE 1
+name: Foundation
+duration_weeks: 4
+objective: Build confidence with the main lifts
+
+WORKOUT
+name: Lower Strength
+day: Tuesday
+focus: Squat and hinge emphasis
+
+EXERCISE
+name: Goblet Squat
+sets: 3
+reps: 8
+rest_seconds: 90
+notes: Controlled tempo
+
+WORKOUT
+name: Upper Strength
+day: Thursday
+focus: Horizontal push and pull
+
+EXERCISE
+name: Dumbbell Bench Press
+sets: 3
+reps: 8
+rest_seconds: 90
+notes: Keep shoulders packed`;
+    const parsed = parseAiPlanImport(input);
+
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) {
+      return;
+    }
+
+    expect(parsed.data.phases[0].workouts[0].scheduledDay).toBe("tue");
+    expect(parsed.data.phases[0].workouts[1].scheduledDay).toBe("thu");
+
+    const plan = convertAiImportToStructuredPlan({
+      importedPlan: parsed.data,
+      promptInput: {
+        ...basePromptInput,
+        daysPerWeek: 2,
+        weeklySchedule: ["mon", "thu"]
+      }
+    });
+
+    expect(plan.phases[0].workouts[0].name).toBe("Lower Strength");
+    expect(plan.phases[0].workouts[0].scheduledDays).toEqual(["tue"]);
+    expect(plan.phases[0].workouts[1].scheduledDays).toEqual(["thu"]);
+  });
+
+  it("rejects invalid scheduled days without importing the draft", () => {
+    const input = `PLAN
+title: Strength Builder
+goal_track: strength
+progression_mode: performance_based
+days_per_week: 1
+session_duration_min: 45
+summary: One-day strength split
+
+PHASE 1
+name: Foundation
+duration_weeks: 4
+objective: Build confidence
+
+WORKOUT
+name: Lower Strength
+day: Funday
+focus: Squat emphasis
+
+EXERCISE
+name: Goblet Squat
+sets: 3
+reps: 8
+rest_seconds: 90
+notes: Controlled tempo`;
+
+    const result = parseAiPlanImport(input);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+
+    expect(result.errors[0]).toMatch(/`day` must be one of Monday/);
   });
 
   it("preserves zero-second rest when converting imported plans", () => {

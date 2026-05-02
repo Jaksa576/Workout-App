@@ -2,11 +2,11 @@
 
 ## Goal
 
-Current implementation target: Slice 9N, Comprehensive UX Cleanup And AI Draft QA Patch.
+Current implementation status: Slice 9N, Comprehensive UX Cleanup And AI Draft QA Patch, is implemented locally on `codex/slice-9n-comprehensive-ux-cleanup`.
 
 Slice 9J, Plan Creation / Settings Polish, is complete. Slice 9K, AI Draft Setup Wizard, is complete. Slice 9L, External LLM Handoff UX, is complete. Slice 9M, AI Draft Import Ergonomics, is complete. The Slice 9K-9M AI Draft Plan UX Campaign is now complete and archived as reference material.
 
-Slice 9N is intentionally scheduled before Slice 10, Exercise Media And Instruction Layer. Slice 10 remains the next major roadmap item after Slice 9N.
+Slice 9N was intentionally scheduled before Slice 10, Exercise Media And Instruction Layer. Slice 10 remains the next major roadmap item after Slice 9N.
 
 Slice 9N combines:
 
@@ -15,22 +15,22 @@ Slice 9N combines:
 
 This is a stabilization and UX-quality pass, not a new architecture direction.
 
-## Current Slice
+## Completed Slice
 
-Slice 9N should use `docs/campaigns/comprehensive-ux-cleanup.md` as the detailed campaign source of truth.
+Slice 9N used `docs/campaigns/comprehensive-ux-cleanup.md` as the detailed campaign source of truth.
 
-Implementation goals:
+Implemented:
 
-- fix AI Draft schedule control and selected-day consistency
-- fix AI Draft wizard scroll and header density
-- fix prompt workout naming guidance so weekday names are not duplicated in workout names
-- preserve scheduled day during AI draft import/review
-- simplify dashboard by removing or reducing Current Plan and Keep the streak going blocks
-- reduce oversized dashboard copy
-- reduce app-wide verbiage
-- normalize typography across touched screens
-- fix dark-mode readability, especially sign-in/login
-- improve desktop responsive polish without harming mobile-first behavior
+- Draft with AI schedule control now uses fixed 1-7 choices instead of numeric typing.
+- Days-per-week changes reset selected weekdays to the required default mappings.
+- Draft with AI selected weekdays stay count-aligned with selected days-per-week.
+- Draft with AI step navigation scrolls back to the active step top.
+- Draft with AI headers and supporting copy were compacted.
+- Prompt export now tells external LLMs not to include weekdays in workout names and to provide scheduled day separately.
+- AI import now preserves valid workout `day` fields through review/structured conversion and rejects invalid day values.
+- Dashboard Current Plan snapshot was removed; today, current phase, week rhythm, recent activity, and compact metrics remain.
+- Dashboard and touched app surfaces received copy, typography, desktop rhythm, and dark-mode readability cleanup.
+- Login form dark-mode readability was fixed by moving old hardcoded text/input styling to semantic UI tokens.
 
 ## Guardrails
 
@@ -57,6 +57,18 @@ Preserve the existing structured adaptive-training model:
 - setup -> draft -> review/edit -> save
 - strict validation before saving AI-generated plans
 - plan, phase, workout, exercise, session, and progression behavior
+
+Preserved in implementation:
+
+- no schema changes
+- no Supabase/RLS changes
+- no auth changes
+- no progression-engine changes
+- no provider-backed LLM integration
+- no API-key handling
+- no runtime LLM dependency
+- no unvalidated AI draft save path
+- no Slice 10 exercise media or instruction-layer work
 
 ## Recently Completed
 
@@ -119,13 +131,13 @@ Stop and report before implementation if:
 
 ## Verification Expectations For Slice 9N
 
-Because Slice 9N changes app behavior and UI, the implementation pass should run:
+Slice 9N validation run:
 
-- `npm run typecheck`
-- `npm run test`
-- `npm run build`
-- `npm run lint`
+- `npm run typecheck` passed.
+- `npm run test` passed: 8 files, 52 tests. The sandboxed test run hit Windows `spawn EPERM`; rerun with approval passed.
+- `npm run build` passed. The sandboxed build compiled and then hit Windows `spawn EPERM`; rerun with approval passed.
+- `npm run lint` failed with the known Next 16 setup issue: `next lint` is interpreted as a project directory named `lint`.
 
-If `npm run lint` fails only because the current Next setup interprets `next lint` as a project directory named `lint`, report that known lint-script issue.
+Manual browser QA was not performed in Codex during implementation. Vercel preview review should smoke test Draft with AI, dashboard hierarchy, sign-in dark mode, and touched responsive routes before merge.
 
-Manual QA should cover Draft with AI, dashboard, light/dark readability, sign-in/login dark mode, and responsive mobile/desktop behavior on touched screens.
+Next implementation target after this branch is reviewed and merged: Slice 10, Exercise Media And Instruction Layer.

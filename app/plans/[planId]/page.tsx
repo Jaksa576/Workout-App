@@ -63,7 +63,7 @@ export default async function PlanDetailPage({
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="ui-eyebrow">Plan structure</p>
-            <h2 className="mt-2 text-2xl font-black leading-tight text-copy sm:text-3xl">
+            <h2 className="mt-2 text-2xl font-black leading-tight text-copy">
               Phase-by-phase blueprint
             </h2>
           </div>
@@ -123,7 +123,7 @@ function PlanDetailHero({ plan }: { plan: WorkoutPlan }) {
           <h1 className="mt-5 max-w-4xl text-3xl font-black leading-tight text-balance sm:text-5xl">
             {plan.name}
           </h1>
-          <p className="mt-4 max-w-3xl text-base leading-7 text-white/72">
+          <p className="mt-4 max-w-3xl text-sm leading-6 text-white/72 sm:text-base">
             {plan.description}
           </p>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -160,7 +160,7 @@ function CurrentPhasePanel({ plan }: { plan: WorkoutPlan }) {
         {plan.currentPhase.goal}
       </h2>
       <p className="mt-3 text-sm leading-6 text-muted">
-        Use these signals to decide when to progress, repeat, or deload.
+        Progress, repeat, or deload based on these signals.
       </p>
       <div className="mt-5 grid gap-3">
         <RuleCard label="Advance when" value={plan.currentPhase.advanceCriteria} />

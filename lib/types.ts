@@ -382,6 +382,7 @@ export type AiImportedExercise = {
 export type AiImportedWorkout = {
   name: string;
   focus: string;
+  scheduledDay?: Weekday | null;
   exercises: AiImportedExercise[];
 };
 
