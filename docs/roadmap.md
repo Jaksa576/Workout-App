@@ -1,8 +1,6 @@
 # Roadmap
 
-This roadmap tracks the practical implementation path for evolving the app from a recovery-first phased workout app into a goal-based adaptive training platform.
-
-The product should broaden the framing without replacing the engine. Keep structured plans/programs, progressive phases, workouts, exercises, sessions/check-ins, and server-side progression logic.
+This roadmap tracks milestone sequencing and deferred work. For durable product truth, read `docs/product.md`.
 
 ## Near-Term Refactor Slices
 
@@ -161,15 +159,15 @@ Accepted narrow QA follow-up:
 - removed repeated `Keep the streak going` copy from adjacent dashboard cards
 - preserved the active-phase/progression CTA sync and kept the patch dashboard-only
 
-## Completed Priority: Full UI Redesign Program
+## Completed Priority: Full UI Redesign, AI Draft UX, And UX Cleanup
 
-The broader public landing, app-shell, dashboard, plans, workout execution, and plan creation/settings redesign program is implemented locally through Slice 9J.
+The broader public landing, app-shell, dashboard, plans, workout execution, and plan creation/settings redesign program is complete through Slice 9J.
 
-The Slice 9K-9M AI Draft Plan UX Campaign is complete. The accepted immediate cleanup campaign before Slice 10 is Slice 9N, Comprehensive UX Cleanup And AI Draft QA Patch.
+The Slice 9K-9M AI Draft Plan UX Campaign is complete and archived as reference. Slice 9N, Comprehensive UX Cleanup And AI Draft QA Patch, is merged to `origin/main`. The next major roadmap item is Slice 10, Exercise Media And Instruction Layer.
 
 ## 9A. UI Redesign Direction, Public Landing, And App Icon Planning
 
-Status: implemented locally.
+Status: complete; campaign archived.
 
 - Lock the selected premium consumer fitness visual direction in repo docs before implementation begins.
 - Define the future public landing page at `/` and authenticated dashboard at `/dashboard`.
@@ -328,7 +326,7 @@ Status: moved into Slice 9N.
 
 ## 9N. Comprehensive UX Cleanup And AI Draft QA Patch
 
-Status: implemented locally.
+Status: merged to `origin/main`; campaign archived at `docs/campaigns/archived/comprehensive-ux-cleanup.md`.
 
 Purpose:
 Stabilize and clean up the current UX before adding exercise media and instruction-layer work.
@@ -366,7 +364,7 @@ Guardrails:
 
 ## 10. Exercise Media And Instruction Layer
 
-Status: next planned major roadmap item after Slice 9N.
+Status: next planned major roadmap item.
 
 - Expand exercise instruction quality, video/demo surfaces, and coaching notes.
 - Keep any future auto-population of exercise media/video links from generated plan output aligned with this later slice rather than pulling it into Slice 7 stabilization.
@@ -458,5 +456,8 @@ When implemented:
 - Keep Supabase auth and row-level security expectations intact.
 - Use the Windows-native Codex app + worktree workflow for implementation slices unless explicitly overridden.
 - Keep `.env.local` local-only and gitignored; Codex worktree setup should copy it from `C:\Code\Workout-App\.env.local` and validate required Supabase public variables.
-- Update `docs/current-task.md` to the next slice after each completed slice.
-- Update `docs/agent-handoff.md` after major implementation steps.
+- Update `docs/current-task.md` after every implementation slice or docs-only state change.
+- Update the active campaign doc when slice status changes; move completed campaign briefs to `docs/campaigns/archived/` when they are no longer active.
+- Update `docs/architecture.md` only when durable technical or workflow architecture changes.
+- Update `docs/product.md` only when durable product truth changes.
+- Codex final reports should include a documentation delta and compact state packet; the state packet is a transition note, not a source of truth.

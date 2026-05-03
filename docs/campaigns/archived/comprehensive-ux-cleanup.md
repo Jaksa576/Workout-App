@@ -6,7 +6,13 @@ Slice 9N — Comprehensive UX Cleanup And AI Draft QA Patch
 
 ## Campaign status
 
-Status: implemented locally on `codex/slice-9n-comprehensive-ux-cleanup`.
+Status: completed and merged to `origin/main`; archived as reference.
+
+Implementation branch:
+
+```text
+codex/slice-9n-comprehensive-ux-cleanup
+```
 
 Implementation summary:
 
@@ -70,22 +76,22 @@ The purpose is to clean up the current experience before adding new Slice 10 exe
 
 ## Source-of-truth docs
 
-Before implementation, read and reconcile:
+Historical source-of-truth docs for this completed campaign were:
 
 - `docs/roadmap.md`
 - `docs/current-task.md`
-- `docs/agent-handoff.md`
+- `docs/product.md`
 - `docs/architecture.md`
 - `docs/campaigns/ai-draft-plan-ux.md`
-- `docs/campaigns/comprehensive-ux-cleanup.md`
+- `docs/campaigns/archived/comprehensive-ux-cleanup.md`
 - `AGENTS.md`
 
-If these docs conflict with this campaign brief:
+At the time of implementation, if these docs conflicted with this campaign brief:
 
 - stop
 - report the conflict
 - do not silently resolve it
-- treat `docs/current-task.md` and `docs/agent-handoff.md` as tie-breakers for active work unless they are clearly stale relative to the approved user instruction that Slice 9N should happen before Slice 10
+- treat `docs/current-task.md` as the tie-breaker for active work unless it is clearly stale relative to the approved user instruction that Slice 9N should happen before Slice 10
 
 ## Project workflow assumptions
 
@@ -876,10 +882,10 @@ Shared UI/theme:
 Docs:
 
 - `docs/current-task.md`
-- `docs/agent-handoff.md`
+- `docs/product.md`
 - `docs/roadmap.md`
 - `docs/campaigns/ai-draft-plan-ux.md`
-- `docs/campaigns/comprehensive-ux-cleanup.md`
+- `docs/campaigns/archived/comprehensive-ux-cleanup.md`
 - `docs/architecture.md` only if a durable architecture convention changes
 
 ## Files and areas to avoid unless absolutely necessary
@@ -1052,12 +1058,11 @@ After implementation, update only what is needed.
 Always update:
 
 - `docs/current-task.md`
-- `docs/agent-handoff.md`
 
 Update if status changes:
 
 - `docs/roadmap.md`
-- `docs/campaigns/comprehensive-ux-cleanup.md`
+- `docs/campaigns/archived/comprehensive-ux-cleanup.md`
 - `docs/campaigns/ai-draft-plan-ux.md`, only if useful to record AI Draft QA closure
 
 Update only if architectural direction changes:

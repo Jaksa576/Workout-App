@@ -57,7 +57,7 @@ Before every slice, read and reconcile:
 
 - `docs/roadmap.md`
 - `docs/current-task.md`
-- `docs/agent-handoff.md`
+- `docs/product.md`
 - `docs/architecture.md`
 - `AGENTS.md`
 
@@ -66,7 +66,7 @@ If these docs conflict with this campaign brief:
 - stop
 - report the conflict
 - do not silently resolve it
-- treat `docs/current-task.md` and `docs/agent-handoff.md` as the tie-breakers for the active slice, unless they are clearly stale relative to an approved human instruction
+- treat `docs/current-task.md` as the tie-breaker for the active slice, unless it is clearly stale relative to an approved human instruction
 
 ## Design references and visual source of truth
 
@@ -360,7 +360,6 @@ After implementation, update only what is needed:
 Always update:
 
 - `docs/current-task.md`
-- `docs/agent-handoff.md`
 
 Update if status changes:
 
