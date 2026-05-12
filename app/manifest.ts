@@ -3,9 +3,10 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Adaptive Training",
-    short_name: "Adaptive Training",
+    short_name: "Adaptive",
     description: "Structured plans that progress with you.",
     start_url: "/",
+    scope: "/",
     display: "standalone",
     background_color: "#f4efe7",
     theme_color: "#0e1219",
@@ -14,12 +15,20 @@ export default function manifest(): MetadataRoute.Manifest {
       {
         src: "/icon-192.png",
         sizes: "192x192",
-        type: "image/png"
+        type: "image/png",
+        purpose: "any"
       },
       {
         src: "/icon-512.png",
         sizes: "512x512",
-        type: "image/png"
+        type: "image/png",
+        purpose: "any"
+      },
+      {
+        src: "/icon-maskable.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable"
       }
     ]
   };
