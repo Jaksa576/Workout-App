@@ -2,7 +2,7 @@
 
 ## Current Status
 
-User-timezone dashboard/date patch is implemented on `codex/user-timezone-date-patch` and awaiting final push/PR closeout.
+User-timezone dashboard/date patch is complete and merged into `main`.
 
 Slice 10, AI-Enriched Exercise Instructions And Demo Links, remains complete and merged into `main`.
 
@@ -62,13 +62,11 @@ Results:
 
 ## Known Follow-Up
 
-- Manual browser QA should confirm authenticated `/dashboard`, `/workout`, and `/settings` against a real signed-in account after the timezone patch is deployed or run locally with app data.
+- No active known follow-up is open for the timezone patch after user review confirmed the behavior works as expected.
 
 ## Next Action
 
-Complete timezone patch branch closeout: review diff, push to `origin`, verify branch push, and open/merge through the normal workflow if desired.
-
-Then plan the next product slice if needed.
+Plan the next product slice if needed.
 
 ## Timezone Patch Summary
 
@@ -102,18 +100,15 @@ Results:
 - `npm run build`: passed
 - `npm run check`: passed and reran typecheck, tests, and build
 
-Manual QA expectations:
+Manual QA:
 
 - local dev server was started on port 3001 for a smoke attempt
 - `/` returned HTTP 200
 - `/login` returned HTTP 200
 - protected-route HTTP smoke for `/dashboard`, `/workout`, `/settings`, and `/plans/new` did not complete before the request timeout and should be repeated in a browser with a signed-in account
-- dashboard weekday/today label should be checked against the browser timezone, including UTC-boundary cases
-- current workout and 5-day preview should align to the browser-local day
-- workout completed-on default and max date should be local today
-- Settings should display the detected timezone
-- light/dark mode should remain unaffected
-- Draft with AI, plan detail, and workout execution should have no obvious regressions
+- user review confirmed the timezone patch works as expected, covering the authenticated app behavior that the local HTTP smoke could not finish
+- dashboard weekday/today label now matches the browser timezone expectation, including UTC-boundary behavior
+- current workout, 5-day preview, completed-on defaults, and Settings timezone display were accepted in review
 
 ## Source Of Truth
 
@@ -147,18 +142,14 @@ For docs-only changes after a validated merge, run `git status` and `git diff --
 
 Stop and report before editing further if:
 
-- timezone work starts creeping into the Slice 10 closeout
 - docs conflict about whether Slice 10 is complete
-- validation reveals unrelated failures that cannot be confidently attributed to the merge/docs cleanup
 - branch state becomes ambiguous
 
 ## Final Report Expectations
 
 Include:
 
-- merge status and final branch/commit information
-- confirmation that workflow helper infrastructure was merged intentionally
+- merge status and final commit information
 - validation results
 - documentation delta
-- known follow-up: timezone/dashboard local-date patch
 - compact state packet

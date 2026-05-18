@@ -370,7 +370,13 @@ Status: complete and merged to `main`.
 - Kept import strict, validated, and review-before-save, including safe handling for unsupported YouTube URLs.
 - Persisted reviewed guidance through existing `exercise_entries.coaching_note` serialization and reviewed demo links through existing `exercise_entries.video_url`, without a schema migration.
 - Surfaced compact guidance and demo actions in saved plan details and workout execution.
-- Deferred user-timezone dashboard/date handling, admin exercise catalog workflows, media upload/storage, provider-backed AI, YouTube API/search/embeds, exercise substitutions, and broader history/trends.
+- Deferred admin exercise catalog workflows, media upload/storage, provider-backed AI, YouTube API/search/embeds, exercise substitutions, and broader history/trends.
+
+Post-Slice 10 timezone follow-up:
+
+- Fixed dashboard and workout "today" behavior to use the browser-detected IANA timezone when available.
+- Persisted the timezone client-side in a cookie/localStorage for authenticated server-rendered routes.
+- Kept the patch migration-free with no schema, auth/RLS, session payload, AI, or progression-engine changes.
 
 ## 11. Broader Polish And Branding
 
