@@ -51,6 +51,13 @@ Patch summary:
 - kept specialized rehab, pain-sensitive, return-to-sport, and ambiguous movement variations pointed toward `video_search_query` instead of forced URLs
 - preserved strict YouTube URL validation and did not add API calls, scraping, embeds, or automatic search
 
+Follow-up UI polish:
+
+- made each exercise in the Workouts step collapsible, matching the workout-level review pattern
+- removed the unclear `Guidance/video` and `Expand to edit` workout summary text
+- kept native disclosure arrows visible for workouts, exercises, Guidance, and Advanced note sections
+- made Guidance sections start collapsed until the user opens them manually
+
 Known follow-up:
 
 - A dashboard/user timezone issue was noted during QA and remains separate. It is intentionally not part of this Slice 10 patch.
@@ -77,6 +84,7 @@ Results:
 - `npm run typecheck`: passed
 - `npm run test`: passed, 9 test files and 56 tests
 - `npm run build`: passed
+- latest UI polish validation repeated `npm run typecheck`, `npm run test`, and `npm run build`: passed
 
 Manual smoke performed:
 

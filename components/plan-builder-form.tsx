@@ -100,12 +100,6 @@ function getWorkoutKey(phaseIndex: number, workoutIndex: number) {
   return `${phaseIndex}-${workoutIndex}`;
 }
 
-function hasWorkoutExerciseGuidance(workout: StructuredWorkoutInput) {
-  return workout.exercises.some(
-    (exercise) => hasExerciseGuidance(exercise.guidance) || Boolean(exercise.videoUrl)
-  );
-}
-
 function Field({
   label,
   children
@@ -497,11 +491,10 @@ export function PlanBuilderForm({
               {phase.workouts.map((workout, workoutIndex) => {
                 const workoutKey = getWorkoutKey(phaseIndex, workoutIndex);
                 const filteredExercises = getFilteredExercises(workoutKey);
-                const hasGuidanceOrVideo = hasWorkoutExerciseGuidance(workout);
 
                 return (
                   <details key={workoutKey} className="surface-panel">
-                    <summary className="cursor-pointer list-none">
+                    <summary className="cursor-pointer">
                       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                         <div className="min-w-0">
                           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
@@ -523,14 +516,6 @@ export function PlanBuilderForm({
                           <span className="rounded-full bg-surface-soft px-3 py-1.5 text-xs font-bold text-muted">
                             {workout.exercises.length}{" "}
                             {workout.exercises.length === 1 ? "exercise" : "exercises"}
-                          </span>
-                          {hasGuidanceOrVideo ? (
-                            <span className="rounded-full bg-primary/12 px-3 py-1.5 text-xs font-bold text-primary">
-                              Guidance/video
-                            </span>
-                          ) : null}
-                          <span className="rounded-full bg-shell-elevated px-3 py-1.5 text-xs font-bold text-muted">
-                            Expand to edit
                           </span>
                         </div>
                       </div>
@@ -615,8 +600,30 @@ export function PlanBuilderForm({
 
                   <div className="mt-5 space-y-3">
                     {workout.exercises.map((exercise, exerciseIndex) => (
-                      <div key={exerciseIndex} className="grid gap-3 rounded-[20px] border border-border/70 bg-surface px-4 py-4 md:grid-cols-4">
-                        <label className="block">
+                      <details
+                        key={exerciseIndex}
+                        className="rounded-[20px] border border-border/70 bg-surface px-4 py-4"
+                      >
+                        <summary className="cursor-pointer">
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="min-w-0">
+                              <p className="font-black text-copy">
+                                {exercise.name || `Exercise ${exerciseIndex + 1}`}
+                              </p>
+                              <p className="mt-1 text-sm leading-6 text-muted">
+                                {exercise.sets} sets / {exercise.reps}
+                                {exercise.rest ? ` / Rest ${exercise.rest}` : ""}
+                              </p>
+                            </div>
+                            {exercise.videoUrl ? (
+                              <span className="rounded-full bg-surface-soft px-3 py-1.5 text-xs font-bold text-muted">
+                                Video
+                              </span>
+                            ) : null}
+                          </div>
+                        </summary>
+                        <div className="mt-4 grid gap-3 md:grid-cols-4">
+                          <label className="block">
                           <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
                             Exercise
                           </span>
@@ -720,14 +727,10 @@ export function PlanBuilderForm({
                           </label>
                         ) : null}
                         <details
-                          open={hasExerciseGuidance(exercise.guidance) || undefined}
                           className="rounded-[18px] border border-primary/15 bg-primary/5 p-3 md:col-span-4"
                         >
                           <summary className="cursor-pointer text-sm font-bold text-copy">
-                            Guidance{" "}
-                            {hasExerciseGuidance(exercise.guidance) || exercise.videoUrl
-                              ? "- AI added coaching notes/video"
-                              : "- optional coaching details"}
+                            Guidance
                           </summary>
                           <div className="mt-4 grid gap-3 md:grid-cols-2">
                             <label className="block md:col-span-2">
@@ -886,7 +889,8 @@ export function PlanBuilderForm({
                         >
                           Delete Exercise
                         </button>
-                      </div>
+                        </div>
+                      </details>
                     ))}
                     {workout.exercises.length <= 1 ? (
                       <p className="text-sm leading-6 text-muted">
