@@ -14,6 +14,13 @@ Completed campaigns live in `docs/campaigns/archived/`. Historical context that 
 
 `docs/agent-handoff.md` is retired and should not be treated as a required source-of-truth file.
 
+## Standard Commands
+
+- setup Codex worktree: `.\scripts\setup-codex-worktree.ps1`
+- validate: `.\scripts\validate.ps1`
+- verify pushed branch: `.\scripts\verify-branch-pushed.ps1`
+- dev server: `npm run dev`
+
 ## Product Guardrails
 
 Workout App is a progression-based adaptive training system, not a generic workout logger.
@@ -53,6 +60,12 @@ When implementing:
 - keep types strong and explicit
 - prefer deterministic, testable logic over clever heuristics
 
+Branch/worktree completion rule:
+
+- When working in a local worktree, always create or use a named branch, commit changes, push to `origin`, and verify the branch is pushed before the final report.
+- Do not report implementation complete for local-only commits.
+- If push fails, stop and report the failure.
+
 ## Documentation Workflow
 
 Codex owns documentation freshness during implementation:
@@ -76,6 +89,7 @@ The state packet is a transition note for the next human or agent. It is not a s
 
 Before considering work complete:
 
+- use `npm run check` as the standard validation gate for code changes
 - run relevant type checks
 - run relevant tests
 - add or update tests when behavior changes
@@ -134,7 +148,7 @@ Agent guidance:
 ## Local Development Guardrails
 
 - The local dev port is `3001`.
-- Before starting the dev server, check the port with `Get-NetTCPConnection -LocalPort 3001 -ErrorAction SilentlyContinue`.
+- Before starting the dev server, check the port with `.\scripts\check-port.ps1` or `Get-NetTCPConnection -LocalPort 3001 -ErrorAction SilentlyContinue`.
 - Do not run multiple dev servers for this repo.
 - Do not run `npm install`, `npm update`, `npm run build`, and `npm run dev` concurrently.
 - Worktrees do not include `.env.local` automatically.

@@ -229,6 +229,12 @@ Run type checking:
 npm run typecheck
 ```
 
+Run the standard validation gate:
+
+```powershell
+npm run check
+```
+
 Run a production build:
 
 ```powershell

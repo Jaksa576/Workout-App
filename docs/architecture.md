@@ -123,7 +123,11 @@ Codex final reports should include a documentation delta and compact state packe
 
 ## Validation Expectations
 
-For code changes, usually run:
+For code changes, use the standard validation gate:
+
+- `npm run check`
+
+The wrapper runs:
 
 - `npm run typecheck`
 - `npm run test`

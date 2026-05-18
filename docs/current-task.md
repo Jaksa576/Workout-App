@@ -2,6 +2,14 @@
 
 ## Current Status
 
+Workflow helper infrastructure has been implemented on branch:
+
+```text
+codex/slice-10-exercise-guidance
+```
+
+This is not an app feature slice. It adds repo-owned validation and branch-push helpers so future Codex work can reduce repeated setup/context overhead and avoid local-only worktree completions.
+
 Slice 10, AI-Enriched Exercise Instructions And Demo Links, is implemented locally with a pre-merge QA tightening patch on branch:
 
 ```text
@@ -70,6 +78,24 @@ Durable persistence note:
 - `video_search_query` is stored as reviewed guidance text only. The app does not run automatic video search.
 
 ## Validation Results
+
+Workflow helper validation completed:
+
+```powershell
+npm run typecheck
+npm test
+npm run build
+npm run check
+.\scripts\validate.ps1
+```
+
+Results:
+
+- `npm run typecheck`: passed
+- `npm test`: passed, 9 test files and 56 tests
+- `npm run build`: passed
+- `npm run check`: passed
+- `.\scripts\validate.ps1`: passed and delegated to `npm run check`
 
 Commands run so far:
 
