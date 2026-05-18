@@ -18,6 +18,7 @@ import type {
   Weekday,
   WorkoutSessionInput
 } from "@/lib/types";
+import { formatDateKeyInTimeZone, isPastOrTodayDateKey } from "@/lib/time-zone";
 
 export const perceivedDifficultyValues = [
   "too_easy",
@@ -94,22 +95,12 @@ export const planPreferredSplits: PlanPreferredSplit[] = [
   "flexible"
 ];
 
-export function getTodayDateString() {
-  return new Date().toISOString().slice(0, 10);
+export function getTodayDateString(timeZone?: string, now = new Date()) {
+  return formatDateKeyInTimeZone(now, timeZone);
 }
 
-export function isValidCompletedOn(value: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return false;
-  }
-
-  const date = new Date(`${value}T00:00:00.000Z`);
-
-  if (Number.isNaN(date.getTime())) {
-    return false;
-  }
-
-  return date.toISOString().slice(0, 10) === value && value <= getTodayDateString();
+export function isValidCompletedOn(value: string, timeZone?: string, now = new Date()) {
+  return isPastOrTodayDateKey(value, timeZone, now);
 }
 
 export function normalizeExerciseVideoUrl(value: string) {
@@ -473,7 +464,10 @@ export function isProfileSettingsInput(value: unknown): value is ProfileSettings
   );
 }
 
-export function isWorkoutSessionInput(value: unknown): value is WorkoutSessionInput {
+export function isWorkoutSessionInput(
+  value: unknown,
+  options: { timeZone?: string; now?: Date } = {}
+): value is WorkoutSessionInput {
   if (!value || typeof value !== "object") {
     return false;
   }
@@ -483,7 +477,7 @@ export function isWorkoutSessionInput(value: unknown): value is WorkoutSessionIn
   return (
     typeof input.workoutTemplateId === "string" &&
     typeof input.completedOn === "string" &&
-    isValidCompletedOn(input.completedOn) &&
+    isValidCompletedOn(input.completedOn, options.timeZone, options.now) &&
     typeof input.completed === "boolean" &&
     typeof input.painOccurred === "boolean" &&
     typeof input.perceivedDifficulty === "string" &&

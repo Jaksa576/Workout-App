@@ -2,9 +2,9 @@
 
 ## Current Status
 
-Slice 10, AI-Enriched Exercise Instructions And Demo Links, is complete and merged into `main`.
+User-timezone dashboard/date patch is implemented on `codex/user-timezone-date-patch` and awaiting final push/PR closeout.
 
-No active implementation campaign is open. The known dashboard/user-timezone local-date issue is intentionally separate from Slice 10 and should be handled in its own workflow.
+Slice 10, AI-Enriched Exercise Instructions And Demo Links, remains complete and merged into `main`.
 
 ## Completed Work
 
@@ -62,11 +62,58 @@ Results:
 
 ## Known Follow-Up
 
-- Fix user-timezone-aware dashboard/date handling in a separate workflow.
+- Manual browser QA should confirm authenticated `/dashboard`, `/workout`, and `/settings` against a real signed-in account after the timezone patch is deployed or run locally with app data.
 
 ## Next Action
 
-After this merge closeout is pushed, handle the timezone/dashboard local-date patch separately, then plan the next product slice if needed.
+Complete timezone patch branch closeout: review diff, push to `origin`, verify branch push, and open/merge through the normal workflow if desired.
+
+Then plan the next product slice if needed.
+
+## Timezone Patch Summary
+
+Implemented:
+
+- added a small timezone/date utility layer for safe IANA timezone resolution, browser detection, local `YYYY-MM-DD` generation, weekday derivation, and date-key arithmetic
+- added authenticated browser timezone detection that stores `workout-app-time-zone` in a cookie/localStorage and refreshes server-rendered data when the cookie first changes
+- updated dashboard and workout data loading so today, current workout selection, weekly preview, activity summary, and workout progress summaries use the resolved timezone
+- updated completed-on defaults, max-date behavior, and session API validation so local-today is accepted near UTC day boundaries
+- added a Settings timezone row showing the detected browser timezone
+
+Limitations:
+
+- timezone remains client-side only; no profile/database timezone setting was added
+- if detection is unavailable or invalid, the app falls back to UTC-compatible behavior
+- no historical session dates are rewritten
+
+Validation completed:
+
+```powershell
+npm run typecheck
+npm run test
+npm run build
+npm run check
+```
+
+Results:
+
+- `npm run typecheck`: passed
+- `npm run test`: passed, 10 test files and 61 tests
+- `npm run build`: passed
+- `npm run check`: passed and reran typecheck, tests, and build
+
+Manual QA expectations:
+
+- local dev server was started on port 3001 for a smoke attempt
+- `/` returned HTTP 200
+- `/login` returned HTTP 200
+- protected-route HTTP smoke for `/dashboard`, `/workout`, `/settings`, and `/plans/new` did not complete before the request timeout and should be repeated in a browser with a signed-in account
+- dashboard weekday/today label should be checked against the browser timezone, including UTC-boundary cases
+- current workout and 5-day preview should align to the browser-local day
+- workout completed-on default and max date should be local today
+- Settings should display the detected timezone
+- light/dark mode should remain unaffected
+- Draft with AI, plan detail, and workout execution should have no obvious regressions
 
 ## Source Of Truth
 

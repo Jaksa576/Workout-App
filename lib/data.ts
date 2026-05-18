@@ -16,6 +16,7 @@ import {
   type WorkoutTemplate
 } from "@/lib/types";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
+import { getServerTimeZone } from "@/lib/server-time-zone";
 import { parseExerciseGuidanceNote } from "@/lib/exercise-guidance";
 import {
   buildDashboardActivitySummary,
@@ -25,6 +26,14 @@ import {
   buildWeeklyWorkoutPreview
 } from "@/lib/dashboard";
 import { calculatePhaseProgress } from "@/lib/progression";
+import {
+  addDaysToDateKey,
+  formatDateKeyInTimeZone,
+  formatWeekLabelFromDateKey,
+  getDateKeyDaysAgo,
+  getMondayDateKey,
+  getWeekdayFromDateKey
+} from "@/lib/time-zone";
 import { isPlanSetupInput, normalizeWeekdays } from "@/lib/validation";
 
 type PlanRow = {
@@ -96,7 +105,6 @@ type SessionRow = {
 };
 
 const progressHistoryDays = 90;
-const weekdayByIndex: Weekday[] = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
 function mapPhase(row: PhaseRow): PlanPhase {
   return {
@@ -372,50 +380,20 @@ function mapPlanFromBundle(
   };
 }
 
-function toDateString(date: Date) {
-  return date.toISOString().slice(0, 10);
-}
-
-function getDaysAgoDateString(daysAgo: number) {
-  const date = new Date();
-  date.setUTCHours(0, 0, 0, 0);
-  date.setUTCDate(date.getUTCDate() - daysAgo);
-  return toDateString(date);
-}
-
-function getMondayStart(date: Date) {
-  const nextDate = new Date(date);
-  nextDate.setUTCHours(0, 0, 0, 0);
-  const day = nextDate.getUTCDay();
-  const daysFromMonday = day === 0 ? 6 : day - 1;
-  nextDate.setUTCDate(nextDate.getUTCDate() - daysFromMonday);
-  return nextDate;
-}
-
-function formatWeekLabel(date: Date) {
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    timeZone: "UTC"
-  });
-}
-
 function computeProgressSummary(
   sessions: SessionRow[],
-  weeklyTarget = 3
+  weeklyTarget = 3,
+  timeZone?: string
 ): WorkoutProgressSummary {
-  const today = new Date();
-  today.setUTCHours(0, 0, 0, 0);
-  const currentWeekStart = getMondayStart(today);
+  const todayKey = formatDateKeyInTimeZone(new Date(), timeZone);
+  const currentWeekStartKey = getMondayDateKey(todayKey);
   const weekStarts = [3, 2, 1, 0].map((weeksAgo) => {
-    const date = new Date(currentWeekStart);
-    date.setUTCDate(date.getUTCDate() - weeksAgo * 7);
-    return date;
+    return addDaysToDateKey(currentWeekStartKey, -weeksAgo * 7);
   });
 
   const completedSessions = sessions.filter((session) => session.completed);
   const completedThisWeek = completedSessions.filter(
-    (session) => new Date(`${session.completed_on}T00:00:00.000Z`) >= currentWeekStart
+    (session) => session.completed_on >= currentWeekStartKey
   ).length;
   const cleanSessions = sessions.filter(
     (session) =>
@@ -426,14 +404,12 @@ function computeProgressSummary(
   const painFlags = sessions.filter((session) => session.pain_occurred).length;
 
   const weeklyBars = weekStarts.map((weekStart) => {
-    const weekEnd = new Date(weekStart);
-    weekEnd.setUTCDate(weekEnd.getUTCDate() + 7);
+    const weekEnd = addDaysToDateKey(weekStart, 7);
 
     return {
-      label: formatWeekLabel(weekStart),
+      label: formatWeekLabelFromDateKey(weekStart),
       completed: completedSessions.filter((session) => {
-        const completedOn = new Date(`${session.completed_on}T00:00:00.000Z`);
-        return completedOn >= weekStart && completedOn < weekEnd;
+        return session.completed_on >= weekStart && session.completed_on < weekEnd;
       }).length
     };
   });
@@ -448,8 +424,8 @@ function computeProgressSummary(
   };
 }
 
-function getCurrentWeekday() {
-  return weekdayByIndex[new Date().getDay()];
+function getCurrentWeekday(timeZone?: string) {
+  return getWeekdayFromDateKey(formatDateKeyInTimeZone(new Date(), timeZone));
 }
 
 function getActiveIncompletePlan(plans: WorkoutPlan[]) {
@@ -468,8 +444,8 @@ function getCurrentPhaseWorkouts(plan: WorkoutPlan | null) {
   return plan.workouts.filter((workout) => workout.phaseId === plan.currentPhase.id);
 }
 
-function getRecommendedWorkout(workouts: WorkoutTemplate[]) {
-  const today = getCurrentWeekday();
+function getRecommendedWorkout(workouts: WorkoutTemplate[], timeZone?: string) {
+  const today = getCurrentWeekday(timeZone);
   return workouts.find((workout) => workout.scheduledDays.includes(today)) ?? workouts[0] ?? null;
 }
 
@@ -606,6 +582,7 @@ export async function getWorkoutPageData(
   selectedWorkoutId?: string
 ): Promise<WorkoutPageData> {
   const user = await getCurrentUser();
+  const timeZone = await getServerTimeZone();
 
   if (!user) {
     return {
@@ -616,13 +593,13 @@ export async function getWorkoutPageData(
       selectedWorkout: null,
       recentSessions: [],
       latestSessionForSelectedWorkout: null,
-      progressSummary: computeProgressSummary([], 3),
+      progressSummary: computeProgressSummary([], 3, timeZone),
       phaseProgress: null
     };
   }
 
   const supabase = await getSupabaseServerClient();
-  const sessionSince = getDaysAgoDateString(progressHistoryDays);
+  const sessionSince = getDateKeyDaysAgo(progressHistoryDays, timeZone);
   const [bundle, profileResult] = await Promise.all([
     getPlanBundle(user.id, sessionSince),
     supabase
@@ -642,7 +619,7 @@ export async function getWorkoutPageData(
   const activePlan = getActiveIncompletePlan(mappedPlans);
   const workouts = activePlan?.workouts ?? [];
   const activePhaseWorkouts = getCurrentPhaseWorkouts(activePlan);
-  const recommendedWorkout = getRecommendedWorkout(activePhaseWorkouts);
+  const recommendedWorkout = getRecommendedWorkout(activePhaseWorkouts, timeZone);
   const selectedWorkout =
     activePhaseWorkouts.find((workout) => workout.id === selectedWorkoutId) ??
     recommendedWorkout;
@@ -667,7 +644,8 @@ export async function getWorkoutPageData(
       : null,
     progressSummary: computeProgressSummary(
       bundle.sessions,
-      profileResult.data?.days_per_week ?? 3
+      profileResult.data?.days_per_week ?? 3,
+      timeZone
     ),
     phaseProgress
   };
@@ -675,16 +653,17 @@ export async function getWorkoutPageData(
 
 export async function getDashboardData(): Promise<DashboardData> {
   const user = await getCurrentUser();
+  const timeZone = await getServerTimeZone();
 
   if (!user) {
-    const activitySummary = buildDashboardActivitySummary([]);
+    const activitySummary = buildDashboardActivitySummary([], new Date(), timeZone);
 
     return {
       activePlan: null,
       todayWorkout: null,
       metrics: buildDashboardMetrics(null, activitySummary, null, null),
       phaseProgress: null,
-      weekPreview: buildWeeklyWorkoutPreview(null),
+      weekPreview: buildWeeklyWorkoutPreview(null, new Date(), timeZone),
       activitySummary,
       progressionPrompt: null,
       painTrend: null
@@ -696,7 +675,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     mapPlanFromBundle(plan, bundle.phases, bundle.workouts, bundle.exercises, bundle.sessions)
   );
   const activePlan = getActiveIncompletePlan(mappedPlans);
-  const todayWorkout = getRecommendedWorkout(getCurrentPhaseWorkouts(activePlan));
+  const todayWorkout = getRecommendedWorkout(getCurrentPhaseWorkouts(activePlan), timeZone);
   const recentSessions = bundle.sessions.map(mapSession);
   const activePlanWorkoutIds = new Set(activePlan?.workouts.map((workout) => workout.id) ?? []);
   const activePlanSessions = recentSessions.filter(
@@ -709,7 +688,7 @@ export async function getDashboardData(): Promise<DashboardData> {
         sessions: activePlanSessions
       })
     : null;
-  const activitySummary = buildDashboardActivitySummary(activePlanSessions);
+  const activitySummary = buildDashboardActivitySummary(activePlanSessions, new Date(), timeZone);
   const painTrend = buildDashboardPainTrend(activePlan, activePlanSessions, phaseProgress);
 
   return {
@@ -717,7 +696,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     todayWorkout,
     metrics: buildDashboardMetrics(activePlan, activitySummary, phaseProgress, painTrend),
     phaseProgress,
-    weekPreview: buildWeeklyWorkoutPreview(activePlan),
+    weekPreview: buildWeeklyWorkoutPreview(activePlan, new Date(), timeZone),
     activitySummary,
     progressionPrompt: buildDashboardProgressionPrompt(activePlan, phaseProgress),
     painTrend

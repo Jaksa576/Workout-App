@@ -1,4 +1,11 @@
 import { formatPhaseLabel } from "@/lib/plan-labels";
+import {
+  addDaysToDateKey,
+  formatDateKeyInTimeZone,
+  formatShortDateLabel,
+  getWeekdayFromDateKey,
+  resolveSafeTimeZone
+} from "@/lib/time-zone";
 import type {
   DashboardActivitySummary,
   DashboardMetric,
@@ -12,7 +19,6 @@ import type {
   WorkoutTemplate
 } from "@/lib/types";
 
-const weekdayOrder: Weekday[] = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 const weekdayLabels: Record<Weekday, string> = {
   sun: "Sun",
   mon: "Mon",
@@ -22,34 +28,6 @@ const weekdayLabels: Record<Weekday, string> = {
   fri: "Fri",
   sat: "Sat"
 };
-
-function startOfUtcDay(date: Date) {
-  const nextDate = new Date(date);
-  nextDate.setUTCHours(0, 0, 0, 0);
-  return nextDate;
-}
-
-function toDateKey(date: Date) {
-  return date.toISOString().slice(0, 10);
-}
-
-function addUtcDays(date: Date, days: number) {
-  const nextDate = new Date(date);
-  nextDate.setUTCDate(nextDate.getUTCDate() + days);
-  return nextDate;
-}
-
-function getWeekday(date: Date) {
-  return weekdayOrder[date.getUTCDay()];
-}
-
-function formatDateLabel(date: Date) {
-  return date.toLocaleDateString("en-US", {
-    month: "numeric",
-    day: "numeric",
-    timeZone: "UTC"
-  });
-}
 
 function getActivePhaseWorkouts(plan: WorkoutPlan | null) {
   if (!plan) {
@@ -73,9 +51,10 @@ function summarizeWorkoutNames(workouts: WorkoutTemplate[]) {
 
 export function buildWeeklyWorkoutPreview(
   plan: WorkoutPlan | null,
-  today = new Date()
+  today = new Date(),
+  timeZone?: string
 ): DashboardWeekPreviewItem[] {
-  const start = startOfUtcDay(today);
+  const startKey = formatDateKeyInTimeZone(today, resolveSafeTimeZone(timeZone));
   const activePhaseWorkouts = getActivePhaseWorkouts(plan);
   const hasWorkoutSchedule = activePhaseWorkouts.some(
     (workout) => workout.scheduledDays.length > 0
@@ -83,8 +62,8 @@ export function buildWeeklyWorkoutPreview(
   const planSchedule = plan?.weeklySchedule ?? [];
 
   return Array.from({ length: 5 }, (_, index) => {
-    const date = addUtcDays(start, index);
-    const weekday = getWeekday(date);
+    const dateKey = addDaysToDateKey(startKey, index);
+    const weekday = getWeekdayFromDateKey(dateKey);
     const scheduledWorkouts = hasWorkoutSchedule
       ? activePhaseWorkouts.filter((workout) => workout.scheduledDays.includes(weekday))
       : [];
@@ -93,10 +72,10 @@ export function buildWeeklyWorkoutPreview(
 
     if (scheduledName) {
       return {
-        key: toDateKey(date),
+        key: dateKey,
         weekday,
         weekdayLabel: weekdayLabels[weekday],
-        dateLabel: formatDateLabel(date),
+        dateLabel: formatShortDateLabel(dateKey),
         isToday: index === 0,
         workoutId: scheduledWorkouts[0].id,
         workoutName: scheduledName,
@@ -107,10 +86,10 @@ export function buildWeeklyWorkoutPreview(
 
     if (isPlanWorkoutDay) {
       return {
-        key: toDateKey(date),
+        key: dateKey,
         weekday,
         weekdayLabel: weekdayLabels[weekday],
-        dateLabel: formatDateLabel(date),
+        dateLabel: formatShortDateLabel(dateKey),
         isToday: index === 0,
         workoutId: activePhaseWorkouts[0]?.id ?? null,
         workoutName: "Workout day",
@@ -120,10 +99,10 @@ export function buildWeeklyWorkoutPreview(
     }
 
     return {
-      key: toDateKey(date),
+      key: dateKey,
       weekday,
       weekdayLabel: weekdayLabels[weekday],
-      dateLabel: formatDateLabel(date),
+      dateLabel: formatShortDateLabel(dateKey),
       isToday: index === 0,
       workoutId: null,
       workoutName: "Open day",
@@ -135,17 +114,17 @@ export function buildWeeklyWorkoutPreview(
 
 export function buildDashboardActivitySummary(
   sessions: WorkoutSession[],
-  today = new Date()
+  today = new Date(),
+  timeZone?: string
 ): DashboardActivitySummary {
-  const start = startOfUtcDay(today);
+  const todayKey = formatDateKeyInTimeZone(today, resolveSafeTimeZone(timeZone));
   const days = Array.from({ length: 7 }, (_, index) => {
-    const date = addUtcDays(start, index - 6);
-    const key = toDateKey(date);
+    const key = addDaysToDateKey(todayKey, index - 6);
     const sessionsForDay = sessions.filter((session) => session.completedOn === key);
 
     return {
       key,
-      weekdayLabel: weekdayLabels[getWeekday(date)],
+      weekdayLabel: weekdayLabels[getWeekdayFromDateKey(key)],
       isToday: index === 6,
       completed: sessionsForDay.some((session) => session.completed),
       painFlagged: sessionsForDay.some((session) => session.painOccurred)

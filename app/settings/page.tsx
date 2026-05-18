@@ -3,6 +3,7 @@ import type { Route } from "next";
 import { ProfileSettingsForm } from "@/components/profile-settings-form";
 import { SectionCard } from "@/components/section-card";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { TimeZoneDisplay } from "@/components/time-zone-display";
 import { requireUser } from "@/lib/auth";
 import { getProfile } from "@/lib/data";
 
@@ -38,6 +39,15 @@ export default async function SettingsPage() {
             </p>
           </div>
           <ThemeToggle />
+        </div>
+        <div className="surface-panel mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-2">
+            <p className="text-sm font-semibold text-copy">Timezone</p>
+            <p className="max-w-2xl text-sm leading-6 text-muted">
+              Detected from this browser and used for today&apos;s workout dates.
+            </p>
+          </div>
+          <TimeZoneDisplay />
         </div>
       </SectionCard>
 

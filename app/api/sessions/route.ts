@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { getPlans } from "@/lib/data";
 import { evaluatePhaseProgression } from "@/lib/progression";
+import { getServerTimeZone } from "@/lib/server-time-zone";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 import type { WorkoutSession } from "@/lib/types";
 import { generateRecommendation } from "@/lib/recommendation";
@@ -15,8 +16,9 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
+  const timeZone = await getServerTimeZone();
 
-  if (!isWorkoutSessionInput(body)) {
+  if (!isWorkoutSessionInput(body, { timeZone })) {
     return NextResponse.json(
       { error: "Check the workout date and required fields, then try again." },
       { status: 400 }

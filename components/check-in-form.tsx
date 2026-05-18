@@ -3,10 +3,19 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { generateRecommendation } from "@/lib/recommendation";
+import { detectBrowserTimeZone } from "@/lib/time-zone";
 import { getTodayDateString } from "@/lib/validation";
 import type { WorkoutTemplate } from "@/lib/types";
 
 const effortOptions = ["Too easy", "Appropriate", "Too hard"] as const;
+
+function getClientTodayDateString() {
+  if (typeof window === "undefined") {
+    return getTodayDateString();
+  }
+
+  return getTodayDateString(detectBrowserTimeZone() ?? undefined);
+}
 
 export function CheckInForm({ workout }: { workout: WorkoutTemplate }) {
   const router = useRouter();
@@ -16,12 +25,18 @@ export function CheckInForm({ workout }: { workout: WorkoutTemplate }) {
     "Appropriate"
   );
   const [notes, setNotes] = useState("");
-  const [completedOn, setCompletedOn] = useState(getTodayDateString());
+  const [todayDate, setTodayDate] = useState(getClientTodayDateString);
+  const [completedOn, setCompletedOn] = useState(getClientTodayDateString);
   const [completedExerciseIds, setCompletedExerciseIds] = useState<string[]>([]);
   const [status, setStatus] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    const nextTodayDate = getClientTodayDateString();
+
+    setTodayDate(nextTodayDate);
+    setCompletedOn((currentDate) => (currentDate > nextTodayDate ? nextTodayDate : currentDate));
+
     const rawValue = window.sessionStorage.getItem(`workout-checklist:${workout.id}`);
 
     if (!rawValue) {
@@ -102,7 +117,7 @@ export function CheckInForm({ workout }: { workout: WorkoutTemplate }) {
           <input
             type="date"
             value={completedOn}
-            max={getTodayDateString()}
+            max={todayDate}
             onChange={(event) => setCompletedOn(event.target.value)}
             className="mt-3 w-full rounded-3xl border border-ink/10 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-coral"
           />

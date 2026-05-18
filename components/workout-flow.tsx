@@ -8,6 +8,7 @@ import { TimerCard } from "@/components/timer-card";
 import { WorkoutChecklist } from "@/components/workout-checklist";
 import { formatPhaseLabel } from "@/lib/plan-labels";
 import { generateRecommendation } from "@/lib/recommendation";
+import { detectBrowserTimeZone } from "@/lib/time-zone";
 import { getTodayDateString } from "@/lib/validation";
 import type {
   SavedWorkoutSession,
@@ -57,6 +58,14 @@ function formatDisplayDate(date: string) {
     year: "numeric",
     timeZone: "UTC"
   });
+}
+
+function getClientTodayDateString() {
+  if (typeof window === "undefined") {
+    return getTodayDateString();
+  }
+
+  return getTodayDateString(detectBrowserTimeZone() ?? undefined);
 }
 
 function getSessionNotes(session: WorkoutSession | SavedWorkoutSession) {
@@ -175,7 +184,8 @@ export function WorkoutFlow({
   const [pain, setPain] = useState(false);
   const [effort, setEffort] = useState<(typeof effortOptions)[number]>("Appropriate");
   const [notes, setNotes] = useState("");
-  const [completedOn, setCompletedOn] = useState(getTodayDateString());
+  const [todayDate, setTodayDate] = useState(getClientTodayDateString);
+  const [completedOn, setCompletedOn] = useState(getClientTodayDateString);
   const [savedSession, setSavedSession] = useState<SavedWorkoutSession | null>(null);
   const [sessionHistory, setSessionHistory] = useState(() =>
     sortSessionsByLatest(recentSessions)
@@ -186,6 +196,13 @@ export function WorkoutFlow({
   useEffect(() => {
     setSessionHistory((currentSessions) => mergeSessions(currentSessions, recentSessions));
   }, [recentSessions]);
+
+  useEffect(() => {
+    const nextTodayDate = getClientTodayDateString();
+
+    setTodayDate(nextTodayDate);
+    setCompletedOn((currentDate) => (currentDate > nextTodayDate ? nextTodayDate : currentDate));
+  }, []);
 
   const workout = useMemo(
     () => workouts.find((item) => item.id === selectedWorkoutId) ?? selectedWorkout,
@@ -272,7 +289,9 @@ export function WorkoutFlow({
     setPain(false);
     setEffort("Appropriate");
     setNotes("");
-    setCompletedOn(getTodayDateString());
+    const nextTodayDate = getClientTodayDateString();
+    setTodayDate(nextTodayDate);
+    setCompletedOn(nextTodayDate);
     setSavedSession(null);
     setStatus(null);
     setStep("workout");
@@ -401,7 +420,7 @@ export function WorkoutFlow({
                   <input
                     type="date"
                     value={completedOn}
-                    max={getTodayDateString()}
+                    max={todayDate}
                     onChange={(event) => setCompletedOn(event.target.value)}
                     className="ui-input mt-3"
                   />

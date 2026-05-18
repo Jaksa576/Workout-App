@@ -86,6 +86,7 @@ Compatibility names such as `plan_phases` remain intentionally unchanged unless 
 - Light/dark mode flows through `html[data-theme]` with system preference by default.
 - The user-facing theme preference control lives in Settings.
 - The theme preference remains a local client-side override rather than a profile-backed setting.
+- User-facing "today" behavior uses the browser-detected IANA timezone when available. Authenticated app routes persist that timezone in the `workout-app-time-zone` cookie and localStorage key so server-rendered dashboard/workout data and client-side date inputs share the same local date basis.
 - Public landing and authenticated app surfaces should stay aligned through shared foundations where practical.
 - App icon and PWA surfaces use the approved generated assets in `public/` and `app/favicon.ico`.
 

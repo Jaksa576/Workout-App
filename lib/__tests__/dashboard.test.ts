@@ -234,6 +234,40 @@ describe("dashboard display helpers", () => {
     });
   });
 
+  it("uses the requested timezone for UTC-boundary weekly preview dates", () => {
+    const boundaryPlan: WorkoutPlan = {
+      ...plan,
+      weeklySchedule: ["sun", "mon"],
+      workouts: plan.workouts.map((workout) =>
+        workout.id === "workout-1"
+          ? { ...workout, scheduledDays: ["sun"] }
+          : workout.id === "workout-2"
+            ? { ...workout, scheduledDays: ["mon"] }
+            : workout
+      )
+    };
+    const preview = buildWeeklyWorkoutPreview(
+      boundaryPlan,
+      new Date("2026-05-18T02:30:00.000Z"),
+      "America/Los_Angeles"
+    );
+
+    expect(preview[0]).toMatchObject({
+      key: "2026-05-17",
+      weekday: "sun",
+      dateLabel: "5/17",
+      isToday: true,
+      workoutName: "Lower Strength",
+      tone: "workout"
+    });
+    expect(preview[1]).toMatchObject({
+      key: "2026-05-18",
+      weekday: "mon",
+      workoutName: "Upper Strength",
+      tone: "workout"
+    });
+  });
+
   it("uses a safe weekly fallback when workout-specific schedules are missing", () => {
     const unscheduledPlan: WorkoutPlan = {
       ...plan,
