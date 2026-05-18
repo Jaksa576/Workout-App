@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { ExerciseGuidancePanel } from "@/components/exercise-guidance-panel";
 import type { WorkoutTemplate } from "@/lib/types";
 
 type WorkoutChecklistProps = {
@@ -112,23 +113,11 @@ export function WorkoutChecklist({
                     {exercise.sets} sets - {exercise.reps}
                   </p>
                 </div>
-                <p className="mt-2 text-sm leading-6 text-muted">
-                  {exercise.coachingNote}
-                </p>
+                <ExerciseGuidancePanel exercise={exercise} compact />
                 <div className="mt-3 flex flex-wrap gap-2 text-xs uppercase tracking-[0.16em] text-muted">
                   <span className="rounded-full bg-shell-elevated px-3 py-2">
                     Rest {exercise.rest}
                   </span>
-                  {exercise.videoUrl ? (
-                    <a
-                      href={exercise.videoUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="rounded-full bg-shell-elevated px-3 py-2 transition hover:text-accent"
-                    >
-                      Watch Demo
-                    </a>
-                  ) : null}
                 </div>
               </div>
             </div>

@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { ExerciseGuidancePanel } from "@/components/exercise-guidance-panel";
 import { ProgressBadge } from "@/components/progress-badge";
 import { SurfaceCard } from "@/components/surface-card";
 import { formatPhaseLabel } from "@/lib/plan-labels";
@@ -124,6 +125,27 @@ export function PlanPhaseCard({
                         {workout.scheduledDays.join(" / ")}
                       </p>
                     ) : null}
+                    <details className="mt-3">
+                      <summary className="cursor-pointer text-sm font-semibold text-copy">
+                        Exercise guidance
+                      </summary>
+                      <div className="mt-3 grid gap-3">
+                        {workout.exercises.map((exercise) => (
+                          <div
+                            key={exercise.id}
+                            className="rounded-[18px] border border-border bg-surface-soft p-3"
+                          >
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                              <p className="font-semibold text-copy">{exercise.name}</p>
+                              <p className="text-xs font-bold uppercase tracking-[0.12em] text-muted">
+                                {exercise.sets} sets / {exercise.reps}
+                              </p>
+                            </div>
+                            <ExerciseGuidancePanel exercise={exercise} compact />
+                          </div>
+                        ))}
+                      </div>
+                    </details>
                   </div>
                 ))}
               </div>

@@ -147,7 +147,10 @@ describe("ai draft import", () => {
     expect(prompt).toContain(
       "Do not include the scheduled day of the week in the workout name."
     );
+    expect(prompt).toContain("setup, execution_cues, common_mistakes");
+    expect(prompt).toContain("Use only youtube.com/watch?v=..., youtu.be/...");
     expect(prompt).toContain("day: Monday");
+    expect(prompt).toContain("youtube_url: https://www.youtube.com/watch?v=");
   });
 
   it.each([
@@ -365,6 +368,119 @@ notes: Controlled tempo`;
     expect(plan.phases[0].workouts[1].scheduledDays).toEqual(["thu"]);
     expect(plan.phases[1].workouts[0].scheduledDays).toEqual(["tue"]);
     expect(plan.phases[1].workouts[0].exercises[0].rest).toBe("");
+  });
+
+  it("parses enriched exercise guidance and valid YouTube demo links", () => {
+    const input = `PLAN
+title: Strength Builder
+goal_track: strength
+progression_mode: performance_based
+days_per_week: 1
+session_duration_min: 45
+summary: One-day strength split
+
+PHASE 1
+name: Foundation
+duration_weeks: 4
+objective: Build confidence
+
+WORKOUT
+name: Lower Strength
+focus: Squat emphasis
+
+EXERCISE
+name: Goblet Squat
+sets: 3
+reps: 8
+rest_seconds: 90
+notes: Controlled tempo
+setup: Hold the dumbbell at chest height.
+execution_cues: Keep ribs stacked, Drive through the full foot
+common_mistakes: Knees collapsing inward, Rushing the descent
+modifications: Use a box target, Reduce load
+safety_notes: Stop if sharp pain changes your movement.
+youtube_url: http://www.youtube.com/watch?v=aclHkVaku9U&t=12
+video_search_query: goblet squat form demo`;
+
+    const parsed = parseAiPlanImport(input);
+
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) {
+      return;
+    }
+
+    const exercise = parsed.data.phases[0].workouts[0].exercises[0];
+
+    expect(exercise.guidance?.setup).toBe("Hold the dumbbell at chest height.");
+    expect(exercise.guidance?.executionCues).toEqual([
+      "Keep ribs stacked",
+      "Drive through the full foot"
+    ]);
+    expect(exercise.guidance?.commonMistakes).toEqual([
+      "Knees collapsing inward",
+      "Rushing the descent"
+    ]);
+    expect(exercise.guidance?.modifications).toEqual([
+      "Use a box target",
+      "Reduce load"
+    ]);
+    expect(exercise.guidance?.safetyNotes).toBe(
+      "Stop if sharp pain changes your movement."
+    );
+    expect(exercise.guidance?.videoSearchQuery).toBe("goblet squat form demo");
+    expect(exercise.youtubeUrl).toBe("https://www.youtube.com/watch?v=aclHkVaku9U");
+
+    const plan = convertAiImportToStructuredPlan({
+      importedPlan: parsed.data,
+      promptInput: basePromptInput
+    });
+
+    expect(plan.phases[0].workouts[0].exercises[0].guidance?.setup).toBe(
+      "Hold the dumbbell at chest height."
+    );
+    expect(plan.phases[0].workouts[0].exercises[0].videoUrl).toBe(
+      "https://www.youtube.com/watch?v=aclHkVaku9U"
+    );
+  });
+
+  it("drops invalid exercise YouTube URLs without rejecting the otherwise valid import", () => {
+    const input = `PLAN
+title: Strength Builder
+goal_track: strength
+progression_mode: performance_based
+days_per_week: 1
+session_duration_min: 45
+summary: One-day strength split
+
+PHASE 1
+name: Foundation
+duration_weeks: 4
+objective: Build confidence
+
+WORKOUT
+name: Lower Strength
+focus: Squat emphasis
+
+EXERCISE
+name: Goblet Squat
+sets: 3
+reps: 8
+rest_seconds: 90
+notes: Controlled tempo
+youtube_url: https://example.com/not-a-demo
+video_search_query: goblet squat form demo`;
+
+    const parsed = parseAiPlanImport(input);
+
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) {
+      return;
+    }
+
+    expect(parsed.data.phases[0].workouts[0].exercises[0].youtubeUrl).toBeUndefined();
+    expect(parsed.data.phases[0].workouts[0].exercises[0].guidance?.videoSearchQuery).toBe(
+      "goblet squat form demo"
+    );
   });
 
   it("preserves valid scheduled days from imported workouts", () => {

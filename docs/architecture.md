@@ -49,6 +49,7 @@ Compatibility names such as `plan_phases` remain intentionally unchanged unless 
 - `plan_phases` stores progressive training phases.
 - `workout_templates` stores planned workouts within phases.
 - `exercise_entries` stores prescribed exercises.
+- Optional reviewed exercise guidance is stored migration-free in existing exercise fields: labeled text guidance in `exercise_entries.coaching_note` and reviewed YouTube demo links in `exercise_entries.video_url`.
 - `workout_sessions` and `exercise_results` store completed workout history and progression signals.
 - Session history should remain readable after plan edits through workout/exercise snapshots.
 
@@ -75,6 +76,7 @@ Compatibility names such as `plan_phases` remain intentionally unchanged unless 
 - Manual Builder remains available.
 - External AI draft import is provider-free and does not make server-side model calls.
 - Imported AI output must be validated and converted into the same review/edit/save flow before persistence.
+- AI-imported exercise guidance and demo links are optional metadata. They must be normalized, reviewed, and saved through the structured plan flow rather than bypassing validation.
 - Provider-backed LLM drafting is deferred and must not become required for core functionality.
 - API keys and provider details must stay server-side if provider-backed LLM support is added later.
 

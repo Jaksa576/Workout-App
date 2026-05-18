@@ -1,3 +1,5 @@
+import type { ExerciseGuidance } from "@/lib/exercise-guidance";
+
 export type Profile = {
   id: string;
   goal: string;
@@ -31,6 +33,7 @@ export type ExerciseEntry = {
   reps: string;
   rest: string;
   coachingNote: string;
+  guidance?: ExerciseGuidance;
   videoUrl?: string;
   sourceExerciseId?: string | null;
 };
@@ -285,6 +288,7 @@ export type StructuredExerciseInput = {
   reps: string;
   rest: string;
   coachingNote: string;
+  guidance?: ExerciseGuidance;
   videoUrl?: string;
   sourceExerciseId?: string | null;
 };
@@ -377,6 +381,8 @@ export type AiImportedExercise = {
   reps: string;
   restSeconds: number | null;
   notes: string;
+  guidance?: ExerciseGuidance;
+  youtubeUrl?: string;
 };
 
 export type AiImportedWorkout = {

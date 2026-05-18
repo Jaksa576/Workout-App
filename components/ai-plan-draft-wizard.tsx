@@ -665,7 +665,8 @@ export function AiPlanDraftWizard({
               <p className="text-sm font-semibold text-copy">Prompt ready</p>
             <p className="mt-1 text-sm leading-6 text-muted">
                 Copy this first, then open your preferred external tool. Ask it to return the
-                fenced transfer block exactly as requested.
+                fenced transfer block exactly as requested, including optional exercise guidance
+                and YouTube demo links when it is confident.
               </p>
             </div>
             <div className="flex flex-col gap-2 sm:items-end">
@@ -699,7 +700,7 @@ export function AiPlanDraftWizard({
               <span className="font-mono text-copy">```adaptive-training-plan</span>. If your
               external tool only gave you the plan text, paste the strict markdown beginning with{" "}
               <span className="font-mono text-copy">PLAN</span>. Validation still rejects bullets,
-              JSON, commentary inside the plan, and unsupported extra fields.
+              JSON, commentary inside the plan, unsupported extra fields, and non-YouTube links.
             </p>
           </div>
           <label className="block">
@@ -734,7 +735,8 @@ export function AiPlanDraftWizard({
             <p className="text-sm font-semibold text-copy">Review and edit before saving</p>
             <p className="mt-2 text-sm leading-6 text-muted">
               The imported markdown is no longer the source of truth here. Review the converted
-              plan, make any changes you want, then save through the normal plan flow.
+              plan, including any AI coaching notes or video links, make any changes you want,
+              then save through the normal plan flow.
             </p>
           </div>
           {draft ? (

@@ -23,6 +23,7 @@ export function savedPlanToStructuredPlanInput(plan: WorkoutPlan): StructuredPla
             reps: exercise.reps,
             rest: exercise.rest,
             coachingNote: exercise.coachingNote,
+            guidance: exercise.guidance,
             videoUrl: exercise.videoUrl,
             sourceExerciseId: exercise.sourceExerciseId ?? null
           }))

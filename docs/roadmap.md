@@ -364,11 +364,16 @@ Guardrails:
 
 ## 10. Exercise Media And Instruction Layer
 
-Status: next planned major roadmap item.
+Status: implemented locally as Slice 10 AI-enriched exercise instructions and demo links.
 
-- Expand exercise instruction quality, video/demo surfaces, and coaching notes.
-- Keep any future auto-population of exercise media/video links from generated plan output aligned with this later slice rather than pulling it into Slice 7 stabilization.
-- Keep the exercise catalog deterministic and editable through code until an admin/data workflow exists.
+- Expanded the provider-free Draft with AI prompt to request optional plan-specific exercise guidance fields and optional YouTube demo links.
+- Extended strict AI import parsing to accept bounded optional exercise guidance fields without weakening required plan/phase/workout/exercise validation.
+- Kept invalid or unsupported imported video URLs from becoming saved links while allowing otherwise valid plans to import.
+- Added review/edit controls so users can inspect, edit, or remove AI-provided guidance and video links before saving.
+- Persisted reviewed text guidance through the existing `exercise_entries.coaching_note` field and reviewed YouTube demo links through the existing `exercise_entries.video_url` field, without a schema migration.
+- Surfaced compact exercise guidance on saved plan details and workout execution surfaces.
+- Kept Guided Setup, Manual Builder, older plans, workout session save, and deterministic progression unchanged.
+- Kept the exercise catalog deterministic and code-owned; catalog-wide authoring/admin workflows remain deferred.
 
 ## 11. Broader Polish And Branding
 

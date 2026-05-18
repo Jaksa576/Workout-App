@@ -2,77 +2,78 @@
 
 ## Current Status
 
-Installable app icon metadata refinement is complete locally.
+Slice 10, AI-Enriched Exercise Instructions And Demo Links, is implemented locally on branch:
 
-Slice 9N, Comprehensive UX Cleanup And AI Draft QA Patch, is merged to `origin/main`.
+```text
+codex/slice-10-exercise-guidance
+```
 
-The standard repo documentation structure cleanup is complete and merged to `origin/main`.
+This slice keeps the AI Draft boundary provider-free and review-before-save. No schema, RLS, auth, route-boundary, workout-session save, or progression-engine changes were introduced.
 
-## Completed Patch
+## Implemented Slice
 
-Refined the existing Next.js App Router manifest for Adaptive Training without changing app routes, auth, database behavior, product workflows, progression logic, service workers, offline behavior, push notifications, reminders, exercise media, or AI functionality.
+Slice 10 improves the `/plans/new` Draft with AI path by carrying optional exercise-level guidance through the existing draft -> review/edit -> structured save -> saved plan/workout display flow.
 
-Manifest/icon update summary:
+Implementation summary:
 
-- kept the full app name as `Adaptive Training`
-- changed the install short name to `Adaptive`
-- added manifest `scope: "/"`
-- kept `start_url: "/"`, `display: "standalone"`, `background_color: "#f4efe7"`, `theme_color: "#0e1219"`, and `orientation: "portrait"`
-- added explicit `purpose: "any"` values to the existing 192x192 and 512x512 PNG icon entries
-- added maskable support with `public/icon-maskable.png`, a 512x512 padded derivative of the approved `public/icon-512.png`
-- preserved existing favicon and Apple touch icon metadata behavior
+- expanded the generated external-AI prompt to request optional exercise guidance fields:
+  - `setup`
+  - `execution_cues`
+  - `common_mistakes`
+  - `modifications`
+  - `safety_notes`
+  - `youtube_url`
+  - `video_search_query`
+- preserved the fenced `adaptive-training-plan` transfer format, required plan/phase/workout/exercise fields, assigned-day guidance, and review-before-save flow
+- extended AI import parsing to accept optional guidance fields after required exercise fields
+- normalized guidance strings/lists with bounded lengths and list counts
+- normalized safe YouTube links and rejected unsupported video URL formats during save validation
+- dropped invalid imported `youtube_url` values without rejecting otherwise valid plans
+- added review/edit controls for exercise guidance and video links in the reusable plan builder
+- persisted reviewed text guidance through existing `exercise_entries.coaching_note` serialization and reviewed videos through existing `exercise_entries.video_url`
+- parsed saved serialized guidance back into structured app types for edit/display
+- surfaced guidance on saved plan phase/workout details and workout execution exercise cards
+- left Guided Setup, Manual Builder, existing saved plans, workout session save, and deterministic progression behavior unchanged
+
+Durable persistence note:
+
+- No database migration was required.
+- Text guidance uses the existing `exercise_entries.coaching_note` field with labeled sections.
+- Demo URLs use the existing `exercise_entries.video_url` field.
+- `video_search_query` is stored as reviewed guidance text only. The app does not run automatic video search.
 
 ## Validation Results
 
-Commands run:
+Commands run so far:
 
 ```powershell
 npm run typecheck
 npm run test
-npm run build
 ```
 
 Results:
 
 - `npm run typecheck`: passed
-- `npm run test`: passed, 8 test files and 52 tests
-- `npm run build`: passed; build output includes static `/manifest.webmanifest`
+- `npm run test`: passed, 9 test files and 56 tests
 
-Manual checks performed:
+Still required before final handoff:
 
-- confirmed generated build manifest body contains expected name, short name, description, start URL, scope, display mode, colors, orientation, and icon entries
-- confirmed `public/icon-192.png` is 192x192 PNG
-- confirmed `public/icon-512.png` is 512x512 PNG
-- confirmed `public/icon-maskable.png` is 512x512 PNG
-- confirmed `public/apple-touch-icon.png` is 180x180 PNG
-- confirmed `app/favicon.ico` is 48x48 ICO
-- started a temporary local Next server on port 3001 and confirmed these URLs resolved with HTTP 200:
-  - `/manifest.webmanifest`
-  - `/icon-192.png`
-  - `/icon-512.png`
-  - `/icon-maskable.png`
-  - `/apple-touch-icon.png`
-  - `/favicon.ico`
-
-Follow-up risk:
-
-- Maskable support uses a safe padded derivative of the approved icon rather than a separately designed maskable source. This preserves direction and installability, but future brand/icon work could replace it with a dedicated approved maskable export.
-
-## Active / Next Work
-
-No implementation campaign is active in this branch.
-
-Next major implementation target: Slice 10, Exercise Media And Instruction Layer.
-
-Recommended future implementation branch:
-
-```text
-codex/slice-10-exercise-media-instruction-layer
+```powershell
+npm run build
 ```
 
-## Next Action
+## Manual QA Expectations
 
-Review and merge the installable app icon metadata patch, then plan Slice 10 before coding.
+Before merging Slice 10, browser QA should cover:
+
+- `/plans/new` Draft with AI prompt generation includes the new exercise guidance fields
+- valid enriched AI transfer block imports into review
+- invalid/non-YouTube imported `youtube_url` does not crash import
+- review/edit can edit and remove guidance and video fields before save
+- saved plan details show compact exercise guidance
+- workout execution shows compact setup/cues/safety/video actions
+- exercises without guidance still render normally
+- light and dark mode remain readable on touched surfaces
 
 ## Source Of Truth
 
@@ -92,41 +93,22 @@ Archived reference:
 
 `docs/agent-handoff.md` is retired and is not required hot-path context.
 
-## Validation Expectations
-
-For code changes, run:
-
-- `npm run typecheck`
-- `npm run test`
-- `npm run build`
-
-For docs-only changes, run `git status` and `git diff --stat`, confirm the diff is docs-only, and do not run app build/test unless non-doc files are touched accidentally.
-
-## Manual QA Expectations
-
-For manifest/icon patches, verify the manifest route and referenced icon URLs resolve locally or in build output.
-
-Before merging Slice 10 later, perform browser QA appropriate to the implemented exercise media/instruction changes.
-
 ## Stop Conditions
 
 Stop and report before editing further if:
 
-- non-doc changes become necessary outside the approved narrow patch
-- Slice 9N status becomes ambiguous
-- docs disagree that Slice 10 is the next major implementation target
+- a durable schema or RLS change becomes necessary for richer exercise guidance
+- provider-backed AI, API keys, automatic YouTube search, video scraping, or media storage becomes necessary
+- validation reveals unrelated failures that cannot be confidently attributed to this slice
 - branch state becomes ambiguous
-- validation reveals unrelated failures that cannot be confidently attributed to the current patch
 
 ## Final Report Expectations
 
 Include:
 
-- summary of implemented manifest/icon refinements
+- summary of implemented Slice 10 behavior
 - files changed
-- exact manifest metadata after the patch
-- icon sizes and purpose values, including maskable status
 - validation results
-- manual verification performed
 - documentation delta
+- migration/auth/RLS/progression risk notes
 - compact state packet

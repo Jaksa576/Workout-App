@@ -144,6 +144,7 @@ describe("saved plan edit draft", () => {
                   reps: "8",
                   rest: "90 sec",
                   coachingNote: "Move with control.",
+                  guidance: undefined,
                   videoUrl: undefined,
                   sourceExerciseId: "goblet-squat"
                 },
@@ -153,6 +154,7 @@ describe("saved plan edit draft", () => {
                   reps: "10",
                   rest: "60 sec",
                   coachingNote: "Stay smooth.",
+                  guidance: undefined,
                   videoUrl: undefined,
                   sourceExerciseId: null
                 }
@@ -179,6 +181,7 @@ describe("saved plan edit draft", () => {
                   reps: "5",
                   rest: "120 sec",
                   coachingNote: "Brace first.",
+                  guidance: undefined,
                   videoUrl: undefined,
                   sourceExerciseId: "deadlift"
                 }

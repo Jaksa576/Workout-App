@@ -16,6 +16,7 @@ import {
   type WorkoutTemplate
 } from "@/lib/types";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
+import { parseExerciseGuidanceNote } from "@/lib/exercise-guidance";
 import {
   buildDashboardActivitySummary,
   buildDashboardMetrics,
@@ -112,13 +113,16 @@ function mapPhase(row: PhaseRow): PlanPhase {
 }
 
 function mapExercise(row: ExerciseRow): ExerciseEntry {
+  const parsedNote = parseExerciseGuidanceNote(row.coaching_note);
+
   return {
     id: row.id,
     name: row.name,
     sets: row.sets,
     reps: row.reps,
     rest: row.rest,
-    coachingNote: row.coaching_note,
+    coachingNote: parsedNote.coachingNote,
+    guidance: parsedNote.guidance,
     videoUrl: row.video_url ?? undefined,
     sourceExerciseId: row.source_exercise_id
   };

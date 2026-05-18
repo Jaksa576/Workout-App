@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import type { ReactNode } from "react";
 import { exerciseCatalog, exerciseCategories, toPlanExercise } from "@/lib/exercise-library";
+import { hasExerciseGuidance } from "@/lib/exercise-guidance";
 import { formatPhaseLabel } from "@/lib/plan-labels";
 import type {
   AdvancementPreset,
@@ -59,6 +60,7 @@ function makeExercise(overrides?: Partial<StructuredExerciseInput>): StructuredE
     reps: "8",
     rest: "60 sec",
     coachingNote: "",
+    guidance: undefined,
     videoUrl: "",
     ...overrides
   };
@@ -253,6 +255,49 @@ export function PlanBuilderForm({
     updateWorkout(phaseIndex, workoutIndex, {
       ...workout,
       exercises: workout.exercises.filter((_, index) => index !== exerciseIndex)
+    });
+  }
+
+  function updateExerciseGuidance(
+    phaseIndex: number,
+    workoutIndex: number,
+    exerciseIndex: number,
+    nextGuidance: NonNullable<StructuredExerciseInput["guidance"]>
+  ) {
+    const exercise = phases[phaseIndex].workouts[workoutIndex].exercises[exerciseIndex];
+    updateExercise(phaseIndex, workoutIndex, exerciseIndex, {
+      ...exercise,
+      guidance: nextGuidance
+    });
+  }
+
+  function updateGuidanceList(
+    phaseIndex: number,
+    workoutIndex: number,
+    exerciseIndex: number,
+    field: "executionCues" | "commonMistakes" | "modifications",
+    value: string
+  ) {
+    const exercise = phases[phaseIndex].workouts[workoutIndex].exercises[exerciseIndex];
+    updateExerciseGuidance(phaseIndex, workoutIndex, exerciseIndex, {
+      ...exercise.guidance,
+      [field]: value
+        .split("\n")
+        .map((item) => item.trim())
+        .filter(Boolean)
+    });
+  }
+
+  function clearExerciseGuidance(
+    phaseIndex: number,
+    workoutIndex: number,
+    exerciseIndex: number
+  ) {
+    const exercise = phases[phaseIndex].workouts[workoutIndex].exercises[exerciseIndex];
+    updateExercise(phaseIndex, workoutIndex, exerciseIndex, {
+      ...exercise,
+      guidance: undefined,
+      videoUrl: ""
     });
   }
 
@@ -614,7 +659,7 @@ export function PlanBuilderForm({
                           <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
                             Coaching note
                           </span>
-                          <input
+                          <textarea
                             value={exercise.coachingNote}
                             onChange={(event) =>
                               updateExercise(phaseIndex, workoutIndex, exerciseIndex, {
@@ -623,6 +668,7 @@ export function PlanBuilderForm({
                               })
                             }
                             aria-label="Coaching note"
+                            rows={3}
                             className="ui-input mt-2 px-3 py-2"
                           />
                         </label>
@@ -642,6 +688,141 @@ export function PlanBuilderForm({
                             className="ui-input mt-2 px-3 py-2"
                           />
                         </label>
+                        <details
+                          open={hasExerciseGuidance(exercise.guidance) || undefined}
+                          className="rounded-[18px] border border-primary/15 bg-primary/5 p-3 md:col-span-4"
+                        >
+                          <summary className="cursor-pointer text-sm font-bold text-copy">
+                            Guidance{" "}
+                            {hasExerciseGuidance(exercise.guidance) || exercise.videoUrl
+                              ? "- AI added coaching notes/video"
+                              : "- optional coaching details"}
+                          </summary>
+                          <div className="mt-4 grid gap-3 md:grid-cols-2">
+                            <label className="block md:col-span-2">
+                              <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+                                Setup
+                              </span>
+                              <textarea
+                                value={exercise.guidance?.setup ?? ""}
+                                onChange={(event) =>
+                                  updateExerciseGuidance(phaseIndex, workoutIndex, exerciseIndex, {
+                                    ...exercise.guidance,
+                                    setup: event.target.value
+                                  })
+                                }
+                                rows={2}
+                                className="ui-input mt-2 px-3 py-2"
+                              />
+                            </label>
+                            <label className="block">
+                              <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+                                Execution cues
+                              </span>
+                              <textarea
+                                value={(exercise.guidance?.executionCues ?? []).join("\n")}
+                                onChange={(event) =>
+                                  updateGuidanceList(
+                                    phaseIndex,
+                                    workoutIndex,
+                                    exerciseIndex,
+                                    "executionCues",
+                                    event.target.value
+                                  )
+                                }
+                                rows={4}
+                                className="ui-input mt-2 px-3 py-2"
+                              />
+                            </label>
+                            <label className="block">
+                              <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+                                Common mistakes
+                              </span>
+                              <textarea
+                                value={(exercise.guidance?.commonMistakes ?? []).join("\n")}
+                                onChange={(event) =>
+                                  updateGuidanceList(
+                                    phaseIndex,
+                                    workoutIndex,
+                                    exerciseIndex,
+                                    "commonMistakes",
+                                    event.target.value
+                                  )
+                                }
+                                rows={4}
+                                className="ui-input mt-2 px-3 py-2"
+                              />
+                            </label>
+                            <label className="block">
+                              <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+                                Modifications
+                              </span>
+                              <textarea
+                                value={(exercise.guidance?.modifications ?? []).join("\n")}
+                                onChange={(event) =>
+                                  updateGuidanceList(
+                                    phaseIndex,
+                                    workoutIndex,
+                                    exerciseIndex,
+                                    "modifications",
+                                    event.target.value
+                                  )
+                                }
+                                rows={4}
+                                className="ui-input mt-2 px-3 py-2"
+                              />
+                            </label>
+                            <label className="block">
+                              <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+                                Safety notes
+                              </span>
+                              <textarea
+                                value={exercise.guidance?.safetyNotes ?? ""}
+                                onChange={(event) =>
+                                  updateExerciseGuidance(phaseIndex, workoutIndex, exerciseIndex, {
+                                    ...exercise.guidance,
+                                    safetyNotes: event.target.value
+                                  })
+                                }
+                                rows={4}
+                                className="ui-input mt-2 px-3 py-2"
+                              />
+                            </label>
+                            <label className="block md:col-span-2">
+                              <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+                                Video search phrase
+                              </span>
+                              <input
+                                value={exercise.guidance?.videoSearchQuery ?? ""}
+                                onChange={(event) =>
+                                  updateExerciseGuidance(phaseIndex, workoutIndex, exerciseIndex, {
+                                    ...exercise.guidance,
+                                    videoSearchQuery: event.target.value
+                                  })
+                                }
+                                className="ui-input mt-2 px-3 py-2"
+                              />
+                              {exercise.guidance?.videoSearchQuery && !exercise.videoUrl ? (
+                                <p className="mt-2 text-sm leading-6 text-muted">
+                                  Search phrase only. No automatic video search will run.
+                                </p>
+                              ) : null}
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                clearExerciseGuidance(
+                                  phaseIndex,
+                                  workoutIndex,
+                                  exerciseIndex
+                                )
+                              }
+                              className="ui-button-ghost px-4 py-2 md:col-span-2"
+                            >
+                              Remove guidance and video
+                            </button>
+                          </div>
+                        </details>
                         <button
                           type="button"
                           onClick={() => deleteExercise(phaseIndex, workoutIndex, exerciseIndex)}

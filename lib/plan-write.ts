@@ -1,5 +1,6 @@
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 import { selectDefaultProgressionMode } from "@/lib/progression-mode";
+import { formatExerciseGuidanceNote } from "@/lib/exercise-guidance";
 import type {
   PlanFormInput,
   PlanSetupInput,
@@ -92,7 +93,10 @@ function validateExercise(exercise: StructuredExerciseInput) {
     sets: exercise.sets,
     reps: exercise.reps.trim(),
     rest: exercise.rest.trim(),
-    coachingNote: exercise.coachingNote.trim(),
+    coachingNote: formatExerciseGuidanceNote({
+      coachingNote: exercise.coachingNote,
+      guidance: exercise.guidance
+    }),
     videoUrl,
     sourceExerciseId: exercise.sourceExerciseId?.trim() || null
   };

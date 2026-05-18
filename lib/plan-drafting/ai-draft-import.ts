@@ -2,6 +2,11 @@ import {
   trainingEnvironmentOptions,
   trainingExperienceOptions
 } from "@/lib/profile-options";
+import {
+  normalizeGuidanceList,
+  normalizeGuidanceText,
+  normalizeExerciseGuidance
+} from "@/lib/exercise-guidance";
 import { getDefaultPlanSplit, getDefaultSchedule } from "@/lib/plan-setup-context";
 import type {
   AiImportedExercise,
@@ -20,7 +25,11 @@ import type {
   TrainingGoalType,
   Weekday
 } from "@/lib/types";
-import { isProgressionMode, isTrainingGoalType } from "@/lib/validation";
+import {
+  isProgressionMode,
+  isTrainingGoalType,
+  normalizeExerciseVideoUrl
+} from "@/lib/validation";
 
 const BASE_INSTRUCTION_BLOCK = `You are drafting a structured workout plan for import into a workout application.
 
@@ -40,6 +49,13 @@ Important rules:
 - Include at least 1 workout per phase.
 - Include at least 1 exercise per workout.
 - Keep notes short.
+- For each exercise, include optional plan-specific guidance fields after notes when useful:
+  setup, execution_cues, common_mistakes, modifications, safety_notes, youtube_url, video_search_query.
+- Keep execution_cues, common_mistakes, and modifications as comma-separated short phrases on one line.
+- Use concise, plain-language coaching notes specific to this exercise and goal context.
+- Do not invent medical claims. For pain, symptoms, rehab, or return-to-sport context, keep safety notes cautious and recommend clinician input when appropriate.
+- Include youtube_url only when confident the URL is a relevant demo. Prefer no URL over a questionable URL.
+- Use only youtube.com/watch?v=..., youtu.be/..., or youtube.com/shorts/... links.
 - Do not include medical advice or diagnosis.
 - Do not add extra fields.`;
 
@@ -86,6 +102,13 @@ sets: 3
 reps: 8
 rest_seconds: 90
 notes: Controlled tempo
+setup: Hold the dumbbell at chest height and set feet shoulder-width.
+execution_cues: Sit between the hips, keep ribs stacked, drive through the full foot
+common_mistakes: Knees collapsing inward, rushing the descent
+modifications: Use a box target, reduce load
+safety_notes: Stop if sharp pain changes your movement.
+youtube_url: https://www.youtube.com/watch?v=aclHkVaku9U
+video_search_query: goblet squat form demo
 
 EXERCISE
 name: Romanian Deadlift
@@ -93,6 +116,13 @@ sets: 3
 reps: 8
 rest_seconds: 90
 notes: Stop with 2 reps in reserve
+setup:
+execution_cues:
+common_mistakes:
+modifications:
+safety_notes:
+youtube_url:
+video_search_query:
 \`\`\``;
 
 const GOAL_GUIDANCE: Record<TrainingGoalType, string> = {
@@ -475,6 +505,78 @@ function parseRequiredField({
   };
 }
 
+function parseExerciseOptionalFields({
+  lines,
+  index,
+  context,
+  seenLabels
+}: {
+  lines: string[];
+  index: number;
+  context: string;
+  seenLabels: Set<string>;
+}) {
+  let nextIndex = index;
+  const guidance = {
+    setup: "",
+    executionCues: [] as string[],
+    commonMistakes: [] as string[],
+    modifications: [] as string[],
+    safetyNotes: "",
+    videoSearchQuery: ""
+  };
+  let youtubeUrl = "";
+
+  while (nextIndex < lines.length) {
+    const line = lines[nextIndex];
+
+    if (line === "EXERCISE" || line === "WORKOUT" || /^PHASE \d+$/.test(line)) {
+      break;
+    }
+
+    const separatorIndex = line.indexOf(":");
+
+    if (separatorIndex === -1) {
+      throw new Error(`${context}: expected optional exercise field, found \`${line}\`.`);
+    }
+
+    const label = line.slice(0, separatorIndex).trim();
+    const value = line.slice(separatorIndex + 1).trim();
+
+    if (seenLabels.has(label)) {
+      throw new Error(`${context}: duplicate field \`${label}\`.`);
+    }
+
+    seenLabels.add(label);
+
+    if (label === "setup") {
+      guidance.setup = normalizeGuidanceText(value);
+    } else if (label === "execution_cues") {
+      guidance.executionCues = normalizeGuidanceList(value);
+    } else if (label === "common_mistakes") {
+      guidance.commonMistakes = normalizeGuidanceList(value);
+    } else if (label === "modifications") {
+      guidance.modifications = normalizeGuidanceList(value);
+    } else if (label === "safety_notes") {
+      guidance.safetyNotes = normalizeGuidanceText(value);
+    } else if (label === "youtube_url") {
+      youtubeUrl = normalizeExerciseVideoUrl(value) ?? "";
+    } else if (label === "video_search_query") {
+      guidance.videoSearchQuery = normalizeGuidanceText(value, 120);
+    } else {
+      throw new Error(`${context}: unexpected field \`${label}\`.`);
+    }
+
+    nextIndex += 1;
+  }
+
+  return {
+    guidance: normalizeExerciseGuidance(guidance),
+    youtubeUrl,
+    nextIndex
+  };
+}
+
 function expectHeader({
   lines,
   index,
@@ -497,7 +599,20 @@ function expectHeader({
 
 function parseExercise(lines: string[], index: number, workoutNumber: number, phaseNumber: number) {
   const context = `Phase ${phaseNumber}, Workout ${workoutNumber}, Exercise`;
-  const fieldLabels = ["name", "sets", "reps", "rest_seconds", "notes"];
+  const fieldLabels = [
+    "name",
+    "sets",
+    "reps",
+    "rest_seconds",
+    "notes",
+    "setup",
+    "execution_cues",
+    "common_mistakes",
+    "modifications",
+    "safety_notes",
+    "youtube_url",
+    "video_search_query"
+  ];
   const seenLabels = new Set<string>();
   let nextIndex = expectHeader({
     lines,
@@ -550,6 +665,12 @@ function parseExercise(lines: string[], index: number, workoutNumber: number, ph
     knownLabels: fieldLabels,
     seenLabels
   });
+  const optionalFields = parseExerciseOptionalFields({
+    lines,
+    index: notes.nextIndex,
+    context,
+    seenLabels
+  });
 
   return {
     data: {
@@ -559,9 +680,11 @@ function parseExercise(lines: string[], index: number, workoutNumber: number, ph
       restSeconds: restSeconds.value
         ? parseNonNegativeInteger(restSeconds.value, "rest_seconds", context)
         : null,
-      notes: notes.value
+      notes: notes.value,
+      guidance: optionalFields.guidance,
+      youtubeUrl: optionalFields.youtubeUrl || undefined
     } satisfies AiImportedExercise,
-    nextIndex: notes.nextIndex
+    nextIndex: optionalFields.nextIndex
   };
 }
 
@@ -862,7 +985,8 @@ function mapExercise(exercise: AiImportedExercise): StructuredExerciseInput {
     reps: exercise.reps,
     rest: exercise.restSeconds !== null ? `${exercise.restSeconds} sec` : "",
     coachingNote: exercise.notes,
-    videoUrl: ""
+    guidance: exercise.guidance,
+    videoUrl: exercise.youtubeUrl ?? ""
   };
 }
 

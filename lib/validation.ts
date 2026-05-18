@@ -127,21 +127,44 @@ export function normalizeExerciseVideoUrl(value: string) {
     return null;
   }
 
-  const host = url.hostname.toLowerCase();
-  const isYouTubeUrl =
-    host === "youtu.be" ||
-    host === "youtube.com" ||
-    host.endsWith(".youtube.com");
+  const host = url.hostname.toLowerCase().replace(/^www\./, "");
+  const isYouTubeUrl = host === "youtu.be" || host === "youtube.com";
 
   if (!["http:", "https:"].includes(url.protocol) || !isYouTubeUrl) {
     return null;
   }
 
-  if (url.protocol === "http:") {
-    url.protocol = "https:";
+  if (host === "youtu.be") {
+    const videoId = url.pathname.split("/").filter(Boolean)[0];
+
+    if (!videoId) {
+      return null;
+    }
+
+    return `https://youtu.be/${encodeURIComponent(videoId)}`;
   }
 
-  return url.toString();
+  if (url.pathname === "/watch") {
+    const videoId = url.searchParams.get("v")?.trim();
+
+    if (!videoId) {
+      return null;
+    }
+
+    return `https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`;
+  }
+
+  if (url.pathname.startsWith("/shorts/")) {
+    const videoId = url.pathname.split("/").filter(Boolean)[1];
+
+    if (!videoId) {
+      return null;
+    }
+
+    return `https://www.youtube.com/shorts/${encodeURIComponent(videoId)}`;
+  }
+
+  return null;
 }
 
 export function isValidExerciseVideoUrl(value: string) {
