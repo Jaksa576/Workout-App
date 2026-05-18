@@ -149,10 +149,22 @@ describe("ai draft import", () => {
     );
     expect(prompt).toContain("setup, execution_cues, common_mistakes");
     expect(prompt).toContain(
-      "Include youtube_url when reasonably confident it is a relevant demo for a common general exercise"
+      "Populate youtube_url for common, standard exercises when you can reasonably provide a relevant YouTube demo link."
     );
     expect(prompt).toContain(
-      "For specialized rehab, pain-sensitive, return-to-sport, or ambiguous movement variations"
+      "Do not leave all URLs blank just because the plan has a recovery or rehab focus."
+    );
+    expect(prompt).toContain(
+      "Common general movements inside a rehab or recovery plan can still receive youtube_url links"
+    );
+    expect(prompt).toContain(
+      "Goblet Squat, Push-Up, Dumbbell Row, Plank, Dead Bug, Lateral Band Walk, Step-Up, and Romanian Deadlift"
+    );
+    expect(prompt).toContain(
+      "Hamstring Slider Eccentric, Soccer Return Prep drills, Build-Up Run/Walk, Low Pogo Hold, and Copenhagen Side Plank Short Lever"
+    );
+    expect(prompt).toContain(
+      "leave youtube_url blank and provide a precise video_search_query instead"
     );
     expect(prompt).toContain("Use only youtube.com/watch?v=..., youtu.be/...");
     expect(prompt).toContain("day: Monday");

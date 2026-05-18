@@ -66,6 +66,13 @@ Follow-up UI polish:
 - kept native disclosure arrows visible for workouts, exercises, Guidance, and Advanced note sections
 - made Guidance sections start collapsed until the user opens them manually
 
+Prompt guidance follow-up:
+
+- strengthened YouTube prompt wording so common standard exercises should usually receive `youtube_url` when the external AI is reasonably confident
+- clarified that recovery or rehab-focused plans can still include video URLs for standard movements
+- directed rehab-sensitive, pain-sensitive, return-to-sport, ambiguous, or highly variation-specific exercises toward `video_search_query` with blank `youtube_url`
+- preserved strict URL validation and did not add provider-backed AI, YouTube APIs, scraping, embeds, or automatic search
+
 Known follow-up:
 
 - A dashboard/user timezone issue was noted during QA and remains separate. It is intentionally not part of this Slice 10 patch.
@@ -111,6 +118,7 @@ Results:
 - `npm run test`: passed, 9 test files and 56 tests
 - `npm run build`: passed
 - latest UI polish validation repeated `npm run typecheck`, `npm run test`, and `npm run build`: passed
+- latest YouTube prompt guidance patch validation ran `npm run check`: passed
 
 Manual smoke performed:
 

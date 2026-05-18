@@ -54,8 +54,10 @@ Important rules:
 - Keep execution_cues, common_mistakes, and modifications as comma-separated short phrases on one line.
 - Use concise, plain-language coaching notes specific to this exercise and goal context.
 - Do not invent medical claims. For pain, symptoms, rehab, or return-to-sport context, keep safety notes cautious and recommend clinician input when appropriate.
-- Include youtube_url when reasonably confident it is a relevant demo for a common general exercise such as goblet squats, Romanian deadlifts, planks, dead bugs, lateral band walks, push-ups, rows, lunges, or step-ups.
-- For specialized rehab, pain-sensitive, return-to-sport, or ambiguous movement variations, prefer video_search_query and leave youtube_url blank.
+- Populate youtube_url for common, standard exercises when you can reasonably provide a relevant YouTube demo link. Do not leave all URLs blank just because the plan has a recovery or rehab focus.
+- Common general movements inside a rehab or recovery plan can still receive youtube_url links when the demo does not need to match a specialized rehab variation.
+- For standard movements such as Goblet Squat, Push-Up, Dumbbell Row, Plank, Dead Bug, Lateral Band Walk, Step-Up, and Romanian Deadlift, include youtube_url when reasonably confident.
+- For rehab-sensitive, pain-sensitive, return-to-sport, ambiguous, or highly variation-specific movements such as Hamstring Slider Eccentric, Soccer Return Prep drills, Build-Up Run/Walk, Low Pogo Hold, and Copenhagen Side Plank Short Lever, leave youtube_url blank and provide a precise video_search_query instead.
 - Prefer no URL over a questionable or unrelated URL.
 - Use only youtube.com/watch?v=..., youtu.be/..., or youtube.com/shorts/... links.
 - Do not include medical advice or diagnosis.
