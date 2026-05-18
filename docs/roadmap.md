@@ -163,7 +163,7 @@ Accepted narrow QA follow-up:
 
 The broader public landing, app-shell, dashboard, plans, workout execution, and plan creation/settings redesign program is complete through Slice 9J.
 
-The Slice 9K-9M AI Draft Plan UX Campaign is complete and archived as reference. Slice 9N, Comprehensive UX Cleanup And AI Draft QA Patch, is merged to `origin/main`. The next major roadmap item is Slice 10, Exercise Media And Instruction Layer.
+The Slice 9K-9M AI Draft Plan UX Campaign is complete and archived as reference. Slice 9N, Comprehensive UX Cleanup And AI Draft QA Patch, is merged to `origin/main`. Slice 10, Exercise Media And Instruction Layer, is complete and merged.
 
 ## 9A. UI Redesign Direction, Public Landing, And App Icon Planning
 
@@ -364,16 +364,13 @@ Guardrails:
 
 ## 10. Exercise Media And Instruction Layer
 
-Status: implemented locally as Slice 10 AI-enriched exercise instructions and demo links.
+Status: complete and merged to `main`.
 
-- Expanded the provider-free Draft with AI prompt to request optional plan-specific exercise guidance fields and optional YouTube demo links.
-- Extended strict AI import parsing to accept bounded optional exercise guidance fields without weakening required plan/phase/workout/exercise validation.
-- Kept invalid or unsupported imported video URLs from becoming saved links while allowing otherwise valid plans to import.
-- Added review/edit controls so users can inspect, edit, or remove AI-provided guidance and video links before saving.
-- Persisted reviewed text guidance through the existing `exercise_entries.coaching_note` field and reviewed YouTube demo links through the existing `exercise_entries.video_url` field, without a schema migration.
-- Surfaced compact exercise guidance on saved plan details and workout execution surfaces.
-- Kept Guided Setup, Manual Builder, older plans, workout session save, and deterministic progression unchanged.
-- Kept the exercise catalog deterministic and code-owned; catalog-wide authoring/admin workflows remain deferred.
+- Implemented AI-enriched exercise instructions and optional demo links through provider-free Draft with AI.
+- Kept import strict, validated, and review-before-save, including safe handling for unsupported YouTube URLs.
+- Persisted reviewed guidance through existing `exercise_entries.coaching_note` serialization and reviewed demo links through existing `exercise_entries.video_url`, without a schema migration.
+- Surfaced compact guidance and demo actions in saved plan details and workout execution.
+- Deferred user-timezone dashboard/date handling, admin exercise catalog workflows, media upload/storage, provider-backed AI, YouTube API/search/embeds, exercise substitutions, and broader history/trends.
 
 ## 11. Broader Polish And Branding
 
