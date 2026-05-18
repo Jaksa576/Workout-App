@@ -148,6 +148,12 @@ describe("ai draft import", () => {
       "Do not include the scheduled day of the week in the workout name."
     );
     expect(prompt).toContain("setup, execution_cues, common_mistakes");
+    expect(prompt).toContain(
+      "Include youtube_url when reasonably confident it is a relevant demo for a common general exercise"
+    );
+    expect(prompt).toContain(
+      "For specialized rehab, pain-sensitive, return-to-sport, or ambiguous movement variations"
+    );
     expect(prompt).toContain("Use only youtube.com/watch?v=..., youtu.be/...");
     expect(prompt).toContain("day: Monday");
     expect(prompt).toContain("youtube_url: https://www.youtube.com/watch?v=");

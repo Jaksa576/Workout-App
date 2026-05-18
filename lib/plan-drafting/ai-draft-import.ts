@@ -54,7 +54,9 @@ Important rules:
 - Keep execution_cues, common_mistakes, and modifications as comma-separated short phrases on one line.
 - Use concise, plain-language coaching notes specific to this exercise and goal context.
 - Do not invent medical claims. For pain, symptoms, rehab, or return-to-sport context, keep safety notes cautious and recommend clinician input when appropriate.
-- Include youtube_url only when confident the URL is a relevant demo. Prefer no URL over a questionable URL.
+- Include youtube_url when reasonably confident it is a relevant demo for a common general exercise such as goblet squats, Romanian deadlifts, planks, dead bugs, lateral band walks, push-ups, rows, lunges, or step-ups.
+- For specialized rehab, pain-sensitive, return-to-sport, or ambiguous movement variations, prefer video_search_query and leave youtube_url blank.
+- Prefer no URL over a questionable or unrelated URL.
 - Use only youtube.com/watch?v=..., youtu.be/..., or youtube.com/shorts/... links.
 - Do not include medical advice or diagnosis.
 - Do not add extra fields.`;

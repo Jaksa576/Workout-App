@@ -2,7 +2,7 @@
 
 ## Current Status
 
-Slice 10, AI-Enriched Exercise Instructions And Demo Links, is implemented locally on branch:
+Slice 10, AI-Enriched Exercise Instructions And Demo Links, is implemented locally with a pre-merge QA tightening patch on branch:
 
 ```text
 codex/slice-10-exercise-guidance
@@ -35,6 +35,26 @@ Implementation summary:
 - surfaced guidance on saved plan phase/workout details and workout execution exercise cards
 - left Guided Setup, Manual Builder, existing saved plans, workout session save, and deterministic progression behavior unchanged
 
+## Pre-Merge QA Patch
+
+Patch summary:
+
+- collapsed Workouts-step cards by default so imported AI plans can be scanned before inspecting details
+- added compact workout summaries with workout name, assigned days, focus/summary, exercise count, and a guidance/video indicator
+- moved exercise library search and category filtering into each expanded workout card
+- kept Add from library, Add blank exercise, Duplicate workout, and Delete workout controls available in the context of the workout being edited
+- reduced Coaching note / Guidance duplication in AI-import review:
+  - structured Guidance remains the primary coaching area when AI guidance exists
+  - the legacy/base note is preserved as an Advanced note inside the guidance section
+  - manual and non-guidance exercises still expose the note field directly
+- tuned prompt wording so common general exercises should get useful YouTube URLs when the external AI is reasonably confident
+- kept specialized rehab, pain-sensitive, return-to-sport, and ambiguous movement variations pointed toward `video_search_query` instead of forced URLs
+- preserved strict YouTube URL validation and did not add API calls, scraping, embeds, or automatic search
+
+Known follow-up:
+
+- A dashboard/user timezone issue was noted during QA and remains separate. It is intentionally not part of this Slice 10 patch.
+
 Durable persistence note:
 
 - No database migration was required.
@@ -49,29 +69,39 @@ Commands run so far:
 ```powershell
 npm run typecheck
 npm run test
+npm run build
 ```
 
 Results:
 
 - `npm run typecheck`: passed
 - `npm run test`: passed, 9 test files and 56 tests
+- `npm run build`: passed
 
-Still required before final handoff:
+Manual smoke performed:
 
-```powershell
-npm run build
-```
+- started a temporary local dev server on port 3001
+- confirmed `/` returns HTTP 200
+- confirmed `/login` returns HTTP 200
+- confirmed unauthenticated `/plans/new` returns a protected-route redirect
+- stopped the temporary dev server and confirmed port 3001 is clear
 
 ## Manual QA Expectations
 
-Before merging Slice 10, browser QA should cover:
+Before merging Slice 10, remaining signed-in browser QA should cover:
 
 - `/plans/new` Draft with AI prompt generation includes the new exercise guidance fields
+- Draft with AI prompt generation includes the revised YouTube URL guidance
 - valid enriched AI transfer block imports into review
 - invalid/non-YouTube imported `youtube_url` does not crash import
+- Workouts step starts with collapsed workout cards after import
+- expanding a workout reveals editable workout, exercise, guidance, and video fields
+- adding from library happens inside the expanded workout card
 - review/edit can edit and remove guidance and video fields before save
+- coaching note/guidance presentation is not duplicative in AI-import review
 - saved plan details show compact exercise guidance
 - workout execution shows compact setup/cues/safety/video actions
+- complete/save a workout session
 - exercises without guidance still render normally
 - light and dark mode remain readable on touched surfaces
 

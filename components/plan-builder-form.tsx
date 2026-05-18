@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import type { ReactNode } from "react";
@@ -96,6 +96,16 @@ function toggleListValue<T extends string>(values: T[], value: T) {
   return values.includes(value) ? values.filter((item) => item !== value) : [...values, value];
 }
 
+function getWorkoutKey(phaseIndex: number, workoutIndex: number) {
+  return `${phaseIndex}-${workoutIndex}`;
+}
+
+function hasWorkoutExerciseGuidance(workout: StructuredWorkoutInput) {
+  return workout.exercises.some(
+    (exercise) => hasExerciseGuidance(exercise.guidance) || Boolean(exercise.videoUrl)
+  );
+}
+
 function Field({
   label,
   children
@@ -148,8 +158,8 @@ export function PlanBuilderForm({
   const [phases, setPhases] = useState<StructuredPhaseInput[]>(() =>
     initialPlan?.phases ? structuredClone(initialPlan.phases) : [makePhase()]
   );
-  const [exerciseSearch, setExerciseSearch] = useState("");
-  const [exerciseCategory, setExerciseCategory] = useState("all");
+  const [librarySearchByWorkout, setLibrarySearchByWorkout] = useState<Record<string, string>>({});
+  const [libraryCategoryByWorkout, setLibraryCategoryByWorkout] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const currentStep = steps[stepIndex];
@@ -162,12 +172,12 @@ export function PlanBuilderForm({
         ? `You are reviewing a regenerated version of ${planLabel}. Saving replaces the live plan structure. Old workout and exercise names stay readable in history snapshots, and prior sessions should not be treated as progress toward the regenerated structure.`
         : null;
 
-  const filteredExercises = useMemo(() => {
-    const normalizedSearch = exerciseSearch.trim().toLowerCase();
+  function getFilteredExercises(workoutKey: string) {
+    const normalizedSearch = (librarySearchByWorkout[workoutKey] ?? "").trim().toLowerCase();
+    const category = libraryCategoryByWorkout[workoutKey] ?? "all";
 
     return exerciseCatalog.filter((exercise) => {
-      const matchesCategory =
-        exerciseCategory === "all" || exercise.category === exerciseCategory;
+      const matchesCategory = category === "all" || exercise.category === category;
       const matchesSearch =
         !normalizedSearch ||
         exercise.name.toLowerCase().includes(normalizedSearch) ||
@@ -175,7 +185,7 @@ export function PlanBuilderForm({
 
       return matchesCategory && matchesSearch;
     });
-  }, [exerciseCategory, exerciseSearch]);
+  }
 
   function updatePhase(index: number, nextPhase: StructuredPhaseInput) {
     setPhases((current) =>
@@ -479,50 +489,67 @@ export function PlanBuilderForm({
 
       {currentStep.id === "workouts" ? (
         <div className="space-y-6">
-          <div className="surface-panel">
-            <p className="text-sm font-semibold text-copy">Exercise library</p>
-            <div className="mt-3 grid gap-3 md:grid-cols-[1fr_12rem]">
-              <input
-                value={exerciseSearch}
-                onChange={(event) => setExerciseSearch(event.target.value)}
-                placeholder="Search exercises or equipment"
-                className="ui-input"
-              />
-              <select
-                value={exerciseCategory}
-                onChange={(event) => setExerciseCategory(event.target.value)}
-                className="ui-input"
-              >
-                <option value="all">All categories</option>
-                {exerciseCategories.map((category) => (
-                  <option key={category.value} value={category.value}>
-                    {category.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
           {phases.map((phase, phaseIndex) => (
             <div key={phaseIndex} className="space-y-4">
               <h3 className="font-display text-2xl text-copy">
                 {formatPhaseLabel(phaseIndex + 1)}
               </h3>
-              {phase.workouts.map((workout, workoutIndex) => (
-                <div key={workoutIndex} className="surface-panel">
-                  <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <p className="text-sm font-semibold text-copy">
-                      Workout {workoutIndex + 1}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => deleteWorkout(phaseIndex, workoutIndex)}
-                      disabled={phase.workouts.length <= 1}
-                      className="ui-button-ghost px-4 py-2 disabled:opacity-45"
-                    >
-                      Delete Workout
-                    </button>
-                  </div>
+              {phase.workouts.map((workout, workoutIndex) => {
+                const workoutKey = getWorkoutKey(phaseIndex, workoutIndex);
+                const filteredExercises = getFilteredExercises(workoutKey);
+                const hasGuidanceOrVideo = hasWorkoutExerciseGuidance(workout);
+
+                return (
+                  <details key={workoutKey} className="surface-panel">
+                    <summary className="cursor-pointer list-none">
+                      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                            Workout {workoutIndex + 1}
+                          </p>
+                          <h4 className="mt-2 text-xl font-black leading-tight text-copy">
+                            {workout.name || "Untitled workout"}
+                          </h4>
+                          <p className="mt-2 text-sm leading-6 text-muted">
+                            {workout.focus || workout.summary || "No focus yet."}
+                          </p>
+                          {workout.scheduledDays.length ? (
+                            <p className="mt-3 text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+                              {workout.scheduledDays.join(" / ")}
+                            </p>
+                          ) : null}
+                        </div>
+                        <div className="flex flex-wrap gap-2 sm:justify-end">
+                          <span className="rounded-full bg-surface-soft px-3 py-1.5 text-xs font-bold text-muted">
+                            {workout.exercises.length}{" "}
+                            {workout.exercises.length === 1 ? "exercise" : "exercises"}
+                          </span>
+                          {hasGuidanceOrVideo ? (
+                            <span className="rounded-full bg-primary/12 px-3 py-1.5 text-xs font-bold text-primary">
+                              Guidance/video
+                            </span>
+                          ) : null}
+                          <span className="rounded-full bg-shell-elevated px-3 py-1.5 text-xs font-bold text-muted">
+                            Expand to edit
+                          </span>
+                        </div>
+                      </div>
+                    </summary>
+
+                    <div className="mt-5 border-t border-border pt-5">
+                      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="text-sm font-semibold text-copy">
+                          Edit workout details
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => deleteWorkout(phaseIndex, workoutIndex)}
+                          disabled={phase.workouts.length <= 1}
+                          className="ui-button-ghost px-4 py-2 disabled:opacity-45"
+                        >
+                          Delete Workout
+                        </button>
+                      </div>
                   <div className="grid gap-4 md:grid-cols-3">
                     <Field label="Workout name">
                       <input
@@ -657,23 +684,6 @@ export function PlanBuilderForm({
                         </label>
                         <label className="block md:col-span-2">
                           <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
-                            Coaching note
-                          </span>
-                          <textarea
-                            value={exercise.coachingNote}
-                            onChange={(event) =>
-                              updateExercise(phaseIndex, workoutIndex, exerciseIndex, {
-                                ...exercise,
-                                coachingNote: event.target.value
-                              })
-                            }
-                            aria-label="Coaching note"
-                            rows={3}
-                            className="ui-input mt-2 px-3 py-2"
-                          />
-                        </label>
-                        <label className="block md:col-span-2">
-                          <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
                             Video link
                           </span>
                           <input
@@ -688,6 +698,27 @@ export function PlanBuilderForm({
                             className="ui-input mt-2 px-3 py-2"
                           />
                         </label>
+                        {!(creationSource === "ai_import" && hasExerciseGuidance(exercise.guidance)) ? (
+                          <label className="block md:col-span-2">
+                            <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+                              {creationSource === "ai_import"
+                                ? "Brief extra note"
+                                : "Coaching note"}
+                            </span>
+                            <textarea
+                              value={exercise.coachingNote}
+                              onChange={(event) =>
+                                updateExercise(phaseIndex, workoutIndex, exerciseIndex, {
+                                  ...exercise,
+                                  coachingNote: event.target.value
+                                })
+                              }
+                              aria-label="Exercise coaching note"
+                              rows={3}
+                              className="ui-input mt-2 px-3 py-2"
+                            />
+                          </label>
+                        ) : null}
                         <details
                           open={hasExerciseGuidance(exercise.guidance) || undefined}
                           className="rounded-[18px] border border-primary/15 bg-primary/5 p-3 md:col-span-4"
@@ -821,6 +852,30 @@ export function PlanBuilderForm({
                             >
                               Remove guidance and video
                             </button>
+                            {creationSource === "ai_import" && hasExerciseGuidance(exercise.guidance) ? (
+                              <details className="rounded-[16px] border border-border bg-surface p-3 md:col-span-2">
+                                <summary className="cursor-pointer text-sm font-semibold text-copy">
+                                  Advanced note
+                                </summary>
+                                <label className="mt-3 block">
+                                  <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+                                    Brief extra note
+                                  </span>
+                                  <textarea
+                                    value={exercise.coachingNote}
+                                    onChange={(event) =>
+                                      updateExercise(phaseIndex, workoutIndex, exerciseIndex, {
+                                        ...exercise,
+                                        coachingNote: event.target.value
+                                      })
+                                    }
+                                    aria-label="Advanced exercise note"
+                                    rows={3}
+                                    className="ui-input mt-2 px-3 py-2"
+                                  />
+                                </label>
+                              </details>
+                            ) : null}
                           </div>
                         </details>
                         <button
@@ -840,51 +895,86 @@ export function PlanBuilderForm({
                     ) : null}
                   </div>
 
-                  <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                    <select
-                      defaultValue=""
-                      onChange={(event) => {
-                        addCatalogExercise(phaseIndex, workoutIndex, event.target.value);
-                        event.currentTarget.value = "";
-                      }}
-                      className="ui-input w-full rounded-full sm:w-auto"
-                    >
-                      <option value="" disabled>
-                        Add from library
-                      </option>
-                      {filteredExercises.map((exercise) => (
-                        <option key={exercise.id} value={exercise.id}>
-                          {exercise.name}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        updateWorkout(phaseIndex, workoutIndex, {
-                          ...workout,
-                          exercises: [...workout.exercises, makeExercise()]
-                        })
-                      }
-                      className="ui-button-secondary"
-                    >
-                      Add blank exercise
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        updatePhase(phaseIndex, {
-                          ...phase,
-                          workouts: [...phase.workouts, structuredClone(workout)]
-                        })
-                      }
-                      className="ui-button-secondary"
-                    >
-                      Duplicate workout
-                    </button>
-                  </div>
-                </div>
-              ))}
+                      <div className="mt-5 rounded-[20px] border border-border bg-surface-soft p-4">
+                        <p className="text-sm font-semibold text-copy">Add exercises to this workout</p>
+                        <div className="mt-3 grid gap-3 md:grid-cols-[1fr_12rem]">
+                          <input
+                            value={librarySearchByWorkout[workoutKey] ?? ""}
+                            onChange={(event) =>
+                              setLibrarySearchByWorkout((current) => ({
+                                ...current,
+                                [workoutKey]: event.target.value
+                              }))
+                            }
+                            placeholder="Search exercises or equipment"
+                            className="ui-input"
+                          />
+                          <select
+                            value={libraryCategoryByWorkout[workoutKey] ?? "all"}
+                            onChange={(event) =>
+                              setLibraryCategoryByWorkout((current) => ({
+                                ...current,
+                                [workoutKey]: event.target.value
+                              }))
+                            }
+                            className="ui-input"
+                          >
+                            <option value="all">All categories</option>
+                            {exerciseCategories.map((category) => (
+                              <option key={category.value} value={category.value}>
+                                {category.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                          <select
+                            defaultValue=""
+                            onChange={(event) => {
+                              addCatalogExercise(phaseIndex, workoutIndex, event.target.value);
+                              event.currentTarget.value = "";
+                            }}
+                            className="ui-input w-full rounded-full sm:w-auto"
+                          >
+                            <option value="" disabled>
+                              Add from library
+                            </option>
+                            {filteredExercises.map((exercise) => (
+                              <option key={exercise.id} value={exercise.id}>
+                                {exercise.name}
+                              </option>
+                            ))}
+                          </select>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateWorkout(phaseIndex, workoutIndex, {
+                                ...workout,
+                                exercises: [...workout.exercises, makeExercise()]
+                              })
+                            }
+                            className="ui-button-secondary"
+                          >
+                            Add blank exercise
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updatePhase(phaseIndex, {
+                                ...phase,
+                                workouts: [...phase.workouts, structuredClone(workout)]
+                              })
+                            }
+                            className="ui-button-secondary"
+                          >
+                            Duplicate workout
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </details>
+                );
+              })}
               <button
                 type="button"
                 onClick={() =>
