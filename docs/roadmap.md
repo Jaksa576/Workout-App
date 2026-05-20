@@ -6,7 +6,7 @@ This roadmap tracks milestone sequencing and deferred work. For durable product 
 
 ## 1. Domain Foundation And Draft Abstraction
 
-Status: implemented locally.
+Status: complete.
 
 - Add richer profile metadata fields.
 - Add plan metadata for goal type, nullable `progression_mode`, and creation source.
@@ -17,7 +17,7 @@ Status: implemented locally.
 
 ## 2. Onboarding/Profile Separation
 
-Status: implemented locally.
+Status: complete.
 
 - Make onboarding collect durable profile data instead of goal-specific plan setup.
 - Preserve the new-user onboarding gate.
@@ -26,7 +26,7 @@ Status: implemented locally.
 
 ## 3. `/plans/new` Goal-Specific Plan Setup
 
-Status: implemented locally.
+Status: complete.
 
 - Move goal-specific plan setup into `/plans/new`.
 - Let users choose goal track and progression mode when creating a plan.
@@ -36,7 +36,7 @@ Status: implemented locally.
 
 ## 4. UI Terminology Shift Toward Blocks
 
-Status: implemented locally, then refined by Slice 4.5.
+Status: complete, then refined by Slice 4.5.
 
 - Initially shifted user-facing plan segment language from "Phase" to "Block".
 - Kept database names such as `plan_phases` unchanged for compatibility.
@@ -44,7 +44,7 @@ Status: implemented locally, then refined by Slice 4.5.
 
 ## 4.5. Terminology Refinement And Lightweight Branding Polish
 
-Status: implemented locally.
+Status: complete.
 
 - Refine user-facing terminology back to concise "Phase" labels because "Block" was too vague in compact UI.
 - Keep `plan_phases`, `phase-action`, `currentPhase`, and phase-shaped payloads unchanged for compatibility.
@@ -53,7 +53,7 @@ Status: implemented locally.
 
 ## 5A. Goal-Aware Templates, Richer Exercise Metadata, And Deterministic Defaults
 
-Status: implemented locally.
+Status: complete.
 
 - Expand catalog categories and tags for recovery, general fitness, strength, hypertrophy, running, sport performance, and consistency.
 - Improve deterministic template drafts by goal track, equipment, schedule, limitations, and profile data.
@@ -64,7 +64,7 @@ Status: implemented locally.
 
 ## 5B1. Profile/Settings Editing
 
-Status: implemented locally.
+Status: complete.
 
 - Add a user-facing profile/settings workflow for updating durable training context.
 - Keep settings separate from onboarding and plan-specific setup.
@@ -75,7 +75,7 @@ Status: implemented locally.
 
 ## 5B2. Guided Edit-Plan Workflow
 
-Status: implemented locally.
+Status: complete.
 
 - Delivered a setup-driven edit/regenerate workflow for changing an existing plan without rebuilding onboarding.
 - Persist or reconstruct enough plan setup context to reopen guided plan configuration safely.
@@ -86,7 +86,7 @@ Status: implemented locally.
 
 ## 5B3. Reusable Review/Edit Flow For Existing Plans
 
-Status: implemented locally.
+Status: complete.
 
 - Add a primary existing-plan detail edit route that opens the saved plan details in the reusable review/edit flow.
 - Keep setup/regenerate as a distinct action for updating plan setup inputs.
@@ -99,7 +99,7 @@ Post-5B3 product learning:
 - The advanced/manual plan-detail edit section no longer appears necessary as a surfaced path.
 - The surfaced setup/regenerate action is being reconsidered because creating a new plan may be the clearer UX for larger setup changes.
 
-Immediate post-5B3 cleanup patch, implemented locally based on QA learning after release:
+Immediate post-5B3 cleanup patch, completed based on QA learning after release:
 
 - simplify the review/save copy in the `Edit details` flow
 - remove the surfaced advanced/manual plan-detail edit section from the main plan-detail page
@@ -109,7 +109,7 @@ Immediate post-5B3 cleanup patch, implemented locally based on QA learning after
 
 ## 6. UI Overhaul Phase 1
 
-Status: implemented locally.
+Status: complete.
 
 - This is a foundation slice, not a full redesign.
 - Add light/dark theme support through a small semantic token layer and a local client-side preference override.
@@ -121,7 +121,7 @@ Status: implemented locally.
 
 ## 6.5. UI Polish And Theme Refinement
 
-Status: implemented locally.
+Status: complete.
 
 Post-Slice 6 QA identified a small follow-up patch needed before the next major slice:
 
@@ -132,7 +132,7 @@ Post-Slice 6 QA identified a small follow-up patch needed before the next major 
 
 ## 7. AI-Assisted Plan Draft Import
 
-Status: implemented locally.
+Status: complete.
 
 - Add a `Draft with AI` path inside `/plans/new` without changing onboarding ownership.
 - Generate a copyable prompt from structured plan setup inputs so the user can use their own external AI assistant.
@@ -144,7 +144,7 @@ Status: implemented locally.
 
 ## 8. Contextual Dashboard And Progression UX
 
-Status: implemented locally.
+Status: complete.
 
 - Built on the UI foundation from Slice 6 with a workout-first dashboard home screen.
 - Added a compact 5-day "This week" preview with safe fallback copy when workout-specific schedules are missing.
@@ -176,7 +176,7 @@ Status: complete; campaign archived.
 
 ## 9B. Design System Foundation
 
-Status: implemented locally.
+Status: complete.
 
 - Extend the semantic token and shared-primitives layer for the selected redesign direction.
 - Use shared foundations rather than page-specific hardcoded colors or isolated one-off components.
@@ -186,7 +186,7 @@ Status: implemented locally.
 
 ## 9C. Public Landing Route + Dashboard Route Split
 
-Status: implemented locally.
+Status: complete.
 
 - Move the public landing experience to `/`.
 - Move the authenticated dashboard to `/dashboard`.
@@ -199,7 +199,7 @@ Status: implemented locally.
 
 ## 9D. Public Landing Page Implementation
 
-Status: implemented locally, with immediate visual polish follow-up completed.
+Status: complete, with immediate visual polish follow-up completed.
 
 - Implement a single public landing page outside the authenticated app.
 - Use warm white/off-white public surfaces, dark navy preview panels, green primary accent, blue secondary accent, and selective coral/orange/purple goal accents.
@@ -210,7 +210,7 @@ Status: implemented locally, with immediate visual polish follow-up completed.
 
 ## 9E. App Icon / PWA Asset Integration
 
-Status: implemented locally.
+Status: complete.
 
 - Replace or add app icon and PWA assets based on the selected icon direction.
 - Target a dark navy rounded-square icon with a green/teal geometric A and blue dumbbell crossbar.
@@ -219,7 +219,7 @@ Status: implemented locally.
 
 ## 9F. Authenticated App Shell Redesign
 
-Status: implemented locally.
+Status: complete.
 
 - Redesign the authenticated shell around the new visual system while preserving auth, route protection, and current domain behavior.
 - Keep mobile-first layout and responsive behavior as the default implementation approach.
@@ -230,7 +230,7 @@ Status: implemented locally.
 
 ## 9G. Dashboard Redesign
 
-Status: implemented locally.
+Status: complete.
 
 - Redesign the authenticated dashboard within the new app shell and visual system.
 - Preserve the current dashboard’s active-plan, active-phase, and server-side progression source-of-truth rules.
@@ -241,7 +241,7 @@ Status: implemented locally.
 
 ## 9H. Plans / Phase UX Redesign
 
-Status: implemented locally.
+Status: complete.
 
 - Redesign plans, plan detail, and phase/workout hierarchy surfaces under the new visual system.
 - Preserve the current plan, phase, workout, save-path, and history-snapshot engine.
@@ -252,7 +252,7 @@ Status: implemented locally.
 
 ## 9I. Workout Execution UX Redesign
 
-Status: implemented locally.
+Status: complete.
 
 - Improve in-session workout usability, logging flow, and check-in feedback.
 - Keep workout history snapshots readable after plan edits.
@@ -263,7 +263,7 @@ Status: implemented locally.
 
 ## 9J. Plan Creation / Settings Polish
 
-Status: implemented locally.
+Status: complete.
 
 - Polish `/plans/new`, profile/settings surfaces, and supporting copy after the larger redesign system is in place.
 - Preserve the existing plan drafting abstraction, compatible save paths, and durable-profile boundaries unless a scoped follow-up intentionally changes them.
@@ -284,7 +284,7 @@ Suggested slices:
 
 ### 9K. AI Draft Setup Wizard
 
-Status: implemented locally.
+Status: complete.
 
 - Converted Draft with AI setup from a long-form page into a guided, mobile-first step flow.
 - Split setup into focused Goal, Schedule, Context, and Optional steps.
@@ -294,7 +294,7 @@ Status: implemented locally.
 
 ### 9L. External LLM Handoff UX
 
-Status: implemented and pushed.
+Status: complete.
 
 - Replaced vague external-assistance copy with clear copy/paste instructions.
 - Recommended ChatGPT as the default external LLM option.
@@ -305,7 +305,7 @@ Status: implemented and pushed.
 
 ### 9M. AI Draft Import Ergonomics
 
-Status: implemented locally.
+Status: complete.
 
 - Improved the import step so users know exactly what generated plan text to paste.
 - Updated generated prompt instructions so external LLMs return a cleaner fenced transfer format.
@@ -436,7 +436,7 @@ Near-term external AI draft import should arrive before any provider-backed in-a
 
 Near-term external AI draft import:
 
-- is now implemented locally through `/plans/new`
+- is implemented in `/plans/new`
 - should stay inside plan creation, not onboarding
 - should generate a structured, copyable prompt from `/plans/new` inputs
 - should accept pasted structured output from the user's own external AI assistant
