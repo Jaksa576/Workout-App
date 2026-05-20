@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned. This campaign should become the active campaign doc under `docs/campaigns/direct-ai-plan-creation.md` before implementation begins.
+Active. Slice 1 docs-only alignment is complete; Slice 2 is next.
 
 ## Product decision
 
@@ -319,6 +319,8 @@ It may write generation-event records for quota/audit purposes.
 ## Slice plan
 
 ### Slice 1 — Campaign docs and AI boundary approval
+
+Status: complete.
 
 Goal:
 Create the active campaign doc and update source-of-truth docs to approve direct AI plan drafting under strict constraints.

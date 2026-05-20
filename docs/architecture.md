@@ -77,8 +77,14 @@ Compatibility names such as `plan_phases` remain intentionally unchanged unless 
 - External AI draft import is provider-free and does not make server-side model calls.
 - Imported AI output must be validated and converted into the same review/edit/save flow before persistence.
 - AI-imported exercise guidance and demo links are optional metadata. They must be normalized, reviewed, and saved through the structured plan flow rather than bypassing validation.
-- Provider-backed LLM drafting is deferred and must not become required for core functionality.
-- API keys and provider details must stay server-side if provider-backed LLM support is added later.
+- During the Direct AI-Guided Plan Creation campaign, optional provider-backed plan drafting is approved behind the existing plan-drafting boundary.
+- Direct AI generation must be feature-gated and must remain unavailable when server config or quota does not allow it; Guided Setup, Manual Builder, and external AI import must continue to work.
+- Provider adapters should live behind the plan-drafting boundary rather than in UI components, and provider keys/details must remain server-only.
+- Server-side quota should bound successful generations and provider attempts per authenticated user per local day.
+- Direct AI failures should return typed, recoverable app errors such as disabled/config, quota reached, attempt limit reached, provider timeout/error, rate limit, unsafe input, or invalid output.
+- Model output must be parsed, normalized, and strictly validated before it can enter app state.
+- Direct AI generation must not write `workout_plans`, `plan_phases`, `workout_templates`, or `exercise_entries`; generated drafts enter the existing review/edit/save flow and persist only through the structured plan write path after user review.
+- AI-assisted phase alternatives, active-plan mutation, and automatic next-phase replacement remain deferred to a later campaign.
 
 ## UI And Theme Architecture
 

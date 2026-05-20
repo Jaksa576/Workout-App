@@ -35,7 +35,7 @@ The differentiated experience is:
 
 ## Primary Workflows
 
-- Create a plan through Guided Setup, Manual Builder, or provider-free Draft with AI.
+- Create a plan through optional AI-Guided Plan drafting when enabled, Guided Setup, Manual Builder, or provider-free Draft with AI.
 - Review and edit generated or imported drafts before saving.
 - Follow the active plan and current phase.
 - Complete workouts and log session signals.
@@ -74,7 +74,18 @@ Progression modes:
 
 Plan creation must work without an LLM.
 
-Near-term AI support is provider-free external draft import:
+The Direct AI-Guided Plan Creation campaign explicitly approves optional provider-backed AI drafting under strict constraints:
+
+- direct AI drafting is feature-gated and can be disabled without breaking plan creation
+- provider keys and provider calls stay server-side
+- generated drafts must be strictly validated before review
+- generated drafts must enter the existing review/edit/save flow
+- users must review and may edit AI-generated plan, phase, workout, and exercise details before saving
+- deterministic progression remains the source of truth after save
+- phases remain the durable plan structure
+- clinician input should be suggested for pain, injury, symptoms, or medical uncertainty
+
+Provider-free external draft import remains supported:
 
 - the app generates structured prompt/context
 - the user may use their own external AI assistant
@@ -82,22 +93,21 @@ Near-term AI support is provider-free external draft import:
 - the user reviews and edits before saving
 - Supabase remains the system of record
 
-LLMs may assist drafting later, but must not:
+LLMs may assist drafting, but must not:
 
 - replace deterministic progression
 - bypass validation
 - save unreviewed plans
 - become required for core functionality
-- require provider integration without explicit approval
-
-Provider-backed LLM integration remains deferred unless explicitly approved.
+- require provider integration outside an explicitly approved campaign
+- generate active-plan phase alternatives or automatic next-phase replacements in this campaign
 
 ## UX Principles
 
 - Mobile-first, clear, and action-oriented.
 - Emphasize what to do today, where the user is in the current phase, and what comes next.
 - Keep plan detail in Plans rather than duplicating it everywhere.
-- Keep AI workflows transparent: copy, import, validate, review, save.
+- Keep AI workflows transparent: draft, validate, review, edit, save.
 - Preserve safety and validation guidance even when reducing copy.
 - Use "Phase" for user-facing progressive training segments while preserving compatibility names such as `plan_phases`.
 
@@ -106,10 +116,11 @@ Provider-backed LLM integration remains deferred unless explicitly approved.
 - Do not become a generic exercise logger.
 - Do not remove the planned phase/block structure.
 - Do not require an LLM for core flows.
-- Do not add provider-backed LLM integration without explicit approval.
+- Do not add provider-backed LLM integration outside an explicitly approved campaign.
 - Do not save AI-generated plans without validation and user review.
 - Do not weaken auth, RLS, or private user data assumptions.
 - Do not replace clinician judgment or diagnose medical conditions.
+- Do not add AI-generated phase alternatives or automatic next-phase replacement during the Direct AI-Guided Plan Creation campaign.
 
 ## Success Criteria
 
@@ -119,8 +130,8 @@ The product is successful when users can:
 - know what workout to do today
 - log sessions with minimal friction
 - see progression status and next action clearly
-- create and edit plans without AI provider dependencies
-- use optional external AI draft import safely
+- create and edit plans without AI provider dependencies when direct AI is disabled
+- use optional external or provider-backed AI draft support safely
 - trust that history remains readable after plan changes
 
 ## Future Product Opportunities
@@ -130,4 +141,4 @@ The product is successful when users can:
 - Read-only plan sharing
 - Richer history and trend views
 - Admin-editable exercise catalog
-- Provider-backed LLM drafting after deterministic and review-before-save paths are mature
+- AI-assisted phase alternatives after direct plan drafting is proven safe

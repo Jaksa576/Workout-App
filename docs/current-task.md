@@ -2,11 +2,11 @@
 
 ## Current Status
 
-No active implementation slice or campaign is open.
+Direct AI-Guided Plan Creation is the active campaign.
 
 Slice 10, AI-Enriched Exercise Instructions And Demo Links, is complete and merged into `main`. The follow-up user-timezone dashboard/date patch is also complete and merged into `main`.
 
-The project is between active slices. The next step is to choose and plan the next product slice from the roadmap.
+Slice 1, Campaign docs and AI boundary approval, is complete. It approved optional provider-backed direct AI plan drafting for this campaign while preserving non-AI plan creation, strict validation, review-before-save, deterministic progression, and phase-based plan structure.
 
 ## Completed Context
 
@@ -47,11 +47,15 @@ Timezone patch validation completed before merge:
 
 ## Active Campaigns
 
-No active campaign doc exists. `docs/campaigns/` currently contains only `docs/campaigns/archived/`.
+The active campaign doc is `docs/campaigns/direct-ai-plan-creation.md`.
+
+No other active campaign doc should exist outside `docs/campaigns/archived/`.
 
 ## Next Action
 
-Choose and plan the next product slice. Use `docs/roadmap.md` for sequencing and deferred work, and keep any new campaign brief under `docs/campaigns/` only when an active campaign actually begins.
+Proceed to Slice 2: AI-first `/plans/new` UX shell, feature-gated, without provider calls.
+
+Do not implement Gemini integration, migrations, `/plans/new` behavior changes, or new environment variables in Slice 1.
 
 ## Source Of Truth
 
@@ -86,6 +90,6 @@ For docs-only changes, run `git status` and `git diff --stat`, confirm the diff 
 Stop and report before editing further if:
 
 - docs conflict about whether Slice 10 or the timezone patch is complete
-- an active campaign doc appears outside `docs/campaigns/archived/`
-- cleanup requires product roadmap decisions instead of status reconciliation
+- another active campaign doc appears outside `docs/campaigns/archived/`
+- campaign scope requires implementation decisions beyond docs alignment
 - branch state becomes ambiguous

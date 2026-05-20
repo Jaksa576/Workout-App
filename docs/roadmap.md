@@ -378,7 +378,22 @@ Post-Slice 10 timezone follow-up:
 - Persisted the timezone client-side in a cookie/localStorage for authenticated server-rendered routes.
 - Kept the patch migration-free with no schema, auth/RLS, session payload, AI, or progression-engine changes.
 
-## 11. Broader Polish And Branding
+## 11. Direct AI-Guided Plan Creation
+
+Status: active campaign; Slice 1 docs-only alignment is complete.
+
+Active campaign brief: `docs/campaigns/direct-ai-plan-creation.md`.
+
+- Approve optional provider-backed AI plan drafting for this campaign while keeping plan creation fully usable without an LLM.
+- Make AI-Guided Plan the primary `/plans/new` path only when enabled by feature flag and server-side provider configuration.
+- Keep Guided Setup, Manual Builder, and provider-free external AI import available.
+- Keep provider keys server-only, enforce server-side quota, and return typed recoverable errors.
+- Validate generated drafts strictly and route valid drafts into the existing review/edit/save flow.
+- Save only after user review through the existing structured plan write path.
+- Preserve deterministic progression and phase-based plan structure.
+- Keep AI-assisted phase alternatives, automatic next-phase replacement, substitutions, history/trends, and broad redesign deferred.
+
+## 12. Broader Polish And Branding
 
 Status: planned if still needed.
 
@@ -430,11 +445,11 @@ Status: planned if still needed.
 - Defer the interaction design for quick user choices or alternate-session selection until a later workout execution/flexibility slice.
 - This is not part of the current redesign-priority sequence unless a later slice explicitly pulls it in.
 
-## Deferred AI / LLM Drafting
+## Direct And Deferred AI / LLM Drafting
 
-Near-term external AI draft import should arrive before any provider-backed in-app LLM work.
+Provider-backed AI-Guided Plan drafting is approved only for the active Direct AI-Guided Plan Creation campaign.
 
-Near-term external AI draft import:
+The existing external AI draft import:
 
 - is implemented in `/plans/new`
 - should stay inside plan creation, not onboarding
@@ -444,9 +459,7 @@ Near-term external AI draft import:
 - should require review before persistence
 - should not add provider integration, API-key handling, or runtime LLM dependencies
 
-Later optional provider-backed LLM drafting remains deferred.
-
-When implemented:
+For the active direct-AI campaign:
 
 - provider-backed LLM drafting should plug into plan creation, not onboarding
 - the LLM should be a structured plan-drafting assistant, not the system of record
@@ -454,6 +467,8 @@ When implemented:
 - draft output must be validated before persistence
 - API keys and provider details must stay server-side
 - the app must remain fully functional without LLM configuration
+
+AI-assisted phase alternatives, automatic next-phase replacement, AI substitutions, and history/trends-aware AI remain deferred.
 
 ## Ongoing Maintenance
 
