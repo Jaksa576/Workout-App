@@ -22,19 +22,19 @@ Purpose:
 
 The first child issue must be discovery and domain-contract work only. It should verify the current schema, API, RLS, history, and progression seams before any broad migration or UI replacement.
 
-Expected child-issue sequence:
+Approved child-issue sequence after Issue #9 discovery:
 
-1. discovery, domain contract, and issue breakdown
-2. set-result data foundation and compatibility reads
-3. in-progress workout lifecycle and elapsed-time shell
-4. reps and weight-plus-reps execution
-5. timed, distance, unilateral, and completion-oriented tracking
+1. Issue #9 — discovery, domain contract, and issue breakdown (docs-only)
+2. Issue #10 — set-result data foundation and execution/history reset
+3. active-session lifecycle, local draft recovery, and elapsed-time shell
+4. weight-plus-reps and reps-only execution
+5. duration, distance-duration, unilateral, and completion-oriented tracking
 6. rest timer integration and session controls
 7. exercise Summary / History / How-to surface
-8. finish flow, atomic save, and progression integration
+8. finish flow, atomic save, dashboard/history reads, and progression integration
 9. settings, accessibility, polish, and comprehensive QA
 
-The exact sequence may be refined by the approved discovery issue.
+Issue #10 must land the committed Supabase migration, canonical schema update, generated-type update, RLS/index strategy, and preview QA handoff before broad UI replacement begins.
 
 ## Queued Priority
 
