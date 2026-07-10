@@ -1,79 +1,70 @@
 # Current Task
 
-## Current Status
+## Current Priority
 
-Direct AI-Guided Plan Creation is the active campaign.
+GitHub Issue #6 — **Campaign: Overhaul workout execution and exercise recording experience** — is now the top product and development priority.
 
-Slice 10, AI-Enriched Exercise Instructions And Demo Links, is complete and merged into `main`. The follow-up user-timezone dashboard/date patch is also complete and merged into `main`.
+Although the issue title still uses “Campaign,” development is now issue-driven. No campaign document should be created for this work. The umbrella issue should be broken into independently reviewable child issues, and each pull request should reference the child issue it implements.
 
-Slice 1, Campaign docs and AI boundary approval, is complete. It approved optional provider-backed direct AI plan drafting for this campaign while preserving non-AI plan creation, strict validation, review-before-save, deterministic progression, and phase-based plan structure.
+## Why This Was Reprioritized
 
-## Completed Context
+The previous direct AI-guided plan creation work completed only its docs/planning step. Provider-backed implementation has not started.
 
-Slice 10 improved the provider-free `/plans/new` Draft with AI path:
+Workout execution and set-result changes may affect:
 
-- external AI prompts now request optional exercise guidance fields and optional YouTube demo/search fields
-- AI import accepts bounded optional guidance fields without weakening required plan/phase/workout/exercise validation
-- invalid or unsupported imported YouTube URLs are safely dropped instead of becoming saved links
-- users can review, edit, or remove exercise guidance and video links before saving
-- saved plan details and workout execution show compact setup, cues, safety notes, search text, and demo links when present
-- reviewed guidance persists migration-free through `exercise_entries.coaching_note`
-- reviewed demo links persist through `exercise_entries.video_url`
+- exercise tracking metadata
+- prescription snapshots
+- supported units and tracking types
+- unilateral conventions
+- workout/session persistence
+- history queries
+- deterministic progression inputs
+- the structured exercise output expected from future AI-generated plans
 
-The timezone follow-up fixed user-facing local-date behavior:
+For that reason, Issue #6 should establish the durable workout/exercise recording contract before direct AI-generated plan implementation proceeds.
 
-- dashboard today/current-workout logic, weekly preview, activity summary, and workout progress summaries use the browser-detected IANA timezone when available
-- completed-on defaults and validation use the same local-date basis
-- timezone is persisted client-side in the `workout-app-time-zone` cookie/localStorage key
-- no schema, auth/RLS, session payload, AI, or progression-engine changes were introduced
+## Immediate Next Action
 
-## Validation Summary
+Create and implement the first child issue under #6:
 
-Slice 10 validation completed before merge:
+**Discovery, domain contract, and issue breakdown**
 
-- `npm run typecheck`: passed
-- `npm run test`: passed, 9 test files and 56 tests
-- `npm run build`: passed
-- `npm run check`: passed
-- `.\scripts\validate.ps1`: passed and delegated to `npm run check`
+This first step should be docs-first and should not change production workout behavior.
 
-Timezone patch validation completed before merge:
+It must:
 
-- `npm run typecheck`: passed
-- `npm run test`: passed, 10 test files and 61 tests
-- `npm run build`: passed
-- `npm run check`: passed
-- user review confirmed the timezone behavior works as expected
+- inspect the current `/workout` route and execution components
+- inspect `/api/sessions`, validation, types, queries, tests, schema migrations, and RLS
+- verify the real shape and usage of `workout_sessions` and `exercise_results`
+- define the active-session state machine
+- define the initial deterministic exercise tracking types
+- define unilateral exercise behavior
+- define prescription and result snapshot requirements
+- define legacy-session compatibility
+- define in-progress draft persistence and recovery expectations
+- define mobile route/state and information architecture boundaries
+- recommend the smallest migration-safe issue sequence
 
-## Active Campaigns
+The product owner must approve the resulting domain contract and child issue sequence before schema or broad execution UI implementation begins.
 
-The active campaign doc is `docs/campaigns/direct-ai-plan-creation.md`.
+## Queued Work
 
-No other active campaign doc should exist outside `docs/campaigns/archived/`.
+GitHub Issue #8 — **Feature: Direct AI-guided plan creation** — replaces the former active campaign document and is queued behind the foundational decisions from #6.
 
-## Next Action
+Reassess #8 after the first #6 discovery/domain issue is approved. It remains important, but its exercise-output contract should align with the new recording model.
 
-Proceed to Slice 2: AI-first `/plans/new` UX shell, feature-gated, without provider calls.
+## Workflow Source Of Truth
 
-Do not implement Gemini integration, migrations, `/plans/new` behavior changes, or new environment variables in Slice 1.
-
-## Source Of Truth
-
-Active hot-path docs:
+Active work is issue-driven:
 
 - `AGENTS.md`
 - `docs/product.md`
 - `docs/architecture.md`
 - `docs/roadmap.md`
 - `docs/current-task.md`
-- active `docs/campaigns/*.md` when relevant
+- GitHub Issue #6 and its active child issue
 
-Archived reference:
-
-- `docs/campaigns/archived/`
-- `docs/archive/`
-
-`docs/agent-handoff.md` is retired and is not required hot-path context.
+`docs/campaigns/` is deprecated and reference-only. Do not create or update campaign documents.
 
 ## Validation Expectations
 
@@ -83,13 +74,21 @@ For code changes, use:
 npm run check
 ```
 
+Before a final report from a local worktree, also run:
+
+```powershell
+.\scripts\verify-branch-pushed.ps1
+```
+
 For docs-only changes, run `git status` and `git diff --stat`, confirm the diff is docs-only, and do not run app build/test unless non-doc files are touched accidentally.
 
 ## Stop Conditions
 
-Stop and report before editing further if:
+Stop and report before implementation if:
 
-- docs conflict about whether Slice 10 or the timezone patch is complete
-- another active campaign doc appears outside `docs/campaigns/archived/`
-- campaign scope requires implementation decisions beyond docs alignment
-- branch state becomes ambiguous
+- the database schema or RLS differs from the assumptions in Issue #6
+- current code and docs disagree about session/result persistence
+- the first child issue requires committing to a schema before the domain contract is approved
+- implementation would create a parallel session system rather than migration-safely extending the existing one
+- progression behavior would change without an explicitly scoped and reviewed issue
+- branch state, push state, or target issue becomes ambiguous
