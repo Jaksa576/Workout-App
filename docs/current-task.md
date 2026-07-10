@@ -94,3 +94,8 @@ Stop and report before implementation if:
 - implementation would create a parallel session system rather than migration-safely extending the existing one
 - progression behavior would change without an explicitly scoped and reviewed issue
 - branch state, push state, or target issue becomes ambiguous
+## PR #25 Review Patch State (Issue #10)
+
+The PR #25 follow-up patch addresses the review blockers without broadening into the full active-workout UI. The current checklist remains exercise-level: checked metric-tracking exercises save completed `exercise_results` but create incomplete prescribed set rows because the checklist does not capture actual metrics. Completion-only checked exercises may create completed prescribed set rows.
+
+The static TypeScript exercise catalog is now the runtime source of default tracking metadata, and plan create/update paths snapshot effective metadata to `exercise_entries`. Final session persistence now goes through the `finalize_workout_session` RPC so the session header, exercise results, and set results are inserted in one database transaction before progression evaluation runs.

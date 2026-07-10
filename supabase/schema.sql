@@ -579,6 +579,7 @@ create policy "exercise results follow session ownership"
 -- Issue #10: reset disposable execution/history rows and install durable set-result schema.
 -- Reset scope: deletes only exercise_set_results (if present), exercise_results, and workout_sessions.
 -- Preserves auth.users, profiles, workout_plans, plan_phases, workout_templates, exercise_entries, and guidance fields.
+-- The exercise_entries backfill below is a one-time reviewed snapshot of the static TypeScript exercise catalog metadata for existing rows.
 
 create extension if not exists "pgcrypto";
 
@@ -628,7 +629,7 @@ update public.exercise_entries set
   tracking_type = case
     when source_exercise_id in ('goblet-squat','barbell-back-squat','romanian-deadlift','dumbbell-floor-press','dumbbell-shoulder-press','dumbbell-row','farmer-carry','dumbbell-lateral-raise','dumbbell-curl','lateral-lunge') then 'weight_reps'
     when source_exercise_id in ('brisk-walk','easy-run') then 'distance_duration'
-    when source_exercise_id in ('low-impact-cardio-march','run-walk-intervals','stride-drills','side-plank','farmer-carry','lateral-shuffle') then 'duration'
+    when source_exercise_id in ('low-impact-cardio-march','run-walk-intervals','stride-drills','side-plank','lateral-shuffle') then 'duration'
     when source_exercise_id is not null then 'reps_only'
     else 'completion'
   end,
@@ -742,7 +743,16 @@ as $$
 declare parent_tracking text; parent_unilateral text;
 begin
   select tracking_type, unilateral_mode into parent_tracking, parent_unilateral from public.exercise_results where id = new.exercise_result_id;
+  if parent_tracking is null then raise exception 'parent exercise_result % not found', new.exercise_result_id; end if;
+  if new.set_kind = 'prescribed' and new.prescribed_set_index is null then raise exception 'prescribed sets require prescribed_set_index'; end if;
+  if new.set_kind = 'added' and new.prescribed_set_index is not null then raise exception 'added sets must not have prescribed_set_index'; end if;
+  if new.status in ('skipped','incomplete') and new.completed_at is not null then raise exception 'skipped or incomplete sets must not retain completed_at'; end if;
   if parent_unilateral = 'same_each_side' and (new.actual_left_load is not null or new.actual_left_reps is not null or new.actual_left_duration_seconds is not null or new.actual_left_distance is not null or new.actual_right_load is not null or new.actual_right_reps is not null or new.actual_right_duration_seconds is not null or new.actual_right_distance is not null) then raise exception 'same_each_side stores scalar actual values only'; end if;
+  if parent_unilateral = 'independent_sides' and (new.actual_load is not null or new.actual_reps is not null or new.actual_duration_seconds is not null or new.actual_distance is not null) then raise exception 'independent_sides requires side-specific actual values'; end if;
+  if parent_tracking <> 'weight_reps' and (new.actual_load is not null or new.actual_left_load is not null or new.actual_right_load is not null) then raise exception 'load values are only valid for weight_reps'; end if;
+  if parent_tracking not in ('weight_reps','reps_only') and (new.actual_reps is not null or new.actual_left_reps is not null or new.actual_right_reps is not null) then raise exception 'rep values are not valid for this tracking type'; end if;
+  if parent_tracking not in ('duration','distance_duration') and (new.actual_duration_seconds is not null or new.actual_left_duration_seconds is not null or new.actual_right_duration_seconds is not null) then raise exception 'duration values are not valid for this tracking type'; end if;
+  if parent_tracking <> 'distance_duration' and (new.actual_distance is not null or new.actual_left_distance is not null or new.actual_right_distance is not null) then raise exception 'distance values are only valid for distance_duration'; end if;
   if new.status = 'completed' then
     if parent_unilateral = 'independent_sides' then
       if parent_tracking = 'weight_reps' and (new.actual_left_load is null or new.actual_left_reps is null or new.actual_right_load is null or new.actual_right_reps is null) then raise exception 'completed independent weight_reps requires left/right load and reps'; end if;
@@ -784,3 +794,39 @@ create policy "set results follow session ownership" on public.exercise_set_resu
 ) with check (
   exists (select 1 from public.exercise_results er join public.workout_sessions ws on ws.id = er.workout_session_id where er.id = exercise_set_results.exercise_result_id and ws.user_id = auth.uid())
 );
+
+
+create or replace function public.finalize_workout_session(p_session jsonb, p_exercise_results jsonb, p_set_results jsonb default '[]'::jsonb)
+returns public.workout_sessions
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare saved public.workout_sessions; actor uuid := auth.uid();
+begin
+  if actor is null then raise exception 'authenticated user required'; end if;
+  if not exists (
+    select 1 from public.workout_templates wt
+    join public.plan_phases pp on pp.id = wt.phase_id
+    join public.workout_plans wp on wp.id = pp.plan_id
+    where wt.id = (p_session->>'workout_template_id')::uuid and wp.user_id = actor and wp.archived_at is null
+  ) then raise exception 'workout is not owned by authenticated user'; end if;
+
+  insert into public.workout_sessions (id, user_id, workout_template_id, completed_on, completed, pain_occurred, perceived_difficulty, notes, recommendation, phase_id_at_completion, workout_name_snapshot, started_at, finished_at, elapsed_seconds, elapsed_source)
+  values ((p_session->>'id')::uuid, actor, (p_session->>'workout_template_id')::uuid, (p_session->>'completed_on')::date, (p_session->>'completed')::boolean, (p_session->>'pain_occurred')::boolean, p_session->>'perceived_difficulty', coalesce(p_session->>'notes',''), p_session->>'recommendation', nullif(p_session->>'phase_id_at_completion','')::uuid, p_session->>'workout_name_snapshot', (p_session->>'started_at')::timestamptz, (p_session->>'finished_at')::timestamptz, coalesce((p_session->>'elapsed_seconds')::integer,0), coalesce(p_session->>'elapsed_source','server_timestamp'))
+  returning * into saved;
+
+  insert into public.exercise_results (id, workout_session_id, source_workout_template_id, exercise_entry_id, source_exercise_id, exercise_name_snapshot, exercise_order, tracking_type, unilateral_mode, load_unit, distance_unit, primary_value_label, secondary_value_label, prescribed_target_text, completion_status)
+  select (r->>'id')::uuid, saved.id, (r->>'source_workout_template_id')::uuid, nullif(r->>'exercise_entry_id','')::uuid, r->>'source_exercise_id', r->>'exercise_name_snapshot', (r->>'exercise_order')::integer, r->>'tracking_type', r->>'unilateral_mode', r->>'load_unit', r->>'distance_unit', r->>'primary_value_label', r->>'secondary_value_label', r->>'prescribed_target_text', r->>'completion_status'
+  from jsonb_array_elements(p_exercise_results) as r;
+
+  insert into public.exercise_set_results (exercise_result_id, set_order, prescribed_set_index, set_kind, status, completed_at)
+  select (r->>'exercise_result_id')::uuid, (r->>'set_order')::integer, nullif(r->>'prescribed_set_index','')::integer, r->>'set_kind', r->>'status', nullif(r->>'completed_at','')::timestamptz
+  from jsonb_array_elements(p_set_results) as r;
+
+  return saved;
+end;
+$$;
+
+revoke all on function public.finalize_workout_session(jsonb,jsonb,jsonb) from public;
+grant execute on function public.finalize_workout_session(jsonb,jsonb,jsonb) to authenticated;

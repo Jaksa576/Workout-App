@@ -301,6 +301,12 @@ export type StructuredExerciseInput = {
   guidance?: ExerciseGuidance;
   videoUrl?: string;
   sourceExerciseId?: string | null;
+  trackingType?: ExerciseTrackingType;
+  unilateralMode?: UnilateralMode;
+  loadUnit?: "lb" | "kg" | null;
+  distanceUnit?: "mi" | "km" | "m" | null;
+  primaryValueLabel?: string | null;
+  secondaryValueLabel?: string | null;
 };
 
 export type StructuredWorkoutInput = {

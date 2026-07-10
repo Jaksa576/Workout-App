@@ -11,6 +11,7 @@ import type {
   Weekday
 } from "@/lib/types";
 import { normalizeExerciseVideoUrl } from "@/lib/validation";
+import { buildEffectiveTrackingMetadata } from "@/lib/execution-results";
 
 type SupabaseServerClient = Awaited<ReturnType<typeof getSupabaseServerClient>>;
 
@@ -88,6 +89,17 @@ function validateExercise(exercise: StructuredExerciseInput) {
     throw new Error("Exercise sets must be a whole number greater than zero.");
   }
 
+  const sourceExerciseId = exercise.sourceExerciseId?.trim() || null;
+  const metadata = buildEffectiveTrackingMetadata({
+    sourceExerciseId,
+    trackingType: exercise.trackingType,
+    unilateralMode: exercise.unilateralMode,
+    loadUnit: exercise.loadUnit,
+    distanceUnit: exercise.distanceUnit,
+    primaryValueLabel: exercise.primaryValueLabel,
+    secondaryValueLabel: exercise.secondaryValueLabel
+  });
+
   return {
     name: exercise.name.trim(),
     sets: exercise.sets,
@@ -98,7 +110,13 @@ function validateExercise(exercise: StructuredExerciseInput) {
       guidance: exercise.guidance
     }),
     videoUrl,
-    sourceExerciseId: exercise.sourceExerciseId?.trim() || null
+    sourceExerciseId,
+    trackingType: metadata.trackingType,
+    unilateralMode: metadata.unilateralMode,
+    loadUnit: metadata.loadUnit,
+    distanceUnit: metadata.distanceUnit,
+    primaryValueLabel: metadata.primaryValueLabel,
+    secondaryValueLabel: metadata.secondaryValueLabel
   };
 }
 
@@ -211,6 +229,12 @@ async function insertPlanStructure({
           coaching_note: exercise.coachingNote,
           video_url: exercise.videoUrl || null,
           source_exercise_id: exercise.sourceExerciseId,
+          tracking_type: exercise.trackingType,
+          unilateral_mode: exercise.unilateralMode,
+          load_unit: exercise.loadUnit,
+          distance_unit: exercise.distanceUnit,
+          primary_value_label: exercise.primaryValueLabel,
+          secondary_value_label: exercise.secondaryValueLabel,
           sort_order: exerciseIndex + 1
         }))
       );

@@ -1,3 +1,4 @@
+import { getExerciseTrackingMetadataBySourceId } from "@/lib/exercise-library";
 import type { ExerciseEntry, ExerciseTrackingType, UnilateralMode } from "@/lib/types";
 
 export type ExerciseTrackingMetadata = {
@@ -9,101 +10,40 @@ export type ExerciseTrackingMetadata = {
   secondaryValueLabel: string | null;
 };
 
-const weightRepsIds = new Set([
-  "goblet-squat",
-  "barbell-back-squat",
-  "romanian-deadlift",
-  "dumbbell-floor-press",
-  "dumbbell-shoulder-press",
-  "dumbbell-row",
-  "farmer-carry",
-  "dumbbell-lateral-raise",
-  "dumbbell-curl",
-  "lateral-lunge"
-]);
-
-const durationIds = new Set([
-  "low-impact-cardio-march",
-  "run-walk-intervals",
-  "stride-drills",
-  "side-plank",
-  "lateral-shuffle"
-]);
-
-const distanceDurationIds = new Set(["brisk-walk", "easy-run"]);
-
-const sameEachSideIds = new Set([
-  "reverse-lunge",
-  "step-up",
-  "walking-lunge",
-  "dumbbell-row",
-  "dead-bug",
-  "side-plank",
-  "hip-flexor-rockback",
-  "thoracic-rotation",
-  "ankle-rock",
-  "lateral-lunge",
-  "skater-hop"
-]);
-
 export function getDefaultTrackingMetadata(sourceExerciseId?: string | null): ExerciseTrackingMetadata {
-  if (!sourceExerciseId) {
-    return {
-      trackingType: "completion",
-      unilateralMode: "bilateral",
-      loadUnit: null,
-      distanceUnit: null,
-      primaryValueLabel: "Completion",
-      secondaryValueLabel: null
-    };
-  }
-
-  const unilateralMode = sameEachSideIds.has(sourceExerciseId) ? "same_each_side" : "bilateral";
-
-  if (weightRepsIds.has(sourceExerciseId)) {
-    return {
-      trackingType: "weight_reps",
-      unilateralMode,
-      loadUnit: "lb",
-      distanceUnit: null,
-      primaryValueLabel: "Load",
-      secondaryValueLabel: "Reps"
-    };
-  }
-
-  if (distanceDurationIds.has(sourceExerciseId)) {
-    return {
-      trackingType: "distance_duration",
-      unilateralMode,
-      loadUnit: null,
-      distanceUnit: "mi",
-      primaryValueLabel: "Distance",
-      secondaryValueLabel: "Duration"
-    };
-  }
-
-  if (durationIds.has(sourceExerciseId)) {
-    return {
-      trackingType: "duration",
-      unilateralMode,
-      loadUnit: null,
-      distanceUnit: null,
-      primaryValueLabel: "Duration",
-      secondaryValueLabel: null
-    };
-  }
-
+  const metadata = getExerciseTrackingMetadataBySourceId(sourceExerciseId);
   return {
-    trackingType: "reps_only",
-    unilateralMode,
-    loadUnit: null,
-    distanceUnit: null,
-    primaryValueLabel: "Reps",
-    secondaryValueLabel: null
+    trackingType: metadata.trackingType,
+    unilateralMode: metadata.unilateralMode,
+    loadUnit: metadata.loadUnit,
+    distanceUnit: metadata.distanceUnit,
+    primaryValueLabel: metadata.primaryValueLabel,
+    secondaryValueLabel: metadata.secondaryValueLabel
   };
 }
 
-export function buildPrescribedSetRows(exerciseResultId: string, exercise: Pick<ExerciseEntry, "sets">, completed: boolean) {
+export function buildEffectiveTrackingMetadata(
+  exercise: Pick<ExerciseEntry, "sourceExerciseId" | "trackingType" | "unilateralMode" | "loadUnit" | "distanceUnit" | "primaryValueLabel" | "secondaryValueLabel">
+): ExerciseTrackingMetadata {
+  const defaults = getDefaultTrackingMetadata(exercise.sourceExerciseId);
+  const trackingType = exercise.trackingType ?? defaults.trackingType;
+  return {
+    trackingType,
+    unilateralMode: exercise.unilateralMode ?? defaults.unilateralMode,
+    loadUnit: trackingType === "weight_reps" ? (exercise.loadUnit ?? defaults.loadUnit ?? "lb") : null,
+    distanceUnit: trackingType === "distance_duration" ? (exercise.distanceUnit ?? defaults.distanceUnit ?? "mi") : null,
+    primaryValueLabel: exercise.primaryValueLabel ?? defaults.primaryValueLabel,
+    secondaryValueLabel: exercise.secondaryValueLabel ?? defaults.secondaryValueLabel
+  };
+}
+
+export function buildPrescribedSetRows(
+  exerciseResultId: string,
+  exercise: Pick<ExerciseEntry, "sets">,
+  checked: boolean,
+  trackingType: ExerciseTrackingType = "completion"
+) {
+  const completed = checked && trackingType === "completion";
   return Array.from({ length: exercise.sets }, (_, index) => ({
     exercise_result_id: exerciseResultId,
     set_order: index,
