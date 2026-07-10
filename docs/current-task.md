@@ -2,7 +2,7 @@
 
 ## Current Priority
 
-GitHub Issue #6 — **Campaign: Overhaul workout execution and exercise recording experience** — remains the top product and development priority.
+GitHub Issue #6 — **Umbrella: Overhaul workout execution and exercise recording** — remains the top product and development priority.
 
 Issue #9 — **Discovery: Define workout execution and set-result domain contract** — has produced the docs-first domain contract in `docs/architecture.md`. No production workout behavior, schema, or API behavior changed in that discovery step.
 
@@ -34,9 +34,14 @@ This next step should implement the approved Supabase data foundation from the I
 - commit timestamped Supabase migration SQL for resetting disposable `workout_sessions` and `exercise_results` data and creating the durable session/exercise/set-result model
 - keep `supabase/schema.sql` canonical with the timestamped migrations
 - update generated database types in-repo
-- preserve auth users, profiles, plans, phases, workout templates, exercise entries, setup context, guidance, and current phase pointers
+- preserve auth users, profiles, plans, phases, workout templates, exercise entries, setup context, guidance, and current phase pointers; do not delete them without separate approval
+- initialize durable tracking metadata fields for catalog-backed and existing saved exercise entries, or stop for a prerequisite metadata issue if repository inspection proves that scope is too broad
 - define RLS ownership through `workout_sessions.user_id` for session, exercise-result, and set-result rows
 - add required parent/order/history indexes and a transaction or RPC save boundary
+- document the exact execution/history reset scope and app/schema deployment ordering
+- include verification SQL for reset row counts, schema objects, constraints/indexes, RLS policies, and authenticated smoke behavior where practical
+- include a Vercel preview QA checklist covering start, draft recover/discard, supported tracking types, skip/incomplete/add set behavior, finish/save, dashboard/history, and progression smoke checks
+- avoid undocumented hosted manual SQL; all schema-affecting changes must be committed in repository SQL
 - update API/data access only as needed for the new schema foundation while avoiding a broad UI rewrite
 - include the Supabase change handoff section required by the Issue #9 contract
 

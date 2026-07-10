@@ -75,29 +75,44 @@ Current persistence is session-level plus exercise-level only:
 
 ### Approved active-session lifecycle
 
-A selected workout from the current phase starts or resumes a single active session for that user and workout. The initial state machine is:
+A selected workout from the current phase starts or resumes one active draft for the authenticated user within the current browser/device profile. The initial state machine is:
 
-1. `not_started`: no active draft exists for the selected workout.
-2. `active`: a draft exists, elapsed time is running, prescribed sets are visible, and edits are recoverable.
+1. `not_started`: no active draft exists for the selected workout in the current browser/device profile.
+2. `active`: a local draft exists, elapsed time is running, prescribed sets are visible, and edits are recoverable on the same browser/device profile.
 3. `finishing`: the user has tapped Finish and is completing readiness, symptoms, notes, and final validation.
 4. `saved`: all session, exercise-result, and set-result records commit durably in one server transaction; progression is evaluated only after that save succeeds.
-5. `discarded`: the active draft is explicitly removed after confirmation.
+5. `discarded`: the local active draft is explicitly removed after confirmation.
 
-Pause is omitted initially. Elapsed time is measured from a persisted `started_at` plus optional accumulated offset reserved for future pause support. Refresh, same-device navigation away, and backgrounding must preserve elapsed-time continuity. Closing and reopening on the same device should recover the draft if local storage is still available. Cross-device resume is deferred until a later server-draft issue.
+Pause is omitted initially. Elapsed time is measured from a persisted `started_at` plus optional accumulated offset reserved for future pause support. Refresh, same-device navigation away, and backgrounding must preserve elapsed-time continuity. Closing and reopening on the same browser/device profile should recover the draft if local storage is still available. Cross-device resume is deferred until a later explicitly scoped server-draft issue.
 
-Only one active workout draft per user is supported initially. Starting a different workout must either resume the existing active draft, discard it after confirmation, or finish it before starting another. Stale active drafts older than seven local days should be surfaced as recover-or-discard, not silently saved or silently deleted.
+Initial active-draft scope is intentionally local-first: active workout drafts are scoped to the authenticated user plus the current browser/device profile, not globally unique across all devices. Only one active draft is allowed for that user within that browser/device profile. Starting a different workout on the same browser/device profile must either resume the existing local draft, discard it after confirmation, or finish it before starting another. Another browser/device may independently hold another local draft for the same authenticated user. Completed sessions remain server-backed and must never silently overwrite one another; concurrent completed saves must create distinct durable session records or fail with an explicit validation error. Cross-device active-draft discovery, uniqueness, resume, synchronization, and conflict resolution are deferred to a future explicitly scoped issue. User-facing copy must not imply that the active workout is synchronized across all devices.
+
+Stale active drafts older than the configured stale threshold should be surfaced as recover-or-discard, not silently saved or silently deleted. Seven local days is the initial default product value for that threshold; it is configurable/product-adjustable and must not be treated as an irreversible architecture invariant.
 
 ### Exercise tracking registry
 
-Tracking type must be explicit metadata from the exercise catalog or saved exercise entry snapshot. Runtime name-based inference is not allowed. The initial deterministic registry is bounded to:
+Tracking type and logging metadata must be explicit persisted metadata, never runtime exercise-name inference. The initial deterministic registry is bounded to:
 
-- `weight_reps`: load plus reps per set; units are `lb` or `kg`; summary may include completed sets, best load, total reps, and volume.
+- `weight_reps`: load plus reps per set; load units are `lb` or `kg`; summary may include completed sets, best load, total reps, and volume.
 - `reps_only`: reps per set; summary may include completed sets and total reps.
-- `duration`: duration per set or interval; units are seconds for storage and minute/second formatting for display.
+- `duration`: duration per set or interval; duration stores seconds and displays as minute/second formatting.
 - `distance_duration`: distance plus duration; distance units are `mi`, `km`, or `m`; duration stores seconds; summary may include total distance, total duration, and pace.
 - `completion`: set or exercise completion without performance quantity; summary is completion count/status.
 
-Required metadata for each exercise-result snapshot: tracking type, supported units, display labels, prescribed target text, source exercise identity when present, saved exercise-entry identity when present, and safe fallback display values for custom exercises. If catalog metadata is missing, the fallback tracking type is `completion` until the user or plan-edit flow explicitly chooses richer tracking.
+Canonical metadata ownership is:
+
+- The exercise catalog owns default tracking metadata for catalog-backed exercises: default `tracking_type`, supported `load_unit` values, supported `distance_unit` values, display labels, and default `unilateral_mode`. Expected durable catalog fields are `tracking_type`, `default_load_unit`, `supports_lb`, `supports_kg`, `default_distance_unit`, `supports_mi`, `supports_km`, `supports_m`, `primary_value_label`, `secondary_value_label`, and `default_unilateral_mode`, with exact SQL names adjusted to repository conventions.
+- Saved plan exercise entries snapshot the effective metadata used by that plan so plan history remains readable after catalog defaults change. Expected durable `exercise_entries` fields are `tracking_type`, `load_unit`, `distance_unit`, `primary_value_label`, `secondary_value_label`, `unilateral_mode`, `catalog_exercise_id` or another stable source exercise identity, and display-name/prescription text snapshots.
+- Plan exercise entries may override catalog defaults only through explicit validated fields in plan creation/editing. Overrides must remain within the registry above and within the catalog-supported unit set unless the exercise is custom.
+- Session exercise results snapshot the effective metadata again for durable history: tracking type, units, display labels, unilateral mode, display name, source catalog exercise identity, source saved exercise-entry identity, prescription target text, and exercise order.
+- Custom exercises must explicitly choose a `tracking_type` and `unilateral_mode` in plan creation/editing before they can use richer logging than `completion`; the flow may default them to `completion` only as a safe temporary choice that the user can review and change.
+- Missing metadata uses `completion` only as a temporary safe fallback. It is not a substitute for classifying existing saved exercises.
+- Existing saved exercises must be classified or initialized by an explicit migration/update strategy, not by silent name guessing at runtime. Acceptable strategies are a reviewed catalog mapping for catalog-backed rows, a conservative `completion` initialization for unknown/custom rows, and/or a user-visible edit flow for upgrading custom exercises.
+- No runtime exercise-name inference, fuzzy matching, or label parsing is allowed for tracking type, units, or unilateral mode.
+
+These metadata fields and the initialization/backfill strategy belong in Issue #10 unless repository inspection during that issue proves the combined migration is no longer reviewable. If Issue #10 cannot include them safely, it must stop and open a prerequisite metadata-foundation issue before creating set-result tables that depend on the fields.
+
+Required metadata for each exercise-result snapshot: `tracking_type`, `load_unit`, `distance_unit`, `primary_value_label`, `secondary_value_label`, `unilateral_mode`, `prescribed_target_text`, source exercise identity when present, saved exercise-entry identity when present, exercise order, and safe fallback display values for custom exercises.
 
 ### Unilateral convention
 
@@ -111,11 +126,64 @@ Planned and actual set rows must snapshot the unilateral mode. Volume semantics 
 
 ### Set-result persistence model
 
-Issue #10 should replace disposable execution/history data with a normalized completed-session model:
+Issue #10 should replace disposable execution/history data with a normalized completed-session model. Exact SQL names may be adjusted to repository conventions, but the relational contract must remain explicit enough that implementation does not invent product behavior while coding.
 
-- `workout_sessions`: durable session header for saved sessions, extended with lifecycle timestamps such as `started_at`, `finished_at`, elapsed seconds, source workout/plan/phase snapshots, check-in fields, and progression outputs.
-- `exercise_results`: one row per exercise within a saved session, including workout-session ID, source workout-template ID, source exercise-entry ID, catalog/source exercise ID, exercise display snapshot, tracking type, unit snapshot, unilateral mode, prescription snapshot, exercise order, completion status, and exercise-session notes.
-- `exercise_set_results`: one row per planned or added set, including exercise-result ID, set order, source prescribed-set identity when available, set kind (`prescribed` or `added`), status (`completed`, `skipped`, or `incomplete`), prescribed value snapshot, actual value fields appropriate to the tracking type, side values when needed, completed timestamp, and validation-safe metadata.
+`workout_sessions` remains the durable session header for saved sessions and should be extended with lifecycle fields such as `started_at timestamptz not null`, `finished_at timestamptz not null`, `elapsed_seconds integer not null`, source workout/plan/phase IDs and display snapshots, check-in fields, notes, pain/readiness fields, and progression outputs. `elapsed_seconds` must be nonnegative, and `finished_at` must be greater than or equal to `started_at`.
+
+`exercise_results` stores one row per exercise within a saved session. Recommended column-level shape:
+
+- `id uuid primary key` and `workout_session_id uuid not null` referencing `workout_sessions` with cascading delete according to existing repo convention.
+- `source_workout_template_id uuid null` for the originating workout template.
+- `exercise_entry_id uuid null` for the source saved plan exercise entry when available.
+- `catalog_exercise_id uuid null` or `source_exercise_id uuid null` for stable catalog/source identity when available.
+- `exercise_name text not null` or equivalent display-name snapshot.
+- `exercise_order integer not null` with a nonnegative check.
+- `tracking_type text not null` constrained to `weight_reps`, `reps_only`, `duration`, `distance_duration`, or `completion`.
+- `unilateral_mode text not null` constrained to `bilateral`, `same_each_side`, or `independent_sides`.
+- `load_unit text null` constrained to `lb` or `kg`; required only when `tracking_type = 'weight_reps'`.
+- `distance_unit text null` constrained to `mi`, `km`, or `m`; required only when `tracking_type = 'distance_duration'`.
+- `primary_value_label text null` and `secondary_value_label text null` as display-label snapshots.
+- `prescribed_target_text text null` for the human-readable prescription snapshot from the plan.
+- `completion_status text not null` constrained to `completed`, `partial`, `skipped`, or `incomplete`; exact labels may align with repo conventions, but the contract must distinguish complete, partial, skipped, and incomplete exercise outcomes.
+- `notes text null`.
+- `created_at timestamptz not null` and `updated_at timestamptz not null` if required by repo convention.
+
+`exercise_set_results` stores one row per planned or added set. Recommended column-level shape:
+
+- `id uuid primary key`.
+- `exercise_result_id uuid not null` referencing `exercise_results`.
+- `set_order integer not null` with a nonnegative check and a unique constraint on `(exercise_result_id, set_order)`.
+- `prescribed_set_index integer null` with a nonnegative check. Current prescribed sets may not have durable row IDs, so Issue #10 should snapshot the prescribed set index/order instead of implying a source prescribed-set identity. Added sets use `null`.
+- `set_kind text not null` constrained to `prescribed` or `added`.
+- `status text not null` constrained to `completed`, `skipped`, or `incomplete`.
+- Prescribed scalar snapshots: `prescribed_load numeric(8,2) null`, `prescribed_reps integer null`, `prescribed_duration_seconds integer null`, and `prescribed_distance numeric(10,3) null`.
+- Actual scalar values: `actual_load numeric(8,2) null`, `actual_reps integer null`, `actual_duration_seconds integer null`, and `actual_distance numeric(10,3) null`.
+- Independent-side values only if independent-side storage is approved in Issue #10: `actual_left_load numeric(8,2) null`, `actual_left_reps integer null`, `actual_left_duration_seconds integer null`, `actual_left_distance numeric(10,3) null`, `actual_right_load numeric(8,2) null`, `actual_right_reps integer null`, `actual_right_duration_seconds integer null`, and `actual_right_distance numeric(10,3) null`. If this makes Issue #10 unreasonably broad, Issue #10 should ship `same_each_side` support and explicitly defer `independent_sides` rows rather than inventing a parallel shape.
+- `completed_at timestamptz null`.
+- `created_at timestamptz not null` and `updated_at timestamptz not null` if required by repo convention.
+
+Unit normalization rules:
+
+- Store load in the `exercise_results.load_unit` selected for that exercise result; do not mix `lb` and `kg` within one exercise result.
+- Store distance in the `exercise_results.distance_unit` selected for that exercise result; do not mix `mi`, `km`, and `m` within one exercise result.
+- Store durations as integer seconds.
+- Convert only at validated user-entry boundaries; history displays must use the snapshotted unit instead of current profile preferences when showing stored values.
+
+Nullability and value checks:
+
+- All numeric and integer metric columns must be nonnegative when present.
+- `actual_reps`, `prescribed_reps`, `actual_duration_seconds`, and `prescribed_duration_seconds` are integers.
+- `completed_at` is required when `status = 'completed'` and must be null when `status` is `skipped` or `incomplete`, unless a future issue explicitly adds audit semantics for skip timestamps.
+- `skipped` and `incomplete` set rows must not require actual performance values. They may retain prescribed snapshots.
+- `completed` rows must satisfy the fields required by their tracking type and unilateral mode.
+- For `weight_reps`, completed bilateral or same-each-side rows require `actual_load` and `actual_reps`; independent-sides rows require approved left/right load and reps fields.
+- For `reps_only`, completed bilateral or same-each-side rows require `actual_reps`; independent-sides rows require approved left/right reps fields.
+- For `duration`, completed bilateral or same-each-side rows require `actual_duration_seconds`; independent-sides rows require approved left/right duration fields.
+- For `distance_duration`, completed bilateral or same-each-side rows require `actual_distance` and `actual_duration_seconds`; independent-sides rows require approved left/right distance and duration fields.
+- For `completion`, completed rows require no metric values.
+- `same_each_side` stores one actual value plus unilateral metadata; history/volume calculations know that value applies to each side. `independent_sides` stores explicit left/right values and must not be approximated from a single value.
+
+Scalar columns are preferred for all initially supported metrics. Bounded JSON is allowed only for a narrowly documented future-proof metadata purpose such as preserving a validated raw source payload or display-only import note; JSON must not be the canonical storage for load, reps, duration, distance, status, order, units, source identities, or unilateral side values in Issue #10.
 
 Prescribed sets remain visible and may be marked skipped or incomplete; they are not silently deleted. Added sets are session-only additions and must not rewrite the plan. Reorder, add/remove exercise, and substitution should be represented by extension columns or later child tables without requiring a parallel session system. Actual performance values never automatically mutate `exercise_entries`; a later issue may offer an explicit “update planned workout” prompt for meaningful structural changes.
 
@@ -125,14 +193,17 @@ The save boundary should be one server transaction or RPC that writes the sessio
 
 Existing `workout_sessions` and `exercise_results` records are disposable test execution/history data for this overhaul. Issue #10 may reset those records with committed SQL in a timestamped migration. Preserve `profiles`, `workout_plans`, `plan_phases`, `workout_templates`, `exercise_entries`, setup context, guidance fields, current phase pointers, and auth users unless a later approved migration explicitly scopes otherwise.
 
-The approved database rollout sequence is:
+The approved database rollout sequence for Issue #10 is:
 
-1. Commit a timestamped Supabase migration that deletes disposable execution/history rows, replaces or extends execution tables, creates `exercise_set_results`, adds constraints/indexes/RLS, and updates `supabase/schema.sql` to the same canonical end state.
-2. Regenerate database types in the repository after the migration shape is committed.
-3. Update read/write code behind feature-compatible route changes in the same PR or in an immediately following PR that is ordered before deployment to shared preview.
-4. Run preview QA flows against a reset test environment before promoting.
+1. Commit timestamped Supabase migration SQL that resets only disposable execution/history rows, replaces or extends execution tables, creates `exercise_set_results`, initializes required tracking metadata fields, adds constraints/indexes/RLS, and documents the exact reset scope in the migration or PR handoff.
+2. Synchronize `supabase/schema.sql` to the same canonical end state in the same PR.
+3. Regenerate database types in the repository after the migration shape is committed.
+4. Update read/write code behind feature-compatible route changes in the same PR or in an immediately following PR that is ordered before deployment to shared preview.
+5. Apply schema before app code that writes the new model; do not merge or deploy app code that depends on missing schema.
+6. Include verification SQL for reset row counts, table/column/constraint/index existence, RLS policy presence, and authenticated smoke insert/select behavior where practical.
+7. Run the Vercel preview QA checklist against a reset test environment before promoting.
 
-`supabase/schema.sql` remains canonical alongside timestamped migrations: migrations describe apply order, while `schema.sql` must reflect the expected full database state after all migrations. Do not leave hosted database actions as “apply manually in Supabase” without committed repository SQL.
+`supabase/schema.sql` remains canonical alongside timestamped migrations: migrations describe apply order, while `schema.sql` must reflect the expected full database state after all migrations. Do not leave hosted database actions as “apply manually in Supabase” without committed repository SQL. Issue #10 must not delete auth users, profiles, workout plans, plan phases, workout templates, or exercise entries without separate approval.
 
 Compatibility expectation: old app against new schema is not required after the reset migration because execution/history data is disposable and the deployment must pair schema and app changes. New app against old schema is also not supported for set-level execution. The PR sequence must therefore call out deployment ordering and avoid merging app code that writes the new model before the migration PR is applied to the target environment.
 
@@ -146,13 +217,12 @@ Initial draft persistence is local-first. Store active workout draft state on th
 
 Prior values must be selected deterministically with this precedence:
 
-1. same workout template and same exercise-entry ID,
-2. same saved exercise-entry ID after plan edits when snapshot identity is preserved,
-3. same catalog/source exercise ID within the same user history,
-4. same plan and compatible tracking type/unit when the exercise was intentionally replaced,
-5. no prior value.
+1. same workout template and same saved exercise-entry identity;
+2. same stable saved exercise-entry identity after plan edits when that identity is preserved;
+3. same stable catalog/source exercise identity within the authenticated user’s history;
+4. no previous value.
 
-Fuzzy exercise-name matching is not allowed. Custom exercises without stable identity use only exact saved entry identity; if that identity is gone, show no prior value rather than guessing.
+For a session-time replacement, prior values follow the performed replacement exercise’s stable catalog/source identity. If that replacement identity has no matching history, show no previous value. Never borrow prior values from an unrelated exercise based only on tracking type, unit, plan membership, or compatible metric shape. Fuzzy exercise-name matching is not allowed. Custom exercises without stable identity use only exact saved entry identity; if that identity is gone, show no prior value rather than guessing.
 
 ### Mobile information architecture
 
