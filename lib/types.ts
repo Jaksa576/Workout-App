@@ -26,6 +26,10 @@ export type UserSummary = {
   email: string | null;
 };
 
+export type ExerciseTrackingType = "weight_reps" | "reps_only" | "duration" | "distance_duration" | "completion";
+
+export type UnilateralMode = "bilateral" | "same_each_side" | "independent_sides";
+
 export type ExerciseEntry = {
   id: string;
   name: string;
@@ -36,6 +40,12 @@ export type ExerciseEntry = {
   guidance?: ExerciseGuidance;
   videoUrl?: string;
   sourceExerciseId?: string | null;
+  trackingType?: ExerciseTrackingType;
+  unilateralMode?: UnilateralMode;
+  loadUnit?: "lb" | "kg" | null;
+  distanceUnit?: "mi" | "km" | "m" | null;
+  primaryValueLabel?: string | null;
+  secondaryValueLabel?: string | null;
 };
 
 export type Weekday = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";

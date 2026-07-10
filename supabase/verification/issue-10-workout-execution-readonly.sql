@@ -1,0 +1,9 @@
+-- Issue #10 read-only verification SQL. Run after applying committed migrations.
+select table_name from information_schema.tables where table_schema = 'public' and table_name in ('workout_sessions','exercise_results','exercise_set_results') order by table_name;
+select table_name, column_name, data_type from information_schema.columns where table_schema = 'public' and table_name in ('workout_sessions','exercise_results','exercise_set_results','exercise_entries') and column_name in ('tracking_type','unilateral_mode','load_unit','distance_unit','started_at','finished_at','elapsed_seconds','exercise_order','set_order','status') order by table_name, column_name;
+select conrelid::regclass as table_name, conname from pg_constraint where conrelid in ('public.workout_sessions'::regclass,'public.exercise_results'::regclass,'public.exercise_set_results'::regclass,'public.exercise_entries'::regclass) order by 1,2;
+select schemaname, tablename, indexname from pg_indexes where schemaname = 'public' and tablename in ('workout_sessions','exercise_results','exercise_set_results') order by tablename, indexname;
+select schemaname, tablename, policyname, cmd from pg_policies where schemaname = 'public' and tablename in ('workout_sessions','exercise_results','exercise_set_results') order by tablename, policyname;
+select 'workout_sessions' as table_name, count(*) as rows_after_reset from public.workout_sessions union all select 'exercise_results', count(*) from public.exercise_results union all select 'exercise_set_results', count(*) from public.exercise_set_results;
+select tracking_type, count(*) from public.exercise_entries group by tracking_type order by tracking_type;
+select count(*) filter (where source_exercise_id is null and tracking_type = 'completion') as custom_or_unknown_completion_fallbacks, count(*) as total_entries from public.exercise_entries;

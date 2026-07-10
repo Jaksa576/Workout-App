@@ -6,6 +6,7 @@ import { getServerTimeZone } from "@/lib/server-time-zone";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 import type { WorkoutSession } from "@/lib/types";
 import { generateRecommendation } from "@/lib/recommendation";
+import { buildPrescribedSetRows, getDefaultTrackingMetadata } from "@/lib/execution-results";
 import { isWorkoutSessionInput } from "@/lib/validation";
 
 export async function POST(request: Request) {
@@ -46,8 +47,9 @@ export async function POST(request: Request) {
 
   const { data: exercises, error: exercisesError } = await supabase
     .from("exercise_entries")
-    .select("id, name")
-    .eq("workout_template_id", body.workoutTemplateId);
+    .select("id, name, sets, reps, sort_order, source_exercise_id, tracking_type, unilateral_mode, load_unit, distance_unit, primary_value_label, secondary_value_label")
+    .eq("workout_template_id", body.workoutTemplateId)
+    .order("sort_order", { ascending: true });
 
   if (exercisesError) {
     return NextResponse.json({ error: exercisesError.message }, { status: 500 });
@@ -75,7 +77,11 @@ export async function POST(request: Request) {
       notes: body.notes.trim(),
       recommendation: recommendation.title,
       phase_id_at_completion: workout.phase_id,
-      workout_name_snapshot: workout.name
+      workout_name_snapshot: workout.name,
+      started_at: new Date().toISOString(),
+      finished_at: new Date().toISOString(),
+      elapsed_seconds: 0,
+      elapsed_source: "server_timestamp"
     })
     .select("id, workout_template_id, workout_name_snapshot, created_at, completed_on, completed, pain_occurred, perceived_difficulty, notes, recommendation, phase_id_at_completion, progression_decision, progression_reason")
     .single();
@@ -88,20 +94,56 @@ export async function POST(request: Request) {
   }
 
   const validExerciseIds = new Set(body.completedExerciseIds);
-  const { error: resultsError } = await supabase.from("exercise_results").insert(
-    (exercises ?? []).map((exercise) => ({
-      workout_session_id: session.id,
-      exercise_entry_id: exercise.id,
-      exercise_name_snapshot: exercise.name,
-      completed: validExerciseIds.has(exercise.id),
-      pain_flag: body.painOccurred && validExerciseIds.has(exercise.id)
-    }))
-  );
+  const exercisePayload = (exercises ?? []).map((exercise, index) => {
+    const fallback = getDefaultTrackingMetadata(exercise.source_exercise_id);
+    const trackingType = exercise.tracking_type ?? fallback.trackingType;
+    const unilateralMode = exercise.unilateral_mode ?? fallback.unilateralMode;
 
-  if (resultsError) {
+    return {
+      workout_session_id: session.id,
+      source_workout_template_id: body.workoutTemplateId,
+      exercise_entry_id: exercise.id,
+      source_exercise_id: exercise.source_exercise_id,
+      exercise_name_snapshot: exercise.name,
+      exercise_order: exercise.sort_order ?? index,
+      tracking_type: trackingType,
+      unilateral_mode: unilateralMode,
+      load_unit: exercise.load_unit ?? fallback.loadUnit,
+      distance_unit: exercise.distance_unit ?? fallback.distanceUnit,
+      primary_value_label: exercise.primary_value_label ?? fallback.primaryValueLabel,
+      secondary_value_label: exercise.secondary_value_label ?? fallback.secondaryValueLabel,
+      prescribed_target_text: `${exercise.sets} sets × ${exercise.reps}`,
+      completion_status: validExerciseIds.has(exercise.id) ? "completed" : "incomplete"
+    };
+  });
+
+  const { data: exerciseResults, error: resultsError } = await supabase
+    .from("exercise_results")
+    .insert(exercisePayload)
+    .select("id, exercise_entry_id");
+
+  if (resultsError || !exerciseResults) {
     await supabase.from("workout_sessions").delete().eq("id", session.id).eq("user_id", user.id);
 
-    return NextResponse.json({ error: resultsError.message }, { status: 500 });
+    return NextResponse.json({ error: resultsError?.message ?? "Unable to save exercise results." }, { status: 500 });
+  }
+
+  const resultIdByEntryId = new Map(exerciseResults.map((result) => [result.exercise_entry_id, result.id]));
+  const setPayload = (exercises ?? []).flatMap((exercise) => {
+    const exerciseResultId = resultIdByEntryId.get(exercise.id);
+    return exerciseResultId
+      ? buildPrescribedSetRows(exerciseResultId, exercise, validExerciseIds.has(exercise.id))
+      : [];
+  });
+
+  if (setPayload.length > 0) {
+    const { error: setResultsError } = await supabase.from("exercise_set_results").insert(setPayload);
+
+    if (setResultsError) {
+      await supabase.from("workout_sessions").delete().eq("id", session.id).eq("user_id", user.id);
+
+      return NextResponse.json({ error: setResultsError.message }, { status: 500 });
+    }
   }
 
   const plans = await getPlans();

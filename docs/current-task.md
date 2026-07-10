@@ -29,6 +29,8 @@ Implement the next child issue under #6:
 
 **Issue #10 — Set-result data foundation and execution/history reset**
 
+Implementation has been prepared in-repo with committed migration SQL, schema snapshot updates, app write-path adaptation, verification SQL, and architecture documentation. Hosted Supabase migration application remains intentionally pending product-owner/ChatGPT authorization.
+
 This next step should implement the approved Supabase data foundation from the Issue #9 domain contract before broad active-workout UI work begins. It must:
 
 - commit timestamped Supabase migration SQL for resetting disposable `workout_sessions` and `exercise_results` data and creating the durable session/exercise/set-result model
