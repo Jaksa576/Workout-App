@@ -101,10 +101,12 @@ Tracking type and logging metadata must be explicit persisted metadata, never ru
 
 Canonical metadata ownership is:
 
-- The exercise catalog owns default tracking metadata for catalog-backed exercises: default `tracking_type`, supported `load_unit` values, supported `distance_unit` values, display labels, and default `unilateral_mode`. Expected durable catalog fields are `tracking_type`, `default_load_unit`, `supports_lb`, `supports_kg`, `default_distance_unit`, `supports_mi`, `supports_km`, `supports_m`, `primary_value_label`, `secondary_value_label`, and `default_unilateral_mode`, with exact SQL names adjusted to repository conventions.
-- Saved plan exercise entries snapshot the effective metadata used by that plan so plan history remains readable after catalog defaults change. Expected durable `exercise_entries` fields are `tracking_type`, `load_unit`, `distance_unit`, `primary_value_label`, `secondary_value_label`, `unilateral_mode`, `catalog_exercise_id` or another stable source exercise identity, and display-name/prescription text snapshots.
+- The current exercise catalog is the static TypeScript `exerciseCatalog` in `lib/exercise-library.ts`. It is not a Supabase table today, and its stable catalog-backed exercise IDs are strings such as `bodyweight-squat`.
+- `ExerciseCatalogItem` owns default tracking metadata in code for catalog-backed exercises and should be extended with validated defaults for `tracking_type`, load-unit support/default, distance-unit support/default, primary and secondary display labels, and `unilateral_mode`. These are code-owned catalog defaults, not durable database catalog columns.
+- Saved plan exercise entries snapshot the effective metadata used by that plan so plan history remains readable after code-owned catalog defaults change. Expected durable `exercise_entries` fields are `tracking_type`, `load_unit`, `distance_unit`, `primary_value_label`, `secondary_value_label`, `unilateral_mode`, the existing nullable text `source_exercise_id` for catalog-backed identity, and display-name/prescription text snapshots.
+- The existing `exercise_entries.source_exercise_id` text field remains the stable identity for catalog-backed exercises. Issue #9 does not require a new Supabase exercise-catalog table, and it does not introduce a UUID catalog identity. Moving the catalog into Supabase would require a separate approved issue and migration.
 - Plan exercise entries may override catalog defaults only through explicit validated fields in plan creation/editing. Overrides must remain within the registry above and within the catalog-supported unit set unless the exercise is custom.
-- Session exercise results snapshot the effective metadata again for durable history: tracking type, units, display labels, unilateral mode, display name, source catalog exercise identity, source saved exercise-entry identity, prescription target text, and exercise order.
+- Session exercise results snapshot the effective metadata again for durable history: tracking type, units, display labels, unilateral mode, display name, the same stable text `source_exercise_id` when catalog-backed, source saved exercise-entry identity, prescription target text, and exercise order.
 - Custom exercises must explicitly choose a `tracking_type` and `unilateral_mode` in plan creation/editing before they can use richer logging than `completion`; the flow may default them to `completion` only as a safe temporary choice that the user can review and change.
 - Missing metadata uses `completion` only as a temporary safe fallback. It is not a substitute for classifying existing saved exercises.
 - Existing saved exercises must be classified or initialized by an explicit migration/update strategy, not by silent name guessing at runtime. Acceptable strategies are a reviewed catalog mapping for catalog-backed rows, a conservative `completion` initialization for unknown/custom rows, and/or a user-visible edit flow for upgrading custom exercises.
@@ -112,7 +114,7 @@ Canonical metadata ownership is:
 
 These metadata fields and the initialization/backfill strategy belong in Issue #10 unless repository inspection during that issue proves the combined migration is no longer reviewable. If Issue #10 cannot include them safely, it must stop and open a prerequisite metadata-foundation issue before creating set-result tables that depend on the fields.
 
-Required metadata for each exercise-result snapshot: `tracking_type`, `load_unit`, `distance_unit`, `primary_value_label`, `secondary_value_label`, `unilateral_mode`, `prescribed_target_text`, source exercise identity when present, saved exercise-entry identity when present, exercise order, and safe fallback display values for custom exercises.
+Required metadata for each exercise-result snapshot: `tracking_type`, `load_unit`, `distance_unit`, `primary_value_label`, `secondary_value_label`, `unilateral_mode`, `prescribed_target_text`, nullable text `source_exercise_id` when catalog-backed, saved exercise-entry identity when present, exercise order, and safe fallback display values for custom exercises.
 
 ### Unilateral convention
 
@@ -135,7 +137,7 @@ Issue #10 should replace disposable execution/history data with a normalized com
 - `id uuid primary key` and `workout_session_id uuid not null` referencing `workout_sessions` with cascading delete according to existing repo convention.
 - `source_workout_template_id uuid null` for the originating workout template.
 - `exercise_entry_id uuid null` for the source saved plan exercise entry when available.
-- `catalog_exercise_id uuid null` or `source_exercise_id uuid null` for stable catalog/source identity when available.
+- `source_exercise_id text null` for the stable text catalog/source identity when available, snapshotting the existing string identity from `exercise_entries.source_exercise_id`; do not add `catalog_exercise_id uuid` or a UUID `source_exercise_id` for Issue #10.
 - `exercise_name text not null` or equivalent display-name snapshot.
 - `exercise_order integer not null` with a nonnegative check.
 - `tracking_type text not null` constrained to `weight_reps`, `reps_only`, `duration`, `distance_duration`, or `completion`.
@@ -207,7 +209,7 @@ The approved database rollout sequence for Issue #10 is:
 
 Compatibility expectation: old app against new schema is not required after the reset migration because execution/history data is disposable and the deployment must pair schema and app changes. New app against old schema is also not supported for set-level execution. The PR sequence must therefore call out deployment ordering and avoid merging app code that writes the new model before the migration PR is applied to the target environment.
 
-Required indexes for the new model: user/session chronology on `workout_sessions`, active/stale draft lookup if server drafts are introduced later, workout-template/session chronology, exercise identity history lookup across saved exercise-entry ID and catalog/source exercise ID, exercise-result parent/order lookup, and set-result parent/order lookup.
+Required indexes for the new model: user/session chronology on `workout_sessions`, active/stale draft lookup if server drafts are introduced later, workout-template/session chronology, exercise identity history lookup across saved exercise-entry ID and stable text source exercise ID, exercise-result parent/order lookup, and set-result parent/order lookup.
 
 ### In-progress draft recovery
 
@@ -219,10 +221,10 @@ Prior values must be selected deterministically with this precedence:
 
 1. same workout template and same saved exercise-entry identity;
 2. same stable saved exercise-entry identity after plan edits when that identity is preserved;
-3. same stable catalog/source exercise identity within the authenticated user’s history;
+3. same stable text catalog/source exercise identity within the authenticated user’s history;
 4. no previous value.
 
-For a session-time replacement, prior values follow the performed replacement exercise’s stable catalog/source identity. If that replacement identity has no matching history, show no previous value. Never borrow prior values from an unrelated exercise based only on tracking type, unit, plan membership, or compatible metric shape. Fuzzy exercise-name matching is not allowed. Custom exercises without stable identity use only exact saved entry identity; if that identity is gone, show no prior value rather than guessing.
+For a session-time replacement, prior values follow the performed replacement exercise’s stable text catalog/source identity. If that replacement identity has no matching history, show no previous value. Never borrow prior values from an unrelated exercise based only on tracking type, unit, plan membership, or compatible metric shape. Fuzzy exercise-name matching is not allowed. Custom exercises without stable identity use only exact saved entry identity; if that identity is gone, show no prior value rather than guessing.
 
 ### Mobile information architecture
 
