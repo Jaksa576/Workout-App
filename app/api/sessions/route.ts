@@ -6,6 +6,7 @@ import { getServerTimeZone } from "@/lib/server-time-zone";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 import type { WorkoutSession } from "@/lib/types";
 import { generateRecommendation } from "@/lib/recommendation";
+import { buildPrescribedSetRows, getDefaultTrackingMetadata } from "@/lib/execution-results";
 import { isWorkoutSessionInput } from "@/lib/validation";
 
 export async function POST(request: Request) {
@@ -46,8 +47,9 @@ export async function POST(request: Request) {
 
   const { data: exercises, error: exercisesError } = await supabase
     .from("exercise_entries")
-    .select("id, name")
-    .eq("workout_template_id", body.workoutTemplateId);
+    .select("id, name, sets, reps, sort_order, source_exercise_id, tracking_type, unilateral_mode, load_unit, distance_unit, primary_value_label, secondary_value_label")
+    .eq("workout_template_id", body.workoutTemplateId)
+    .order("sort_order", { ascending: true });
 
   if (exercisesError) {
     return NextResponse.json({ error: exercisesError.message }, { status: 500 });
@@ -63,45 +65,84 @@ export async function POST(request: Request) {
           ? "Too hard"
           : "Appropriate"
   });
-  const { data: session, error: sessionError } = await supabase
-    .from("workout_sessions")
-    .insert({
-      user_id: user.id,
-      workout_template_id: body.workoutTemplateId,
-      completed_on: body.completedOn,
-      completed: body.completed,
-      pain_occurred: body.painOccurred,
-      perceived_difficulty: body.perceivedDifficulty,
-      notes: body.notes.trim(),
-      recommendation: recommendation.title,
-      phase_id_at_completion: workout.phase_id,
-      workout_name_snapshot: workout.name
-    })
-    .select("id, workout_template_id, workout_name_snapshot, created_at, completed_on, completed, pain_occurred, perceived_difficulty, notes, recommendation, phase_id_at_completion, progression_decision, progression_reason")
-    .single();
+  const sessionId = crypto.randomUUID();
+  const sessionPayload = {
+    id: sessionId,
+    workout_template_id: body.workoutTemplateId,
+    completed_on: body.completedOn,
+    completed: body.completed,
+    pain_occurred: body.painOccurred,
+    perceived_difficulty: body.perceivedDifficulty,
+    notes: body.notes.trim(),
+    recommendation: recommendation.title,
+    phase_id_at_completion: workout.phase_id,
+    workout_name_snapshot: workout.name,
+    started_at: new Date().toISOString(),
+    finished_at: new Date().toISOString(),
+    elapsed_seconds: 0,
+    elapsed_source: "server_timestamp"
+  };
+
+  const validExerciseIds = new Set(body.completedExerciseIds);
+  const exercisePayload = (exercises ?? []).map((exercise, index) => {
+    const fallback = getDefaultTrackingMetadata(exercise.source_exercise_id);
+    const trackingType = exercise.tracking_type ?? fallback.trackingType;
+    const unilateralMode = exercise.unilateral_mode ?? fallback.unilateralMode;
+
+    return {
+      id: crypto.randomUUID(),
+      workout_session_id: sessionId,
+      source_workout_template_id: body.workoutTemplateId,
+      exercise_entry_id: exercise.id,
+      source_exercise_id: exercise.source_exercise_id,
+      exercise_name_snapshot: exercise.name,
+      exercise_order: exercise.sort_order ?? index,
+      tracking_type: trackingType,
+      unilateral_mode: unilateralMode,
+      load_unit: trackingType === "weight_reps" ? (exercise.load_unit ?? fallback.loadUnit) : null,
+      distance_unit: trackingType === "distance_duration" ? (exercise.distance_unit ?? fallback.distanceUnit) : null,
+      primary_value_label: exercise.primary_value_label ?? fallback.primaryValueLabel,
+      secondary_value_label: exercise.secondary_value_label ?? fallback.secondaryValueLabel,
+      prescribed_target_text: `${exercise.sets} sets × ${exercise.reps}`,
+      completion_status: validExerciseIds.has(exercise.id) ? "completed" : "incomplete"
+    };
+  });
+
+  const resultIdByEntryId = new Map(exercisePayload.map((result) => [result.exercise_entry_id, result.id]));
+  const trackingTypeByEntryId = new Map(exercisePayload.map((result) => [result.exercise_entry_id, result.tracking_type]));
+  const setPayload = (exercises ?? []).flatMap((exercise) => {
+    const exerciseResultId = resultIdByEntryId.get(exercise.id);
+    const trackingType = trackingTypeByEntryId.get(exercise.id) ?? "completion";
+    return exerciseResultId
+      ? buildPrescribedSetRows(exerciseResultId, exercise, validExerciseIds.has(exercise.id), trackingType)
+      : [];
+  });
+
+  type SavedSessionRow = {
+    id: string;
+    workout_template_id: string;
+    workout_name_snapshot: string | null;
+    created_at: string;
+    completed_on: string;
+    completed: boolean;
+    pain_occurred: boolean;
+    perceived_difficulty: WorkoutSession["perceivedDifficulty"];
+    notes: string | null;
+    recommendation: string;
+    phase_id_at_completion: string | null;
+  };
+  const { data: sessionData, error: sessionError } = await supabase.rpc("finalize_workout_session", {
+    p_session: sessionPayload,
+    p_exercise_results: exercisePayload,
+    p_set_results: setPayload
+  } as never).single();
+  const session = sessionData as SavedSessionRow | null;
 
   if (sessionError || !session) {
     return NextResponse.json(
       { error: sessionError?.message ?? "Unable to save workout session." },
       { status: 500 }
     );
-  }
-
-  const validExerciseIds = new Set(body.completedExerciseIds);
-  const { error: resultsError } = await supabase.from("exercise_results").insert(
-    (exercises ?? []).map((exercise) => ({
-      workout_session_id: session.id,
-      exercise_entry_id: exercise.id,
-      exercise_name_snapshot: exercise.name,
-      completed: validExerciseIds.has(exercise.id),
-      pain_flag: body.painOccurred && validExerciseIds.has(exercise.id)
-    }))
-  );
-
-  if (resultsError) {
-    await supabase.from("workout_sessions").delete().eq("id", session.id).eq("user_id", user.id);
-
-    return NextResponse.json({ error: resultsError.message }, { status: 500 });
   }
 
   const plans = await getPlans();

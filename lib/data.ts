@@ -86,6 +86,12 @@ type ExerciseRow = {
   video_url: string | null;
   source_exercise_id: string | null;
   sort_order: number;
+  tracking_type: ExerciseEntry["trackingType"];
+  unilateral_mode: ExerciseEntry["unilateralMode"];
+  load_unit: ExerciseEntry["loadUnit"];
+  distance_unit: ExerciseEntry["distanceUnit"];
+  primary_value_label: string | null;
+  secondary_value_label: string | null;
 };
 
 type SessionRow = {
@@ -132,7 +138,13 @@ function mapExercise(row: ExerciseRow): ExerciseEntry {
     coachingNote: parsedNote.coachingNote,
     guidance: parsedNote.guidance,
     videoUrl: row.video_url ?? undefined,
-    sourceExerciseId: row.source_exercise_id
+    sourceExerciseId: row.source_exercise_id,
+    trackingType: row.tracking_type,
+    unilateralMode: row.unilateral_mode,
+    loadUnit: row.load_unit,
+    distanceUnit: row.distance_unit,
+    primaryValueLabel: row.primary_value_label,
+    secondaryValueLabel: row.secondary_value_label
   };
 }
 
@@ -274,7 +286,7 @@ async function getPlanBundle(userId: string, sessionSince?: string) {
     ? supabase
         .from("exercise_entries")
         .select(
-          "id, workout_template_id, name, sets, reps, rest, coaching_note, video_url, source_exercise_id, sort_order"
+          "id, workout_template_id, name, sets, reps, rest, coaching_note, video_url, source_exercise_id, sort_order, tracking_type, unilateral_mode, load_unit, distance_unit, primary_value_label, secondary_value_label"
         )
         .in("workout_template_id", workoutIds)
         .order("sort_order", { ascending: true })

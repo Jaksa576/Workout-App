@@ -1,4 +1,4 @@
-import type { StructuredExerciseInput, TrainingGoalType } from "@/lib/types";
+import type { ExerciseTrackingType, StructuredExerciseInput, TrainingGoalType, UnilateralMode } from "@/lib/types";
 
 export type ExerciseCategory =
   | "mobility"
@@ -36,7 +36,18 @@ export type CautionTag =
   | "overhead"
   | "loaded_spine";
 
-export type ExerciseCatalogItem = StructuredExerciseInput & {
+export type ExerciseTrackingMetadata = {
+  trackingType: ExerciseTrackingType;
+  unilateralMode: UnilateralMode;
+  loadUnit: "lb" | "kg" | null;
+  supportedLoadUnits: Array<"lb" | "kg">;
+  distanceUnit: "mi" | "km" | "m" | null;
+  supportedDistanceUnits: Array<"mi" | "km" | "m">;
+  primaryValueLabel: string | null;
+  secondaryValueLabel: string | null;
+};
+
+export type ExerciseCatalogItem = StructuredExerciseInput & ExerciseTrackingMetadata & {
   id: string;
   category: ExerciseCategory;
   movementPattern: MovementPattern;
@@ -58,6 +69,62 @@ export const exerciseCategories: Array<{ value: ExerciseCategory; label: string 
   { value: "athletic", label: "Athletic" }
 ];
 
+
+const completionMetadata: ExerciseTrackingMetadata = {
+  trackingType: "completion",
+  unilateralMode: "bilateral",
+  loadUnit: null,
+  supportedLoadUnits: [],
+  distanceUnit: null,
+  supportedDistanceUnits: [],
+  primaryValueLabel: "Completion",
+  secondaryValueLabel: null
+};
+
+const repsMetadata = (unilateralMode: UnilateralMode = "bilateral"): ExerciseTrackingMetadata => ({
+  trackingType: "reps_only",
+  unilateralMode,
+  loadUnit: null,
+  supportedLoadUnits: [],
+  distanceUnit: null,
+  supportedDistanceUnits: [],
+  primaryValueLabel: "Reps",
+  secondaryValueLabel: null
+});
+
+const weightRepsMetadata = (unilateralMode: UnilateralMode = "bilateral"): ExerciseTrackingMetadata => ({
+  trackingType: "weight_reps",
+  unilateralMode,
+  loadUnit: "lb",
+  supportedLoadUnits: ["lb", "kg"],
+  distanceUnit: null,
+  supportedDistanceUnits: [],
+  primaryValueLabel: "Load",
+  secondaryValueLabel: "Reps"
+});
+
+const durationMetadata = (unilateralMode: UnilateralMode = "bilateral"): ExerciseTrackingMetadata => ({
+  trackingType: "duration",
+  unilateralMode,
+  loadUnit: null,
+  supportedLoadUnits: [],
+  distanceUnit: null,
+  supportedDistanceUnits: [],
+  primaryValueLabel: "Duration",
+  secondaryValueLabel: null
+});
+
+const distanceDurationMetadata: ExerciseTrackingMetadata = {
+  trackingType: "distance_duration",
+  unilateralMode: "bilateral",
+  loadUnit: null,
+  supportedLoadUnits: [],
+  distanceUnit: "mi",
+  supportedDistanceUnits: ["mi", "km", "m"],
+  primaryValueLabel: "Distance",
+  secondaryValueLabel: "Duration"
+};
+
 const allStrengthGoals: TrainingGoalType[] = [
   "general_fitness",
   "strength",
@@ -67,7 +134,7 @@ const allStrengthGoals: TrainingGoalType[] = [
 
 const simpleGoals: TrainingGoalType[] = ["recovery", "consistency", "general_fitness"];
 
-export const exerciseCatalog: ExerciseCatalogItem[] = [
+const exerciseCatalogBase = [
   {
     id: "bodyweight-squat",
     name: "Bodyweight squat",
@@ -639,7 +706,57 @@ export const exerciseCatalog: ExerciseCatalogItem[] = [
     rest: "75 sec",
     coachingNote: "Land softly and keep every rep crisp."
   }
-];
+] satisfies Array<Omit<ExerciseCatalogItem, keyof ExerciseTrackingMetadata>>;
+
+const catalogMetadataOverrides: Record<string, ExerciseTrackingMetadata> = {
+  "goblet-squat": weightRepsMetadata(),
+  "barbell-back-squat": weightRepsMetadata(),
+  "romanian-deadlift": weightRepsMetadata(),
+  "reverse-lunge": repsMetadata("same_each_side"),
+  "step-up": repsMetadata("same_each_side"),
+  "walking-lunge": repsMetadata("same_each_side"),
+  "dumbbell-floor-press": weightRepsMetadata(),
+  "dumbbell-shoulder-press": weightRepsMetadata(),
+  "dumbbell-row": weightRepsMetadata("same_each_side"),
+  "farmer-carry": weightRepsMetadata(),
+  "dead-bug": repsMetadata("same_each_side"),
+  "side-plank": durationMetadata("same_each_side"),
+  "dumbbell-lateral-raise": weightRepsMetadata(),
+  "dumbbell-curl": weightRepsMetadata(),
+  "hip-flexor-rockback": repsMetadata("same_each_side"),
+  "thoracic-rotation": repsMetadata("same_each_side"),
+  "ankle-rock": repsMetadata("same_each_side"),
+  "brisk-walk": distanceDurationMetadata,
+  "low-impact-cardio-march": durationMetadata(),
+  "run-walk-intervals": durationMetadata(),
+  "easy-run": distanceDurationMetadata,
+  "stride-drills": durationMetadata(),
+  "lateral-lunge": weightRepsMetadata("same_each_side"),
+  "lateral-shuffle": durationMetadata(),
+  "skater-hop": repsMetadata("same_each_side")
+};
+
+export const exerciseCatalog: ExerciseCatalogItem[] = exerciseCatalogBase.map((item) => ({
+  ...repsMetadata(),
+  ...(catalogMetadataOverrides[item.id] ?? {}),
+  ...item
+}));
+
+export function getExerciseTrackingMetadataBySourceId(sourceExerciseId?: string | null): ExerciseTrackingMetadata {
+  if (!sourceExerciseId) return completionMetadata;
+  const item = exerciseCatalog.find((exercise) => exercise.id === sourceExerciseId);
+  if (!item) return completionMetadata;
+  return {
+    trackingType: item.trackingType,
+    unilateralMode: item.unilateralMode,
+    loadUnit: item.loadUnit,
+    supportedLoadUnits: item.supportedLoadUnits,
+    distanceUnit: item.distanceUnit,
+    supportedDistanceUnits: item.supportedDistanceUnits,
+    primaryValueLabel: item.primaryValueLabel,
+    secondaryValueLabel: item.secondaryValueLabel
+  };
+}
 
 export function getCatalogExercise(id: string) {
   return exerciseCatalog.find((exercise) => exercise.id === id);
