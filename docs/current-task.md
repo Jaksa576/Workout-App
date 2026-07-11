@@ -144,3 +144,9 @@ Implementing the PR follow-up request for Issue #12C on top of the dedicated `/w
 The active route now avoids offering a new Start action when no draft is available there; it sends the user back to the matching workout details page to deliberately start from selection. Successful saves show only the saved confirmation and one Back to workout details action. The existing Issue #11 local draft lifecycle and Issue #10 final-save/RPC boundary remain unchanged.
 
 Validation focus for this patch: no active checklist/check-in on `/workout`, fresh-draft Resume handoff to `/workout/active`, one selected-workout Start/Resume/Clear action, active-route no-draft back-to-details state, saved confirmation without a Start card, save retry on failure, and discard redirect back to `/workout?workoutId=<id>`.
+
+## PR Follow-up — Post-Issues #12/#12B/#12C Workout Selection Simplification
+
+Implementing the requested main-state patch after Issues #12, #12B, and #12C. `/workout` remains a selection/details route and `/workout/active` remains the focused execution route. This patch removes the Rest timer card and implementation-oriented local-draft Start explanation from the selection page, shortens the Recommended Today card to the workout name plus that workout's summary, and leaves the selected-workout details card as the single dominant Start/Resume/Clear action surface with recent-history/progression context.
+
+No draft lifecycle, final save, progression, timer continuity, or Supabase behavior is intentionally changed. Validation focus: `/workout` should show no Rest timer or local-draft implementation copy, Recommended Today should not duplicate phase number/duration/goal context, and Start/Resume should still hand off to `/workout/active`, where elapsed timing and execution controls remain available.

@@ -36,4 +36,29 @@ describe("workout flow lifecycle source guards", () => {
     expect(handler).toContain('setStep("idle")');
     expect(handler).not.toContain('setStep("workout")');
   });
+
+  it("keeps workout selection concise and free of execution-only timer copy", () => {
+    expect(source).not.toContain('import { TimerCard }');
+    expect(source).not.toContain('<TimerCard />');
+    expect(source).not.toContain(
+      "Start creates one local active draft for this signed-in user and browser.",
+    );
+  });
+
+  it("uses only the recommended workout name and summary in the recommendation card", () => {
+    const start = source.indexOf(
+      '<p className="ui-eyebrow">Recommended today</p>',
+    );
+    const end = source.indexOf('{workouts.length > 1 ?', start);
+    const recommendedCard = source.slice(start, end);
+
+    expect(recommendedCard).toContain(
+      '{recommendedWorkout?.name ?? workout.name}',
+    );
+    expect(recommendedCard).toContain(
+      '{(recommendedWorkout ?? workout).summary}',
+    );
+    expect(recommendedCard).not.toContain('formatPhaseLabel');
+    expect(recommendedCard).not.toContain('activePlan.currentPhase.goal');
+  });
 });
