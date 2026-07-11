@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import { PhaseProgressPanel } from "@/components/phase-progress-panel";
 import { TimerCard } from "@/components/timer-card";
+import { shouldPersistActiveWorkoutDraft } from "@/lib/active-workout-lifecycle";
 import { WorkoutChecklist } from "@/components/workout-checklist";
 import {
   buildActiveWorkoutDraft,
@@ -224,6 +225,8 @@ export function WorkoutFlow({
   const [invalidRecoveryKey, setInvalidRecoveryKey] = useState<string | null>(
     null,
   );
+  const [awaitingStaleRecoveryDecision, setAwaitingStaleRecoveryDecision] =
+    useState(false);
   const [draftMessage, setDraftMessage] = useState<string | null>(null);
   const [storageAvailable, setStorageAvailable] = useState(true);
   const [checkedExerciseIds, setCheckedExerciseIds] = useState<string[]>([]);
@@ -297,11 +300,13 @@ export function WorkoutFlow({
           `Recovered draft for ${result.draft.workoutNameSnapshot} cannot find its workout. Discard it to start again.`,
         );
         setActiveDraft(result.draft);
+        setAwaitingStaleRecoveryDecision(false);
         setStep("idle");
         return;
       }
 
       setInvalidRecoveryKey(null);
+      setAwaitingStaleRecoveryDecision(result.stale);
       setActiveDraft(result.draft);
       setSelectedWorkoutId(result.draft.workoutTemplateId);
       setCheckedExerciseIds(result.draft.checkedExerciseIds);
@@ -333,6 +338,7 @@ export function WorkoutFlow({
     }
 
     if (result.status === "invalid") {
+      setAwaitingStaleRecoveryDecision(false);
       setInvalidRecoveryKey(getActiveWorkoutDraftStorageKey(userId));
       setDraftMessage(
         `${result.reason} Clear recovery data to restart safely.`,
@@ -342,7 +348,15 @@ export function WorkoutFlow({
   }, [userId, workouts]);
 
   useEffect(() => {
-    if (!activeDraft || !userId || step === "saved") {
+    if (
+      !shouldPersistActiveWorkoutDraft({
+        hasActiveDraft: Boolean(activeDraft),
+        step,
+        awaitingStaleRecoveryDecision,
+      }) ||
+      !activeDraft ||
+      !userId
+    ) {
       return;
     }
 
@@ -378,6 +392,7 @@ export function WorkoutFlow({
     }
   }, [
     activeDraft?.draftId,
+    awaitingStaleRecoveryDecision,
     checkedExerciseIds,
     completed,
     completedOn,
@@ -436,6 +451,7 @@ export function WorkoutFlow({
       setActiveDraft(storedDraft);
       setCheckedExerciseIds([]);
       setInvalidRecoveryKey(null);
+      setAwaitingStaleRecoveryDecision(false);
       setDraftMessage(
         `Started ${workout.name}. Your draft is saved on this device.`,
       );
@@ -462,6 +478,7 @@ export function WorkoutFlow({
       getActiveWorkoutDraftStorageKey(activeDraft.userId),
     );
     setActiveDraft(null);
+    setAwaitingStaleRecoveryDecision(false);
     setCheckedExerciseIds([]);
     setDraftMessage("Active workout draft discarded.");
     setStatus(null);
@@ -476,6 +493,7 @@ export function WorkoutFlow({
 
     window.localStorage.removeItem(invalidRecoveryKey);
     setInvalidRecoveryKey(null);
+    setAwaitingStaleRecoveryDecision(false);
     setDraftMessage("Recovery data cleared. You can start fresh now.");
     setStatus(null);
     setStep("idle");
@@ -486,6 +504,7 @@ export function WorkoutFlow({
       return;
     }
 
+    setAwaitingStaleRecoveryDecision(false);
     setStep(
       activeDraft.lifecycle === "finishing" ||
         activeDraft.lifecycle === "save_failed"
@@ -567,6 +586,7 @@ export function WorkoutFlow({
       );
     }
     setActiveDraft(null);
+    setAwaitingStaleRecoveryDecision(false);
     setCheckedExerciseIds([]);
     setCompleted(true);
     setPain(false);
