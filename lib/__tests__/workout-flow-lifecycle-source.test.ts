@@ -1,14 +1,21 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { getRecoveredDraftStep } from "@/lib/active-workout-shell";
 
 const source = readFileSync("components/workout-flow.tsx", "utf8");
 
 describe("workout flow lifecycle source guards", () => {
   it("keeps stale recovered drafts on an explicit resume/discard decision", () => {
-    expect(source).toContain('result.stale\n          ? "idle"');
+    expect(
+      getRecoveredDraftStep({
+        mode: "active",
+        stale: true,
+        lifecycle: "finishing",
+      }),
+    ).toBe("idle");
     expect(source).toContain("function handleResumeDraft()");
-    expect(source).toContain("Resume {activeDraft.workoutNameSnapshot}");
-    expect(source).toContain("Discard draft");
+    expect(source).toContain("Resume workout");
+    expect(source).toContain("Discard");
   });
 
   it("allows malformed recovery data to be cleared explicitly", () => {

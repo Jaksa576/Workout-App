@@ -19,7 +19,7 @@ Current route boundary:
 
 - `/` is the public landing page.
 - `/dashboard` is the authenticated dashboard.
-- `/plans`, `/plans/new`, `/plans/[planId]`, `/workout`, and `/settings` are authenticated app routes.
+- `/plans`, `/plans/new`, `/plans/[planId]`, `/workout`, `/workout/active`, and `/settings` are authenticated app routes.
 
 Boundary rules:
 
@@ -28,6 +28,8 @@ Boundary rules:
 - Protected routes should continue to rely on existing auth helpers and `proxy.ts`.
 - Shared route classification lives in `lib/app-route-boundary.ts`.
 - Authenticated shell visibility is route-aware inside `AppShell`.
+- `/workout` is the authenticated workout details and selection surface: it may recover a local active draft, but it must not render the active checklist, check-in, saved execution UI, or broad execution shell. Fresh recovered drafts on `/workout` are resume-only and hand off to `/workout/active`.
+- `/workout/active` is the authenticated active execution surface: the normal Dashboard, Plans, Workout, and Settings shell navigation is hidden; Start and Resume land there; leaving without finishing preserves the Issue #11 local draft; explicit Discard clears only that local draft and returns to `/workout?workoutId=<id>`.
 
 ## Data Model
 

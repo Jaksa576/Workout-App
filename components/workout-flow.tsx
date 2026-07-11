@@ -6,6 +6,12 @@ import type { Route } from "next";
 import { PhaseProgressPanel } from "@/components/phase-progress-panel";
 import { TimerCard } from "@/components/timer-card";
 import { shouldPersistActiveWorkoutDraft } from "@/lib/active-workout-lifecycle";
+import {
+  canFinishActiveWorkout,
+  getDiscardRedirectPath,
+  getRecoveredDraftStep,
+  shouldShowActiveStartCard,
+} from "@/lib/active-workout-shell";
 import { WorkoutChecklist } from "@/components/workout-checklist";
 import {
   buildActiveWorkoutDraft,
@@ -220,7 +226,7 @@ export function WorkoutFlow({
     selectedWorkout.id,
   );
   const [step, setStep] = useState<FlowStep>(
-    initialStep === "check-in" ? "check-in" : "idle",
+    isActiveMode && initialStep === "check-in" ? "check-in" : "idle",
   );
   const [activeDraft, setActiveDraft] = useState<ActiveWorkoutDraft | null>(
     null,
@@ -330,12 +336,11 @@ export function WorkoutFlow({
         `${result.stale ? "Stale" : "Recovered"} workout draft for ${result.draft.workoutNameSnapshot}. Elapsed ${Math.floor(getElapsedSeconds(result.draft) / 60)} min${result.stale ? `; last updated ${result.ageDays} days ago` : ""}.`,
       );
       setStep(
-        result.stale
-          ? "idle"
-          : result.draft.lifecycle === "finishing" ||
-              result.draft.lifecycle === "save_failed"
-            ? "check-in"
-            : "workout",
+        getRecoveredDraftStep({
+          mode,
+          stale: result.stale,
+          lifecycle: result.draft.lifecycle,
+        }),
       );
       return;
     }
@@ -348,7 +353,7 @@ export function WorkoutFlow({
       );
       setStep("idle");
     }
-  }, [userId, workouts]);
+  }, [mode, userId, workouts]);
 
   useEffect(() => {
     if (
@@ -433,7 +438,7 @@ export function WorkoutFlow({
 
     setSelectedWorkoutId(id);
     setCheckedExerciseIds([]);
-    setStep(activeDraft || isActiveMode ? "workout" : "idle");
+    setStep(isActiveMode ? "workout" : "idle");
     setSavedSession(null);
     setStatus(null);
     router.replace(`${isActiveMode ? "/workout/active" : "/workout"}?workoutId=${id}` as Route);
@@ -458,7 +463,7 @@ export function WorkoutFlow({
       setDraftMessage(
         `Started ${workout.name}. Your draft is saved on this device.`,
       );
-      setStep("workout");
+      setStep(isActiveMode ? "workout" : "idle");
       router.push(`/workout/active?workoutId=${workout.id}` as Route);
     } catch {
       setStorageAvailable(false);
@@ -488,6 +493,9 @@ export function WorkoutFlow({
     setStatus(null);
     setInvalidRecoveryKey(null);
     setStep("idle");
+    if (isActiveMode) {
+      router.replace(getDiscardRedirectPath(activeDraft.workoutTemplateId) as Route);
+    }
   }
 
   function handleClearRecoveryData() {
@@ -510,17 +518,19 @@ export function WorkoutFlow({
 
     setAwaitingStaleRecoveryDecision(false);
     setStep(
-      activeDraft.lifecycle === "finishing" ||
-        activeDraft.lifecycle === "save_failed"
-        ? "check-in"
-        : "workout",
+      isActiveMode
+        ? activeDraft.lifecycle === "finishing" ||
+            activeDraft.lifecycle === "save_failed"
+          ? "check-in"
+          : "workout"
+        : "idle",
     );
     setDraftMessage(`Resumed ${activeDraft.workoutNameSnapshot}.`);
     router.push(`/workout/active?workoutId=${activeDraft.workoutTemplateId}` as Route);
   }
 
   function handleFinishWorkout() {
-    if (!activeDraft) {
+    if (!finishEnabled || !activeDraft) {
       return;
     }
     setCompleted(checkedExerciseIds.length === workout.exercises.length);
@@ -607,6 +617,14 @@ export function WorkoutFlow({
   }
 
   const elapsedSeconds = useLiveElapsedSeconds(activeDraft);
+  const finishEnabled = canFinishActiveWorkout({
+    mode,
+    hasActiveDraft: Boolean(activeDraft),
+    step,
+    awaitingStaleRecoveryDecision,
+    hasMalformedRecoveryData: Boolean(invalidRecoveryKey),
+    saving,
+  });
 
   if (isActiveMode) {
     return (
@@ -620,11 +638,11 @@ export function WorkoutFlow({
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
-              <button type="button" onClick={handleFinishWorkout} className="ui-button-primary px-4 py-2" disabled={!activeDraft}>
+              <button type="button" onClick={handleFinishWorkout} className="ui-button-primary px-4 py-2" disabled={!finishEnabled}>
                 Finish
               </button>
               <button type="button" onClick={handleDiscardDraft} className="ui-button-ghost px-3 py-2" disabled={!activeDraft} aria-label="Discard active workout">
-                ⋯
+                Discard
               </button>
             </div>
           </div>
@@ -634,7 +652,7 @@ export function WorkoutFlow({
           {draftMessage ? (
             <div className="rounded-[24px] border border-primary/20 bg-primary/10 px-4 py-3 text-sm leading-6 text-copy">{draftMessage}</div>
           ) : null}
-          {!activeDraft && !invalidRecoveryKey ? (
+          {shouldShowActiveStartCard({ mode, hasActiveDraft: Boolean(activeDraft), hasMalformedRecoveryData: Boolean(invalidRecoveryKey), step }) ? (
             <div className="surface-card p-5">
               <p className="text-sm leading-6 text-muted">Start this workout from its details page to create a recoverable active draft.</p>
               <button type="button" onClick={handleStartWorkout} className="ui-button-primary mt-4" disabled={!userId}>Start workout</button>
@@ -828,22 +846,13 @@ export function WorkoutFlow({
                     {activeDraft ? "Resume workout" : "Start workout"}
                   </button>
                   {activeDraft ? (
-                    <>
-                      <button
-                        type="button"
-                        onClick={handleResumeDraft}
-                        className="ui-button-secondary"
-                      >
-                        Resume {activeDraft.workoutNameSnapshot}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleDiscardDraft}
-                        className="ui-button-ghost"
-                      >
-                        Discard draft
-                      </button>
-                    </>
+                    <button
+                      type="button"
+                      onClick={handleResumeDraft}
+                      className="ui-button-secondary"
+                    >
+                      Resume workout
+                    </button>
                   ) : null}
                   {invalidRecoveryKey ? (
                     <button
