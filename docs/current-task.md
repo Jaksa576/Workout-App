@@ -136,3 +136,11 @@ Patch update: the Issue #12 active-shell review blockers are addressed by keepin
 Implementing the PR follow-up request for Issue #12B on top of the dedicated `/workout/active` shell. This patch keeps the Issue #11 local draft lifecycle and Issue #10 final-save/RPC path unchanged while making the active execution checklist compact by default. Exercise cards now prioritize exercise name, prescription, rest, completion state, and a large labeled completion target; detailed setup, cues, safety notes, demos, mistakes, and modifications are available through progressive disclosure. Recovery messaging is shortened so the sticky header remains the authoritative elapsed-time display.
 
 Validation focus for this patch: mobile scan density, long names/guidance, guidance expand/collapse without losing checked state, keyboard operation on completion and details controls, explicit Discard confirmation/redirect, and existing refresh/resume/finish/retry behavior.
+
+## PR Follow-up — Issue #12C Workout Selection And Completion-State Simplification
+
+Implementing the PR follow-up request for Issue #12C on top of the dedicated `/workout/active` shell and compact execution cards. This patch keeps `/workout` as the workout details and selection surface: recovered fresh drafts show a single Resume action that routes to `/workout/active`, malformed recovery shows a single Clear recovery data action, and the selected workout no longer displays duplicate Start/Resume controls. The recommended-workout panel now changes selection only when a different workout is recommended, leaving the selected details card as the single place to Start or Resume.
+
+The active route now avoids offering a new Start action when no draft is available there; it sends the user back to the matching workout details page to deliberately start from selection. Successful saves show only the saved confirmation and one Back to workout details action. The existing Issue #11 local draft lifecycle and Issue #10 final-save/RPC boundary remain unchanged.
+
+Validation focus for this patch: no active checklist/check-in on `/workout`, fresh-draft Resume handoff to `/workout/active`, one selected-workout Start/Resume/Clear action, active-route no-draft back-to-details state, saved confirmation without a Start card, save retry on failure, and discard redirect back to `/workout?workoutId=<id>`.

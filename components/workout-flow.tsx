@@ -443,7 +443,9 @@ export function WorkoutFlow({
     setStep(isActiveMode ? "workout" : "idle");
     setSavedSession(null);
     setStatus(null);
-    router.replace(`${isActiveMode ? "/workout/active" : "/workout"}?workoutId=${id}` as Route);
+    router.replace(
+      `${isActiveMode ? "/workout/active" : "/workout"}?workoutId=${id}` as Route,
+    );
   }
 
   function handleStartWorkout() {
@@ -496,7 +498,9 @@ export function WorkoutFlow({
     setInvalidRecoveryKey(null);
     setStep("idle");
     if (isActiveMode) {
-      router.replace(getDiscardRedirectPath(activeDraft.workoutTemplateId) as Route);
+      router.replace(
+        getDiscardRedirectPath(activeDraft.workoutTemplateId) as Route,
+      );
     }
   }
 
@@ -522,13 +526,15 @@ export function WorkoutFlow({
     setStep(
       isActiveMode
         ? activeDraft.lifecycle === "finishing" ||
-            activeDraft.lifecycle === "save_failed"
+          activeDraft.lifecycle === "save_failed"
           ? "check-in"
           : "workout"
         : "idle",
     );
     setDraftMessage(`Resumed ${activeDraft.workoutNameSnapshot}.`);
-    router.push(`/workout/active?workoutId=${activeDraft.workoutTemplateId}` as Route);
+    router.push(
+      `/workout/active?workoutId=${activeDraft.workoutTemplateId}` as Route,
+    );
   }
 
   function handleFinishWorkout() {
@@ -634,16 +640,30 @@ export function WorkoutFlow({
         <div className="sticky top-0 z-30 -mx-3 border-b border-border/80 bg-shell/95 px-3 py-3 backdrop-blur sm:top-2 sm:mx-0 sm:rounded-[28px] sm:border sm:shadow-soft">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <p className="truncate text-sm font-black text-copy">{workout.name}</p>
+              <p className="truncate text-sm font-black text-copy">
+                {workout.name}
+              </p>
               <p className="mt-1 text-xs font-semibold text-muted">
-                {formatElapsed(elapsedSeconds)} · {checkedExerciseIds.length}/{workout.exercises.length} exercises
+                {formatElapsed(elapsedSeconds)} · {checkedExerciseIds.length}/
+                {workout.exercises.length} exercises
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
-              <button type="button" onClick={handleFinishWorkout} className="ui-button-primary px-4 py-2" disabled={!finishEnabled}>
+              <button
+                type="button"
+                onClick={handleFinishWorkout}
+                className="ui-button-primary px-4 py-2"
+                disabled={!finishEnabled}
+              >
                 Finish
               </button>
-              <button type="button" onClick={handleDiscardDraft} className="ui-button-ghost px-3 py-2" disabled={!activeDraft} aria-label="Discard active workout">
+              <button
+                type="button"
+                onClick={handleDiscardDraft}
+                className="ui-button-ghost px-3 py-2"
+                disabled={!activeDraft}
+                aria-label="Discard active workout"
+              >
                 Discard
               </button>
             </div>
@@ -652,32 +672,77 @@ export function WorkoutFlow({
 
         <div className="mt-4 space-y-4">
           {draftMessage ? (
-            <div className="rounded-[24px] border border-primary/20 bg-primary/10 px-4 py-3 text-sm leading-6 text-copy">{draftMessage}</div>
+            <div className="rounded-[24px] border border-primary/20 bg-primary/10 px-4 py-3 text-sm leading-6 text-copy">
+              {draftMessage}
+            </div>
           ) : null}
-          {shouldShowActiveStartCard({ mode, hasActiveDraft: Boolean(activeDraft), hasMalformedRecoveryData: Boolean(invalidRecoveryKey), step }) ? (
+          {shouldShowActiveStartCard({
+            mode,
+            hasActiveDraft: Boolean(activeDraft),
+            hasMalformedRecoveryData: Boolean(invalidRecoveryKey),
+            step,
+          }) ? (
             <div className="surface-card p-5">
-              <p className="text-sm leading-6 text-muted">Start this workout from its details page to create a recoverable active draft.</p>
-              <button type="button" onClick={handleStartWorkout} className="ui-button-primary mt-4" disabled={!userId}>Start workout</button>
+              <p className="text-sm leading-6 text-muted">
+                No active workout draft is available for this route.
+              </p>
+              <button
+                type="button"
+                onClick={() =>
+                  router.push(`/workout?workoutId=${workout.id}` as Route)
+                }
+                className="ui-button-primary mt-4"
+              >
+                Back to workout details
+              </button>
             </div>
           ) : null}
           {invalidRecoveryKey ? (
             <div className="surface-card p-5">
-              <p className="text-sm leading-6 text-muted">Recovery data is unavailable for this workout.</p>
-              <button type="button" onClick={handleClearRecoveryData} className="ui-button-secondary mt-4">Clear recovery data</button>
+              <p className="text-sm leading-6 text-muted">
+                Recovery data is unavailable for this workout.
+              </p>
+              <button
+                type="button"
+                onClick={handleClearRecoveryData}
+                className="ui-button-secondary mt-4"
+              >
+                Clear recovery data
+              </button>
             </div>
           ) : null}
           {activeDraft && step === "idle" ? (
             <div className="surface-card p-5">
-              <p className="text-sm leading-6 text-muted">Resume the recovered active workout draft or discard it before starting over.</p>
+              <p className="text-sm leading-6 text-muted">
+                Resume the recovered active workout draft or discard it before
+                starting over.
+              </p>
               <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-                <button type="button" onClick={handleResumeDraft} className="ui-button-primary">Resume workout</button>
-                <button type="button" onClick={handleDiscardDraft} className="ui-button-ghost">Discard</button>
+                <button
+                  type="button"
+                  onClick={handleResumeDraft}
+                  className="ui-button-primary"
+                >
+                  Resume workout
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDiscardDraft}
+                  className="ui-button-ghost"
+                >
+                  Discard
+                </button>
               </div>
             </div>
           ) : null}
 
           {step === "workout" && activeDraft ? (
-            <WorkoutChecklist workout={workout} checkedExerciseIds={checkedExerciseIds} onCheckedExerciseIdsChange={setCheckedExerciseIds} compactExecution />
+            <WorkoutChecklist
+              workout={workout}
+              checkedExerciseIds={checkedExerciseIds}
+              onCheckedExerciseIdsChange={setCheckedExerciseIds}
+              compactExecution
+            />
           ) : null}
 
           {step === "check-in" ? (
@@ -685,21 +750,137 @@ export function WorkoutFlow({
               <p className="ui-eyebrow">Finish workout</p>
               <h1 className="mt-2 text-2xl font-black text-copy">Check in</h1>
               <form className="mt-5 space-y-5" onSubmit={handleSubmit}>
-                <label className="block rounded-[24px] border border-border bg-surface-soft p-4"><span className="text-sm font-semibold text-copy">Workout date</span><input type="date" value={completedOn} max={todayDate} onChange={(event) => setCompletedOn(event.target.value)} className="ui-input mt-3" /></label>
+                <label className="block rounded-[24px] border border-border bg-surface-soft p-4">
+                  <span className="text-sm font-semibold text-copy">
+                    Workout date
+                  </span>
+                  <input
+                    type="date"
+                    value={completedOn}
+                    max={todayDate}
+                    onChange={(event) => setCompletedOn(event.target.value)}
+                    className="ui-input mt-3"
+                  />
+                </label>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <fieldset className="rounded-[24px] border border-border bg-surface-soft p-4"><legend className="text-sm font-semibold text-copy">Did you finish?</legend><div className="mt-4 flex gap-3">{[{ label: "Yes", value: true }, { label: "No", value: false }].map((option) => (<button key={option.label} type="button" onClick={() => setCompleted(option.value)} className={`rounded-full px-4 py-2 text-sm font-semibold ${completed === option.value ? "bg-hero text-white" : "bg-surface text-muted"}`}>{option.label}</button>))}</div></fieldset>
-                  <fieldset className="rounded-[24px] border border-border bg-surface-soft p-4"><legend className="text-sm font-semibold text-copy">Did anything hurt?</legend><div className="mt-4 flex gap-3">{[{ label: "No pain", value: false }, { label: "Yes", value: true }].map((option) => (<button key={option.label} type="button" onClick={() => setPain(option.value)} className={`rounded-full px-4 py-2 text-sm font-semibold ${pain === option.value ? "bg-hero text-white" : "bg-surface text-muted"}`}>{option.label}</button>))}</div></fieldset>
+                  <fieldset className="rounded-[24px] border border-border bg-surface-soft p-4">
+                    <legend className="text-sm font-semibold text-copy">
+                      Did you finish?
+                    </legend>
+                    <div className="mt-4 flex gap-3">
+                      {[
+                        { label: "Yes", value: true },
+                        { label: "No", value: false },
+                      ].map((option) => (
+                        <button
+                          key={option.label}
+                          type="button"
+                          onClick={() => setCompleted(option.value)}
+                          className={`rounded-full px-4 py-2 text-sm font-semibold ${completed === option.value ? "bg-hero text-white" : "bg-surface text-muted"}`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </fieldset>
+                  <fieldset className="rounded-[24px] border border-border bg-surface-soft p-4">
+                    <legend className="text-sm font-semibold text-copy">
+                      Did anything hurt?
+                    </legend>
+                    <div className="mt-4 flex gap-3">
+                      {[
+                        { label: "No pain", value: false },
+                        { label: "Yes", value: true },
+                      ].map((option) => (
+                        <button
+                          key={option.label}
+                          type="button"
+                          onClick={() => setPain(option.value)}
+                          className={`rounded-full px-4 py-2 text-sm font-semibold ${pain === option.value ? "bg-hero text-white" : "bg-surface text-muted"}`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </fieldset>
                 </div>
-                <fieldset className="rounded-[24px] border border-border bg-surface-soft p-4"><legend className="text-sm font-semibold text-copy">Session difficulty</legend><div className="mt-4 flex flex-wrap gap-3">{effortOptions.map((option) => (<button key={option} type="button" onClick={() => setEffort(option)} className={`rounded-full px-4 py-2 text-sm font-semibold ${effort === option ? "bg-primary text-white" : "bg-surface text-muted"}`}>{option}</button>))}</div></fieldset>
-                <label className="block rounded-[24px] border border-border bg-surface-soft p-4"><span className="text-sm font-semibold text-copy">Notes</span><textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={4} className="ui-input mt-3" /></label>
-                {status ? <p className="text-sm leading-6 text-muted">{status}</p> : null}
-                <div className="flex flex-col gap-3 sm:flex-row"><button className="ui-button-primary" disabled={saving || isPending}>{saving ? "Saving..." : status ? "Retry save" : "Save workout"}</button><button type="button" onClick={() => setStep("workout")} className="ui-button-secondary">Back</button><button type="button" onClick={handleDiscardDraft} className="ui-button-ghost">Discard</button></div>
+                <fieldset className="rounded-[24px] border border-border bg-surface-soft p-4">
+                  <legend className="text-sm font-semibold text-copy">
+                    Session difficulty
+                  </legend>
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    {effortOptions.map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => setEffort(option)}
+                        className={`rounded-full px-4 py-2 text-sm font-semibold ${effort === option ? "bg-primary text-white" : "bg-surface text-muted"}`}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </fieldset>
+                <label className="block rounded-[24px] border border-border bg-surface-soft p-4">
+                  <span className="text-sm font-semibold text-copy">Notes</span>
+                  <textarea
+                    value={notes}
+                    onChange={(event) => setNotes(event.target.value)}
+                    rows={4}
+                    className="ui-input mt-3"
+                  />
+                </label>
+                {status ? (
+                  <p className="text-sm leading-6 text-muted">{status}</p>
+                ) : null}
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <button
+                    className="ui-button-primary"
+                    disabled={saving || isPending}
+                  >
+                    {saving
+                      ? "Saving..."
+                      : status
+                        ? "Retry save"
+                        : "Save workout"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStep("workout")}
+                    className="ui-button-secondary"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDiscardDraft}
+                    className="ui-button-ghost"
+                  >
+                    Discard
+                  </button>
+                </div>
               </form>
             </div>
           ) : null}
 
           {step === "saved" && savedSession ? (
-            <div className="surface-card p-5"><p className="ui-eyebrow">Saved</p><h1 className="mt-2 text-2xl font-black text-copy">{savedSession.workoutName}</h1><p className="mt-2 text-sm leading-6 text-muted">{savedSession.completedExerciseCount} exercises checked. {savedSession.recommendation}</p><button type="button" onClick={handleStartAnotherWorkout} className="ui-button-primary mt-5">Back to workout details</button></div>
+            <div className="surface-card p-5">
+              <p className="ui-eyebrow">Saved</p>
+              <h1 className="mt-2 text-2xl font-black text-copy">
+                {savedSession.workoutName}
+              </h1>
+              <p className="mt-2 text-sm leading-6 text-muted">
+                {savedSession.completedExerciseCount} exercises checked.{" "}
+                {savedSession.recommendation}
+              </p>
+              <button
+                type="button"
+                onClick={handleStartAnotherWorkout}
+                className="ui-button-primary mt-5"
+              >
+                Back to workout details
+              </button>
+            </div>
           ) : null}
         </div>
       </div>
@@ -750,15 +931,13 @@ export function WorkoutFlow({
               {activePlan.currentPhase.goal}
             </p>
           </div>
-          {recommendedWorkout ? (
+          {recommendedWorkout && recommendedWorkout.id !== workout.id ? (
             <button
               type="button"
               onClick={() => handleSelectWorkout(recommendedWorkout.id)}
-              className="ui-button-primary"
+              className="ui-button-secondary"
             >
-              {activeDraft?.workoutTemplateId === recommendedWorkout.id
-                ? "Resume recommended workout"
-                : "Start recommended workout"}
+              View recommended workout
             </button>
           ) : null}
         </div>
@@ -834,37 +1013,39 @@ export function WorkoutFlow({
             {step === "idle" ? (
               <div className="space-y-4 rounded-[24px] border border-border bg-surface-soft p-5">
                 <p className="text-sm leading-6 text-muted">
-                  Start creates one local active draft for this signed-in user
-                  and browser. If a draft already exists, resume or discard it
-                  before replacing it.
+                  {activeDraft
+                    ? `A recoverable draft exists for ${activeDraft.workoutNameSnapshot}. Resume it to continue, or discard it before starting a different workout.`
+                    : invalidRecoveryKey
+                      ? "Recovery data could not be read. Clear it before starting fresh."
+                      : "Start creates one local active draft for this signed-in user and browser."}
                 </p>
                 <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                  <button
-                    type="button"
-                    onClick={handleStartWorkout}
-                    className="ui-button-primary"
-                    disabled={!userId || Boolean(activeDraft)}
-                  >
-                    {activeDraft ? "Resume workout" : "Start workout"}
-                  </button>
                   {activeDraft ? (
                     <button
                       type="button"
                       onClick={handleResumeDraft}
-                      className="ui-button-secondary"
+                      className="ui-button-primary"
                     >
                       Resume workout
                     </button>
-                  ) : null}
-                  {invalidRecoveryKey ? (
+                  ) : invalidRecoveryKey ? (
                     <button
                       type="button"
                       onClick={handleClearRecoveryData}
-                      className="ui-button-ghost"
+                      className="ui-button-primary"
                     >
                       Clear recovery data
                     </button>
-                  ) : null}
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleStartWorkout}
+                      className="ui-button-primary"
+                      disabled={!userId}
+                    >
+                      Start workout
+                    </button>
+                  )}
                 </div>
               </div>
             ) : null}
@@ -1079,29 +1260,13 @@ export function WorkoutFlow({
                     </div>
                   ) : null}
                 </div>
-                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                  <button
-                    type="button"
-                    onClick={handleStartAnotherWorkout}
-                    className="ui-button-primary"
-                  >
-                    Start another workout
-                  </button>
-                  <a
-                    href="#progress"
-                    className="ui-button-secondary text-center"
-                  >
-                    View progress
-                  </a>
-                  {savedSession.progressionDecision === "advance" ? (
-                    <a
-                      href={`/plans/${activePlan.id}`}
-                      className="ui-button-ghost text-center"
-                    >
-                      Review plan progress
-                    </a>
-                  ) : null}
-                </div>
+                <button
+                  type="button"
+                  onClick={handleStartAnotherWorkout}
+                  className="ui-button-primary"
+                >
+                  Back to workout details
+                </button>
               </div>
             ) : null}
           </div>
@@ -1170,7 +1335,6 @@ function HeroStat({ label, value }: { label: string; value: string }) {
   );
 }
 
-
 function useLiveElapsedSeconds(draft: ActiveWorkoutDraft | null) {
   const [elapsedSeconds, setElapsedSeconds] = useState(() =>
     draft ? getElapsedSeconds(draft) : 0,
@@ -1195,7 +1359,8 @@ function formatElapsed(totalSeconds: number) {
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
-  const paddedMinutes = hours > 0 ? String(minutes).padStart(2, "0") : String(minutes);
+  const paddedMinutes =
+    hours > 0 ? String(minutes).padStart(2, "0") : String(minutes);
   const paddedSeconds = String(seconds).padStart(2, "0");
 
   return hours > 0
