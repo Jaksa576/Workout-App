@@ -333,7 +333,9 @@ export function WorkoutFlow({
         setCompletedOn(result.draft.checkIn.completedOn);
       }
       setDraftMessage(
-        `${result.stale ? "Stale" : "Recovered"} workout draft for ${result.draft.workoutNameSnapshot}. Elapsed ${Math.floor(getElapsedSeconds(result.draft) / 60)} min${result.stale ? `; last updated ${result.ageDays} days ago` : ""}.`,
+        result.stale
+          ? `Stale workout draft for ${result.draft.workoutNameSnapshot}; last updated ${result.ageDays} days ago.`
+          : `Recovered workout draft for ${result.draft.workoutNameSnapshot}.`,
       );
       setStep(
         getRecoveredDraftStep({
@@ -675,7 +677,7 @@ export function WorkoutFlow({
           ) : null}
 
           {step === "workout" && activeDraft ? (
-            <WorkoutChecklist workout={workout} checkedExerciseIds={checkedExerciseIds} onCheckedExerciseIdsChange={setCheckedExerciseIds} />
+            <WorkoutChecklist workout={workout} checkedExerciseIds={checkedExerciseIds} onCheckedExerciseIdsChange={setCheckedExerciseIds} compactExecution />
           ) : null}
 
           {step === "check-in" ? (

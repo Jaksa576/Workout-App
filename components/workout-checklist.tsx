@@ -9,13 +9,15 @@ type WorkoutChecklistProps = {
   storageKey?: string;
   checkedExerciseIds?: string[];
   onCheckedExerciseIdsChange?: (checkedExerciseIds: string[]) => void;
+  compactExecution?: boolean;
 };
 
 export function WorkoutChecklist({
   workout,
   storageKey,
   checkedExerciseIds,
-  onCheckedExerciseIdsChange
+  onCheckedExerciseIdsChange,
+  compactExecution = false
 }: WorkoutChecklistProps) {
   const [internalChecked, setInternalChecked] = useState<string[]>([]);
   const checked = checkedExerciseIds ?? internalChecked;
@@ -59,7 +61,7 @@ export function WorkoutChecklist({
   }, [checked.length, workout.exercises.length]);
 
   return (
-    <div className="space-y-5">
+    <div className={compactExecution ? "space-y-3" : "space-y-5"}>
       <div className="rounded-[24px] border border-border bg-surface-soft p-4">
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -73,25 +75,61 @@ export function WorkoutChecklist({
           </div>
         </div>
       </div>
-      <div className="space-y-3">
+      <div className={compactExecution ? "space-y-2" : "space-y-3"}>
         {workout.exercises.map((exercise, index) => {
           const active = checked.includes(exercise.id);
           const checkboxId = `exercise-check-${exercise.id}`;
 
           return (
-            <div
+            <article
               key={exercise.id}
-              className="grid gap-4 rounded-[24px] border border-border/70 bg-surface p-4 transition hover:border-primary/40 sm:grid-cols-[auto_minmax(0,1fr)]"
+              className={`rounded-[24px] border border-border/70 bg-surface transition hover:border-primary/40 ${
+                compactExecution ? "p-3" : "p-4"
+              }`}
             >
               <div className="flex items-start gap-3">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-surface-soft text-sm font-black text-copy">
                   {index + 1}
                 </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <label
+                      htmlFor={checkboxId}
+                      className="cursor-pointer text-lg font-black leading-tight text-copy"
+                    >
+                      {exercise.name}
+                    </label>
+                    <p className="shrink-0 rounded-full bg-surface-soft px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-muted">
+                      {exercise.sets} sets · {exercise.reps}
+                    </p>
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-2 text-xs uppercase tracking-[0.16em] text-muted">
+                    <span className="rounded-full bg-shell-elevated px-3 py-2">
+                      Rest {exercise.rest}
+                    </span>
+                    {active ? (
+                      <span className="rounded-full bg-success/10 px-3 py-2 text-success">
+                        Completed
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+              <label
+                htmlFor={checkboxId}
+                className={`mt-3 flex min-h-12 cursor-pointer items-center justify-between gap-3 rounded-[18px] border px-4 py-3 text-sm font-bold transition ${
+                  active
+                    ? "border-success/30 bg-success/10 text-success"
+                    : "border-primary/25 bg-primary/10 text-copy hover:border-primary/50"
+                }`}
+              >
+                <span>{active ? "Marked complete" : "Mark complete"}</span>
                 <input
                   id={checkboxId}
                   type="checkbox"
-                  className="mt-2 h-6 w-6 accent-[rgb(var(--color-primary))]"
+                  className="h-6 w-6 accent-[rgb(var(--color-primary))]"
                   checked={active}
+                  aria-label={`${active ? "Mark incomplete" : "Mark complete"}: ${exercise.name}`}
                   onChange={() =>
                     setNextChecked(
                       active
@@ -100,27 +138,13 @@ export function WorkoutChecklist({
                     )
                   }
                 />
-              </div>
-              <div className="flex-1">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <label
-                    htmlFor={checkboxId}
-                    className="cursor-pointer text-lg font-black leading-tight text-copy"
-                  >
-                    {exercise.name}
-                  </label>
-                  <p className="shrink-0 rounded-full bg-surface-soft px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-muted">
-                    {exercise.sets} sets - {exercise.reps}
-                  </p>
-                </div>
-                <ExerciseGuidancePanel exercise={exercise} compact />
-                <div className="mt-3 flex flex-wrap gap-2 text-xs uppercase tracking-[0.16em] text-muted">
-                  <span className="rounded-full bg-shell-elevated px-3 py-2">
-                    Rest {exercise.rest}
-                  </span>
-                </div>
-              </div>
-            </div>
+              </label>
+              <ExerciseGuidancePanel
+                exercise={exercise}
+                compact
+                defaultOpen={!compactExecution}
+              />
+            </article>
           );
         })}
       </div>
