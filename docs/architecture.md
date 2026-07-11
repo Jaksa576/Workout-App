@@ -376,3 +376,15 @@ Final workout persistence is transaction-scoped through `public.finalize_workout
 The migration's exercise-entry backfill is a one-time SQL snapshot of the reviewed static catalog mapping. Unknown, blank, stale, or custom `source_exercise_id` values are completion-only by default, matching the TypeScript runtime fallback and avoiding name inference or a database-backed catalog.
 
 The finalize RPC derives authoritative execution snapshots inside the database. Caller JSON may provide new exercise-result IDs, exercise-entry IDs, exercise-level completion status, and set status rows, but source exercise identity, exercise name/order, tracking type, unilateral mode, units, value labels, prescription text, workout name, source plan, and phase identity come from the validated workout and exercise-entry records. Transactional QA rejection checks use a nested `was_rejected` block around only the RPC call so an unexpected success cannot be hidden by the deliberate test failure.
+
+## Issue #13 Inline Set Logging Contract
+
+Issue #13 extends the existing Issue #10 finalization boundary rather than introducing a second write path. Active metric logging is available only for saved exercise entries whose persisted metadata is `weight_reps` or `reps_only`; unsupported, custom, stale, or ambiguous entries keep the completion fallback until their metadata is deliberately reviewed. The active UI must not infer tracking type from exercise names at runtime.
+
+Inline active rows distinguish planned prescription, deterministic previous performance text, and current actual inputs. `weight_reps` rows collect decimal nonnegative load plus whole-number nonnegative reps; `reps_only` rows collect reps only. Blank values are allowed while editing, but completing a row requires the tracking-type-specific actual metrics and provides row-level feedback/focus on invalid input. Prescribed rows are generated from the workout prescription, cannot be removed, and user-added rows append after them.
+
+Previous performance is resolved server-side from saved `exercise_results` and `exercise_set_results` using stable `source_exercise_id` identity for catalog-backed exercises. Previous values are rendered as reference text only and are never copied into current actual inputs.
+
+The Issue #11 local active draft remains the only in-progress persistence store. Draft recovery preserves partial set values, completed/uncompleted row status, added rows, and check-in state across refresh, navigation, stale explicit resume, ordinary save failure, and retry.
+
+`public.finalize_workout_session(jsonb, jsonb, jsonb)` remains the single atomic final-save boundary. The Issue #13 RPC extension persists `actual_load` and `actual_reps`, rejects invalid child rows before insertion, derives authoritative exercise tracking metadata from validated database rows, and lets table constraints/triggers roll back the entire workout save if one set row is invalid.

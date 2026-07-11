@@ -158,3 +158,11 @@ Implementing the PR follow-up request for the core active-workout set logging is
 The active draft now carries partial set inputs, completion status, added-set rows, and optional exercise notes. The active UI switches only on persisted `exercise.trackingType`: `weight_reps` renders weight and reps inputs, `reps_only` omits weight, and unsupported tracking types stay on the existing safe completion fallback. Submitted set rows are mapped into the existing `exercise_set_results` RPC payload with prescribed/added kind, order, status, actual load/reps, and completed timestamps; no parallel session or draft store is introduced.
 
 Validation focus for this patch: metadata-driven row choice, decimal/nonnegative load entry, whole-number/nonnegative reps entry, out-of-order complete/uncomplete, added-set remove, refresh recovery of partial row values, exercise-note recovery, unsupported tracking fallback, and final save payload shape.
+
+### PR #33 follow-up — Issue #13 production readiness patch
+
+This follow-up addresses the PR #33 review blockers for Issue #13. The active checklist now gates inline metric entry to the real active execution surface, removes the unsolicited large exercise-note disclosure, shows previous set values from server-resolved stable catalog identity, provides row-level completion validation/focus, and derives active progress from completed metric sets plus fallback completion exercises.
+
+The final-save path now merges untouched prescribed defaults with edited rows before submitting to `finalize_workout_session`, validates submitted metric rows against the selected workout and persisted tracking metadata, and rejects unsupported/foreign/duplicate/invalid child rows. The Supabase delta is committed as `supabase/migrations/20260711193000_issue13_inline_set_logging_rpc_and_metadata.sql`; Codex Web did not apply hosted migrations.
+
+Validation focus: apply the Issue #13 migration to the target Supabase environment, run `supabase/verification/issue-13-inline-set-logging-readonly.sql`, run transactional QA for metric persistence/rejection cases, redeploy the preview, and perform narrow-mobile QA against the actual preview workout confirming Goblet Squat and Romanian Deadlift render `weight_reps` rows while reps-only exercises omit Weight.

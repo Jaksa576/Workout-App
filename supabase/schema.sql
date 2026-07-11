@@ -866,6 +866,23 @@ begin
     left join jsonb_array_elements(p_exercise_results) as er(value) on (er.value->>'id') = (sr.value->>'exercise_result_id')
     where er.value is null
   ) then raise exception 'set rows must reference exercise results created by this finalize call'; end if;
+  if exists (select 1 from jsonb_array_elements(p_set_results) as r(value) where (value->>'set_kind') = 'prescribed' and nullif(value->>'prescribed_set_index','') is null) then raise exception 'prescribed rows require prescribed_set_index'; end if;
+  if exists (select 1 from jsonb_array_elements(p_set_results) as r(value) where (value->>'set_kind') = 'added' and nullif(value->>'prescribed_set_index','') is not null) then raise exception 'added rows must not include prescribed_set_index'; end if;
+  if exists (select 1 from jsonb_array_elements(p_set_results) as r(value) where (value->>'status') = 'completed' and nullif(value->>'completed_at','') is null) then raise exception 'completed set rows require completed_at'; end if;
+  if exists (select 1 from jsonb_array_elements(p_set_results) as r(value) where (value->>'status') <> 'completed' and nullif(value->>'completed_at','') is not null) then raise exception 'incomplete set rows must not include completed_at'; end if;
+  if exists (select 1 from jsonb_array_elements(p_set_results) as r(value) group by value->>'exercise_result_id', value->>'set_order' having count(*) > 1) then raise exception 'duplicate set_order values are not allowed'; end if;
+  if exists (select 1 from jsonb_array_elements(p_set_results) as r(value) where (value->>'set_kind') = 'prescribed' group by value->>'exercise_result_id', value->>'prescribed_set_index' having count(*) > 1) then raise exception 'duplicate prescribed_set_index values are not allowed'; end if;
+  if exists (
+    select 1
+    from jsonb_array_elements(p_set_results) as sr(value)
+    join jsonb_array_elements(p_exercise_results) as erj(value) on erj.value->>'id' = sr.value->>'exercise_result_id'
+    join public.exercise_entries ee on ee.id = (erj.value->>'exercise_entry_id')::uuid
+    where (ee.tracking_type = 'reps_only' and nullif(sr.value->>'actual_load','') is not null)
+       or (ee.tracking_type <> 'weight_reps' and nullif(sr.value->>'actual_load','') is not null)
+       or (ee.tracking_type not in ('weight_reps','reps_only') and nullif(sr.value->>'actual_reps','') is not null)
+       or (sr.value->>'status' = 'completed' and ee.tracking_type = 'weight_reps' and (nullif(sr.value->>'actual_load','') is null or nullif(sr.value->>'actual_reps','') is null))
+       or (sr.value->>'status' = 'completed' and ee.tracking_type = 'reps_only' and nullif(sr.value->>'actual_reps','') is null)
+  ) then raise exception 'set metrics are invalid for exercise tracking type'; end if;
 
   insert into public.workout_sessions (id, user_id, workout_template_id, source_plan_id, source_phase_id, completed_on, completed, pain_occurred, perceived_difficulty, notes, recommendation, phase_id_at_completion, phase_name_snapshot, workout_name_snapshot, started_at, finished_at, elapsed_seconds, elapsed_source)
   values ((p_session->>'id')::uuid, actor, selected_workout_template_id, authoritative_workout.plan_id, authoritative_workout.phase_id, (p_session->>'completed_on')::date, (p_session->>'completed')::boolean, (p_session->>'pain_occurred')::boolean, p_session->>'perceived_difficulty', coalesce(p_session->>'notes',''), p_session->>'recommendation', authoritative_workout.phase_id, coalesce('Phase ' || authoritative_workout.phase_number::text || ': ' || authoritative_workout.goal, authoritative_workout.goal), authoritative_workout.workout_name, (p_session->>'started_at')::timestamptz, (p_session->>'finished_at')::timestamptz, coalesce((p_session->>'elapsed_seconds')::integer,0), coalesce(p_session->>'elapsed_source','server_timestamp'))
@@ -876,8 +893,8 @@ begin
   from jsonb_array_elements(p_exercise_results) as r(value)
   join public.exercise_entries ee on ee.id = (r.value->>'exercise_entry_id')::uuid and ee.workout_template_id = selected_workout_template_id;
 
-  insert into public.exercise_set_results (exercise_result_id, set_order, prescribed_set_index, set_kind, status, completed_at)
-  select (value->>'exercise_result_id')::uuid, (value->>'set_order')::integer, nullif(value->>'prescribed_set_index','')::integer, value->>'set_kind', value->>'status', nullif(value->>'completed_at','')::timestamptz
+  insert into public.exercise_set_results (exercise_result_id, set_order, prescribed_set_index, set_kind, status, actual_load, actual_reps, completed_at)
+  select (value->>'exercise_result_id')::uuid, (value->>'set_order')::integer, nullif(value->>'prescribed_set_index','')::integer, value->>'set_kind', value->>'status', nullif(value->>'actual_load','')::numeric, nullif(value->>'actual_reps','')::integer, nullif(value->>'completed_at','')::timestamptz
   from jsonb_array_elements(p_set_results) as r(value);
 
   return saved;

@@ -555,7 +555,7 @@ export function WorkoutFlow({
     if (!finishEnabled || !activeDraft) {
       return;
     }
-    setCompleted(checkedExerciseIds.length === workout.exercises.length);
+    setCompleted(getWorkoutSetProgress(workout, setResults, checkedExerciseIds).completed === getWorkoutSetProgress(workout, setResults, checkedExerciseIds).total);
     setStep("check-in");
     setStatus(null);
   }
@@ -642,6 +642,7 @@ export function WorkoutFlow({
     router.push(`/workout?workoutId=${workout.id}` as Route);
   }
 
+  const progress = getWorkoutSetProgress(workout, setResults, checkedExerciseIds);
   const elapsedSeconds = useLiveElapsedSeconds(activeDraft);
   const finishEnabled = canFinishActiveWorkout({
     mode,
@@ -662,8 +663,7 @@ export function WorkoutFlow({
                 {workout.name}
               </p>
               <p className="mt-1 text-xs font-semibold text-muted">
-                {formatElapsed(elapsedSeconds)} · {checkedExerciseIds.length}/
-                {workout.exercises.reduce((sum, exercise) => sum + (exercise.trackingType === "weight_reps" || exercise.trackingType === "reps_only" ? exercise.sets : 1), 0)} items
+                {formatElapsed(elapsedSeconds)} · {progress.completed}/{progress.total} sets
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
@@ -761,8 +761,6 @@ export function WorkoutFlow({
               onCheckedExerciseIdsChange={setCheckedExerciseIds}
               setResults={setResults}
               onSetResultsChange={setSetResults}
-              exerciseNotes={exerciseNotes}
-              onExerciseNotesChange={setExerciseNotes}
               compactExecution
             />
           ) : null}
@@ -1365,6 +1363,22 @@ function useLiveElapsedSeconds(draft: ActiveWorkoutDraft | null) {
   }, [draft]);
 
   return elapsedSeconds;
+}
+
+function getWorkoutSetProgress(workout: WorkoutTemplate, setResults: WorkoutSetInput[], checkedExerciseIds: string[]) {
+  let completed = 0;
+  let total = 0;
+  for (const exercise of workout.exercises) {
+    if (exercise.trackingType === "weight_reps" || exercise.trackingType === "reps_only") {
+      const rows = setResults.filter((row) => row.exerciseEntryId === exercise.id);
+      total += exercise.sets + rows.filter((row) => row.setKind === "added").length;
+      completed += rows.filter((row) => row.status === "completed").length;
+    } else {
+      total += 1;
+      if (checkedExerciseIds.includes(exercise.id)) completed += 1;
+    }
+  }
+  return { completed, total };
 }
 
 function formatElapsed(totalSeconds: number) {

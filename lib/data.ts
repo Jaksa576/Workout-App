@@ -76,6 +76,7 @@ type WorkoutRow = {
 };
 
 type ExerciseRow = {
+  previous_set_summaries?: string[];
   id: string;
   workout_template_id: string;
   name: string;
@@ -145,6 +146,7 @@ function mapExercise(row: ExerciseRow): ExerciseEntry {
     distanceUnit: row.distance_unit,
     primaryValueLabel: row.primary_value_label,
     secondaryValueLabel: row.secondary_value_label,
+    previousSetSummaries: row.previous_set_summaries ?? [],
   };
 }
 
@@ -327,11 +329,34 @@ async function getPlanBundle(userId: string, sessionSince?: string) {
     throw new Error(sessionsResult.error.message);
   }
 
+  const exercisesWithPrevious = ((exercisesResult.data ?? []) as ExerciseRow[]).map((exercise) => ({ ...exercise }));
+  const catalogExerciseIds = Array.from(new Set(exercisesWithPrevious.map((exercise) => exercise.source_exercise_id).filter(Boolean))) as string[];
+  if (catalogExerciseIds.length > 0) {
+    const { data: previousRows } = await supabase
+      .from("exercise_results")
+      .select("id, source_exercise_id, source_workout_template_id, created_at, workout_sessions!inner(user_id, finished_at, created_at), exercise_set_results(set_order, status, actual_load, actual_reps)")
+      .in("source_exercise_id", catalogExerciseIds)
+      .eq("workout_sessions.user_id", userId)
+      .order("created_at", { ascending: false }) as { data: Array<{ source_exercise_id: string | null; source_workout_template_id: string | null; created_at: string; exercise_set_results?: Array<{ set_order: number; status: string; actual_load: number | null; actual_reps: number | null }> }> | null };
+    const previousBySource = new Map<string, string[]>();
+    for (const row of previousRows ?? []) {
+      if (!row.source_exercise_id || previousBySource.has(row.source_exercise_id)) continue;
+      const summaries = (row.exercise_set_results ?? [])
+        .filter((set) => set.status === "completed")
+        .sort((a, b) => a.set_order - b.set_order)
+        .map((set) => set.actual_load !== null && set.actual_load !== undefined ? `${set.actual_load} × ${set.actual_reps ?? "—"}` : `${set.actual_reps ?? "—"} reps`);
+      if (summaries.length) previousBySource.set(row.source_exercise_id, summaries);
+    }
+    for (const exercise of exercisesWithPrevious) {
+      exercise.previous_set_summaries = exercise.source_exercise_id ? (previousBySource.get(exercise.source_exercise_id) ?? []) : [];
+    }
+  }
+
   return {
     plans: ((plansData ?? []) as PlanRow[]).filter((plan) => !plan.archived_at),
     phases: (phasesData ?? []) as PhaseRow[],
     workouts: (workoutsResult.data ?? []) as WorkoutRow[],
-    exercises: (exercisesResult.data ?? []) as ExerciseRow[],
+    exercises: exercisesWithPrevious,
     sessions: ((sessionsResult.data ?? []) as SessionRow[]).sort(
       sortSessionsByLatest,
     ),

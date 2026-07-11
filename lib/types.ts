@@ -54,6 +54,7 @@ export type ExerciseEntry = {
   distanceUnit?: "mi" | "km" | "m" | null;
   primaryValueLabel?: string | null;
   secondaryValueLabel?: string | null;
+  previousSetSummaries?: string[];
 };
 
 export type Weekday = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
