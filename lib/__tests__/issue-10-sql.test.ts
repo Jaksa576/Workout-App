@@ -21,6 +21,14 @@ describe("Issue #10 Supabase SQL hardening", () => {
     expect(migration).toContain("source_workout_template_id must match selected workout");
   });
 
+  it("derives session and exercise snapshots inside the RPC", () => {
+    expect(migration).toContain("Snapshot metadata is derived from workout_templates, plan_phases, workout_plans, and exercise_entries");
+    expect(migration).toContain("authoritative_workout record");
+    expect(migration).toContain("authoritative_workout.workout_name");
+    expect(migration).toContain("ee.source_exercise_id, ee.name, ee.sort_order, ee.tracking_type, ee.unilateral_mode");
+    expect(migration).toContain("ee.sets::text || ' sets × ' || ee.reps");
+  });
+
   it("provides executable transactional QA for success, rollback, and foreign child rejection", () => {
     expect(qa).toContain("begin;");
     expect(qa).toContain("rollback;");
@@ -28,6 +36,9 @@ describe("Issue #10 Supabase SQL hardening", () => {
     expect(qa).toContain("late child failure left workout_session behind");
     expect(qa).toContain("foreign exercise_entry_id unexpectedly succeeded");
     expect(qa).toContain("foreign/pre-existing set parent unexpectedly succeeded");
+    expect(qa).toContain("was_rejected boolean := false");
+    expect(qa).toContain("if was_rejected is false then raise exception");
+    expect(qa).toContain("caller metadata was not overridden with authoritative snapshots");
     expect(qa).not.toContain("TODO");
   });
 });

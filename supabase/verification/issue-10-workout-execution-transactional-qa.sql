@@ -57,43 +57,84 @@ do $$ begin if (select count(*) from public.workout_sessions where id='00000000-
 do $$ begin if (select count(*) from public.exercise_results where workout_session_id='00000000-0000-4000-8000-000000001100') <> 1 then raise exception 'valid finalize did not create expected exercise result'; end if; end $$;
 do $$ begin if (select count(*) from public.exercise_set_results where exercise_result_id='00000000-0000-4000-8000-000000001101') <> 1 then raise exception 'valid finalize did not create expected set result'; end if; end $$;
 
+-- Mismatched caller metadata is ignored in favor of exercise_entries/workout_templates/plan_phases snapshots.
+select public.finalize_workout_session(
+  '{"id":"00000000-0000-4000-8000-000000001150","workout_template_id":"00000000-0000-4000-8000-000000001003","completed_on":"2026-07-10","completed":true,"pain_occurred":false,"perceived_difficulty":"appropriate","notes":"","recommendation":"QA","phase_id_at_completion":"00000000-0000-4000-8000-000000002002","workout_name_snapshot":"Caller supplied wrong workout","started_at":"2026-07-10T00:00:00Z","finished_at":"2026-07-10T00:05:00Z","elapsed_seconds":300,"elapsed_source":"server_timestamp"}'::jsonb,
+  '[{"id":"00000000-0000-4000-8000-000000001151","source_workout_template_id":"00000000-0000-4000-8000-000000001003","exercise_entry_id":"00000000-0000-4000-8000-000000001005","source_exercise_id":"wrong-source","exercise_name_snapshot":"Wrong exercise name","exercise_order":99,"tracking_type":"completion","unilateral_mode":"independent_sides","load_unit":null,"distance_unit":"km","primary_value_label":"Wrong primary","secondary_value_label":"Wrong secondary","prescribed_target_text":"wrong prescription","completion_status":"completed"}]'::jsonb,
+  '[{"exercise_result_id":"00000000-0000-4000-8000-000000001151","set_order":1,"prescribed_set_index":1,"set_kind":"prescribed","status":"incomplete","completed_at":null}]'::jsonb
+);
+do $$ begin
+  if not exists (
+    select 1 from public.workout_sessions ws
+    join public.exercise_results er on er.workout_session_id = ws.id
+    where ws.id='00000000-0000-4000-8000-000000001150'
+      and ws.workout_name_snapshot='Issue 10 owner workout'
+      and ws.phase_id_at_completion='00000000-0000-4000-8000-000000001002'
+      and er.source_exercise_id='goblet-squat'
+      and er.exercise_name_snapshot='Owner squat'
+      and er.exercise_order=2
+      and er.tracking_type='weight_reps'
+      and er.unilateral_mode='bilateral'
+      and er.load_unit='lb'
+      and er.distance_unit is null
+      and er.primary_value_label='Load'
+      and er.secondary_value_label='Reps'
+      and er.prescribed_target_text='1 sets × 5'
+  ) then raise exception 'caller metadata was not overridden with authoritative snapshots'; end if;
+end $$;
+
 -- Invalid late child failure rolls back the newly inserted session and exercise rows.
 do $$
+declare
+  was_rejected boolean := false;
 begin
-  perform public.finalize_workout_session(
+  begin
+    perform public.finalize_workout_session(
     '{"id":"00000000-0000-4000-8000-000000001200","workout_template_id":"00000000-0000-4000-8000-000000001003","completed_on":"2026-07-10","completed":true,"pain_occurred":false,"perceived_difficulty":"appropriate","notes":"","recommendation":"QA","phase_id_at_completion":"00000000-0000-4000-8000-000000001002","workout_name_snapshot":"Issue 10 owner workout","started_at":"2026-07-10T00:00:00Z","finished_at":"2026-07-10T00:05:00Z","elapsed_seconds":300,"elapsed_source":"server_timestamp"}'::jsonb,
     '[{"id":"00000000-0000-4000-8000-000000001201","source_workout_template_id":"00000000-0000-4000-8000-000000001003","exercise_entry_id":"00000000-0000-4000-8000-000000001005","source_exercise_id":"goblet-squat","exercise_name_snapshot":"Owner squat","exercise_order":1,"tracking_type":"weight_reps","unilateral_mode":"bilateral","load_unit":"lb","distance_unit":null,"primary_value_label":"Load","secondary_value_label":"Reps","prescribed_target_text":"1 sets × 5","completion_status":"completed"}]'::jsonb,
     '[{"exercise_result_id":"00000000-0000-4000-8000-000000001201","set_order":1,"prescribed_set_index":1,"set_kind":"prescribed","status":"completed","completed_at":"2026-07-10T00:05:00Z"}]'::jsonb
   );
-  raise exception 'invalid metric child unexpectedly succeeded';
-exception when others then
+  exception when others then
+    was_rejected := true;
+  end;
+  if was_rejected is false then raise exception 'invalid metric child unexpectedly succeeded'; end if;
   if exists (select 1 from public.workout_sessions where id='00000000-0000-4000-8000-000000001200') then raise exception 'late child failure left workout_session behind'; end if;
   if exists (select 1 from public.exercise_results where id='00000000-0000-4000-8000-000000001201') then raise exception 'late child failure left exercise_result behind'; end if;
 end $$;
 
 -- Foreign exercise entry is rejected before insert.
 do $$
+declare
+  was_rejected boolean := false;
 begin
-  perform public.finalize_workout_session(
+  begin
+    perform public.finalize_workout_session(
     '{"id":"00000000-0000-4000-8000-000000001300","workout_template_id":"00000000-0000-4000-8000-000000001003","completed_on":"2026-07-10","completed":true,"pain_occurred":false,"perceived_difficulty":"appropriate","notes":"","recommendation":"QA","phase_id_at_completion":"00000000-0000-4000-8000-000000001002","workout_name_snapshot":"Issue 10 owner workout","started_at":"2026-07-10T00:00:00Z","finished_at":"2026-07-10T00:05:00Z","elapsed_seconds":300,"elapsed_source":"server_timestamp"}'::jsonb,
     '[{"id":"00000000-0000-4000-8000-000000001301","source_workout_template_id":"00000000-0000-4000-8000-000000001003","exercise_entry_id":"00000000-0000-4000-8000-000000002004","source_exercise_id":null,"exercise_name_snapshot":"Foreign completion drill","exercise_order":1,"tracking_type":"completion","unilateral_mode":"bilateral","load_unit":null,"distance_unit":null,"primary_value_label":"Completion","secondary_value_label":null,"prescribed_target_text":"1 sets × Done","completion_status":"completed"}]'::jsonb,
     '[]'::jsonb
   );
-  raise exception 'foreign exercise_entry_id unexpectedly succeeded';
-exception when others then
+  exception when others then
+    was_rejected := true;
+  end;
+  if was_rejected is false then raise exception 'foreign exercise_entry_id unexpectedly succeeded'; end if;
   if exists (select 1 from public.workout_sessions where id='00000000-0000-4000-8000-000000001300') then raise exception 'foreign exercise_entry rejection left workout_session behind'; end if;
 end $$;
 
 -- Foreign/pre-existing exercise_result set parent is rejected before insert.
 do $$
+declare
+  was_rejected boolean := false;
 begin
-  perform public.finalize_workout_session(
+  begin
+    perform public.finalize_workout_session(
     '{"id":"00000000-0000-4000-8000-000000001400","workout_template_id":"00000000-0000-4000-8000-000000001003","completed_on":"2026-07-10","completed":true,"pain_occurred":false,"perceived_difficulty":"appropriate","notes":"","recommendation":"QA","phase_id_at_completion":"00000000-0000-4000-8000-000000001002","workout_name_snapshot":"Issue 10 owner workout","started_at":"2026-07-10T00:00:00Z","finished_at":"2026-07-10T00:05:00Z","elapsed_seconds":300,"elapsed_source":"server_timestamp"}'::jsonb,
     '[{"id":"00000000-0000-4000-8000-000000001401","source_workout_template_id":"00000000-0000-4000-8000-000000001003","exercise_entry_id":"00000000-0000-4000-8000-000000001004","source_exercise_id":null,"exercise_name_snapshot":"Owner completion drill","exercise_order":1,"tracking_type":"completion","unilateral_mode":"bilateral","load_unit":null,"distance_unit":null,"primary_value_label":"Completion","secondary_value_label":null,"prescribed_target_text":"1 sets × Done","completion_status":"completed"}]'::jsonb,
     '[{"exercise_result_id":"00000000-0000-4000-8000-000000002011","set_order":1,"prescribed_set_index":1,"set_kind":"prescribed","status":"completed","completed_at":"2026-07-10T00:05:00Z"}]'::jsonb
   );
-  raise exception 'foreign/pre-existing set parent unexpectedly succeeded';
-exception when others then
+  exception when others then
+    was_rejected := true;
+  end;
+  if was_rejected is false then raise exception 'foreign/pre-existing set parent unexpectedly succeeded'; end if;
   if exists (select 1 from public.workout_sessions where id='00000000-0000-4000-8000-000000001400') then raise exception 'foreign set parent rejection left workout_session behind'; end if;
 end $$;
 
