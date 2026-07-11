@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import { PhaseProgressPanel } from "@/components/phase-progress-panel";
-import { TimerCard } from "@/components/timer-card";
 import { shouldPersistActiveWorkoutDraft } from "@/lib/active-workout-lifecycle";
 import {
   canFinishActiveWorkout,
@@ -926,9 +925,8 @@ export function WorkoutFlow({
             <h2 className="text-3xl font-black leading-tight text-copy">
               {recommendedWorkout?.name ?? workout.name}
             </h2>
-            <p className="mt-2 text-sm leading-6 text-muted">
-              {formatPhaseLabel(activePlan.currentPhase.phaseNumber)}:{" "}
-              {activePlan.currentPhase.goal}
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
+              {(recommendedWorkout ?? workout).summary}
             </p>
           </div>
           {recommendedWorkout && recommendedWorkout.id !== workout.id ? (
@@ -962,7 +960,7 @@ export function WorkoutFlow({
         ) : null}
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+      <section>
         <div className="surface-card p-5 sm:p-6">
           <p className="ui-eyebrow">
             {step === "saved"
@@ -1011,14 +1009,7 @@ export function WorkoutFlow({
 
           <div className="mt-5">
             {step === "idle" ? (
-              <div className="space-y-4 rounded-[24px] border border-border bg-surface-soft p-5">
-                <p className="text-sm leading-6 text-muted">
-                  {activeDraft
-                    ? `A recoverable draft exists for ${activeDraft.workoutNameSnapshot}. Resume it to continue, or discard it before starting a different workout.`
-                    : invalidRecoveryKey
-                      ? "Recovery data could not be read. Clear it before starting fresh."
-                      : "Start creates one local active draft for this signed-in user and browser."}
-                </p>
+              <div className="rounded-[24px] border border-border bg-surface-soft p-5">
                 <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                   {activeDraft ? (
                     <button
@@ -1271,8 +1262,6 @@ export function WorkoutFlow({
             ) : null}
           </div>
         </div>
-
-        <TimerCard />
       </section>
 
       {sessionHistory.length > 0 ? (
