@@ -6,6 +6,12 @@ import type { Route } from "next";
 import { PhaseProgressPanel } from "@/components/phase-progress-panel";
 import { TimerCard } from "@/components/timer-card";
 import { shouldPersistActiveWorkoutDraft } from "@/lib/active-workout-lifecycle";
+import {
+  canFinishActiveWorkout,
+  getDiscardRedirectPath,
+  getRecoveredDraftStep,
+  shouldShowActiveStartCard,
+} from "@/lib/active-workout-shell";
 import { WorkoutChecklist } from "@/components/workout-checklist";
 import {
   buildActiveWorkoutDraft,
@@ -33,6 +39,7 @@ const effortOptions = ["Too easy", "Appropriate", "Too hard"] as const;
 type FlowStep = "idle" | "workout" | "check-in" | "saved";
 
 type WorkoutFlowProps = {
+  mode?: "selection" | "active";
   workouts: WorkoutTemplate[];
   activePlan: WorkoutPlan;
   recommendedWorkout: WorkoutTemplate | null;
@@ -201,6 +208,7 @@ function ProgressSummary({ summary }: { summary: WorkoutProgressSummary }) {
 }
 
 export function WorkoutFlow({
+  mode = "selection",
   workouts,
   activePlan,
   recommendedWorkout,
@@ -212,12 +220,13 @@ export function WorkoutFlow({
   userId,
 }: WorkoutFlowProps) {
   const router = useRouter();
+  const isActiveMode = mode === "active";
   const [isPending, startTransition] = useTransition();
   const [selectedWorkoutId, setSelectedWorkoutId] = useState(
     selectedWorkout.id,
   );
   const [step, setStep] = useState<FlowStep>(
-    initialStep === "check-in" ? "check-in" : "idle",
+    isActiveMode && initialStep === "check-in" ? "check-in" : "idle",
   );
   const [activeDraft, setActiveDraft] = useState<ActiveWorkoutDraft | null>(
     null,
@@ -327,12 +336,11 @@ export function WorkoutFlow({
         `${result.stale ? "Stale" : "Recovered"} workout draft for ${result.draft.workoutNameSnapshot}. Elapsed ${Math.floor(getElapsedSeconds(result.draft) / 60)} min${result.stale ? `; last updated ${result.ageDays} days ago` : ""}.`,
       );
       setStep(
-        result.stale
-          ? "idle"
-          : result.draft.lifecycle === "finishing" ||
-              result.draft.lifecycle === "save_failed"
-            ? "check-in"
-            : "workout",
+        getRecoveredDraftStep({
+          mode,
+          stale: result.stale,
+          lifecycle: result.draft.lifecycle,
+        }),
       );
       return;
     }
@@ -345,7 +353,7 @@ export function WorkoutFlow({
       );
       setStep("idle");
     }
-  }, [userId, workouts]);
+  }, [mode, userId, workouts]);
 
   useEffect(() => {
     if (
@@ -430,10 +438,10 @@ export function WorkoutFlow({
 
     setSelectedWorkoutId(id);
     setCheckedExerciseIds([]);
-    setStep(activeDraft ? "workout" : "idle");
+    setStep(isActiveMode ? "workout" : "idle");
     setSavedSession(null);
     setStatus(null);
-    router.replace(`/workout?workoutId=${id}` as Route);
+    router.replace(`${isActiveMode ? "/workout/active" : "/workout"}?workoutId=${id}` as Route);
   }
 
   function handleStartWorkout() {
@@ -455,7 +463,8 @@ export function WorkoutFlow({
       setDraftMessage(
         `Started ${workout.name}. Your draft is saved on this device.`,
       );
-      setStep("workout");
+      setStep(isActiveMode ? "workout" : "idle");
+      router.push(`/workout/active?workoutId=${workout.id}` as Route);
     } catch {
       setStorageAvailable(false);
       setStatus(
@@ -484,6 +493,9 @@ export function WorkoutFlow({
     setStatus(null);
     setInvalidRecoveryKey(null);
     setStep("idle");
+    if (isActiveMode) {
+      router.replace(getDiscardRedirectPath(activeDraft.workoutTemplateId) as Route);
+    }
   }
 
   function handleClearRecoveryData() {
@@ -506,16 +518,19 @@ export function WorkoutFlow({
 
     setAwaitingStaleRecoveryDecision(false);
     setStep(
-      activeDraft.lifecycle === "finishing" ||
-        activeDraft.lifecycle === "save_failed"
-        ? "check-in"
-        : "workout",
+      isActiveMode
+        ? activeDraft.lifecycle === "finishing" ||
+            activeDraft.lifecycle === "save_failed"
+          ? "check-in"
+          : "workout"
+        : "idle",
     );
     setDraftMessage(`Resumed ${activeDraft.workoutNameSnapshot}.`);
+    router.push(`/workout/active?workoutId=${activeDraft.workoutTemplateId}` as Route);
   }
 
   function handleFinishWorkout() {
-    if (!activeDraft) {
+    if (!finishEnabled || !activeDraft) {
       return;
     }
     setCompleted(checkedExerciseIds.length === workout.exercises.length);
@@ -598,6 +613,95 @@ export function WorkoutFlow({
     setSavedSession(null);
     setStatus(null);
     setStep("idle");
+    router.push(`/workout?workoutId=${workout.id}` as Route);
+  }
+
+  const elapsedSeconds = useLiveElapsedSeconds(activeDraft);
+  const finishEnabled = canFinishActiveWorkout({
+    mode,
+    hasActiveDraft: Boolean(activeDraft),
+    step,
+    awaitingStaleRecoveryDecision,
+    hasMalformedRecoveryData: Boolean(invalidRecoveryKey),
+    saving,
+  });
+
+  if (isActiveMode) {
+    return (
+      <div className="mx-auto max-w-3xl pb-[max(2rem,env(safe-area-inset-bottom))]">
+        <div className="sticky top-0 z-30 -mx-3 border-b border-border/80 bg-shell/95 px-3 py-3 backdrop-blur sm:top-2 sm:mx-0 sm:rounded-[28px] sm:border sm:shadow-soft">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-black text-copy">{workout.name}</p>
+              <p className="mt-1 text-xs font-semibold text-muted">
+                {formatElapsed(elapsedSeconds)} · {checkedExerciseIds.length}/{workout.exercises.length} exercises
+              </p>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <button type="button" onClick={handleFinishWorkout} className="ui-button-primary px-4 py-2" disabled={!finishEnabled}>
+                Finish
+              </button>
+              <button type="button" onClick={handleDiscardDraft} className="ui-button-ghost px-3 py-2" disabled={!activeDraft} aria-label="Discard active workout">
+                Discard
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 space-y-4">
+          {draftMessage ? (
+            <div className="rounded-[24px] border border-primary/20 bg-primary/10 px-4 py-3 text-sm leading-6 text-copy">{draftMessage}</div>
+          ) : null}
+          {shouldShowActiveStartCard({ mode, hasActiveDraft: Boolean(activeDraft), hasMalformedRecoveryData: Boolean(invalidRecoveryKey), step }) ? (
+            <div className="surface-card p-5">
+              <p className="text-sm leading-6 text-muted">Start this workout from its details page to create a recoverable active draft.</p>
+              <button type="button" onClick={handleStartWorkout} className="ui-button-primary mt-4" disabled={!userId}>Start workout</button>
+            </div>
+          ) : null}
+          {invalidRecoveryKey ? (
+            <div className="surface-card p-5">
+              <p className="text-sm leading-6 text-muted">Recovery data is unavailable for this workout.</p>
+              <button type="button" onClick={handleClearRecoveryData} className="ui-button-secondary mt-4">Clear recovery data</button>
+            </div>
+          ) : null}
+          {activeDraft && step === "idle" ? (
+            <div className="surface-card p-5">
+              <p className="text-sm leading-6 text-muted">Resume the recovered active workout draft or discard it before starting over.</p>
+              <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                <button type="button" onClick={handleResumeDraft} className="ui-button-primary">Resume workout</button>
+                <button type="button" onClick={handleDiscardDraft} className="ui-button-ghost">Discard</button>
+              </div>
+            </div>
+          ) : null}
+
+          {step === "workout" && activeDraft ? (
+            <WorkoutChecklist workout={workout} checkedExerciseIds={checkedExerciseIds} onCheckedExerciseIdsChange={setCheckedExerciseIds} />
+          ) : null}
+
+          {step === "check-in" ? (
+            <div className="surface-card p-5 sm:p-6">
+              <p className="ui-eyebrow">Finish workout</p>
+              <h1 className="mt-2 text-2xl font-black text-copy">Check in</h1>
+              <form className="mt-5 space-y-5" onSubmit={handleSubmit}>
+                <label className="block rounded-[24px] border border-border bg-surface-soft p-4"><span className="text-sm font-semibold text-copy">Workout date</span><input type="date" value={completedOn} max={todayDate} onChange={(event) => setCompletedOn(event.target.value)} className="ui-input mt-3" /></label>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <fieldset className="rounded-[24px] border border-border bg-surface-soft p-4"><legend className="text-sm font-semibold text-copy">Did you finish?</legend><div className="mt-4 flex gap-3">{[{ label: "Yes", value: true }, { label: "No", value: false }].map((option) => (<button key={option.label} type="button" onClick={() => setCompleted(option.value)} className={`rounded-full px-4 py-2 text-sm font-semibold ${completed === option.value ? "bg-hero text-white" : "bg-surface text-muted"}`}>{option.label}</button>))}</div></fieldset>
+                  <fieldset className="rounded-[24px] border border-border bg-surface-soft p-4"><legend className="text-sm font-semibold text-copy">Did anything hurt?</legend><div className="mt-4 flex gap-3">{[{ label: "No pain", value: false }, { label: "Yes", value: true }].map((option) => (<button key={option.label} type="button" onClick={() => setPain(option.value)} className={`rounded-full px-4 py-2 text-sm font-semibold ${pain === option.value ? "bg-hero text-white" : "bg-surface text-muted"}`}>{option.label}</button>))}</div></fieldset>
+                </div>
+                <fieldset className="rounded-[24px] border border-border bg-surface-soft p-4"><legend className="text-sm font-semibold text-copy">Session difficulty</legend><div className="mt-4 flex flex-wrap gap-3">{effortOptions.map((option) => (<button key={option} type="button" onClick={() => setEffort(option)} className={`rounded-full px-4 py-2 text-sm font-semibold ${effort === option ? "bg-primary text-white" : "bg-surface text-muted"}`}>{option}</button>))}</div></fieldset>
+                <label className="block rounded-[24px] border border-border bg-surface-soft p-4"><span className="text-sm font-semibold text-copy">Notes</span><textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={4} className="ui-input mt-3" /></label>
+                {status ? <p className="text-sm leading-6 text-muted">{status}</p> : null}
+                <div className="flex flex-col gap-3 sm:flex-row"><button className="ui-button-primary" disabled={saving || isPending}>{saving ? "Saving..." : status ? "Retry save" : "Save workout"}</button><button type="button" onClick={() => setStep("workout")} className="ui-button-secondary">Back</button><button type="button" onClick={handleDiscardDraft} className="ui-button-ghost">Discard</button></div>
+              </form>
+            </div>
+          ) : null}
+
+          {step === "saved" && savedSession ? (
+            <div className="surface-card p-5"><p className="ui-eyebrow">Saved</p><h1 className="mt-2 text-2xl font-black text-copy">{savedSession.workoutName}</h1><p className="mt-2 text-sm leading-6 text-muted">{savedSession.completedExerciseCount} exercises checked. {savedSession.recommendation}</p><button type="button" onClick={handleStartAnotherWorkout} className="ui-button-primary mt-5">Back to workout details</button></div>
+          ) : null}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -742,22 +846,13 @@ export function WorkoutFlow({
                     {activeDraft ? "Resume workout" : "Start workout"}
                   </button>
                   {activeDraft ? (
-                    <>
-                      <button
-                        type="button"
-                        onClick={handleResumeDraft}
-                        className="ui-button-secondary"
-                      >
-                        Resume {activeDraft.workoutNameSnapshot}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleDiscardDraft}
-                        className="ui-button-ghost"
-                      >
-                        Discard draft
-                      </button>
-                    </>
+                    <button
+                      type="button"
+                      onClick={handleResumeDraft}
+                      className="ui-button-secondary"
+                    >
+                      Resume workout
+                    </button>
                   ) : null}
                   {invalidRecoveryKey ? (
                     <button
@@ -1071,4 +1166,37 @@ function HeroStat({ label, value }: { label: string; value: string }) {
       </p>
     </div>
   );
+}
+
+
+function useLiveElapsedSeconds(draft: ActiveWorkoutDraft | null) {
+  const [elapsedSeconds, setElapsedSeconds] = useState(() =>
+    draft ? getElapsedSeconds(draft) : 0,
+  );
+
+  useEffect(() => {
+    if (!draft) {
+      setElapsedSeconds(0);
+      return;
+    }
+
+    const update = () => setElapsedSeconds(getElapsedSeconds(draft));
+    update();
+    const intervalId = window.setInterval(update, 1000);
+    return () => window.clearInterval(intervalId);
+  }, [draft]);
+
+  return elapsedSeconds;
+}
+
+function formatElapsed(totalSeconds: number) {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const paddedMinutes = hours > 0 ? String(minutes).padStart(2, "0") : String(minutes);
+  const paddedSeconds = String(seconds).padStart(2, "0");
+
+  return hours > 0
+    ? `${hours}:${paddedMinutes}:${paddedSeconds}`
+    : `${paddedMinutes}:${paddedSeconds}`;
 }

@@ -6,9 +6,13 @@ export function isProtectedAppRoute(pathname: string): boolean {
   );
 }
 
+export function isActiveWorkoutRoute(pathname: string): boolean {
+  return pathname === "/workout/active" || pathname.startsWith("/workout/active/");
+}
+
 export function isAuthenticatedShellRoute(pathname: string): boolean {
   return (
-    isProtectedAppRoute(pathname) ||
+    (isProtectedAppRoute(pathname) && !isActiveWorkoutRoute(pathname)) ||
     pathname === "/today" ||
     pathname === "/check-in"
   );
