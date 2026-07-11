@@ -4,7 +4,7 @@ import { WorkoutFlow } from "@/components/workout-flow";
 import { getWorkoutPageData } from "@/lib/data";
 
 export default async function WorkoutPage({
-  searchParams
+  searchParams,
 }: {
   searchParams: Promise<{ workoutId?: string; step?: string }>;
 }) {
@@ -25,6 +25,7 @@ export default async function WorkoutPage({
       recentSessions={data.recentSessions}
       progressSummary={data.progressSummary}
       phaseProgress={data.phaseProgress}
+      userId={data.userId}
     />
   );
 }

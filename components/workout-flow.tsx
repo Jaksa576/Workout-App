@@ -6,6 +6,14 @@ import type { Route } from "next";
 import { PhaseProgressPanel } from "@/components/phase-progress-panel";
 import { TimerCard } from "@/components/timer-card";
 import { WorkoutChecklist } from "@/components/workout-checklist";
+import {
+  buildActiveWorkoutDraft,
+  getActiveWorkoutDraftStorageKey,
+  getElapsedSeconds,
+  readActiveWorkoutDraft,
+  writeActiveWorkoutDraft,
+  type ActiveWorkoutDraft,
+} from "@/lib/active-workout-draft";
 import { formatPhaseLabel } from "@/lib/plan-labels";
 import { generateRecommendation } from "@/lib/recommendation";
 import { detectBrowserTimeZone } from "@/lib/time-zone";
@@ -16,12 +24,12 @@ import type {
   WorkoutPlan,
   WorkoutProgressSummary,
   WorkoutSession,
-  WorkoutTemplate
+  WorkoutTemplate,
 } from "@/lib/types";
 
 const effortOptions = ["Too easy", "Appropriate", "Too hard"] as const;
 
-type FlowStep = "workout" | "check-in" | "saved";
+type FlowStep = "idle" | "workout" | "check-in" | "saved";
 
 type WorkoutFlowProps = {
   workouts: WorkoutTemplate[];
@@ -32,6 +40,7 @@ type WorkoutFlowProps = {
   recentSessions: WorkoutSession[];
   progressSummary: WorkoutProgressSummary;
   phaseProgress: PhaseProgressSummary | null;
+  userId: string | null;
 };
 
 type SessionSaveResult = {
@@ -56,7 +65,7 @@ function formatDisplayDate(date: string) {
     month: "short",
     day: "numeric",
     year: "numeric",
-    timeZone: "UTC"
+    timeZone: "UTC",
   });
 }
 
@@ -86,7 +95,7 @@ function sortSessionsByLatest<T extends WorkoutSession>(sessions: T[]) {
 
 function mergeSessions(
   currentSessions: WorkoutSession[],
-  nextSessions: WorkoutSession[]
+  nextSessions: WorkoutSession[],
 ) {
   const sessionsById = new Map<string, WorkoutSession>();
 
@@ -101,23 +110,30 @@ function ProgressBars({ summary }: { summary: WorkoutProgressSummary }) {
   const maxCompleted = Math.max(
     summary.weeklyTarget,
     ...summary.weeklyBars.map((bar) => bar.completed),
-    1
+    1,
   );
 
   return (
     <div className="space-y-3">
       {summary.weeklyBars.map((bar) => (
-        <div key={bar.label} className="grid grid-cols-[4.5rem_1fr_2rem] items-center gap-3">
+        <div
+          key={bar.label}
+          className="grid grid-cols-[4.5rem_1fr_2rem] items-center gap-3"
+        >
           <p className="text-xs font-bold uppercase tracking-[0.12em] text-muted">
             {bar.label}
           </p>
           <div className="h-3 overflow-hidden rounded-full bg-shell-elevated">
             <div
               className="h-full rounded-full bg-primary"
-              style={{ width: `${Math.max(8, (bar.completed / maxCompleted) * 100)}%` }}
+              style={{
+                width: `${Math.max(8, (bar.completed / maxCompleted) * 100)}%`,
+              }}
             />
           </div>
-          <p className="text-right text-sm font-semibold text-copy">{bar.completed}</p>
+          <p className="text-right text-sm font-semibold text-copy">
+            {bar.completed}
+          </p>
         </div>
       ))}
     </div>
@@ -128,38 +144,56 @@ function ProgressSummary({ summary }: { summary: WorkoutProgressSummary }) {
   return (
     <section id="progress" className="surface-card p-5 sm:p-6">
       <p className="ui-eyebrow">Progress</p>
-      <h2 className="mt-2 text-2xl font-black leading-tight text-copy">Workout rhythm</h2>
+      <h2 className="mt-2 text-2xl font-black leading-tight text-copy">
+        Workout rhythm
+      </h2>
       <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">
         Recent workouts against the plan rhythm.
       </p>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="rounded-[24px] border border-border bg-surface-soft p-4">
-          <p className="mb-4 text-sm font-semibold text-copy">Completed workouts</p>
+          <p className="mb-4 text-sm font-semibold text-copy">
+            Completed workouts
+          </p>
           <ProgressBars summary={summary} />
         </div>
 
         <div className="grid gap-3">
           <div className="rounded-[22px] border border-border bg-surface-soft p-4">
-            <p className="text-xs font-bold uppercase tracking-[0.12em] text-muted">This week</p>
+            <p className="text-xs font-bold uppercase tracking-[0.12em] text-muted">
+              This week
+            </p>
             <p className="mt-2 text-xl font-black text-copy">
               {summary.completedThisWeek} of {summary.weeklyTarget}
             </p>
           </div>
           <div className="rounded-[22px] border border-border bg-surface-soft p-4">
-            <p className="text-xs font-bold uppercase tracking-[0.12em] text-muted">Clean sessions</p>
-            <p className="mt-2 text-xl font-black text-copy">{summary.cleanSessions}</p>
+            <p className="text-xs font-bold uppercase tracking-[0.12em] text-muted">
+              Clean sessions
+            </p>
+            <p className="mt-2 text-xl font-black text-copy">
+              {summary.cleanSessions}
+            </p>
           </div>
           <div className="rounded-[22px] border border-border bg-surface-soft p-4">
-            <p className="text-xs font-bold uppercase tracking-[0.12em] text-muted">Pain flags</p>
-            <p className="mt-2 text-xl font-black text-copy">{summary.painFlags}</p>
+            <p className="text-xs font-bold uppercase tracking-[0.12em] text-muted">
+              Pain flags
+            </p>
+            <p className="mt-2 text-xl font-black text-copy">
+              {summary.painFlags}
+            </p>
           </div>
         </div>
       </div>
 
       <div className="mt-4 rounded-[24px] border border-primary/20 bg-primary/10 p-4">
-        <p className="text-xs font-bold uppercase tracking-[0.12em] text-primary">Latest suggestion</p>
-        <p className="mt-2 text-sm leading-6 text-copy">{summary.latestRecommendation}</p>
+        <p className="text-xs font-bold uppercase tracking-[0.12em] text-primary">
+          Latest suggestion
+        </p>
+        <p className="mt-2 text-sm leading-6 text-copy">
+          {summary.latestRecommendation}
+        </p>
       </div>
     </section>
   );
@@ -173,66 +207,260 @@ export function WorkoutFlow({
   initialStep,
   recentSessions,
   progressSummary,
-  phaseProgress
+  phaseProgress,
+  userId,
 }: WorkoutFlowProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [selectedWorkoutId, setSelectedWorkoutId] = useState(selectedWorkout.id);
-  const [step, setStep] = useState<FlowStep>(initialStep);
+  const [selectedWorkoutId, setSelectedWorkoutId] = useState(
+    selectedWorkout.id,
+  );
+  const [step, setStep] = useState<FlowStep>(
+    initialStep === "check-in" ? "check-in" : "idle",
+  );
+  const [activeDraft, setActiveDraft] = useState<ActiveWorkoutDraft | null>(
+    null,
+  );
+  const [draftMessage, setDraftMessage] = useState<string | null>(null);
+  const [storageAvailable, setStorageAvailable] = useState(true);
   const [checkedExerciseIds, setCheckedExerciseIds] = useState<string[]>([]);
   const [completed, setCompleted] = useState(true);
   const [pain, setPain] = useState(false);
-  const [effort, setEffort] = useState<(typeof effortOptions)[number]>("Appropriate");
+  const [effort, setEffort] =
+    useState<(typeof effortOptions)[number]>("Appropriate");
   const [notes, setNotes] = useState("");
   const [todayDate, setTodayDate] = useState(getClientTodayDateString);
   const [completedOn, setCompletedOn] = useState(getClientTodayDateString);
-  const [savedSession, setSavedSession] = useState<SavedWorkoutSession | null>(null);
+  const [savedSession, setSavedSession] = useState<SavedWorkoutSession | null>(
+    null,
+  );
   const [sessionHistory, setSessionHistory] = useState(() =>
-    sortSessionsByLatest(recentSessions)
+    sortSessionsByLatest(recentSessions),
   );
   const [status, setStatus] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    setSessionHistory((currentSessions) => mergeSessions(currentSessions, recentSessions));
+    setSessionHistory((currentSessions) =>
+      mergeSessions(currentSessions, recentSessions),
+    );
   }, [recentSessions]);
 
   useEffect(() => {
     const nextTodayDate = getClientTodayDateString();
 
     setTodayDate(nextTodayDate);
-    setCompletedOn((currentDate) => (currentDate > nextTodayDate ? nextTodayDate : currentDate));
+    setCompletedOn((currentDate) =>
+      currentDate > nextTodayDate ? nextTodayDate : currentDate,
+    );
   }, []);
 
   const workout = useMemo(
-    () => workouts.find((item) => item.id === selectedWorkoutId) ?? selectedWorkout,
-    [selectedWorkout, selectedWorkoutId, workouts]
+    () =>
+      workouts.find((item) => item.id === selectedWorkoutId) ?? selectedWorkout,
+    [selectedWorkout, selectedWorkoutId, workouts],
   );
-  const storageKey = `workout-checklist:${workout.id}`;
   const recommendation = generateRecommendation({ completed, pain, effort });
   const latestSession = useMemo(
-    () => sessionHistory.find((session) => session.workoutTemplateId === workout.id) ?? null,
-    [sessionHistory, workout.id]
+    () =>
+      sessionHistory.find(
+        (session) => session.workoutTemplateId === workout.id,
+      ) ?? null,
+    [sessionHistory, workout.id],
   );
   const liveProgressSummary = useMemo(
     () => ({
       ...progressSummary,
       latestRecommendation:
-        sessionHistory[0]?.recommendation ?? progressSummary.latestRecommendation
+        sessionHistory[0]?.recommendation ??
+        progressSummary.latestRecommendation,
     }),
-    [progressSummary, sessionHistory]
+    [progressSummary, sessionHistory],
   );
 
+  useEffect(() => {
+    if (!userId) {
+      return;
+    }
+
+    const result = readActiveWorkoutDraft(window.localStorage, userId);
+
+    if (result.status === "valid") {
+      const recoveredWorkout = workouts.find(
+        (item) => item.id === result.draft.workoutTemplateId,
+      );
+      if (!recoveredWorkout) {
+        setDraftMessage(
+          `Recovered draft for ${result.draft.workoutNameSnapshot} cannot find its workout. Discard it to start again.`,
+        );
+        setActiveDraft(result.draft);
+        setStep("idle");
+        return;
+      }
+
+      setActiveDraft(result.draft);
+      setSelectedWorkoutId(result.draft.workoutTemplateId);
+      setCheckedExerciseIds(result.draft.checkedExerciseIds);
+      setCompleted(result.draft.checkIn.completed);
+      setPain(result.draft.checkIn.painOccurred);
+      setEffort(
+        result.draft.checkIn.perceivedDifficulty === "too_easy"
+          ? "Too easy"
+          : result.draft.checkIn.perceivedDifficulty === "too_hard"
+            ? "Too hard"
+            : "Appropriate",
+      );
+      setNotes(result.draft.checkIn.notes);
+      if (result.draft.checkIn.completedOn) {
+        setCompletedOn(result.draft.checkIn.completedOn);
+      }
+      setDraftMessage(
+        `${result.stale ? "Stale" : "Recovered"} workout draft for ${result.draft.workoutNameSnapshot}. Elapsed ${Math.floor(getElapsedSeconds(result.draft) / 60)} min${result.stale ? `; last updated ${result.ageDays} days ago` : ""}.`,
+      );
+      setStep(
+        result.draft.lifecycle === "finishing" ||
+          result.draft.lifecycle === "save_failed"
+          ? "check-in"
+          : "workout",
+      );
+      return;
+    }
+
+    if (result.status === "invalid") {
+      setDraftMessage(`${result.reason} Discard it to restart safely.`);
+    }
+  }, [userId, workouts]);
+
+  useEffect(() => {
+    if (!activeDraft || !userId || step === "saved") {
+      return;
+    }
+
+    try {
+      const nextDraft: ActiveWorkoutDraft = {
+        ...activeDraft,
+        lifecycle:
+          step === "check-in"
+            ? status
+              ? "save_failed"
+              : "finishing"
+            : "active",
+        checkedExerciseIds,
+        checkIn: {
+          completedOn,
+          completed,
+          painOccurred: pain,
+          perceivedDifficulty: toDifficultyValue(effort),
+          notes,
+        },
+      };
+      const storedDraft = writeActiveWorkoutDraft(
+        window.localStorage,
+        nextDraft,
+      );
+      setActiveDraft(storedDraft);
+      setStorageAvailable(true);
+    } catch {
+      setStorageAvailable(false);
+      setStatus(
+        "Workout recovery storage is unavailable. You can still finish now, but refresh recovery may not work.",
+      );
+    }
+  }, [
+    activeDraft?.draftId,
+    checkedExerciseIds,
+    completed,
+    completedOn,
+    effort,
+    notes,
+    pain,
+    status,
+    step,
+    userId,
+  ]);
+
+  useEffect(() => {
+    const hasMeaningfulDraft = Boolean(
+      activeDraft && step !== "saved" && checkedExerciseIds.length > 0,
+    );
+    if (!hasMeaningfulDraft) {
+      return;
+    }
+
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [activeDraft, checkedExerciseIds.length, step]);
+
   function handleSelectWorkout(id: string) {
+    if (activeDraft && activeDraft.workoutTemplateId !== id) {
+      setDraftMessage(
+        `Resume or discard ${activeDraft.workoutNameSnapshot} before starting another workout.`,
+      );
+      return;
+    }
+
     setSelectedWorkoutId(id);
     setCheckedExerciseIds([]);
-    setStep("workout");
+    setStep(activeDraft ? "workout" : "idle");
     setSavedSession(null);
     setStatus(null);
     router.replace(`/workout?workoutId=${id}` as Route);
   }
 
+  function handleStartWorkout() {
+    if (!userId || activeDraft) {
+      return;
+    }
+
+    try {
+      const draft = buildActiveWorkoutDraft({
+        userId,
+        workout,
+        plan: activePlan,
+      });
+      const storedDraft = writeActiveWorkoutDraft(window.localStorage, draft);
+      setActiveDraft(storedDraft);
+      setCheckedExerciseIds([]);
+      setDraftMessage(
+        `Started ${workout.name}. Your draft is saved on this device.`,
+      );
+      setStep("workout");
+    } catch {
+      setStorageAvailable(false);
+      setStatus(
+        "Workout recovery storage is unavailable. Free space or enable storage, then try again.",
+      );
+    }
+  }
+
+  function handleDiscardDraft() {
+    if (
+      !activeDraft ||
+      !window.confirm(
+        "Discard this active workout? Unsaved workout performance will be lost, but plans and completed history stay unchanged.",
+      )
+    ) {
+      return;
+    }
+
+    window.localStorage.removeItem(
+      getActiveWorkoutDraftStorageKey(activeDraft.userId),
+    );
+    setActiveDraft(null);
+    setCheckedExerciseIds([]);
+    setDraftMessage("Active workout draft discarded.");
+    setStatus(null);
+    setStep("idle");
+  }
+
   function handleFinishWorkout() {
+    if (!activeDraft) {
+      return;
+    }
     setCompleted(checkedExerciseIds.length === workout.exercises.length);
     setStep("check-in");
     setStatus(null);
@@ -247,7 +475,7 @@ export function WorkoutFlow({
       const response = await fetch("/api/sessions", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           workoutTemplateId: workout.id,
@@ -256,8 +484,13 @@ export function WorkoutFlow({
           painOccurred: pain,
           perceivedDifficulty: toDifficultyValue(effort),
           notes,
-          completedExerciseIds: checkedExerciseIds
-        })
+          completedExerciseIds: checkedExerciseIds,
+          clientSessionId: activeDraft?.draftId,
+          startedAt: activeDraft?.startedAt,
+          elapsedSeconds: activeDraft
+            ? getElapsedSeconds(activeDraft)
+            : undefined,
+        }),
       });
       const result = (await response.json()) as SessionSaveResult;
 
@@ -267,23 +500,35 @@ export function WorkoutFlow({
 
       const savedWorkoutSession = result.session;
 
-      window.sessionStorage.removeItem(storageKey);
+      if (activeDraft) {
+        window.localStorage.removeItem(
+          getActiveWorkoutDraftStorageKey(activeDraft.userId),
+        );
+      }
       setSavedSession(savedWorkoutSession);
       setSessionHistory((currentSessions) =>
-        mergeSessions(currentSessions, [savedWorkoutSession])
+        mergeSessions(currentSessions, [savedWorkoutSession]),
       );
+      setActiveDraft(null);
       setStep("saved");
       setNotes("");
       startTransition(() => router.refresh());
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Unable to save workout.");
+      setStatus(
+        error instanceof Error ? error.message : "Unable to save workout.",
+      );
     } finally {
       setSaving(false);
     }
   }
 
   function handleStartAnotherWorkout() {
-    window.sessionStorage.removeItem(storageKey);
+    if (activeDraft) {
+      window.localStorage.removeItem(
+        getActiveWorkoutDraftStorageKey(activeDraft.userId),
+      );
+    }
+    setActiveDraft(null);
     setCheckedExerciseIds([]);
     setCompleted(true);
     setPain(false);
@@ -313,9 +558,18 @@ export function WorkoutFlow({
             </p>
           </div>
           <div className="grid grid-cols-3 gap-3">
-            <HeroStat label="Phase" value={formatPhaseLabel(activePlan.currentPhase.phaseNumber)} />
-            <HeroStat label="Exercises" value={String(workout.exercises.length)} />
-            <HeroStat label="Logged" value={String(progressSummary.completedThisWeek)} />
+            <HeroStat
+              label="Phase"
+              value={formatPhaseLabel(activePlan.currentPhase.phaseNumber)}
+            />
+            <HeroStat
+              label="Exercises"
+              value={String(workout.exercises.length)}
+            />
+            <HeroStat
+              label="Logged"
+              value={String(progressSummary.completedThisWeek)}
+            />
           </div>
         </div>
       </section>
@@ -328,7 +582,8 @@ export function WorkoutFlow({
               {recommendedWorkout?.name ?? workout.name}
             </h2>
             <p className="mt-2 text-sm leading-6 text-muted">
-              {formatPhaseLabel(activePlan.currentPhase.phaseNumber)}: {activePlan.currentPhase.goal}
+              {formatPhaseLabel(activePlan.currentPhase.phaseNumber)}:{" "}
+              {activePlan.currentPhase.goal}
             </p>
           </div>
           {recommendedWorkout ? (
@@ -337,7 +592,9 @@ export function WorkoutFlow({
               onClick={() => handleSelectWorkout(recommendedWorkout.id)}
               className="ui-button-primary"
             >
-              Start recommended workout
+              {activeDraft?.workoutTemplateId === recommendedWorkout.id
+                ? "Resume recommended workout"
+                : "Start recommended workout"}
             </button>
           ) : null}
         </div>
@@ -365,10 +622,30 @@ export function WorkoutFlow({
       <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="surface-card p-5 sm:p-6">
           <p className="ui-eyebrow">
-            {step === "saved" ? "Workout saved" : step === "check-in" ? "Check-in" : "Exercises"}
+            {step === "saved"
+              ? "Workout saved"
+              : step === "check-in"
+                ? "Check-in"
+                : "Exercises"}
           </p>
-          <h2 className="mt-2 text-2xl font-black leading-tight text-copy">{workout.name}</h2>
-          <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">{workout.summary}</p>
+          <h2 className="mt-2 text-2xl font-black leading-tight text-copy">
+            {workout.name}
+          </h2>
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">
+            {workout.summary}
+          </p>
+
+          {draftMessage ? (
+            <div className="mt-4 rounded-[24px] border border-primary/20 bg-primary/10 px-4 py-3 text-sm leading-6 text-copy">
+              {draftMessage}
+            </div>
+          ) : null}
+          {!storageAvailable ? (
+            <div className="mt-4 rounded-[24px] border border-danger/20 bg-danger/10 px-4 py-3 text-sm leading-6 text-copy">
+              Browser storage is unavailable, so refresh recovery may not work
+              until storage is enabled.
+            </div>
+          ) : null}
 
           {latestSession ? (
             <div className="mt-4 rounded-[24px] border border-success/20 bg-success/10 px-4 py-3 text-sm leading-6 text-copy">
@@ -377,7 +654,9 @@ export function WorkoutFlow({
                 {latestSession.recommendation}
               </p>
               {latestSession.progressionReason ? (
-                <p className="mt-2 text-muted">{latestSession.progressionReason}</p>
+                <p className="mt-2 text-muted">
+                  {latestSession.progressionReason}
+                </p>
               ) : null}
               {getSessionNotes(latestSession) ? (
                 <p className="mt-2 text-muted">
@@ -388,21 +667,75 @@ export function WorkoutFlow({
           ) : null}
 
           <div className="mt-5">
+            {step === "idle" ? (
+              <div className="space-y-4 rounded-[24px] border border-border bg-surface-soft p-5">
+                <p className="text-sm leading-6 text-muted">
+                  Start creates one local active draft for this signed-in user
+                  and browser. If a draft already exists, resume or discard it
+                  before replacing it.
+                </p>
+                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                  <button
+                    type="button"
+                    onClick={handleStartWorkout}
+                    className="ui-button-primary"
+                    disabled={!userId || Boolean(activeDraft)}
+                  >
+                    {activeDraft ? "Resume workout" : "Start workout"}
+                  </button>
+                  {activeDraft ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setStep(
+                            activeDraft.lifecycle === "finishing" ||
+                              activeDraft.lifecycle === "save_failed"
+                              ? "check-in"
+                              : "workout",
+                          )
+                        }
+                        className="ui-button-secondary"
+                      >
+                        Resume {activeDraft.workoutNameSnapshot}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleDiscardDraft}
+                        className="ui-button-ghost"
+                      >
+                        Discard draft
+                      </button>
+                    </>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
+
             {step === "workout" ? (
               <div className="space-y-5">
                 <WorkoutChecklist
                   workout={workout}
-                  storageKey={storageKey}
                   checkedExerciseIds={checkedExerciseIds}
                   onCheckedExerciseIdsChange={setCheckedExerciseIds}
                 />
-                <button
-                  type="button"
-                  onClick={handleFinishWorkout}
-                  className="ui-button-primary w-full sm:w-auto"
-                >
-                  Finish workout
-                </button>
+                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                  <button
+                    type="button"
+                    onClick={handleFinishWorkout}
+                    className="ui-button-primary w-full sm:w-auto"
+                    disabled={!activeDraft}
+                  >
+                    Finish workout
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDiscardDraft}
+                    className="ui-button-ghost w-full sm:w-auto"
+                  >
+                    Discard draft
+                  </button>
+                </div>
               </div>
             ) : null}
 
@@ -411,12 +744,15 @@ export function WorkoutFlow({
                 <div className="rounded-[24px] border border-border bg-surface-soft p-4 text-sm text-muted">
                   <p className="font-semibold text-copy">{workout.name}</p>
                   <p className="mt-2 leading-6">
-                    {checkedExerciseIds.length} of {workout.exercises.length} exercises checked.
+                    {checkedExerciseIds.length} of {workout.exercises.length}{" "}
+                    exercises checked.
                   </p>
                 </div>
 
                 <label className="block rounded-[24px] border border-border bg-surface-soft p-4">
-                  <span className="text-sm font-semibold text-copy">Workout date</span>
+                  <span className="text-sm font-semibold text-copy">
+                    Workout date
+                  </span>
                   <input
                     type="date"
                     value={completedOn}
@@ -434,7 +770,7 @@ export function WorkoutFlow({
                     <div className="mt-4 flex gap-3">
                       {[
                         { label: "Yes", value: true },
-                        { label: "No", value: false }
+                        { label: "No", value: false },
                       ].map((option) => (
                         <button
                           key={option.label}
@@ -459,14 +795,16 @@ export function WorkoutFlow({
                     <div className="mt-4 flex gap-3">
                       {[
                         { label: "No pain", value: false },
-                        { label: "Yes", value: true }
+                        { label: "Yes", value: true },
                       ].map((option) => (
                         <button
                           key={option.label}
                           type="button"
                           onClick={() => setPain(option.value)}
                           className={`rounded-full px-4 py-2 text-sm font-semibold ${
-                            pain === option.value ? "bg-hero text-white" : "bg-surface text-muted"
+                            pain === option.value
+                              ? "bg-hero text-white"
+                              : "bg-surface text-muted"
                           }`}
                         >
                           {option.label}
@@ -487,7 +825,9 @@ export function WorkoutFlow({
                         type="button"
                         onClick={() => setEffort(option)}
                         className={`rounded-full px-4 py-2 text-sm font-semibold ${
-                          effort === option ? "bg-primary text-white" : "bg-surface text-muted"
+                          effort === option
+                            ? "bg-primary text-white"
+                            : "bg-surface text-muted"
                         }`}
                       >
                         {option}
@@ -519,14 +859,20 @@ export function WorkoutFlow({
                   </p>
                 </div>
 
-                {status ? <p className="text-sm leading-6 text-muted">{status}</p> : null}
+                {status ? (
+                  <p className="text-sm leading-6 text-muted">{status}</p>
+                ) : null}
 
                 <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                   <button
                     className="ui-button-primary"
                     disabled={saving || isPending}
                   >
-                    {saving ? "Saving..." : "Save workout"}
+                    {saving
+                      ? "Saving..."
+                      : status
+                        ? "Retry save"
+                        : "Save workout"}
                   </button>
                   <button
                     type="button"
@@ -534,6 +880,13 @@ export function WorkoutFlow({
                     className="ui-button-secondary"
                   >
                     Back to exercises
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDiscardDraft}
+                    className="ui-button-ghost"
+                  >
+                    Discard draft
                   </button>
                 </div>
               </form>
@@ -546,7 +899,8 @@ export function WorkoutFlow({
                     Saved
                   </p>
                   <p className="mt-3 text-xl font-black text-copy">
-                    {savedSession.workoutName} on {formatDisplayDate(savedSession.completedOn)}
+                    {savedSession.workoutName} on{" "}
+                    {formatDisplayDate(savedSession.completedOn)}
                   </p>
                   <p className="mt-2 text-sm leading-6 text-muted">
                     {savedSession.completedExerciseCount} exercises checked.{" "}
@@ -602,14 +956,25 @@ export function WorkoutFlow({
       {sessionHistory.length > 0 ? (
         <section className="surface-card p-5 sm:p-6">
           <p className="ui-eyebrow">Recent logs</p>
-          <h2 className="mt-2 text-2xl font-black leading-tight text-copy">Recent workouts</h2>
+          <h2 className="mt-2 text-2xl font-black leading-tight text-copy">
+            Recent workouts
+          </h2>
           <div className="mt-5 grid gap-3">
             {sessionHistory.slice(0, 4).map((session) => (
-              <div key={session.id} className="rounded-[24px] border border-border bg-surface-soft p-4 text-sm">
-                <p className="font-semibold text-copy">{formatDisplayDate(session.completedOn)}</p>
-                <p className="mt-2 leading-6 text-muted">{session.recommendation}</p>
+              <div
+                key={session.id}
+                className="rounded-[24px] border border-border bg-surface-soft p-4 text-sm"
+              >
+                <p className="font-semibold text-copy">
+                  {formatDisplayDate(session.completedOn)}
+                </p>
+                <p className="mt-2 leading-6 text-muted">
+                  {session.recommendation}
+                </p>
                 {session.progressionReason ? (
-                  <p className="mt-2 leading-6 text-muted">{session.progressionReason}</p>
+                  <p className="mt-2 leading-6 text-muted">
+                    {session.progressionReason}
+                  </p>
                 ) : null}
                 {getSessionNotes(session) ? (
                   <p className="mt-2 leading-6 text-muted">
@@ -625,7 +990,11 @@ export function WorkoutFlow({
       <ProgressSummary summary={liveProgressSummary} />
 
       {phaseProgress ? (
-        <PhaseProgressPanel plan={activePlan} progress={phaseProgress} mode="workout" />
+        <PhaseProgressPanel
+          plan={activePlan}
+          progress={phaseProgress}
+          mode="workout"
+        />
       ) : null}
     </div>
   );
@@ -637,7 +1006,9 @@ function HeroStat({ label, value }: { label: string; value: string }) {
       <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/45">
         {label}
       </p>
-      <p className="mt-2 text-lg font-black leading-tight text-white">{value}</p>
+      <p className="mt-2 text-lg font-black leading-tight text-white">
+        {value}
+      </p>
     </div>
   );
 }

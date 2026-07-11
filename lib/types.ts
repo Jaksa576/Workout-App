@@ -26,9 +26,17 @@ export type UserSummary = {
   email: string | null;
 };
 
-export type ExerciseTrackingType = "weight_reps" | "reps_only" | "duration" | "distance_duration" | "completion";
+export type ExerciseTrackingType =
+  | "weight_reps"
+  | "reps_only"
+  | "duration"
+  | "distance_duration"
+  | "completion";
 
-export type UnilateralMode = "bilateral" | "same_each_side" | "independent_sides";
+export type UnilateralMode =
+  | "bilateral"
+  | "same_each_side"
+  | "independent_sides";
 
 export type ExerciseEntry = {
   id: string;
@@ -77,11 +85,7 @@ export type ActivityLevel =
   | "moderately_active"
   | "very_active";
 
-export type TrainingEnvironment =
-  | "home"
-  | "gym"
-  | "outdoors"
-  | "mixed";
+export type TrainingEnvironment = "home" | "gym" | "outdoors" | "mixed";
 
 export type ProgressionDecision = "advance" | "repeat" | "review" | "deload";
 
@@ -253,6 +257,9 @@ export type WorkoutSessionInput = {
   perceivedDifficulty: "too_easy" | "appropriate" | "too_hard";
   notes: string;
   completedExerciseIds: string[];
+  clientSessionId?: string;
+  startedAt?: string;
+  elapsedSeconds?: number;
 };
 
 export type SavedWorkoutSession = WorkoutSession & {
@@ -270,6 +277,7 @@ export type WorkoutPageData = {
   latestSessionForSelectedWorkout: WorkoutSession | null;
   progressSummary: WorkoutProgressSummary;
   phaseProgress: PhaseProgressSummary | null;
+  userId: string | null;
 };
 
 export type PlanFormInput = {
@@ -469,7 +477,9 @@ export type ProfileSetupInput = {
   weeklySchedule: Weekday[];
 };
 
-export type ProfileSettingsInput = Partial<Omit<ProfileSetupInput, "weeklySchedule">>;
+export type ProfileSettingsInput = Partial<
+  Omit<ProfileSetupInput, "weeklySchedule">
+>;
 
 export type OnboardingInput = ProfileSetupInput & {
   goal: string;
