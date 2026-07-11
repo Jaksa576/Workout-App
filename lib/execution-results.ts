@@ -50,6 +50,8 @@ export function buildPrescribedSetRows(
     prescribed_set_index: index,
     set_kind: "prescribed" as const,
     status: completed ? ("completed" as const) : ("incomplete" as const),
+    actual_load: null,
+    actual_reps: null,
     completed_at: completed ? new Date().toISOString() : null
   }));
 }

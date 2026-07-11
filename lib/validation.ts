@@ -536,6 +536,39 @@ export function isProfileSettingsInput(
   );
 }
 
+function isWorkoutSetInput(value: unknown) {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+  const row = value as Record<string, unknown>;
+  return (
+    typeof row.exerciseEntryId === "string" &&
+    typeof row.setId === "string" &&
+    typeof row.setOrder === "number" &&
+    Number.isInteger(row.setOrder) &&
+    row.setOrder >= 0 &&
+    (row.prescribedSetIndex === null ||
+      (typeof row.prescribedSetIndex === "number" &&
+        Number.isInteger(row.prescribedSetIndex) &&
+        row.prescribedSetIndex >= 0)) &&
+    (row.setKind === "prescribed" || row.setKind === "added") &&
+    (row.status === "completed" || row.status === "incomplete") &&
+    (row.actualLoad === undefined || row.actualLoad === null ||
+      (typeof row.actualLoad === "number" && row.actualLoad >= 0)) &&
+    (row.actualReps === undefined || row.actualReps === null ||
+      (typeof row.actualReps === "number" && Number.isInteger(row.actualReps) && row.actualReps >= 0))
+  );
+}
+
+function isStringRecord(value: unknown) {
+  return (
+    value !== null &&
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    Object.values(value).every((item) => typeof item === "string")
+  );
+}
+
 export function isValidUuid(value: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
     value,
@@ -563,6 +596,9 @@ export function isWorkoutSessionInput(
     typeof input.notes === "string" &&
     Array.isArray(input.completedExerciseIds) &&
     input.completedExerciseIds.every((id) => typeof id === "string") &&
+    (input.setResults === undefined ||
+      (Array.isArray(input.setResults) && input.setResults.every(isWorkoutSetInput))) &&
+    (input.exerciseNotes === undefined || isStringRecord(input.exerciseNotes)) &&
     (input.clientSessionId === undefined ||
       (typeof input.clientSessionId === "string" &&
         isValidUuid(input.clientSessionId))) &&

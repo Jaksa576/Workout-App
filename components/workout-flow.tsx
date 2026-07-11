@@ -30,6 +30,7 @@ import type {
   WorkoutPlan,
   WorkoutProgressSummary,
   WorkoutSession,
+  WorkoutSetInput,
   WorkoutTemplate,
 } from "@/lib/types";
 
@@ -238,6 +239,8 @@ export function WorkoutFlow({
   const [draftMessage, setDraftMessage] = useState<string | null>(null);
   const [storageAvailable, setStorageAvailable] = useState(true);
   const [checkedExerciseIds, setCheckedExerciseIds] = useState<string[]>([]);
+  const [setResults, setSetResults] = useState<WorkoutSetInput[]>([]);
+  const [exerciseNotes, setExerciseNotes] = useState<Record<string, string>>({});
   const [completed, setCompleted] = useState(true);
   const [pain, setPain] = useState(false);
   const [effort, setEffort] =
@@ -318,6 +321,8 @@ export function WorkoutFlow({
       setActiveDraft(result.draft);
       setSelectedWorkoutId(result.draft.workoutTemplateId);
       setCheckedExerciseIds(result.draft.checkedExerciseIds);
+      setSetResults(result.draft.setResults);
+      setExerciseNotes(result.draft.exerciseNotes);
       setCompleted(result.draft.checkIn.completed);
       setPain(result.draft.checkIn.painOccurred);
       setEffort(
@@ -379,6 +384,8 @@ export function WorkoutFlow({
               : "finishing"
             : "active",
         checkedExerciseIds,
+        setResults,
+        exerciseNotes,
         checkIn: {
           completedOn,
           completed,
@@ -403,6 +410,8 @@ export function WorkoutFlow({
     activeDraft?.draftId,
     awaitingStaleRecoveryDecision,
     checkedExerciseIds,
+    setResults,
+    exerciseNotes,
     completed,
     completedOn,
     effort,
@@ -439,6 +448,8 @@ export function WorkoutFlow({
 
     setSelectedWorkoutId(id);
     setCheckedExerciseIds([]);
+    setSetResults([]);
+    setExerciseNotes({});
     setStep(isActiveMode ? "workout" : "idle");
     setSavedSession(null);
     setStatus(null);
@@ -461,6 +472,8 @@ export function WorkoutFlow({
       const storedDraft = writeActiveWorkoutDraft(window.localStorage, draft);
       setActiveDraft(storedDraft);
       setCheckedExerciseIds([]);
+      setSetResults([]);
+      setExerciseNotes({});
       setInvalidRecoveryKey(null);
       setAwaitingStaleRecoveryDecision(false);
       setDraftMessage(
@@ -492,6 +505,8 @@ export function WorkoutFlow({
     setActiveDraft(null);
     setAwaitingStaleRecoveryDecision(false);
     setCheckedExerciseIds([]);
+    setSetResults([]);
+    setExerciseNotes({});
     setDraftMessage("Active workout draft discarded.");
     setStatus(null);
     setInvalidRecoveryKey(null);
@@ -564,6 +579,8 @@ export function WorkoutFlow({
           perceivedDifficulty: toDifficultyValue(effort),
           notes,
           completedExerciseIds: checkedExerciseIds,
+          setResults,
+          exerciseNotes,
           clientSessionId: activeDraft?.draftId,
           startedAt: activeDraft?.startedAt,
           elapsedSeconds: activeDraft
@@ -610,6 +627,8 @@ export function WorkoutFlow({
     setActiveDraft(null);
     setAwaitingStaleRecoveryDecision(false);
     setCheckedExerciseIds([]);
+    setSetResults([]);
+    setExerciseNotes({});
     setCompleted(true);
     setPain(false);
     setEffort("Appropriate");
@@ -644,7 +663,7 @@ export function WorkoutFlow({
               </p>
               <p className="mt-1 text-xs font-semibold text-muted">
                 {formatElapsed(elapsedSeconds)} · {checkedExerciseIds.length}/
-                {workout.exercises.length} exercises
+                {workout.exercises.reduce((sum, exercise) => sum + (exercise.trackingType === "weight_reps" || exercise.trackingType === "reps_only" ? exercise.sets : 1), 0)} items
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
@@ -740,6 +759,10 @@ export function WorkoutFlow({
               workout={workout}
               checkedExerciseIds={checkedExerciseIds}
               onCheckedExerciseIdsChange={setCheckedExerciseIds}
+              setResults={setResults}
+              onSetResultsChange={setSetResults}
+              exerciseNotes={exerciseNotes}
+              onExerciseNotesChange={setExerciseNotes}
               compactExecution
             />
           ) : null}

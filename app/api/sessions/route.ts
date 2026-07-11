@@ -112,7 +112,11 @@ export async function POST(request: Request) {
     elapsed_source: body.startedAt ? "client_timer" : "server_timestamp",
   };
 
-  const validExerciseIds = new Set(body.completedExerciseIds);
+  const submittedSetResults = body.setResults ?? [];
+  const validExerciseIds = new Set([
+    ...body.completedExerciseIds,
+    ...submittedSetResults.filter((row) => row.status === "completed").map((row) => row.exerciseEntryId),
+  ]);
   const exercisePayload = (exercises ?? []).map((exercise, index) => {
     const fallback = getDefaultTrackingMetadata(exercise.source_exercise_id);
     const trackingType = exercise.tracking_type ?? fallback.trackingType;
@@ -144,6 +148,7 @@ export async function POST(request: Request) {
       completion_status: validExerciseIds.has(exercise.id)
         ? "completed"
         : "incomplete",
+      notes: body.exerciseNotes?.[exercise.id]?.trim() || null,
     };
   });
 
@@ -156,17 +161,50 @@ export async function POST(request: Request) {
       result.tracking_type,
     ]),
   );
+  const submittedSetResultsByExerciseId = new Map<string, typeof submittedSetResults>();
+  for (const row of submittedSetResults) {
+    submittedSetResultsByExerciseId.set(row.exerciseEntryId, [
+      ...(submittedSetResultsByExerciseId.get(row.exerciseEntryId) ?? []),
+      row,
+    ]);
+  }
   const setPayload = (exercises ?? []).flatMap((exercise) => {
     const exerciseResultId = resultIdByEntryId.get(exercise.id);
     const trackingType = trackingTypeByEntryId.get(exercise.id) ?? "completion";
-    return exerciseResultId
-      ? buildPrescribedSetRows(
-          exerciseResultId,
-          exercise,
-          validExerciseIds.has(exercise.id),
-          trackingType,
-        )
-      : [];
+    if (!exerciseResultId) {
+      return [];
+    }
+    const submittedRows = submittedSetResultsByExerciseId.get(exercise.id) ?? [];
+    if (trackingType === "weight_reps" || trackingType === "reps_only") {
+      const rows = submittedRows.length
+        ? submittedRows
+        : Array.from({ length: exercise.sets }, (_, index) => ({
+            exerciseEntryId: exercise.id,
+            setId: `${exercise.id}:prescribed:${index}`,
+            setOrder: index,
+            prescribedSetIndex: index,
+            setKind: "prescribed" as const,
+            status: "incomplete" as const,
+            actualLoad: null,
+            actualReps: null,
+          }));
+      return rows.map((row) => ({
+        exercise_result_id: exerciseResultId,
+        set_order: row.setOrder,
+        prescribed_set_index: row.prescribedSetIndex,
+        set_kind: row.setKind,
+        status: row.status,
+        actual_load: trackingType === "weight_reps" ? (row.actualLoad ?? null) : null,
+        actual_reps: row.actualReps ?? null,
+        completed_at: row.status === "completed" ? new Date().toISOString() : null,
+      }));
+    }
+    return buildPrescribedSetRows(
+      exerciseResultId,
+      exercise,
+      validExerciseIds.has(exercise.id),
+      trackingType,
+    );
   });
 
   type SavedSessionRow = {

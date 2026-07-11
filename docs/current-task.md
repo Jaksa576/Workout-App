@@ -150,3 +150,11 @@ Validation focus for this patch: no active checklist/check-in on `/workout`, fre
 Implementing the requested main-state patch after Issues #12, #12B, and #12C. `/workout` remains a selection/details route and `/workout/active` remains the focused execution route. This patch removes the Rest timer card and implementation-oriented local-draft Start explanation from the selection page, shortens the Recommended Today card to the workout name plus that workout's summary, and leaves the selected-workout details card as the single dominant Start/Resume/Clear action surface with recent-history/progression context.
 
 No draft lifecycle, final save, progression, timer continuity, or Supabase behavior is intentionally changed. Validation focus: `/workout` should show no Rest timer or local-draft implementation copy, Recommended Today should not duplicate phase number/duration/goal context, and Start/Resume should still hand off to `/workout/active`, where elapsed timing and execution controls remain available.
+
+## PR Follow-up — Issue #13 Core Set Logging
+
+Implementing the PR follow-up request for the core active-workout set logging issue on top of the Issue #12C active route. This patch keeps the Issue #11 local draft lifecycle and Issue #10 final-save/RPC path as the only persistence boundaries while adding inline set rows for `weight_reps` and `reps_only` exercises on `/workout/active`.
+
+The active draft now carries partial set inputs, completion status, added-set rows, and optional exercise notes. The active UI switches only on persisted `exercise.trackingType`: `weight_reps` renders weight and reps inputs, `reps_only` omits weight, and unsupported tracking types stay on the existing safe completion fallback. Submitted set rows are mapped into the existing `exercise_set_results` RPC payload with prescribed/added kind, order, status, actual load/reps, and completed timestamps; no parallel session or draft store is introduced.
+
+Validation focus for this patch: metadata-driven row choice, decimal/nonnegative load entry, whole-number/nonnegative reps entry, out-of-order complete/uncomplete, added-set remove, refresh recovery of partial row values, exercise-note recovery, unsupported tracking fallback, and final save payload shape.
