@@ -1,7 +1,7 @@
 -- Issue #10: reset disposable execution/history rows and install durable set-result schema.
 -- Reset scope: deletes only exercise_set_results (if present), exercise_results, and workout_sessions.
 -- Preserves auth.users, profiles, workout_plans, plan_phases, workout_templates, exercise_entries, and guidance fields.
--- The exercise_entries backfill below is a one-time reviewed snapshot of the static TypeScript exercise catalog metadata for existing rows.
+-- The exercise_entries backfill below is a one-time reviewed snapshot of the static TypeScript exercise catalog metadata for existing rows. Unknown IDs are expected to use the completion fallback; verification reports unknown_ids_not_using_completion_fallback.
 
 create extension if not exists "pgcrypto";
 
@@ -49,31 +49,31 @@ alter table public.exercise_entries add constraint exercise_entries_tracking_uni
 
 update public.exercise_entries set
   tracking_type = case
-    when source_exercise_id in ('goblet-squat','barbell-back-squat','romanian-deadlift','dumbbell-floor-press','dumbbell-shoulder-press','dumbbell-row','farmer-carry','dumbbell-lateral-raise','dumbbell-curl','lateral-lunge') then 'weight_reps'
-    when source_exercise_id in ('brisk-walk','easy-run') then 'distance_duration'
-    when source_exercise_id in ('low-impact-cardio-march','run-walk-intervals','stride-drills','side-plank','lateral-shuffle') then 'duration'
-    when source_exercise_id is not null then 'reps_only'
+    when nullif(source_exercise_id,'') in ('goblet-squat','barbell-back-squat','romanian-deadlift','dumbbell-floor-press','dumbbell-shoulder-press','dumbbell-row','farmer-carry','dumbbell-lateral-raise','dumbbell-curl','lateral-lunge') then 'weight_reps'
+    when nullif(source_exercise_id,'') in ('brisk-walk','easy-run') then 'distance_duration'
+    when nullif(source_exercise_id,'') in ('low-impact-cardio-march','run-walk-intervals','stride-drills','side-plank','lateral-shuffle') then 'duration'
+    when nullif(source_exercise_id,'') in ('bodyweight-squat','box-squat','hip-hinge-drill','glute-bridge','reverse-lunge','step-up','walking-lunge','incline-push-up','push-up','band-row','dead-bug','bird-dog','calf-raise','tibialis-raise','hip-flexor-rockback','thoracic-rotation','ankle-rock','skater-hop') then 'reps_only'
     else 'completion'
   end,
   unilateral_mode = case
-    when source_exercise_id in ('reverse-lunge','step-up','walking-lunge','dumbbell-row','dead-bug','side-plank','hip-flexor-rockback','thoracic-rotation','ankle-rock','lateral-lunge','skater-hop') then 'same_each_side'
+    when nullif(source_exercise_id,'') in ('reverse-lunge','step-up','walking-lunge','dumbbell-row','dead-bug','side-plank','hip-flexor-rockback','thoracic-rotation','ankle-rock','lateral-lunge','skater-hop') then 'same_each_side'
     else 'bilateral'
   end,
   load_unit = case
-    when source_exercise_id in ('goblet-squat','barbell-back-squat','romanian-deadlift','dumbbell-floor-press','dumbbell-shoulder-press','dumbbell-row','farmer-carry','dumbbell-lateral-raise','dumbbell-curl','lateral-lunge') then 'lb'
+    when nullif(source_exercise_id,'') in ('goblet-squat','barbell-back-squat','romanian-deadlift','dumbbell-floor-press','dumbbell-shoulder-press','dumbbell-row','farmer-carry','dumbbell-lateral-raise','dumbbell-curl','lateral-lunge') then 'lb'
     else null
   end,
-  distance_unit = case when source_exercise_id in ('brisk-walk','easy-run') then 'mi' else null end,
+  distance_unit = case when nullif(source_exercise_id,'') in ('brisk-walk','easy-run') then 'mi' else null end,
   primary_value_label = case
-    when source_exercise_id in ('goblet-squat','barbell-back-squat','romanian-deadlift','dumbbell-floor-press','dumbbell-shoulder-press','dumbbell-row','farmer-carry','dumbbell-lateral-raise','dumbbell-curl','lateral-lunge') then 'Load'
-    when source_exercise_id in ('brisk-walk','easy-run') then 'Distance'
-    when source_exercise_id in ('low-impact-cardio-march','run-walk-intervals','stride-drills','side-plank','lateral-shuffle') then 'Duration'
-    when source_exercise_id is not null then 'Reps'
+    when nullif(source_exercise_id,'') in ('goblet-squat','barbell-back-squat','romanian-deadlift','dumbbell-floor-press','dumbbell-shoulder-press','dumbbell-row','farmer-carry','dumbbell-lateral-raise','dumbbell-curl','lateral-lunge') then 'Load'
+    when nullif(source_exercise_id,'') in ('brisk-walk','easy-run') then 'Distance'
+    when nullif(source_exercise_id,'') in ('low-impact-cardio-march','run-walk-intervals','stride-drills','side-plank','lateral-shuffle') then 'Duration'
+    when nullif(source_exercise_id,'') in ('bodyweight-squat','box-squat','hip-hinge-drill','glute-bridge','reverse-lunge','step-up','walking-lunge','incline-push-up','push-up','band-row','dead-bug','bird-dog','calf-raise','tibialis-raise','hip-flexor-rockback','thoracic-rotation','ankle-rock','skater-hop') then 'Reps'
     else 'Completion'
   end,
   secondary_value_label = case
-    when source_exercise_id in ('goblet-squat','barbell-back-squat','romanian-deadlift','dumbbell-floor-press','dumbbell-shoulder-press','dumbbell-row','farmer-carry','dumbbell-lateral-raise','dumbbell-curl','lateral-lunge') then 'Reps'
-    when source_exercise_id in ('brisk-walk','easy-run') then 'Duration'
+    when nullif(source_exercise_id,'') in ('goblet-squat','barbell-back-squat','romanian-deadlift','dumbbell-floor-press','dumbbell-shoulder-press','dumbbell-row','farmer-carry','dumbbell-lateral-raise','dumbbell-curl','lateral-lunge') then 'Reps'
+    when nullif(source_exercise_id,'') in ('brisk-walk','easy-run') then 'Duration'
     else null
   end;
 
@@ -224,27 +224,73 @@ language plpgsql
 security definer
 set search_path = public, pg_temp
 as $$
-declare saved public.workout_sessions; actor uuid := auth.uid();
+declare
+  saved public.workout_sessions;
+  actor uuid := auth.uid();
+  selected_workout_template_id uuid := (p_session->>'workout_template_id')::uuid;
 begin
+  -- SECURITY DEFINER is required so the session header, exercise rows, and set rows share one transaction.
+  -- Because it bypasses table RLS, this function compensates with explicit auth.uid() ownership checks and
+  -- rejects caller-supplied child IDs unless they belong to the selected workout and the newly saved session.
   if actor is null then raise exception 'authenticated user required'; end if;
+  if selected_workout_template_id is null then raise exception 'workout_template_id is required'; end if;
+  if jsonb_typeof(p_exercise_results) <> 'array' then raise exception 'exercise results payload must be an array'; end if;
+  if jsonb_typeof(p_set_results) <> 'array' then raise exception 'set results payload must be an array'; end if;
+
   if not exists (
     select 1 from public.workout_templates wt
     join public.plan_phases pp on pp.id = wt.phase_id
     join public.workout_plans wp on wp.id = pp.plan_id
-    where wt.id = (p_session->>'workout_template_id')::uuid and wp.user_id = actor and wp.archived_at is null
+    where wt.id = selected_workout_template_id and wp.user_id = actor and wp.archived_at is null
   ) then raise exception 'workout is not owned by authenticated user'; end if;
 
+  if exists (select 1 from jsonb_array_elements(p_exercise_results) as r(value) where nullif(value->>'id','') is null) then
+    raise exception 'exercise result id is required';
+  end if;
+  if exists (
+    select 1 from jsonb_array_elements(p_exercise_results) as r(value) group by value->>'id' having count(*) > 1
+  ) then raise exception 'duplicate exercise result ids are not allowed'; end if;
+  if exists (
+    select 1 from public.exercise_results er join jsonb_array_elements(p_exercise_results) as r(value) on er.id = (value->>'id')::uuid
+  ) then raise exception 'exercise result ids must be new'; end if;
+  if exists (select 1 from jsonb_array_elements(p_exercise_results) as r(value) where nullif(value->>'exercise_entry_id','') is null) then
+    raise exception 'exercise_entry_id is required';
+  end if;
+  if exists (
+    select 1 from jsonb_array_elements(p_exercise_results) as r(value) group by value->>'exercise_entry_id' having count(*) > 1
+  ) then raise exception 'duplicate exercise_entry_id values are not allowed'; end if;
+  if exists (
+    select 1 from jsonb_array_elements(p_exercise_results) as r(value)
+    where (value->>'source_workout_template_id')::uuid <> selected_workout_template_id
+  ) then raise exception 'source_workout_template_id must match selected workout'; end if;
+  if exists (
+    select 1
+    from jsonb_array_elements(p_exercise_results) as r(value)
+    left join public.exercise_entries ee on ee.id = (value->>'exercise_entry_id')::uuid and ee.workout_template_id = selected_workout_template_id
+    where ee.id is null
+  ) then raise exception 'exercise_entry_id must belong to selected workout'; end if;
+
+  if exists (select 1 from jsonb_array_elements(p_set_results) as r(value) where nullif(value->>'exercise_result_id','') is null) then
+    raise exception 'set exercise_result_id is required';
+  end if;
+  if exists (
+    select 1
+    from jsonb_array_elements(p_set_results) as sr(value)
+    left join jsonb_array_elements(p_exercise_results) as er(value) on (er.value->>'id') = (sr.value->>'exercise_result_id')
+    where er.value is null
+  ) then raise exception 'set rows must reference exercise results created by this finalize call'; end if;
+
   insert into public.workout_sessions (id, user_id, workout_template_id, completed_on, completed, pain_occurred, perceived_difficulty, notes, recommendation, phase_id_at_completion, workout_name_snapshot, started_at, finished_at, elapsed_seconds, elapsed_source)
-  values ((p_session->>'id')::uuid, actor, (p_session->>'workout_template_id')::uuid, (p_session->>'completed_on')::date, (p_session->>'completed')::boolean, (p_session->>'pain_occurred')::boolean, p_session->>'perceived_difficulty', coalesce(p_session->>'notes',''), p_session->>'recommendation', nullif(p_session->>'phase_id_at_completion','')::uuid, p_session->>'workout_name_snapshot', (p_session->>'started_at')::timestamptz, (p_session->>'finished_at')::timestamptz, coalesce((p_session->>'elapsed_seconds')::integer,0), coalesce(p_session->>'elapsed_source','server_timestamp'))
+  values ((p_session->>'id')::uuid, actor, selected_workout_template_id, (p_session->>'completed_on')::date, (p_session->>'completed')::boolean, (p_session->>'pain_occurred')::boolean, p_session->>'perceived_difficulty', coalesce(p_session->>'notes',''), p_session->>'recommendation', nullif(p_session->>'phase_id_at_completion','')::uuid, p_session->>'workout_name_snapshot', (p_session->>'started_at')::timestamptz, (p_session->>'finished_at')::timestamptz, coalesce((p_session->>'elapsed_seconds')::integer,0), coalesce(p_session->>'elapsed_source','server_timestamp'))
   returning * into saved;
 
   insert into public.exercise_results (id, workout_session_id, source_workout_template_id, exercise_entry_id, source_exercise_id, exercise_name_snapshot, exercise_order, tracking_type, unilateral_mode, load_unit, distance_unit, primary_value_label, secondary_value_label, prescribed_target_text, completion_status)
-  select (r->>'id')::uuid, saved.id, (r->>'source_workout_template_id')::uuid, nullif(r->>'exercise_entry_id','')::uuid, r->>'source_exercise_id', r->>'exercise_name_snapshot', (r->>'exercise_order')::integer, r->>'tracking_type', r->>'unilateral_mode', r->>'load_unit', r->>'distance_unit', r->>'primary_value_label', r->>'secondary_value_label', r->>'prescribed_target_text', r->>'completion_status'
-  from jsonb_array_elements(p_exercise_results) as r;
+  select (value->>'id')::uuid, saved.id, selected_workout_template_id, (value->>'exercise_entry_id')::uuid, value->>'source_exercise_id', value->>'exercise_name_snapshot', (value->>'exercise_order')::integer, value->>'tracking_type', value->>'unilateral_mode', value->>'load_unit', value->>'distance_unit', value->>'primary_value_label', value->>'secondary_value_label', value->>'prescribed_target_text', value->>'completion_status'
+  from jsonb_array_elements(p_exercise_results) as r(value);
 
   insert into public.exercise_set_results (exercise_result_id, set_order, prescribed_set_index, set_kind, status, completed_at)
-  select (r->>'exercise_result_id')::uuid, (r->>'set_order')::integer, nullif(r->>'prescribed_set_index','')::integer, r->>'set_kind', r->>'status', nullif(r->>'completed_at','')::timestamptz
-  from jsonb_array_elements(p_set_results) as r;
+  select (value->>'exercise_result_id')::uuid, (value->>'set_order')::integer, nullif(value->>'prescribed_set_index','')::integer, value->>'set_kind', value->>'status', nullif(value->>'completed_at','')::timestamptz
+  from jsonb_array_elements(p_set_results) as r(value);
 
   return saved;
 end;

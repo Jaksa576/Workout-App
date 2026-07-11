@@ -16,3 +16,24 @@ select count(*) as orphan_exercise_results from public.exercise_results er left 
 select count(*) as orphan_set_results from public.exercise_set_results sr left join public.exercise_results er on er.id = sr.exercise_result_id where er.id is null;
 select workout_session_id, exercise_order, count(*) from public.exercise_results group by workout_session_id, exercise_order having count(*) > 1;
 select exercise_result_id, set_order, count(*) from public.exercise_set_results group by exercise_result_id, set_order having count(*) > 1;
+
+-- Catalog mapping reconciliation: reports source IDs in exercise_entries that are absent from the reviewed static catalog snapshot.
+with known_catalog_ids(source_exercise_id) as (values
+  ('bodyweight-squat'),('box-squat'),('goblet-squat'),('barbell-back-squat'),('romanian-deadlift'),('hip-hinge-drill'),('glute-bridge'),('reverse-lunge'),('step-up'),('walking-lunge'),('incline-push-up'),('push-up'),('dumbbell-floor-press'),('dumbbell-shoulder-press'),('band-row'),('dumbbell-row'),('farmer-carry'),('dead-bug'),('side-plank'),('bird-dog'),('dumbbell-lateral-raise'),('dumbbell-curl'),('calf-raise'),('tibialis-raise'),('hip-flexor-rockback'),('thoracic-rotation'),('ankle-rock'),('brisk-walk'),('low-impact-cardio-march'),('run-walk-intervals'),('easy-run'),('stride-drills'),('lateral-lunge'),('lateral-shuffle'),('skater-hop')
+)
+select nullif(ee.source_exercise_id,'') as unknown_source_exercise_id, ee.tracking_type, ee.unilateral_mode, ee.load_unit, ee.distance_unit, ee.primary_value_label, ee.secondary_value_label, count(*) as entry_count
+from public.exercise_entries ee
+left join known_catalog_ids k on k.source_exercise_id = nullif(ee.source_exercise_id,'')
+where nullif(ee.source_exercise_id,'') is not null and k.source_exercise_id is null
+group by 1,2,3,4,5,6,7
+order by entry_count desc, unknown_source_exercise_id;
+
+with known_catalog_ids(source_exercise_id) as (values
+  ('bodyweight-squat'),('box-squat'),('goblet-squat'),('barbell-back-squat'),('romanian-deadlift'),('hip-hinge-drill'),('glute-bridge'),('reverse-lunge'),('step-up'),('walking-lunge'),('incline-push-up'),('push-up'),('dumbbell-floor-press'),('dumbbell-shoulder-press'),('band-row'),('dumbbell-row'),('farmer-carry'),('dead-bug'),('side-plank'),('bird-dog'),('dumbbell-lateral-raise'),('dumbbell-curl'),('calf-raise'),('tibialis-raise'),('hip-flexor-rockback'),('thoracic-rotation'),('ankle-rock'),('brisk-walk'),('low-impact-cardio-march'),('run-walk-intervals'),('easy-run'),('stride-drills'),('lateral-lunge'),('lateral-shuffle'),('skater-hop')
+)
+select count(*) as unknown_ids_not_using_completion_fallback
+from public.exercise_entries ee
+left join known_catalog_ids k on k.source_exercise_id = nullif(ee.source_exercise_id,'')
+where nullif(ee.source_exercise_id,'') is not null
+  and k.source_exercise_id is null
+  and (ee.tracking_type <> 'completion' or ee.unilateral_mode <> 'bilateral' or ee.load_unit is not null or ee.distance_unit is not null or ee.primary_value_label is distinct from 'Completion' or ee.secondary_value_label is not null);

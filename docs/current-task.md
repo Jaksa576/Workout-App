@@ -99,3 +99,9 @@ Stop and report before implementation if:
 The PR #25 follow-up patch addresses the review blockers without broadening into the full active-workout UI. The current checklist remains exercise-level: checked metric-tracking exercises save completed `exercise_results` but create incomplete prescribed set rows because the checklist does not capture actual metrics. Completion-only checked exercises may create completed prescribed set rows.
 
 The static TypeScript exercise catalog is now the runtime source of default tracking metadata, and plan create/update paths snapshot effective metadata to `exercise_entries`. Final session persistence now goes through the `finalize_workout_session` RPC so the session header, exercise results, and set results are inserted in one database transaction before progression evaluation runs.
+
+### PR #25 remaining review-blocker patch
+
+The follow-up patch hardens the `finalize_workout_session` SECURITY DEFINER RPC so `auth.uid()` remains authoritative and caller-supplied child JSON cannot attach set rows to foreign or pre-existing exercise results. The RPC now rejects duplicate exercise-result IDs, duplicate exercise-entry IDs, exercise entries outside the selected workout template, mismatched `source_workout_template_id` values, and set rows that do not reference exercise results inserted by the same finalize call.
+
+The Issue #10 migration backfill now matches the static TypeScript catalog contract: only explicit reviewed catalog IDs receive `weight_reps`, `reps_only`, `duration`, or `distance_duration`; null, blank, stale, custom, or unrecognized source IDs remain `completion` with bilateral mode and no units. The transactional QA SQL is now an executable rollback script that proves successful finalize, late child rollback, foreign exercise-entry rejection, foreign/pre-existing set-parent rejection, and absence of orphan rows.
