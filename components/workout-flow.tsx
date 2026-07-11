@@ -221,6 +221,9 @@ export function WorkoutFlow({
   const [activeDraft, setActiveDraft] = useState<ActiveWorkoutDraft | null>(
     null,
   );
+  const [invalidRecoveryKey, setInvalidRecoveryKey] = useState<string | null>(
+    null,
+  );
   const [draftMessage, setDraftMessage] = useState<string | null>(null);
   const [storageAvailable, setStorageAvailable] = useState(true);
   const [checkedExerciseIds, setCheckedExerciseIds] = useState<string[]>([]);
@@ -298,6 +301,7 @@ export function WorkoutFlow({
         return;
       }
 
+      setInvalidRecoveryKey(null);
       setActiveDraft(result.draft);
       setSelectedWorkoutId(result.draft.workoutTemplateId);
       setCheckedExerciseIds(result.draft.checkedExerciseIds);
@@ -318,16 +322,22 @@ export function WorkoutFlow({
         `${result.stale ? "Stale" : "Recovered"} workout draft for ${result.draft.workoutNameSnapshot}. Elapsed ${Math.floor(getElapsedSeconds(result.draft) / 60)} min${result.stale ? `; last updated ${result.ageDays} days ago` : ""}.`,
       );
       setStep(
-        result.draft.lifecycle === "finishing" ||
-          result.draft.lifecycle === "save_failed"
-          ? "check-in"
-          : "workout",
+        result.stale
+          ? "idle"
+          : result.draft.lifecycle === "finishing" ||
+              result.draft.lifecycle === "save_failed"
+            ? "check-in"
+            : "workout",
       );
       return;
     }
 
     if (result.status === "invalid") {
-      setDraftMessage(`${result.reason} Discard it to restart safely.`);
+      setInvalidRecoveryKey(getActiveWorkoutDraftStorageKey(userId));
+      setDraftMessage(
+        `${result.reason} Clear recovery data to restart safely.`,
+      );
+      setStep("idle");
     }
   }, [userId, workouts]);
 
@@ -425,6 +435,7 @@ export function WorkoutFlow({
       const storedDraft = writeActiveWorkoutDraft(window.localStorage, draft);
       setActiveDraft(storedDraft);
       setCheckedExerciseIds([]);
+      setInvalidRecoveryKey(null);
       setDraftMessage(
         `Started ${workout.name}. Your draft is saved on this device.`,
       );
@@ -454,7 +465,34 @@ export function WorkoutFlow({
     setCheckedExerciseIds([]);
     setDraftMessage("Active workout draft discarded.");
     setStatus(null);
+    setInvalidRecoveryKey(null);
     setStep("idle");
+  }
+
+  function handleClearRecoveryData() {
+    if (!invalidRecoveryKey) {
+      return;
+    }
+
+    window.localStorage.removeItem(invalidRecoveryKey);
+    setInvalidRecoveryKey(null);
+    setDraftMessage("Recovery data cleared. You can start fresh now.");
+    setStatus(null);
+    setStep("idle");
+  }
+
+  function handleResumeDraft() {
+    if (!activeDraft) {
+      return;
+    }
+
+    setStep(
+      activeDraft.lifecycle === "finishing" ||
+        activeDraft.lifecycle === "save_failed"
+        ? "check-in"
+        : "workout",
+    );
+    setDraftMessage(`Resumed ${activeDraft.workoutNameSnapshot}.`);
   }
 
   function handleFinishWorkout() {
@@ -539,7 +577,7 @@ export function WorkoutFlow({
     setCompletedOn(nextTodayDate);
     setSavedSession(null);
     setStatus(null);
-    setStep("workout");
+    setStep("idle");
   }
 
   return (
@@ -687,14 +725,7 @@ export function WorkoutFlow({
                     <>
                       <button
                         type="button"
-                        onClick={() =>
-                          setStep(
-                            activeDraft.lifecycle === "finishing" ||
-                              activeDraft.lifecycle === "save_failed"
-                              ? "check-in"
-                              : "workout",
-                          )
-                        }
+                        onClick={handleResumeDraft}
                         className="ui-button-secondary"
                       >
                         Resume {activeDraft.workoutNameSnapshot}
@@ -707,6 +738,15 @@ export function WorkoutFlow({
                         Discard draft
                       </button>
                     </>
+                  ) : null}
+                  {invalidRecoveryKey ? (
+                    <button
+                      type="button"
+                      onClick={handleClearRecoveryData}
+                      className="ui-button-ghost"
+                    >
+                      Clear recovery data
+                    </button>
                   ) : null}
                 </div>
               </div>

@@ -536,6 +536,12 @@ export function isProfileSettingsInput(
   );
 }
 
+export function isValidUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value,
+  );
+}
+
 export function isWorkoutSessionInput(
   value: unknown,
   options: { timeZone?: string; now?: Date } = {},
@@ -558,7 +564,8 @@ export function isWorkoutSessionInput(
     Array.isArray(input.completedExerciseIds) &&
     input.completedExerciseIds.every((id) => typeof id === "string") &&
     (input.clientSessionId === undefined ||
-      typeof input.clientSessionId === "string") &&
+      (typeof input.clientSessionId === "string" &&
+        isValidUuid(input.clientSessionId))) &&
     (input.startedAt === undefined ||
       (typeof input.startedAt === "string" &&
         !Number.isNaN(Date.parse(input.startedAt)))) &&

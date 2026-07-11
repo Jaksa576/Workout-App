@@ -10,7 +10,7 @@ import {
   buildPrescribedSetRows,
   getDefaultTrackingMetadata,
 } from "@/lib/execution-results";
-import { isWorkoutSessionInput } from "@/lib/validation";
+import { isValidUuid, isWorkoutSessionInput } from "@/lib/validation";
 
 export async function POST(request: Request) {
   const user = await getCurrentUser();
@@ -21,6 +21,19 @@ export async function POST(request: Request) {
 
   const body = await request.json();
   const timeZone = await getServerTimeZone();
+
+  if (
+    body &&
+    typeof body === "object" &&
+    "clientSessionId" in body &&
+    typeof body.clientSessionId === "string" &&
+    !isValidUuid(body.clientSessionId)
+  ) {
+    return NextResponse.json(
+      { error: "clientSessionId must be a valid UUID." },
+      { status: 400 },
+    );
+  }
 
   if (!isWorkoutSessionInput(body, { timeZone })) {
     return NextResponse.json(
@@ -96,7 +109,7 @@ export async function POST(request: Request) {
     started_at: startedAt,
     finished_at: finishedAt.toISOString(),
     elapsed_seconds: elapsedSeconds,
-    elapsed_source: body.startedAt ? "client_draft" : "server_timestamp",
+    elapsed_source: body.startedAt ? "client_timer" : "server_timestamp",
   };
 
   const validExerciseIds = new Set(body.completedExerciseIds);
@@ -168,21 +181,60 @@ export async function POST(request: Request) {
     notes: string | null;
     recommendation: string;
     phase_id_at_completion: string | null;
+    progression_decision?: WorkoutSession["progressionDecision"];
+    progression_reason?: string | null;
   };
-  const { data: sessionData, error: sessionError } = await supabase
-    .rpc("finalize_workout_session", {
-      p_session: sessionPayload,
-      p_exercise_results: exercisePayload,
-      p_set_results: setPayload,
-    } as never)
-    .single();
-  const session = sessionData as SavedSessionRow | null;
 
-  if (sessionError || !session) {
-    return NextResponse.json(
-      { error: sessionError?.message ?? "Unable to save workout session." },
-      { status: 500 },
-    );
+  let session: SavedSessionRow | null = null;
+  let shouldEvaluateProgression = true;
+
+  if (body.clientSessionId) {
+    const { data: existingSession, error: existingSessionError } =
+      await supabase
+        .from("workout_sessions")
+        .select(
+          "id, workout_template_id, workout_name_snapshot, created_at, completed_on, completed, pain_occurred, perceived_difficulty, notes, recommendation, phase_id_at_completion, progression_decision, progression_reason",
+        )
+        .eq("id", body.clientSessionId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+    if (existingSessionError) {
+      return NextResponse.json(
+        { error: existingSessionError.message },
+        { status: 500 },
+      );
+    }
+
+    if (existingSession) {
+      if (existingSession.workout_template_id !== body.workoutTemplateId) {
+        return NextResponse.json(
+          { error: "clientSessionId already belongs to a different workout." },
+          { status: 409 },
+        );
+      }
+
+      session = existingSession as SavedSessionRow;
+      shouldEvaluateProgression = false;
+    }
+  }
+
+  if (!session) {
+    const { data: sessionData, error: sessionError } = await supabase
+      .rpc("finalize_workout_session", {
+        p_session: sessionPayload,
+        p_exercise_results: exercisePayload,
+        p_set_results: setPayload,
+      } as never)
+      .single();
+    session = sessionData as SavedSessionRow | null;
+
+    if (sessionError || !session) {
+      return NextResponse.json(
+        { error: sessionError?.message ?? "Unable to save workout session." },
+        { status: 500 },
+      );
+    }
   }
 
   const plans = await getPlans();
@@ -191,12 +243,13 @@ export async function POST(request: Request) {
   );
   const workoutIds = owningPlan?.workouts.map((item) => item.id) ?? [];
   let progression = {
-    decision: null as WorkoutSession["progressionDecision"],
+    decision: (session.progression_decision ??
+      null) as WorkoutSession["progressionDecision"],
     recommendation: session.recommendation,
-    reason: null as string | null,
+    reason: session.progression_reason ?? null,
   };
 
-  if (owningPlan && workoutIds.length > 0) {
+  if (shouldEvaluateProgression && owningPlan && workoutIds.length > 0) {
     const { data: sessionRows, error: sessionRowsError } = await supabase
       .from("workout_sessions")
       .select(
