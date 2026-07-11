@@ -94,6 +94,7 @@ Stop and report before implementation if:
 - implementation would create a parallel session system rather than migration-safely extending the existing one
 - progression behavior would change without an explicitly scoped and reviewed issue
 - branch state, push state, or target issue becomes ambiguous
+
 ## PR #25 Review Patch State (Issue #10)
 
 The PR #25 follow-up patch addresses the review blockers without broadening into the full active-workout UI. The current checklist remains exercise-level: checked metric-tracking exercises save completed `exercise_results` but create incomplete prescribed set rows because the checklist does not capture actual metrics. Completion-only checked exercises may create completed prescribed set rows.
@@ -109,3 +110,13 @@ The Issue #10 migration backfill now matches the static TypeScript catalog contr
 ### PR #25 final trust patch
 
 The latest Issue #10 patch corrects the transactional QA rejection pattern so each negative case catches only the RPC call, records `was_rejected`, fails if the RPC unexpectedly succeeds, and then separately verifies no session/exercise/set rows remain. The finalize RPC now derives authoritative session and exercise snapshots from `workout_templates`, `plan_phases`, `workout_plans`, and `exercise_entries` instead of trusting caller-supplied metadata for source exercise identity, exercise name/order, tracking type, unilateral mode, units, labels, prescription text, workout name, or phase identity.
+
+## PR Follow-up — Active Session Lifecycle
+
+Implementing the PR follow-up request for the active-workout lifecycle issue on top of Issue #10. Issue #10's committed final-save path remains the approved persistence boundary: in-progress execution is local-first, and completion continues through `POST /api/sessions` and the `finalize_workout_session` RPC before progression evaluation runs.
+
+This patch adds one browser-local active draft per authenticated user with explicit `idle`, `active`, `finishing`, `save_failed`, and discard flows. Drafts are keyed by `workout-app:active-workout-draft:v1:<userId>`, carry version `1`, and preserve draft/session ID, user ID, workout template ID, plan/phase IDs, workout-name snapshot, timestamps, elapsed-time basis, checked exercise state, and check-in fields. Drafts older than seven days are surfaced as stale and offered for deliberate resume or discard; malformed, unsupported-version, or missing-workout drafts are blocked from silent resume and require safe discard/restart.
+
+Patch state: the PR #26 lifecycle blockers are addressed for Issue #11. Draft-backed saves now send the schema-approved `client_timer` elapsed source, `clientSessionId` is rejected at the API boundary unless it is a valid UUID, and uncertain-response retries first look up an existing owned session by the draft/session ID. If that existing session belongs to the same workout, the API returns it as success without re-running `finalize_workout_session` or progression; if it belongs to another workout, the request is rejected as a conflict. The local draft remains until a confirmed success, and ordinary save failures keep retry available.
+
+UI recovery now keeps stale drafts on the idle recovery decision surface until the user deliberately resumes or discards them, while preserving checked exercises and check-in data for an explicit resume. The idle stale-recovery decision is intentionally non-persistent so merely loading or refreshing the page does not update `lastUpdatedAt` or lifecycle and accidentally make the draft fresh; persistence resumes only after the user clicks Resume and enters the stored lifecycle step. Malformed recovery data no longer points at an unavailable discard action; it exposes `Clear recovery data` for the current user's versioned storage key. After a successful save, `Start another workout` clears saved/draft/form state and returns to idle so the next session starts only after the user explicitly starts a new draft.

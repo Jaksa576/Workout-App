@@ -16,27 +16,35 @@ import type {
   TrainingExperience,
   TrainingGoalType,
   Weekday,
-  WorkoutSessionInput
+  WorkoutSessionInput,
 } from "@/lib/types";
 import { formatDateKeyInTimeZone, isPastOrTodayDateKey } from "@/lib/time-zone";
 
 export const perceivedDifficultyValues = [
   "too_easy",
   "appropriate",
-  "too_hard"
+  "too_hard",
 ] as const;
 
-export const weekdays: Weekday[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+export const weekdays: Weekday[] = [
+  "mon",
+  "tue",
+  "wed",
+  "thu",
+  "fri",
+  "sat",
+  "sun",
+];
 
 export const advancementPresets: AdvancementPreset[] = [
   "clean_sessions_in_window",
   "clean_sessions_streak",
-  "all_scheduled_workouts"
+  "all_scheduled_workouts",
 ];
 
 export const deloadPresets: DeloadPreset[] = [
   "pain_flags_in_window",
-  "too_hard_streak"
+  "too_hard_streak",
 ];
 
 export const trainingGoalTypes: TrainingGoalType[] = [
@@ -46,42 +54,42 @@ export const trainingGoalTypes: TrainingGoalType[] = [
   "hypertrophy",
   "running",
   "sport_performance",
-  "consistency"
+  "consistency",
 ];
 
 export const progressionModes: ProgressionMode[] = [
   "symptom_based",
   "adherence_based",
   "performance_based",
-  "hybrid"
+  "hybrid",
 ];
 
 export const trainingExperienceValues: TrainingExperience[] = [
   "new",
   "returning",
   "intermediate",
-  "advanced"
+  "advanced",
 ];
 
 export const activityLevelValues: ActivityLevel[] = [
   "mostly_sedentary",
   "lightly_active",
   "moderately_active",
-  "very_active"
+  "very_active",
 ];
 
 export const trainingEnvironmentValues: TrainingEnvironment[] = [
   "home",
   "gym",
   "outdoors",
-  "mixed"
+  "mixed",
 ];
 
 export const planCreationSources: PlanCreationSource[] = [
   "manual",
   "guided_template",
   "llm_draft",
-  "ai_import"
+  "ai_import",
 ];
 
 export const planSetupChoices = ["manual", "guided", "ai"] as const;
@@ -92,14 +100,18 @@ export const planPreferredSplits: PlanPreferredSplit[] = [
   "push_pull_legs",
   "run_strength",
   "mobility_strength",
-  "flexible"
+  "flexible",
 ];
 
 export function getTodayDateString(timeZone?: string, now = new Date()) {
   return formatDateKeyInTimeZone(now, timeZone);
 }
 
-export function isValidCompletedOn(value: string, timeZone?: string, now = new Date()) {
+export function isValidCompletedOn(
+  value: string,
+  timeZone?: string,
+  now = new Date(),
+) {
   return isPastOrTodayDateKey(value, timeZone, now);
 }
 
@@ -167,14 +179,22 @@ export function isWeekday(value: unknown): value is Weekday {
 }
 
 export function isTrainingGoalType(value: unknown): value is TrainingGoalType {
-  return typeof value === "string" && trainingGoalTypes.includes(value as TrainingGoalType);
+  return (
+    typeof value === "string" &&
+    trainingGoalTypes.includes(value as TrainingGoalType)
+  );
 }
 
 export function isProgressionMode(value: unknown): value is ProgressionMode {
-  return typeof value === "string" && progressionModes.includes(value as ProgressionMode);
+  return (
+    typeof value === "string" &&
+    progressionModes.includes(value as ProgressionMode)
+  );
 }
 
-export function isTrainingExperience(value: unknown): value is TrainingExperience {
+export function isTrainingExperience(
+  value: unknown,
+): value is TrainingExperience {
   return (
     typeof value === "string" &&
     trainingExperienceValues.includes(value as TrainingExperience)
@@ -182,22 +202,37 @@ export function isTrainingExperience(value: unknown): value is TrainingExperienc
 }
 
 export function isActivityLevel(value: unknown): value is ActivityLevel {
-  return typeof value === "string" && activityLevelValues.includes(value as ActivityLevel);
+  return (
+    typeof value === "string" &&
+    activityLevelValues.includes(value as ActivityLevel)
+  );
 }
 
-export function isTrainingEnvironment(value: unknown): value is TrainingEnvironment {
+export function isTrainingEnvironment(
+  value: unknown,
+): value is TrainingEnvironment {
   return (
     typeof value === "string" &&
     trainingEnvironmentValues.includes(value as TrainingEnvironment)
   );
 }
 
-export function isPlanCreationSource(value: unknown): value is PlanCreationSource {
-  return typeof value === "string" && planCreationSources.includes(value as PlanCreationSource);
+export function isPlanCreationSource(
+  value: unknown,
+): value is PlanCreationSource {
+  return (
+    typeof value === "string" &&
+    planCreationSources.includes(value as PlanCreationSource)
+  );
 }
 
-export function isPlanPreferredSplit(value: unknown): value is PlanPreferredSplit {
-  return typeof value === "string" && planPreferredSplits.includes(value as PlanPreferredSplit);
+export function isPlanPreferredSplit(
+  value: unknown,
+): value is PlanPreferredSplit {
+  return (
+    typeof value === "string" &&
+    planPreferredSplits.includes(value as PlanPreferredSplit)
+  );
 }
 
 export function normalizeWeekdays(values: unknown) {
@@ -213,18 +248,27 @@ function isPlainRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isStringArray(value: unknown) {
-  return Array.isArray(value) && value.every((item) => typeof item === "string");
+  return (
+    Array.isArray(value) && value.every((item) => typeof item === "string")
+  );
 }
 
 function isOptionalString(value: unknown) {
   return value === undefined || typeof value === "string";
 }
 
-function isOptionalNullableIntegerInRange(value: unknown, min: number, max: number) {
+function isOptionalNullableIntegerInRange(
+  value: unknown,
+  min: number,
+  max: number,
+) {
   return (
     value === undefined ||
     value === null ||
-    (typeof value === "number" && Number.isInteger(value) && value >= min && value <= max)
+    (typeof value === "number" &&
+      Number.isInteger(value) &&
+      value >= min &&
+      value <= max)
   );
 }
 
@@ -238,12 +282,14 @@ function isOptionalNullablePositiveNumber(value: unknown) {
 
 function isOptionalNullableProfileEnum<T extends string>(
   value: unknown,
-  isValid: (nextValue: unknown) => nextValue is T
+  isValid: (nextValue: unknown) => nextValue is T,
 ) {
   return value === undefined || value === null || isValid(value);
 }
 
-export function isProgressionSettings(value: unknown): value is ProgressionSettings {
+export function isProgressionSettings(
+  value: unknown,
+): value is ProgressionSettings {
   if (!isPlainRecord(value)) {
     return false;
   }
@@ -251,11 +297,13 @@ export function isProgressionSettings(value: unknown): value is ProgressionSetti
   return Object.values(value).every(
     (setting) =>
       setting === undefined ||
-      (typeof setting === "number" && Number.isInteger(setting) && setting > 0)
+      (typeof setting === "number" && Number.isInteger(setting) && setting > 0),
   );
 }
 
-export function isStructuredPlanInput(value: unknown): value is StructuredPlanInput {
+export function isStructuredPlanInput(
+  value: unknown,
+): value is StructuredPlanInput {
   if (!isPlainRecord(value)) {
     return false;
   }
@@ -272,7 +320,8 @@ export function isStructuredPlanInput(value: unknown): value is StructuredPlanIn
     (input.progressionMode === undefined ||
       input.progressionMode === null ||
       isProgressionMode(input.progressionMode)) &&
-    (input.creationSource === undefined || isPlanCreationSource(input.creationSource)) &&
+    (input.creationSource === undefined ||
+      isPlanCreationSource(input.creationSource)) &&
     Array.isArray(input.weeklySchedule) &&
     input.weeklySchedule.every(isWeekday) &&
     Array.isArray(input.phases) &&
@@ -308,14 +357,17 @@ export function isStructuredPlanInput(value: unknown): value is StructuredPlanIn
                 typeof exercise.reps === "string" &&
                 typeof exercise.rest === "string" &&
                 typeof exercise.coachingNote === "string" &&
-                (exercise.videoUrl === undefined || typeof exercise.videoUrl === "string")
-            )
-        )
+                (exercise.videoUrl === undefined ||
+                  typeof exercise.videoUrl === "string"),
+            ),
+        ),
     )
   );
 }
 
-export function isStructuredPlanSaveInput(value: unknown): value is StructuredPlanSaveInput {
+export function isStructuredPlanSaveInput(
+  value: unknown,
+): value is StructuredPlanSaveInput {
   if (!isPlainRecord(value)) {
     return false;
   }
@@ -392,15 +444,24 @@ export function isOnboardingInput(value: unknown): value is OnboardingInput {
     typeof input.goalNotes === "string" &&
     isOptionalNullableIntegerInRange(input.age, 13, 120) &&
     isOptionalNullablePositiveNumber(input.weight) &&
-    isOptionalNullableProfileEnum(input.trainingExperience, isTrainingExperience) &&
+    isOptionalNullableProfileEnum(
+      input.trainingExperience,
+      isTrainingExperience,
+    ) &&
     isOptionalNullableProfileEnum(input.activityLevel, isActivityLevel) &&
-    isOptionalNullableProfileEnum(input.trainingEnvironment, isTrainingEnvironment) &&
+    isOptionalNullableProfileEnum(
+      input.trainingEnvironment,
+      isTrainingEnvironment,
+    ) &&
     isOptionalString(input.limitationsDetail) &&
     isStringArray(input.injuries) &&
     isStringArray(input.equipment) &&
-    (input.exercisePreferences === undefined || isStringArray(input.exercisePreferences)) &&
-    (input.exerciseDislikes === undefined || isStringArray(input.exerciseDislikes)) &&
-    (input.sportsInterests === undefined || isStringArray(input.sportsInterests)) &&
+    (input.exercisePreferences === undefined ||
+      isStringArray(input.exercisePreferences)) &&
+    (input.exerciseDislikes === undefined ||
+      isStringArray(input.exerciseDislikes)) &&
+    (input.sportsInterests === undefined ||
+      isStringArray(input.sportsInterests)) &&
     typeof input.daysPerWeek === "number" &&
     Number.isInteger(input.daysPerWeek) &&
     input.daysPerWeek >= 1 &&
@@ -416,7 +477,9 @@ export function isOnboardingInput(value: unknown): value is OnboardingInput {
   );
 }
 
-export function isProfileSettingsInput(value: unknown): value is ProfileSettingsInput {
+export function isProfileSettingsInput(
+  value: unknown,
+): value is ProfileSettingsInput {
   if (!isPlainRecord(value)) {
     return false;
   }
@@ -435,22 +498,31 @@ export function isProfileSettingsInput(value: unknown): value is ProfileSettings
     "exerciseDislikes",
     "sportsInterests",
     "daysPerWeek",
-    "sessionMinutes"
+    "sessionMinutes",
   ]);
 
   return (
     Object.keys(input).every((key) => allowedKeys.has(key)) &&
     isOptionalNullableIntegerInRange(input.age, 13, 120) &&
     isOptionalNullablePositiveNumber(input.weight) &&
-    isOptionalNullableProfileEnum(input.trainingExperience, isTrainingExperience) &&
+    isOptionalNullableProfileEnum(
+      input.trainingExperience,
+      isTrainingExperience,
+    ) &&
     isOptionalNullableProfileEnum(input.activityLevel, isActivityLevel) &&
-    isOptionalNullableProfileEnum(input.trainingEnvironment, isTrainingEnvironment) &&
+    isOptionalNullableProfileEnum(
+      input.trainingEnvironment,
+      isTrainingEnvironment,
+    ) &&
     isOptionalString(input.limitationsDetail) &&
     (input.injuries === undefined || isStringArray(input.injuries)) &&
     (input.equipment === undefined || isStringArray(input.equipment)) &&
-    (input.exercisePreferences === undefined || isStringArray(input.exercisePreferences)) &&
-    (input.exerciseDislikes === undefined || isStringArray(input.exerciseDislikes)) &&
-    (input.sportsInterests === undefined || isStringArray(input.sportsInterests)) &&
+    (input.exercisePreferences === undefined ||
+      isStringArray(input.exercisePreferences)) &&
+    (input.exerciseDislikes === undefined ||
+      isStringArray(input.exerciseDislikes)) &&
+    (input.sportsInterests === undefined ||
+      isStringArray(input.sportsInterests)) &&
     (input.daysPerWeek === undefined ||
       (typeof input.daysPerWeek === "number" &&
         Number.isInteger(input.daysPerWeek) &&
@@ -464,9 +536,15 @@ export function isProfileSettingsInput(value: unknown): value is ProfileSettings
   );
 }
 
+export function isValidUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value,
+  );
+}
+
 export function isWorkoutSessionInput(
   value: unknown,
-  options: { timeZone?: string; now?: Date } = {}
+  options: { timeZone?: string; now?: Date } = {},
 ): value is WorkoutSessionInput {
   if (!value || typeof value !== "object") {
     return false;
@@ -484,6 +562,17 @@ export function isWorkoutSessionInput(
     perceivedDifficultyValues.includes(input.perceivedDifficulty) &&
     typeof input.notes === "string" &&
     Array.isArray(input.completedExerciseIds) &&
-    input.completedExerciseIds.every((id) => typeof id === "string")
+    input.completedExerciseIds.every((id) => typeof id === "string") &&
+    (input.clientSessionId === undefined ||
+      (typeof input.clientSessionId === "string" &&
+        isValidUuid(input.clientSessionId))) &&
+    (input.startedAt === undefined ||
+      (typeof input.startedAt === "string" &&
+        !Number.isNaN(Date.parse(input.startedAt)))) &&
+    (input.elapsedSeconds === undefined ||
+      (typeof input.elapsedSeconds === "number" &&
+        Number.isInteger(input.elapsedSeconds) &&
+        input.elapsedSeconds >= 0 &&
+        input.elapsedSeconds <= 30 * 24 * 60 * 60))
   );
 }

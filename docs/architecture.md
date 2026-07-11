@@ -54,7 +54,6 @@ Compatibility names such as `plan_phases` remain intentionally unchanged unless 
 - Session history should remain readable after plan edits through workout/exercise snapshots.
 - Issue #6 owns migration-safe extension of the workout/session/result model for set-level recording; the approved Issue #9 discovery contract below governs the initial child implementation issues.
 
-
 ## Workout Execution Domain Contract (Issue #9 Discovery)
 
 Issue #9 selects the initial workout execution contract for Issue #6 follow-up work. This contract is documentation-only and does not change production behavior until the child implementation issues add committed migrations, generated types, routes, UI, and tests.
@@ -211,6 +210,14 @@ Compatibility expectation: old app against new schema is not required after the 
 
 Required indexes for the new model: user/session chronology on `workout_sessions`, active/stale draft lookup if server drafts are introduced later, workout-template/session chronology, exercise identity history lookup across saved exercise-entry ID and stable text source exercise ID, exercise-result parent/order lookup, and set-result parent/order lookup.
 
+### Active workout local draft lifecycle
+
+The `/workout` route owns the initial active-workout lifecycle. A signed-in user may have exactly one active draft per browser/device profile. The browser key is `workout-app:active-workout-draft:v1:<userId>`, which isolates users on the same browser and gives future migrations a versioned read boundary. Version `1` drafts include the authenticated user ID, a generated draft/session ID, source workout template ID, source plan and phase IDs when available, workout-name snapshot, `startedAt`, `lastUpdatedAt`, `elapsedOffsetSeconds`, checked exercise IDs, and check-in fields needed by the current final-save UI.
+
+Lifecycle transitions are deterministic: no draft is `idle`; creating a draft enters `active`; tapping Finish moves to `finishing`; a failed final-save attempt is represented as `save_failed`; confirmed discard removes only the local draft; successful finalization clears the draft after the server confirms the atomic save. Recovery validates parsed JSON, version, ownership, timestamps, identity fields, elapsed basis, exercise IDs, and check-in shape before resuming. Unsupported versions, malformed JSON, invalid shapes, cross-user keys, or drafts whose workout template is no longer available are not silently resumed; the UI explains the problem and offers a user-acknowledged clear/discard path scoped to the current user's draft key. Drafts older than seven days since `lastUpdatedAt` are stale, remain on the recovery decision surface, and require an explicit Resume or Discard choice before entering workout or check-in.
+
+Elapsed time is reconstructed from persisted timestamps instead of a continuously saved counter. In-progress drafts never insert partial `workout_sessions`, `exercise_results`, or `exercise_set_results` rows. Finish still posts through the existing session API and `finalize_workout_session` RPC; draft-backed saves use the schema-approved `client_timer` elapsed source, while non-draft saves use `server_timestamp`. Progression evaluation runs only after a new RPC finalization succeeds. Retry preserves the local draft and reuses the draft ID as the session ID where practical; when `clientSessionId` is present, the API first checks for an existing session owned by the authenticated user and matching the requested workout, returns that session as success if found, rejects same-ID/different-workout conflicts, and does not rerun progression on the idempotent retry.
+
 ### In-progress draft recovery
 
 Initial draft persistence is local-first. Store active workout draft state on the same device with a versioned key that includes user ID and workout template ID. It must include started-at timestamp, last-updated timestamp, selected workout identity, set rows, input values, completion statuses, notes, and scroll/rest-timer state when practical. Refresh and temporary navigation must restore the draft without losing scroll context. Discard requires confirmation. Offline save is not required initially; failed save should keep the local draft and present retry/discard options. Cross-device resume is deferred.
@@ -247,7 +254,6 @@ Later Supabase-affecting PRs under Issue #6 should include a copyable handoff se
 - deployment compatibility: old-app/new-schema and new-app/old-schema expectations;
 - target environment action: which hosted environment receives the migration and who verifies it;
 - preview QA: start recommended workout, choose alternate current-phase workout, log each tracking type, skip/incomplete/add sets, discard draft, refresh recovery, finish/save, dashboard readiness, history display, and progression recommendation smoke checks.
-
 
 ## Plan Creation And Editing
 
@@ -340,6 +346,7 @@ Known lint issue:
 - `npm run lint` currently fails because the Next 16 setup interprets `next lint` as a project directory named `lint`.
 
 For docs-only changes, run `git status` and `git diff --stat`, confirm the diff is docs-only, and do not run app build/test unless non-doc files are touched accidentally.
+
 ## Durable Workout Execution Schema (Issue #10)
 
 Issue #10 implements the Issue #9 contract as committed Supabase SQL without applying it to hosted Supabase from Codex Web. The migration `supabase/migrations/20260710120000_workout_execution_set_results.sql` resets disposable execution/history data by deleting only `exercise_results` and `workout_sessions` rows before recreating the set-result foundation. It preserves `auth.users`, `profiles`, `workout_plans`, `plan_phases`, `workout_templates`, `exercise_entries`, setup context, guidance fields, and current phase pointers.

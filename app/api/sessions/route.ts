@@ -6,8 +6,11 @@ import { getServerTimeZone } from "@/lib/server-time-zone";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 import type { WorkoutSession } from "@/lib/types";
 import { generateRecommendation } from "@/lib/recommendation";
-import { buildPrescribedSetRows, getDefaultTrackingMetadata } from "@/lib/execution-results";
-import { isWorkoutSessionInput } from "@/lib/validation";
+import {
+  buildPrescribedSetRows,
+  getDefaultTrackingMetadata,
+} from "@/lib/execution-results";
+import { isValidUuid, isWorkoutSessionInput } from "@/lib/validation";
 
 export async function POST(request: Request) {
   const user = await getCurrentUser();
@@ -19,10 +22,23 @@ export async function POST(request: Request) {
   const body = await request.json();
   const timeZone = await getServerTimeZone();
 
+  if (
+    body &&
+    typeof body === "object" &&
+    "clientSessionId" in body &&
+    typeof body.clientSessionId === "string" &&
+    !isValidUuid(body.clientSessionId)
+  ) {
+    return NextResponse.json(
+      { error: "clientSessionId must be a valid UUID." },
+      { status: 400 },
+    );
+  }
+
   if (!isWorkoutSessionInput(body, { timeZone })) {
     return NextResponse.json(
       { error: "Check the workout date and required fields, then try again." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -41,18 +57,23 @@ export async function POST(request: Request) {
   if (!workout) {
     return NextResponse.json(
       { error: "This workout is not available for your account." },
-      { status: 404 }
+      { status: 404 },
     );
   }
 
   const { data: exercises, error: exercisesError } = await supabase
     .from("exercise_entries")
-    .select("id, name, sets, reps, sort_order, source_exercise_id, tracking_type, unilateral_mode, load_unit, distance_unit, primary_value_label, secondary_value_label")
+    .select(
+      "id, name, sets, reps, sort_order, source_exercise_id, tracking_type, unilateral_mode, load_unit, distance_unit, primary_value_label, secondary_value_label",
+    )
     .eq("workout_template_id", body.workoutTemplateId)
     .order("sort_order", { ascending: true });
 
   if (exercisesError) {
-    return NextResponse.json({ error: exercisesError.message }, { status: 500 });
+    return NextResponse.json(
+      { error: exercisesError.message },
+      { status: 500 },
+    );
   }
 
   const recommendation = generateRecommendation({
@@ -63,9 +84,17 @@ export async function POST(request: Request) {
         ? "Too easy"
         : body.perceivedDifficulty === "too_hard"
           ? "Too hard"
-          : "Appropriate"
+          : "Appropriate",
   });
-  const sessionId = crypto.randomUUID();
+  const sessionId = body.clientSessionId ?? crypto.randomUUID();
+  const finishedAt = new Date();
+  const startedAt = body.startedAt ?? finishedAt.toISOString();
+  const elapsedSeconds =
+    body.elapsedSeconds ??
+    Math.max(
+      0,
+      Math.floor((finishedAt.getTime() - Date.parse(startedAt)) / 1000),
+    );
   const sessionPayload = {
     id: sessionId,
     workout_template_id: body.workoutTemplateId,
@@ -77,10 +106,10 @@ export async function POST(request: Request) {
     recommendation: recommendation.title,
     phase_id_at_completion: workout.phase_id,
     workout_name_snapshot: workout.name,
-    started_at: new Date().toISOString(),
-    finished_at: new Date().toISOString(),
-    elapsed_seconds: 0,
-    elapsed_source: "server_timestamp"
+    started_at: startedAt,
+    finished_at: finishedAt.toISOString(),
+    elapsed_seconds: elapsedSeconds,
+    elapsed_source: body.startedAt ? "client_timer" : "server_timestamp",
   };
 
   const validExerciseIds = new Set(body.completedExerciseIds);
@@ -99,22 +128,44 @@ export async function POST(request: Request) {
       exercise_order: exercise.sort_order ?? index,
       tracking_type: trackingType,
       unilateral_mode: unilateralMode,
-      load_unit: trackingType === "weight_reps" ? (exercise.load_unit ?? fallback.loadUnit) : null,
-      distance_unit: trackingType === "distance_duration" ? (exercise.distance_unit ?? fallback.distanceUnit) : null,
-      primary_value_label: exercise.primary_value_label ?? fallback.primaryValueLabel,
-      secondary_value_label: exercise.secondary_value_label ?? fallback.secondaryValueLabel,
+      load_unit:
+        trackingType === "weight_reps"
+          ? (exercise.load_unit ?? fallback.loadUnit)
+          : null,
+      distance_unit:
+        trackingType === "distance_duration"
+          ? (exercise.distance_unit ?? fallback.distanceUnit)
+          : null,
+      primary_value_label:
+        exercise.primary_value_label ?? fallback.primaryValueLabel,
+      secondary_value_label:
+        exercise.secondary_value_label ?? fallback.secondaryValueLabel,
       prescribed_target_text: `${exercise.sets} sets × ${exercise.reps}`,
-      completion_status: validExerciseIds.has(exercise.id) ? "completed" : "incomplete"
+      completion_status: validExerciseIds.has(exercise.id)
+        ? "completed"
+        : "incomplete",
     };
   });
 
-  const resultIdByEntryId = new Map(exercisePayload.map((result) => [result.exercise_entry_id, result.id]));
-  const trackingTypeByEntryId = new Map(exercisePayload.map((result) => [result.exercise_entry_id, result.tracking_type]));
+  const resultIdByEntryId = new Map(
+    exercisePayload.map((result) => [result.exercise_entry_id, result.id]),
+  );
+  const trackingTypeByEntryId = new Map(
+    exercisePayload.map((result) => [
+      result.exercise_entry_id,
+      result.tracking_type,
+    ]),
+  );
   const setPayload = (exercises ?? []).flatMap((exercise) => {
     const exerciseResultId = resultIdByEntryId.get(exercise.id);
     const trackingType = trackingTypeByEntryId.get(exercise.id) ?? "completion";
     return exerciseResultId
-      ? buildPrescribedSetRows(exerciseResultId, exercise, validExerciseIds.has(exercise.id), trackingType)
+      ? buildPrescribedSetRows(
+          exerciseResultId,
+          exercise,
+          validExerciseIds.has(exercise.id),
+          trackingType,
+        )
       : [];
   });
 
@@ -130,67 +181,113 @@ export async function POST(request: Request) {
     notes: string | null;
     recommendation: string;
     phase_id_at_completion: string | null;
+    progression_decision?: WorkoutSession["progressionDecision"];
+    progression_reason?: string | null;
   };
-  const { data: sessionData, error: sessionError } = await supabase.rpc("finalize_workout_session", {
-    p_session: sessionPayload,
-    p_exercise_results: exercisePayload,
-    p_set_results: setPayload
-  } as never).single();
-  const session = sessionData as SavedSessionRow | null;
 
-  if (sessionError || !session) {
-    return NextResponse.json(
-      { error: sessionError?.message ?? "Unable to save workout session." },
-      { status: 500 }
-    );
+  let session: SavedSessionRow | null = null;
+  let shouldEvaluateProgression = true;
+
+  if (body.clientSessionId) {
+    const { data: existingSession, error: existingSessionError } =
+      await supabase
+        .from("workout_sessions")
+        .select(
+          "id, workout_template_id, workout_name_snapshot, created_at, completed_on, completed, pain_occurred, perceived_difficulty, notes, recommendation, phase_id_at_completion, progression_decision, progression_reason",
+        )
+        .eq("id", body.clientSessionId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+    if (existingSessionError) {
+      return NextResponse.json(
+        { error: existingSessionError.message },
+        { status: 500 },
+      );
+    }
+
+    if (existingSession) {
+      if (existingSession.workout_template_id !== body.workoutTemplateId) {
+        return NextResponse.json(
+          { error: "clientSessionId already belongs to a different workout." },
+          { status: 409 },
+        );
+      }
+
+      session = existingSession as SavedSessionRow;
+      shouldEvaluateProgression = false;
+    }
+  }
+
+  if (!session) {
+    const { data: sessionData, error: sessionError } = await supabase
+      .rpc("finalize_workout_session", {
+        p_session: sessionPayload,
+        p_exercise_results: exercisePayload,
+        p_set_results: setPayload,
+      } as never)
+      .single();
+    session = sessionData as SavedSessionRow | null;
+
+    if (sessionError || !session) {
+      return NextResponse.json(
+        { error: sessionError?.message ?? "Unable to save workout session." },
+        { status: 500 },
+      );
+    }
   }
 
   const plans = await getPlans();
   const owningPlan = plans.find((plan) =>
-    plan.workouts.some((item) => item.id === body.workoutTemplateId)
+    plan.workouts.some((item) => item.id === body.workoutTemplateId),
   );
   const workoutIds = owningPlan?.workouts.map((item) => item.id) ?? [];
   let progression = {
-    decision: null as WorkoutSession["progressionDecision"],
+    decision: (session.progression_decision ??
+      null) as WorkoutSession["progressionDecision"],
     recommendation: session.recommendation,
-    reason: null as string | null
+    reason: session.progression_reason ?? null,
   };
 
-  if (owningPlan && workoutIds.length > 0) {
+  if (shouldEvaluateProgression && owningPlan && workoutIds.length > 0) {
     const { data: sessionRows, error: sessionRowsError } = await supabase
       .from("workout_sessions")
-      .select("id, workout_template_id, workout_name_snapshot, created_at, completed_on, completed, pain_occurred, perceived_difficulty, notes, recommendation, phase_id_at_completion, progression_decision, progression_reason")
+      .select(
+        "id, workout_template_id, workout_name_snapshot, created_at, completed_on, completed, pain_occurred, perceived_difficulty, notes, recommendation, phase_id_at_completion, progression_decision, progression_reason",
+      )
       .eq("user_id", user.id)
       .in("workout_template_id", workoutIds)
       .order("completed_on", { ascending: false })
       .order("created_at", { ascending: false });
 
     if (!sessionRowsError) {
-      const phaseSessions: WorkoutSession[] = (sessionRows ?? []).map((row) => ({
-        id: row.id,
-        workoutTemplateId: row.workout_template_id,
-        workoutNameSnapshot: row.workout_name_snapshot,
-        createdAt: row.created_at,
-        completedOn: row.completed_on,
-        completed: row.completed,
-        painOccurred: row.pain_occurred,
-        perceivedDifficulty: row.perceived_difficulty,
-        notes: row.notes,
-        recommendation: row.recommendation,
-        phaseIdAtCompletion: row.phase_id_at_completion,
-        progressionDecision: row.progression_decision,
-        progressionReason: row.progression_reason
-      }));
+      const phaseSessions: WorkoutSession[] = (sessionRows ?? []).map(
+        (row) => ({
+          id: row.id,
+          workoutTemplateId: row.workout_template_id,
+          workoutNameSnapshot: row.workout_name_snapshot,
+          createdAt: row.created_at,
+          completedOn: row.completed_on,
+          completed: row.completed,
+          painOccurred: row.pain_occurred,
+          perceivedDifficulty: row.perceived_difficulty,
+          notes: row.notes,
+          recommendation: row.recommendation,
+          phaseIdAtCompletion: row.phase_id_at_completion,
+          progressionDecision: row.progression_decision,
+          progressionReason: row.progression_reason,
+        }),
+      );
       const evaluation = evaluatePhaseProgression({
         plan: owningPlan,
         currentPhase: owningPlan.currentPhase,
-        sessions: phaseSessions
+        sessions: phaseSessions,
       });
 
       progression = {
         decision: evaluation.decision,
         recommendation: evaluation.recommendation,
-        reason: evaluation.reason
+        reason: evaluation.reason,
       };
 
       const { error: updateSessionError } = await supabase
@@ -198,12 +295,16 @@ export async function POST(request: Request) {
         .update({
           recommendation: evaluation.recommendation,
           progression_decision: evaluation.decision,
-          progression_reason: evaluation.reason
+          progression_reason: evaluation.reason,
         })
         .eq("id", session.id)
         .eq("user_id", user.id);
 
-      if (!updateSessionError && evaluation.decision === "advance" && evaluation.nextPhaseId) {
+      if (
+        !updateSessionError &&
+        evaluation.decision === "advance" &&
+        evaluation.nextPhaseId
+      ) {
         progression.reason = `${evaluation.reason} You can move to the next phase when you are ready.`;
       }
     }
@@ -225,7 +326,7 @@ export async function POST(request: Request) {
       phaseIdAtCompletion: session.phase_id_at_completion,
       progressionDecision: progression.decision,
       progressionReason: progression.reason,
-      completedExerciseCount: validExerciseIds.size
-    }
+      completedExerciseCount: validExerciseIds.size,
+    },
   });
 }

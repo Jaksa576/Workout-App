@@ -13,7 +13,7 @@ import {
   type WorkoutPlan,
   type WorkoutProgressSummary,
   type WorkoutSession,
-  type WorkoutTemplate
+  type WorkoutTemplate,
 } from "@/lib/types";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 import { getServerTimeZone } from "@/lib/server-time-zone";
@@ -23,7 +23,7 @@ import {
   buildDashboardMetrics,
   buildDashboardPainTrend,
   buildDashboardProgressionPrompt,
-  buildWeeklyWorkoutPreview
+  buildWeeklyWorkoutPreview,
 } from "@/lib/dashboard";
 import { calculatePhaseProgress } from "@/lib/progression";
 import {
@@ -32,7 +32,7 @@ import {
   formatWeekLabelFromDateKey,
   getDateKeyDaysAgo,
   getMondayDateKey,
-  getWeekdayFromDateKey
+  getWeekdayFromDateKey,
 } from "@/lib/time-zone";
 import { isPlanSetupInput, normalizeWeekdays } from "@/lib/validation";
 
@@ -122,7 +122,7 @@ function mapPhase(row: PhaseRow): PlanPhase {
     advancementPreset: row.advancement_preset ?? "clean_sessions_in_window",
     advancementSettings: row.advancement_settings ?? { sessions: 4, weeks: 2 },
     deloadPreset: row.deload_preset ?? "pain_flags_in_window",
-    deloadSettings: row.deload_settings ?? { painFlags: 2, days: 7 }
+    deloadSettings: row.deload_settings ?? { painFlags: 2, days: 7 },
   };
 }
 
@@ -144,7 +144,7 @@ function mapExercise(row: ExerciseRow): ExerciseEntry {
     loadUnit: row.load_unit,
     distanceUnit: row.distance_unit,
     primaryValueLabel: row.primary_value_label,
-    secondaryValueLabel: row.secondary_value_label
+    secondaryValueLabel: row.secondary_value_label,
   };
 }
 
@@ -155,7 +155,7 @@ function mapSetupContext(value: unknown): PlanSetupInput | null {
 
   return {
     ...value,
-    weeklySchedule: normalizeWeekdays(value.weeklySchedule)
+    weeklySchedule: normalizeWeekdays(value.weeklySchedule),
   };
 }
 
@@ -193,7 +193,7 @@ function mapSession(row: SessionRow): WorkoutSession {
     recommendation: row.recommendation,
     phaseIdAtCompletion: row.phase_id_at_completion,
     progressionDecision: row.progression_decision,
-    progressionReason: row.progression_reason
+    progressionReason: row.progression_reason,
   };
 }
 
@@ -210,7 +210,7 @@ function sortSessionsByLatest(a: SessionRow, b: SessionRow) {
 function mapWorkout(
   workout: WorkoutRow,
   exercises: ExerciseRow[],
-  latestSession?: SessionRow
+  latestSession?: SessionRow,
 ): WorkoutTemplate {
   return {
     id: workout.id,
@@ -223,7 +223,7 @@ function mapWorkout(
     exercises: exercises
       .filter((exercise) => exercise.workout_template_id === workout.id)
       .sort((a, b) => a.sort_order - b.sort_order)
-      .map(mapExercise)
+      .map(mapExercise),
   };
 }
 
@@ -233,7 +233,7 @@ async function getPlanBundle(userId: string, sessionSince?: string) {
   const { data: plansData, error: plansError } = await supabase
     .from("workout_plans")
     .select(
-      "id, name, description, goal_type, progression_mode, creation_source, setup_context, is_active, schedule_summary, weekly_schedule, current_phase_id, completed_at, archived_at"
+      "id, name, description, goal_type, progression_mode, creation_source, setup_context, is_active, schedule_summary, weekly_schedule, current_phase_id, completed_at, archived_at",
     )
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
@@ -250,13 +250,15 @@ async function getPlanBundle(userId: string, sessionSince?: string) {
       phases: [] as PhaseRow[],
       workouts: [] as WorkoutRow[],
       exercises: [] as ExerciseRow[],
-      sessions: [] as SessionRow[]
+      sessions: [] as SessionRow[],
     };
   }
 
   const { data: phasesData, error: phasesError } = await supabase
     .from("plan_phases")
-    .select("id, plan_id, phase_number, goal, advance_criteria, deload_criteria, advancement_preset, advancement_settings, deload_preset, deload_settings")
+    .select(
+      "id, plan_id, phase_number, goal, advance_criteria, deload_criteria, advancement_preset, advancement_settings, deload_preset, deload_settings",
+    )
     .in("plan_id", planIds)
     .order("phase_number", { ascending: true });
 
@@ -286,7 +288,7 @@ async function getPlanBundle(userId: string, sessionSince?: string) {
     ? supabase
         .from("exercise_entries")
         .select(
-          "id, workout_template_id, name, sets, reps, rest, coaching_note, video_url, source_exercise_id, sort_order, tracking_type, unilateral_mode, load_unit, distance_unit, primary_value_label, secondary_value_label"
+          "id, workout_template_id, name, sets, reps, rest, coaching_note, video_url, source_exercise_id, sort_order, tracking_type, unilateral_mode, load_unit, distance_unit, primary_value_label, secondary_value_label",
         )
         .in("workout_template_id", workoutIds)
         .order("sort_order", { ascending: true })
@@ -297,7 +299,7 @@ async function getPlanBundle(userId: string, sessionSince?: string) {
         let query = supabase
           .from("workout_sessions")
           .select(
-            "id, workout_template_id, workout_name_snapshot, created_at, completed_on, completed, pain_occurred, perceived_difficulty, notes, recommendation, phase_id_at_completion, progression_decision, progression_reason"
+            "id, workout_template_id, workout_name_snapshot, created_at, completed_on, completed, pain_occurred, perceived_difficulty, notes, recommendation, phase_id_at_completion, progression_decision, progression_reason",
           )
           .eq("user_id", userId)
           .in("workout_template_id", workoutIds)
@@ -314,7 +316,7 @@ async function getPlanBundle(userId: string, sessionSince?: string) {
 
   const [exercisesResult, sessionsResult] = await Promise.all([
     exercisesQuery,
-    sessionsQuery
+    sessionsQuery,
   ]);
 
   if (exercisesResult.error) {
@@ -330,7 +332,9 @@ async function getPlanBundle(userId: string, sessionSince?: string) {
     phases: (phasesData ?? []) as PhaseRow[],
     workouts: (workoutsResult.data ?? []) as WorkoutRow[],
     exercises: (exercisesResult.data ?? []) as ExerciseRow[],
-    sessions: ((sessionsResult.data ?? []) as SessionRow[]).sort(sortSessionsByLatest)
+    sessions: ((sessionsResult.data ?? []) as SessionRow[]).sort(
+      sortSessionsByLatest,
+    ),
   };
 }
 
@@ -339,7 +343,7 @@ function mapPlanFromBundle(
   phases: PhaseRow[],
   workouts: WorkoutRow[],
   exercises: ExerciseRow[],
-  sessions: SessionRow[]
+  sessions: SessionRow[],
 ): WorkoutPlan {
   const planPhases = phases
     .filter((phase) => phase.plan_id === plan.id)
@@ -354,23 +358,26 @@ function mapPlanFromBundle(
     advancementPreset: "clean_sessions_in_window",
     advancementSettings: { sessions: 4, weeks: 2 },
     deloadPreset: "pain_flags_in_window",
-    deloadSettings: { painFlags: 2, days: 7 }
+    deloadSettings: { painFlags: 2, days: 7 },
   };
 
   const currentPhaseRow =
-    planPhases.find((phase) => phase.id === plan.current_phase_id) ?? planPhases[0];
+    planPhases.find((phase) => phase.id === plan.current_phase_id) ??
+    planPhases[0];
 
-  const currentPhase = currentPhaseRow ? mapPhase(currentPhaseRow) : fallbackPhase;
+  const currentPhase = currentPhaseRow
+    ? mapPhase(currentPhaseRow)
+    : fallbackPhase;
   const workoutsForPlan = workouts.filter((workout) =>
-    planPhases.some((phase) => phase.id === workout.phase_id)
+    planPhases.some((phase) => phase.id === workout.phase_id),
   );
 
   const mappedWorkouts = workoutsForPlan.map((workout) =>
     mapWorkout(
       workout,
       exercises,
-      sessions.find((session) => session.workout_template_id === workout.id)
-    )
+      sessions.find((session) => session.workout_template_id === workout.id),
+    ),
   );
 
   return {
@@ -388,14 +395,14 @@ function mapPlanFromBundle(
     archivedAt: plan.archived_at,
     currentPhase,
     phases: planPhases.length ? planPhases.map(mapPhase) : [fallbackPhase],
-    workouts: mappedWorkouts
+    workouts: mappedWorkouts,
   };
 }
 
 function computeProgressSummary(
   sessions: SessionRow[],
   weeklyTarget = 3,
-  timeZone?: string
+  timeZone?: string,
 ): WorkoutProgressSummary {
   const todayKey = formatDateKeyInTimeZone(new Date(), timeZone);
   const currentWeekStartKey = getMondayDateKey(todayKey);
@@ -405,13 +412,13 @@ function computeProgressSummary(
 
   const completedSessions = sessions.filter((session) => session.completed);
   const completedThisWeek = completedSessions.filter(
-    (session) => session.completed_on >= currentWeekStartKey
+    (session) => session.completed_on >= currentWeekStartKey,
   ).length;
   const cleanSessions = sessions.filter(
     (session) =>
       session.completed &&
       !session.pain_occurred &&
-      session.perceived_difficulty !== "too_hard"
+      session.perceived_difficulty !== "too_hard",
   ).length;
   const painFlags = sessions.filter((session) => session.pain_occurred).length;
 
@@ -421,8 +428,10 @@ function computeProgressSummary(
     return {
       label: formatWeekLabelFromDateKey(weekStart),
       completed: completedSessions.filter((session) => {
-        return session.completed_on >= weekStart && session.completed_on < weekEnd;
-      }).length
+        return (
+          session.completed_on >= weekStart && session.completed_on < weekEnd
+        );
+      }).length,
     };
   });
 
@@ -431,8 +440,10 @@ function computeProgressSummary(
     completedThisWeek,
     cleanSessions,
     painFlags,
-    latestRecommendation: sessions[0]?.recommendation ?? "Log a workout to get a suggested next step.",
-    weeklyBars
+    latestRecommendation:
+      sessions[0]?.recommendation ??
+      "Log a workout to get a suggested next step.",
+    weeklyBars,
   };
 }
 
@@ -442,7 +453,9 @@ function getCurrentWeekday(timeZone?: string) {
 
 function getActiveIncompletePlan(plans: WorkoutPlan[]) {
   return (
-    plans.find((plan) => plan.isActive && !plan.completedAt && !plan.archivedAt) ??
+    plans.find(
+      (plan) => plan.isActive && !plan.completedAt && !plan.archivedAt,
+    ) ??
     plans.find((plan) => !plan.completedAt && !plan.archivedAt) ??
     null
   );
@@ -453,12 +466,18 @@ function getCurrentPhaseWorkouts(plan: WorkoutPlan | null) {
     return [];
   }
 
-  return plan.workouts.filter((workout) => workout.phaseId === plan.currentPhase.id);
+  return plan.workouts.filter(
+    (workout) => workout.phaseId === plan.currentPhase.id,
+  );
 }
 
 function getRecommendedWorkout(workouts: WorkoutTemplate[], timeZone?: string) {
   const today = getCurrentWeekday(timeZone);
-  return workouts.find((workout) => workout.scheduledDays.includes(today)) ?? workouts[0] ?? null;
+  return (
+    workouts.find((workout) => workout.scheduledDays.includes(today)) ??
+    workouts[0] ??
+    null
+  );
 }
 
 export async function getProfile(): Promise<Profile | null> {
@@ -472,7 +491,7 @@ export async function getProfile(): Promise<Profile | null> {
   const { data, error } = await supabase
     .from("profiles")
     .select(
-      "id, goal, primary_goal_type, injuries, limitations_detail, equipment, age, weight, training_experience, activity_level, training_environment, exercise_preferences, exercise_dislikes, sports_interests, days_per_week, session_minutes, onboarding_completed_at"
+      "id, goal, primary_goal_type, injuries, limitations_detail, equipment, age, weight, training_experience, activity_level, training_environment, exercise_preferences, exercise_dislikes, sports_interests, days_per_week, session_minutes, onboarding_completed_at",
     )
     .eq("id", user.id)
     .maybeSingle();
@@ -502,7 +521,7 @@ export async function getProfile(): Promise<Profile | null> {
     sportsInterests: data.sports_interests ?? [],
     daysPerWeek: data.days_per_week,
     sessionMinutes: data.session_minutes,
-    onboardingCompletedAt: data.onboarding_completed_at
+    onboardingCompletedAt: data.onboarding_completed_at,
   };
 }
 
@@ -516,11 +535,19 @@ export async function getPlans(): Promise<WorkoutPlan[]> {
   const bundle = await getPlanBundle(user.id);
 
   return bundle.plans.map((plan) =>
-    mapPlanFromBundle(plan, bundle.phases, bundle.workouts, bundle.exercises, bundle.sessions)
+    mapPlanFromBundle(
+      plan,
+      bundle.phases,
+      bundle.workouts,
+      bundle.exercises,
+      bundle.sessions,
+    ),
   );
 }
 
-export async function getPlanById(id: string): Promise<WorkoutPlan | undefined> {
+export async function getPlanById(
+  id: string,
+): Promise<WorkoutPlan | undefined> {
   const plans = await getPlans();
   return plans.find((plan) => plan.id === id);
 }
@@ -530,7 +557,9 @@ export async function getTodayWorkout(): Promise<WorkoutTemplate | null> {
   return dashboard.todayWorkout;
 }
 
-export async function getWorkoutById(id: string): Promise<WorkoutTemplate | null> {
+export async function getWorkoutById(
+  id: string,
+): Promise<WorkoutTemplate | null> {
   const plans = await getPlans();
 
   for (const plan of plans) {
@@ -544,7 +573,7 @@ export async function getWorkoutById(id: string): Promise<WorkoutTemplate | null
 }
 
 export async function getLatestSessionForWorkout(
-  workoutTemplateId: string
+  workoutTemplateId: string,
 ): Promise<WorkoutSession | null> {
   const user = await getCurrentUser();
 
@@ -556,7 +585,7 @@ export async function getLatestSessionForWorkout(
   const { data, error } = await supabase
     .from("workout_sessions")
     .select(
-      "id, workout_template_id, workout_name_snapshot, created_at, completed_on, completed, pain_occurred, perceived_difficulty, notes, recommendation, phase_id_at_completion, progression_decision, progression_reason"
+      "id, workout_template_id, workout_name_snapshot, created_at, completed_on, completed, pain_occurred, perceived_difficulty, notes, recommendation, phase_id_at_completion, progression_decision, progression_reason",
     )
     .eq("user_id", user.id)
     .eq("workout_template_id", workoutTemplateId)
@@ -586,12 +615,12 @@ export async function getLatestSessionForWorkout(
     recommendation: data.recommendation,
     phaseIdAtCompletion: data.phase_id_at_completion,
     progressionDecision: data.progression_decision,
-    progressionReason: data.progression_reason
+    progressionReason: data.progression_reason,
   };
 }
 
 export async function getWorkoutPageData(
-  selectedWorkoutId?: string
+  selectedWorkoutId?: string,
 ): Promise<WorkoutPageData> {
   const user = await getCurrentUser();
   const timeZone = await getServerTimeZone();
@@ -606,7 +635,8 @@ export async function getWorkoutPageData(
       recentSessions: [],
       latestSessionForSelectedWorkout: null,
       progressSummary: computeProgressSummary([], 3, timeZone),
-      phaseProgress: null
+      phaseProgress: null,
+      userId: null,
     };
   }
 
@@ -618,7 +648,7 @@ export async function getWorkoutPageData(
       .from("profiles")
       .select("days_per_week")
       .eq("id", user.id)
-      .maybeSingle()
+      .maybeSingle(),
   ]);
 
   if (profileResult.error) {
@@ -626,12 +656,21 @@ export async function getWorkoutPageData(
   }
 
   const mappedPlans = bundle.plans.map((plan) =>
-    mapPlanFromBundle(plan, bundle.phases, bundle.workouts, bundle.exercises, bundle.sessions)
+    mapPlanFromBundle(
+      plan,
+      bundle.phases,
+      bundle.workouts,
+      bundle.exercises,
+      bundle.sessions,
+    ),
   );
   const activePlan = getActiveIncompletePlan(mappedPlans);
   const workouts = activePlan?.workouts ?? [];
   const activePhaseWorkouts = getCurrentPhaseWorkouts(activePlan);
-  const recommendedWorkout = getRecommendedWorkout(activePhaseWorkouts, timeZone);
+  const recommendedWorkout = getRecommendedWorkout(
+    activePhaseWorkouts,
+    timeZone,
+  );
   const selectedWorkout =
     activePhaseWorkouts.find((workout) => workout.id === selectedWorkoutId) ??
     recommendedWorkout;
@@ -640,7 +679,7 @@ export async function getWorkoutPageData(
     ? calculatePhaseProgress({
         plan: activePlan,
         currentPhase: activePlan.currentPhase,
-        sessions: recentSessions
+        sessions: recentSessions,
       })
     : null;
 
@@ -652,14 +691,17 @@ export async function getWorkoutPageData(
     selectedWorkout,
     recentSessions,
     latestSessionForSelectedWorkout: selectedWorkout
-      ? recentSessions.find((session) => session.workoutTemplateId === selectedWorkout.id) ?? null
+      ? (recentSessions.find(
+          (session) => session.workoutTemplateId === selectedWorkout.id,
+        ) ?? null)
       : null,
     progressSummary: computeProgressSummary(
       bundle.sessions,
       profileResult.data?.days_per_week ?? 3,
-      timeZone
+      timeZone,
     ),
-    phaseProgress
+    phaseProgress,
+    userId: user.id,
   };
 }
 
@@ -668,7 +710,11 @@ export async function getDashboardData(): Promise<DashboardData> {
   const timeZone = await getServerTimeZone();
 
   if (!user) {
-    const activitySummary = buildDashboardActivitySummary([], new Date(), timeZone);
+    const activitySummary = buildDashboardActivitySummary(
+      [],
+      new Date(),
+      timeZone,
+    );
 
     return {
       activePlan: null,
@@ -678,39 +724,68 @@ export async function getDashboardData(): Promise<DashboardData> {
       weekPreview: buildWeeklyWorkoutPreview(null, new Date(), timeZone),
       activitySummary,
       progressionPrompt: null,
-      painTrend: null
+      painTrend: null,
     };
   }
 
   const bundle = await getPlanBundle(user.id);
   const mappedPlans = bundle.plans.map((plan) =>
-    mapPlanFromBundle(plan, bundle.phases, bundle.workouts, bundle.exercises, bundle.sessions)
+    mapPlanFromBundle(
+      plan,
+      bundle.phases,
+      bundle.workouts,
+      bundle.exercises,
+      bundle.sessions,
+    ),
   );
   const activePlan = getActiveIncompletePlan(mappedPlans);
-  const todayWorkout = getRecommendedWorkout(getCurrentPhaseWorkouts(activePlan), timeZone);
+  const todayWorkout = getRecommendedWorkout(
+    getCurrentPhaseWorkouts(activePlan),
+    timeZone,
+  );
   const recentSessions = bundle.sessions.map(mapSession);
-  const activePlanWorkoutIds = new Set(activePlan?.workouts.map((workout) => workout.id) ?? []);
+  const activePlanWorkoutIds = new Set(
+    activePlan?.workouts.map((workout) => workout.id) ?? [],
+  );
   const activePlanSessions = recentSessions.filter(
-    (session) => session.workoutTemplateId && activePlanWorkoutIds.has(session.workoutTemplateId)
+    (session) =>
+      session.workoutTemplateId &&
+      activePlanWorkoutIds.has(session.workoutTemplateId),
   );
   const phaseProgress = activePlan
     ? calculatePhaseProgress({
         plan: activePlan,
         currentPhase: activePlan.currentPhase,
-        sessions: activePlanSessions
+        sessions: activePlanSessions,
       })
     : null;
-  const activitySummary = buildDashboardActivitySummary(activePlanSessions, new Date(), timeZone);
-  const painTrend = buildDashboardPainTrend(activePlan, activePlanSessions, phaseProgress);
+  const activitySummary = buildDashboardActivitySummary(
+    activePlanSessions,
+    new Date(),
+    timeZone,
+  );
+  const painTrend = buildDashboardPainTrend(
+    activePlan,
+    activePlanSessions,
+    phaseProgress,
+  );
 
   return {
     activePlan,
     todayWorkout,
-    metrics: buildDashboardMetrics(activePlan, activitySummary, phaseProgress, painTrend),
+    metrics: buildDashboardMetrics(
+      activePlan,
+      activitySummary,
+      phaseProgress,
+      painTrend,
+    ),
     phaseProgress,
     weekPreview: buildWeeklyWorkoutPreview(activePlan, new Date(), timeZone),
     activitySummary,
-    progressionPrompt: buildDashboardProgressionPrompt(activePlan, phaseProgress),
-    painTrend
+    progressionPrompt: buildDashboardProgressionPrompt(
+      activePlan,
+      phaseProgress,
+    ),
+    painTrend,
   };
 }
