@@ -388,3 +388,7 @@ Previous performance is resolved server-side from saved `exercise_results` and `
 The Issue #11 local active draft remains the only in-progress persistence store. Draft recovery preserves partial set values, completed/uncompleted row status, added rows, and check-in state across refresh, navigation, stale explicit resume, ordinary save failure, and retry.
 
 `public.finalize_workout_session(jsonb, jsonb, jsonb)` remains the single atomic final-save boundary. The Issue #13 RPC extension persists `actual_load` and `actual_reps`, rejects invalid child rows before insertion, derives authoritative exercise tracking metadata from validated database rows, and lets table constraints/triggers roll back the entire workout save if one set row is invalid.
+
+### Issue #13 canonical set-row identity
+
+For finalization, prescribed set rows are identified by `(exerciseEntryId, setKind = prescribed, prescribedSetIndex)`, not by the browser-local `setId`. The server generates all prescribed defaults from the saved exercise prescription, overlays submitted prescribed values by `prescribedSetIndex`, rejects duplicate/missing/out-of-range prescribed indexes, assigns canonical prescribed `set_order` from the index, and appends validated user-added rows after prescribed rows with normalized order. The local `setId` remains a draft/UI identity only and must not determine database persistence identity.

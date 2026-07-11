@@ -166,3 +166,9 @@ This follow-up addresses the PR #33 review blockers for Issue #13. The active ch
 The final-save path now merges untouched prescribed defaults with edited rows before submitting to `finalize_workout_session`, validates submitted metric rows against the selected workout and persisted tracking metadata, and rejects unsupported/foreign/duplicate/invalid child rows. The Supabase delta is committed as `supabase/migrations/20260711193000_issue13_inline_set_logging_rpc_and_metadata.sql`; Codex Web did not apply hosted migrations.
 
 Validation focus: apply the Issue #13 migration to the target Supabase environment, run `supabase/verification/issue-13-inline-set-logging-readonly.sql`, run transactional QA for metric persistence/rejection cases, redeploy the preview, and perform narrow-mobile QA against the actual preview workout confirming Goblet Squat and Romanian Deadlift render `weight_reps` rows while reps-only exercises omit Weight.
+
+### PR #33 follow-up — final Issue #13 correctness gaps
+
+The latest patch closes two remaining correctness gaps without expanding into Issue #34. Completed metric rows now recompute validity on every edit; clearing required load or reps immediately marks the row incomplete, preserves the remaining values, and updates derived progress before Finish/server validation. Prescribed rows are now canonicalized by `exerciseEntryId`, `setKind = prescribed`, and `prescribedSetIndex`; client `setId` remains local draft identity only and no longer controls final persistence matching.
+
+Focused coverage lives in `lib/__tests__/set-logging.test.ts` for invalid completed-row edits, valid completed edits, immediate progress updates, prescribed-index overlay with arbitrary draft IDs, duplicate/out-of-range index rejection, untouched prescribed defaults, and added-row canonical ordering.

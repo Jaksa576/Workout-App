@@ -12,6 +12,7 @@ import {
   shouldShowActiveStartCard,
 } from "@/lib/active-workout-shell";
 import { WorkoutChecklist } from "@/components/workout-checklist";
+import { calculateSetProgress } from "@/lib/set-logging";
 import {
   buildActiveWorkoutDraft,
   getActiveWorkoutDraftStorageKey,
@@ -555,7 +556,7 @@ export function WorkoutFlow({
     if (!finishEnabled || !activeDraft) {
       return;
     }
-    setCompleted(getWorkoutSetProgress(workout, setResults, checkedExerciseIds).completed === getWorkoutSetProgress(workout, setResults, checkedExerciseIds).total);
+    setCompleted(calculateSetProgress({ exercises: workout.exercises, setResults, checkedExerciseIds }).completed === calculateSetProgress({ exercises: workout.exercises, setResults, checkedExerciseIds }).total);
     setStep("check-in");
     setStatus(null);
   }
@@ -642,7 +643,7 @@ export function WorkoutFlow({
     router.push(`/workout?workoutId=${workout.id}` as Route);
   }
 
-  const progress = getWorkoutSetProgress(workout, setResults, checkedExerciseIds);
+  const progress = calculateSetProgress({ exercises: workout.exercises, setResults, checkedExerciseIds });
   const elapsedSeconds = useLiveElapsedSeconds(activeDraft);
   const finishEnabled = canFinishActiveWorkout({
     mode,
@@ -1363,22 +1364,6 @@ function useLiveElapsedSeconds(draft: ActiveWorkoutDraft | null) {
   }, [draft]);
 
   return elapsedSeconds;
-}
-
-function getWorkoutSetProgress(workout: WorkoutTemplate, setResults: WorkoutSetInput[], checkedExerciseIds: string[]) {
-  let completed = 0;
-  let total = 0;
-  for (const exercise of workout.exercises) {
-    if (exercise.trackingType === "weight_reps" || exercise.trackingType === "reps_only") {
-      const rows = setResults.filter((row) => row.exerciseEntryId === exercise.id);
-      total += exercise.sets + rows.filter((row) => row.setKind === "added").length;
-      completed += rows.filter((row) => row.status === "completed").length;
-    } else {
-      total += 1;
-      if (checkedExerciseIds.includes(exercise.id)) completed += 1;
-    }
-  }
-  return { completed, total };
 }
 
 function formatElapsed(totalSeconds: number) {

@@ -10,6 +10,7 @@ import {
   buildPrescribedSetRows,
   getDefaultTrackingMetadata,
 } from "@/lib/execution-results";
+import { buildCanonicalMetricSetRows } from "@/lib/set-logging";
 import { isValidUuid, isWorkoutSessionInput } from "@/lib/validation";
 
 export async function POST(request: Request) {
@@ -169,12 +170,18 @@ export async function POST(request: Request) {
     ]);
   }
   const exerciseById = new Map((exercises ?? []).map((exercise) => [exercise.id, exercise]));
+  const prescribedIndexKeys = new Set<string>();
   for (const row of submittedSetResults) {
     const exercise = exerciseById.get(row.exerciseEntryId);
     const trackingType = trackingTypeByEntryId.get(row.exerciseEntryId) ?? "completion";
     if (!exercise) return NextResponse.json({ error: "Submitted set row does not belong to this workout." }, { status: 400 });
     if (trackingType !== "weight_reps" && trackingType !== "reps_only") return NextResponse.json({ error: "Unsupported exercises cannot submit metric set rows." }, { status: 400 });
-    if (row.setKind === "prescribed" && (row.prescribedSetIndex === null || row.prescribedSetIndex < 0 || row.prescribedSetIndex >= exercise.sets)) return NextResponse.json({ error: "Submitted prescribed set index is invalid." }, { status: 400 });
+    if (row.setKind === "prescribed") {
+      if (row.prescribedSetIndex === null || row.prescribedSetIndex < 0 || row.prescribedSetIndex >= exercise.sets) return NextResponse.json({ error: "Submitted prescribed set index is invalid." }, { status: 400 });
+      const prescribedKey = `${row.exerciseEntryId}:${row.prescribedSetIndex}`;
+      if (prescribedIndexKeys.has(prescribedKey)) return NextResponse.json({ error: "Duplicate prescribed set indexes are not allowed." }, { status: 400 });
+      prescribedIndexKeys.add(prescribedKey);
+    }
     if (row.setKind === "added" && row.prescribedSetIndex !== null) return NextResponse.json({ error: "Added set rows cannot include a prescribed index." }, { status: 400 });
     if (trackingType === "reps_only" && row.actualLoad !== null && row.actualLoad !== undefined) return NextResponse.json({ error: "Reps-only rows cannot include load." }, { status: 400 });
     if (row.status === "completed" && (row.actualReps === null || row.actualReps === undefined || !Number.isInteger(row.actualReps) || row.actualReps < 0 || (trackingType === "weight_reps" && (row.actualLoad === null || row.actualLoad === undefined || row.actualLoad < 0)))) return NextResponse.json({ error: "Completed metric set rows require valid metrics." }, { status: 400 });
@@ -186,24 +193,15 @@ export async function POST(request: Request) {
     if (!exerciseResultId) return [];
     const submittedRows = submittedSetResultsByExerciseId.get(exercise.id) ?? [];
     if (trackingType === "weight_reps" || trackingType === "reps_only") {
-      const submittedById = new Map(submittedRows.map((row) => [row.setId, row]));
-      const prescribed = Array.from({ length: exercise.sets }, (_, index) => {
-        const setId = `${exercise.id}:prescribed:${index}`;
-        return submittedById.get(setId) ?? { exerciseEntryId: exercise.id, setId, setOrder: index, prescribedSetIndex: index, setKind: "prescribed" as const, status: "incomplete" as const, actualLoad: null, actualReps: null };
+      const mergeResult = buildCanonicalMetricSetRows({
+        exerciseEntryId: exercise.id,
+        prescribedSetCount: exercise.sets,
+        submittedRows,
       });
-      const added = submittedRows.filter((row) => row.setKind === "added").sort((a, b) => a.setOrder - b.setOrder);
-      const rows = [...prescribed, ...added];
-      const orders = new Set<number>();
-      const indexes = new Set<number>();
-      for (const row of rows) {
-        if (orders.has(row.setOrder)) throw new Error("Duplicate set order in finalized workout.");
-        orders.add(row.setOrder);
-        if (row.setKind === "prescribed" && row.prescribedSetIndex !== null) {
-          if (indexes.has(row.prescribedSetIndex)) throw new Error("Duplicate prescribed set index in finalized workout.");
-          indexes.add(row.prescribedSetIndex);
-        }
+      if (!mergeResult.ok) {
+        throw new Error(mergeResult.error);
       }
-      return rows.map((row) => ({ exercise_result_id: exerciseResultId, set_order: row.setOrder, prescribed_set_index: row.prescribedSetIndex, set_kind: row.setKind, status: row.status, actual_load: trackingType === "weight_reps" ? (row.actualLoad ?? null) : null, actual_reps: row.actualReps ?? null, completed_at: row.status === "completed" ? new Date().toISOString() : null }));
+      return mergeResult.rows.map((row) => ({ exercise_result_id: exerciseResultId, set_order: row.setOrder, prescribed_set_index: row.prescribedSetIndex, set_kind: row.setKind, status: row.status, actual_load: trackingType === "weight_reps" ? (row.actualLoad ?? null) : null, actual_reps: row.actualReps ?? null, completed_at: row.status === "completed" ? new Date().toISOString() : null }));
     }
     return buildPrescribedSetRows(exerciseResultId, exercise, validExerciseIds.has(exercise.id), trackingType);
   });
