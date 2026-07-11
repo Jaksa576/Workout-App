@@ -130,3 +130,9 @@ The active route intentionally hides the normal authenticated app shell navigati
 Validation focus for this patch: Start from `/workout`, Resume recovered drafts, refresh `/workout/active` to verify elapsed-time continuity, confirm Dashboard/Plans/Settings navigation is hidden on the active route, and verify Finish/Discard remain reachable while scrolling.
 
 Patch update: the Issue #12 active-shell review blockers are addressed by keeping `/workout` selection-only even when a fresh draft is recovered, requiring explicit Resume before a stale draft can Finish, disabling Finish during idle/malformed/stale/saving states, returning active Discard to `/workout?workoutId=<id>`, and making Discard a labeled destructive control. Focused shell behavior tests now cover stale recovery gating, selection-route resume handoff, discard redirect construction, saved-state Start-card suppression, elapsed reconstruction, and retry/stale guards.
+
+## PR Follow-up — Issue #12B Active Workout Density
+
+Implementing the PR follow-up request for Issue #12B on top of the dedicated `/workout/active` shell. This patch keeps the Issue #11 local draft lifecycle and Issue #10 final-save/RPC path unchanged while making the active execution checklist compact by default. Exercise cards now prioritize exercise name, prescription, rest, completion state, and a large labeled completion target; detailed setup, cues, safety notes, demos, mistakes, and modifications are available through progressive disclosure. Recovery messaging is shortened so the sticky header remains the authoritative elapsed-time display.
+
+Validation focus for this patch: mobile scan density, long names/guidance, guidance expand/collapse without losing checked state, keyboard operation on completion and details controls, explicit Discard confirmation/redirect, and existing refresh/resume/finish/retry behavior.
