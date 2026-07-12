@@ -38,10 +38,10 @@ with reviewed_mapping(source_exercise_id, normalized_name, reps_regex, tracking_
     ('lateral-shuffle', null, null, 'duration', 'bilateral', null, null, 'Duration', null, 'safe_auto'),
     ('brisk-walk', null, null, 'distance_duration', 'bilateral', null, 'mi', 'Distance', 'Duration', 'safe_auto'),
     ('easy-run', null, null, 'distance_duration', 'bilateral', null, 'mi', 'Distance', 'Duration', 'safe_auto'),
-    (null, 'hamstring bridge hold', '^\d+\s*(sec|secs|second|seconds|s)\b', 'duration', 'bilateral', null, null, 'Duration', null, 'explicit_reviewed'),
-    (null, 'lateral band walk', '^\d+\s*(per side|each side|steps each way|steps per side)\b', 'reps_only', 'same_each_side', null, null, 'Reps', null, 'explicit_reviewed'),
-    (null, 'half kneeling hip flexor stretch', '^\d+\s*(sec|secs|second|seconds|s)\s*(per side|each side)\b', 'duration', 'same_each_side', null, null, 'Duration', null, 'explicit_reviewed'),
-    (null, 'dead bug', '^\d+\s*(per side|each side)\b', 'reps_only', 'same_each_side', null, null, 'Reps', null, 'explicit_reviewed')
+    (null, 'hamstring bridge hold', '^\d+\s*(sec|secs|second|seconds|s)([[:space:]]|$)', 'duration', 'bilateral', null, null, 'Duration', null, 'explicit_reviewed'),
+    (null, 'lateral band walk', '^\d+\s*(per side|each side|each way|steps each way|steps per side)([[:space:]]|$)', 'reps_only', 'same_each_side', null, null, 'Reps', null, 'explicit_reviewed'),
+    (null, 'half kneeling hip flexor stretch', '^\d+\s*(sec|secs|second|seconds|s)\s*(per side|each side)([[:space:]]|$)', 'duration', 'same_each_side', null, null, 'Duration', null, 'explicit_reviewed'),
+    (null, 'dead bug', '^\d+\s*(per side|each side|each)([[:space:]]|$)', 'reps_only', 'same_each_side', null, null, 'Reps', null, 'explicit_reviewed')
 ), candidates as (
   select ee.id, m.*
   from public.exercise_entries ee
