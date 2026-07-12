@@ -52,6 +52,16 @@ export function buildPrescribedSetRows(
     status: completed ? ("completed" as const) : ("incomplete" as const),
     actual_load: null,
     actual_reps: null,
+    actual_duration_seconds: null,
+    actual_distance: null,
+    actual_left_load: null,
+    actual_right_load: null,
+    actual_left_reps: null,
+    actual_right_reps: null,
+    actual_left_duration_seconds: null,
+    actual_right_duration_seconds: null,
+    actual_left_distance: null,
+    actual_right_distance: null,
     completed_at: completed ? new Date().toISOString() : null
   }));
 }

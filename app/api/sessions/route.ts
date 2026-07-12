@@ -162,6 +162,9 @@ export async function POST(request: Request) {
       result.tracking_type,
     ]),
   );
+  const unilateralModeByEntryId = new Map(
+    exercisePayload.map((result) => [result.exercise_entry_id, result.unilateral_mode]),
+  );
   const submittedSetResultsByExerciseId = new Map<string, typeof submittedSetResults>();
   for (const row of submittedSetResults) {
     submittedSetResultsByExerciseId.set(row.exerciseEntryId, [
@@ -175,7 +178,7 @@ export async function POST(request: Request) {
     const exercise = exerciseById.get(row.exerciseEntryId);
     const trackingType = trackingTypeByEntryId.get(row.exerciseEntryId) ?? "completion";
     if (!exercise) return NextResponse.json({ error: "Submitted set row does not belong to this workout." }, { status: 400 });
-    if (trackingType !== "weight_reps" && trackingType !== "reps_only") return NextResponse.json({ error: "Unsupported exercises cannot submit metric set rows." }, { status: 400 });
+    if (!["weight_reps", "reps_only", "duration", "distance_duration"].includes(trackingType)) return NextResponse.json({ error: "Unsupported exercises cannot submit metric set rows." }, { status: 400 });
     if (row.setKind === "prescribed") {
       if (row.prescribedSetIndex === null || row.prescribedSetIndex < 0 || row.prescribedSetIndex >= exercise.sets) return NextResponse.json({ error: "Submitted prescribed set index is invalid." }, { status: 400 });
       const prescribedKey = `${row.exerciseEntryId}:${row.prescribedSetIndex}`;
@@ -183,8 +186,7 @@ export async function POST(request: Request) {
       prescribedIndexKeys.add(prescribedKey);
     }
     if (row.setKind === "added" && row.prescribedSetIndex !== null) return NextResponse.json({ error: "Added set rows cannot include a prescribed index." }, { status: 400 });
-    if (trackingType === "reps_only" && row.actualLoad !== null && row.actualLoad !== undefined) return NextResponse.json({ error: "Reps-only rows cannot include load." }, { status: 400 });
-    if (!isSuppliedMetricValuesValid(trackingType, row)) return NextResponse.json({ error: "Set metrics must be non-negative numbers when supplied." }, { status: 400 });
+    if (!isSuppliedMetricValuesValid(trackingType, row, unilateralModeByEntryId.get(row.exerciseEntryId) ?? "bilateral")) return NextResponse.json({ error: "Set metrics must match tracking type, side mode, and non-negative value rules." }, { status: 400 });
   }
 
   const setPayload = (exercises ?? []).flatMap((exercise) => {
@@ -192,7 +194,7 @@ export async function POST(request: Request) {
     const trackingType = trackingTypeByEntryId.get(exercise.id) ?? "completion";
     if (!exerciseResultId) return [];
     const submittedRows = submittedSetResultsByExerciseId.get(exercise.id) ?? [];
-    if (trackingType === "weight_reps" || trackingType === "reps_only") {
+    if (trackingType === "weight_reps" || trackingType === "reps_only" || trackingType === "duration" || trackingType === "distance_duration") {
       const mergeResult = buildCanonicalMetricSetRows({
         exerciseEntryId: exercise.id,
         prescribedSetCount: exercise.sets,
@@ -201,7 +203,26 @@ export async function POST(request: Request) {
       if (!mergeResult.ok) {
         throw new Error(mergeResult.error);
       }
-      return mergeResult.rows.map((row) => ({ exercise_result_id: exerciseResultId, set_order: row.setOrder, prescribed_set_index: row.prescribedSetIndex, set_kind: row.setKind, status: row.status, actual_load: trackingType === "weight_reps" ? (row.actualLoad ?? null) : null, actual_reps: row.actualReps ?? null, completed_at: row.status === "completed" ? new Date().toISOString() : null }));
+      return mergeResult.rows.map((row) => ({
+        exercise_result_id: exerciseResultId,
+        set_order: row.setOrder,
+        prescribed_set_index: row.prescribedSetIndex,
+        set_kind: row.setKind,
+        status: row.status,
+        actual_load: trackingType === "weight_reps" ? (row.actualLoad ?? null) : null,
+        actual_reps: trackingType === "weight_reps" || trackingType === "reps_only" ? (row.actualReps ?? null) : null,
+        actual_duration_seconds: trackingType === "duration" || trackingType === "distance_duration" ? (row.actualDurationSeconds ?? null) : null,
+        actual_distance: trackingType === "distance_duration" ? (row.actualDistance ?? null) : null,
+        actual_left_load: trackingType === "weight_reps" ? (row.actualLeftLoad ?? null) : null,
+        actual_right_load: trackingType === "weight_reps" ? (row.actualRightLoad ?? null) : null,
+        actual_left_reps: trackingType === "weight_reps" || trackingType === "reps_only" ? (row.actualLeftReps ?? null) : null,
+        actual_right_reps: trackingType === "weight_reps" || trackingType === "reps_only" ? (row.actualRightReps ?? null) : null,
+        actual_left_duration_seconds: trackingType === "duration" || trackingType === "distance_duration" ? (row.actualLeftDurationSeconds ?? null) : null,
+        actual_right_duration_seconds: trackingType === "duration" || trackingType === "distance_duration" ? (row.actualRightDurationSeconds ?? null) : null,
+        actual_left_distance: trackingType === "distance_duration" ? (row.actualLeftDistance ?? null) : null,
+        actual_right_distance: trackingType === "distance_duration" ? (row.actualRightDistance ?? null) : null,
+        completed_at: row.status === "completed" ? new Date().toISOString() : null,
+      }));
     }
     return buildPrescribedSetRows(exerciseResultId, exercise, validExerciseIds.has(exercise.id), trackingType);
   });

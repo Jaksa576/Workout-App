@@ -172,3 +172,11 @@ Validation focus: apply the Issue #13 migration to the target Supabase environme
 The latest Issue #13 patch changes metric completion semantics so a set can be completed with one tap even when load/reps are blank. Supplied metric values are still validated for type and nonnegative range, but missing values persist as `null`; clearing a value no longer uncompletes a row. The checklist now seeds new prescribed rows from previous exact-position history, then most recent applicable exercise history, then deterministic prescribed reps, while preserving recovered draft/user-edited values over generated defaults.
 
 The active exercise card was simplified around the set table as the source of truth: the redundant `sets × reps` banner, row-level completion instructions, and metric exercise-level Completed badge have been removed. Supabase migration `supabase/migrations/20260712120000_issue13_optional_completed_metrics.sql` relaxes only the completed-metric required-value checks while preserving type restrictions, numeric constraints, duplicate order/index protections, RLS ownership, and atomic finalization.
+
+## PR Follow-up — Issue #14 Tracking-Type Execution Rows
+
+Implementing the PR follow-up request for Issue #14 on top of the Issue #13 inline set-row system. The active workout row primitives now accept metadata-driven duration, distance + duration, completion-only fallback, same-each-side labels, and independent-side validation semantics without adding a separate cardio, rehab, or unilateral flow.
+
+This patch keeps the Issue #11 local draft lifecycle and Issue #10/Issue #13 final-save path as the persistence boundary. Duration values are entered and displayed as human-readable time strings while persisting as seconds, distance values remain in the exercise metadata unit, same-each-side rows use one scalar with explicit per-side labeling, and independent-side draft/API validation rejects mixed scalar and side-specific values. Completion checks stay type-specific so invalid or incomplete rows remain editable instead of being silently marked complete.
+
+Validation focus for this patch: duration rows, distance-duration rows, completion-only fallback rows, same-each-side labeling, independent-side validation helpers, mixed-workout draft persistence, final payload metric columns, and no runtime name-based tracking inference.

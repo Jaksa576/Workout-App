@@ -553,10 +553,12 @@ function isWorkoutSetInput(value: unknown) {
         row.prescribedSetIndex >= 0)) &&
     (row.setKind === "prescribed" || row.setKind === "added") &&
     (row.status === "completed" || row.status === "incomplete") &&
-    (row.actualLoad === undefined || row.actualLoad === null ||
-      (typeof row.actualLoad === "number" && row.actualLoad >= 0)) &&
-    (row.actualReps === undefined || row.actualReps === null ||
-      (typeof row.actualReps === "number" && Number.isInteger(row.actualReps) && row.actualReps >= 0))
+    ["actualLoad", "actualDistance", "actualLeftLoad", "actualRightLoad", "actualLeftDistance", "actualRightDistance"].every((key) =>
+      row[key] === undefined || row[key] === null ||
+      (typeof row[key] === "number" && row[key] >= 0)) &&
+    ["actualReps", "actualDurationSeconds", "actualLeftReps", "actualRightReps", "actualLeftDurationSeconds", "actualRightDurationSeconds"].every((key) =>
+      row[key] === undefined || row[key] === null ||
+      (typeof row[key] === "number" && Number.isInteger(row[key]) && row[key] >= 0))
   );
 }
 
