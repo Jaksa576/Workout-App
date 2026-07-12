@@ -39,11 +39,13 @@ describe("exercise metadata inventory", () => {
   });
 
   it("summarizes inventory totals by tracking type", () => {
-    expect(getInventoryTotals()).toMatchObject({
+    expect(getInventoryTotals()).toEqual({
       weight_reps: expect.objectContaining({ names: expect.any(Number) }),
       reps_only: expect.objectContaining({ names: expect.any(Number) }),
       duration: expect.objectContaining({ names: expect.any(Number) }),
-      distance_duration: expect.objectContaining({ names: expect.any(Number) })
+      distance: { names: 0, rows: null },
+      distance_duration: expect.objectContaining({ names: expect.any(Number) }),
+      completion: expect.objectContaining({ names: expect.any(Number) })
     });
   });
 });

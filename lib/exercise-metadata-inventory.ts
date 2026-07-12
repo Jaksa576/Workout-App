@@ -4,6 +4,8 @@ import type { ExerciseTrackingType, UnilateralMode } from "@/lib/types";
 export type InventoryReviewStatus = "reviewed";
 export type FutureMetricFlag = "load_distance_candidate" | null;
 
+const exerciseTrackingTypes = ["weight_reps", "reps_only", "duration", "distance", "distance_duration", "completion"] as const satisfies readonly ExerciseTrackingType[];
+
 export type ExerciseMetadataInventoryItem = {
   inventoryKey: string;
   normalizedName: string;
@@ -64,10 +66,14 @@ export function findInventoryItemsByNormalizedName(name: string) {
 }
 
 export function getInventoryTotals() {
+  const initialTotals = Object.fromEntries(exerciseTrackingTypes.map((trackingType) => [trackingType, { names: 0, rows: null }])) as Record<
+    ExerciseTrackingType,
+    { names: number; rows: number | null }
+  >;
+
   return exerciseMetadataInventory.reduce<Record<ExerciseTrackingType, { names: number; rows: number | null }>>((totals, item) => {
-    totals[item.trackingType] ??= { names: 0, rows: 0 };
     totals[item.trackingType].names += 1;
     totals[item.trackingType].rows = null;
     return totals;
-  }, {} as Record<ExerciseTrackingType, { names: number; rows: number | null }>);
+  }, initialTotals);
 }
