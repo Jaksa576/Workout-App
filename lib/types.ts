@@ -55,7 +55,7 @@ export type ExerciseEntry = {
   primaryValueLabel?: string | null;
   secondaryValueLabel?: string | null;
   previousSetSummaries?: string[];
-  previousSetDefaults?: Array<{ actualLoad: number | null; actualReps: number | null }>;
+  previousSetDefaults?: Array<{ actualLoad: number | null; actualReps: number | null; actualDurationSeconds?: number | null; actualDistance?: number | null; actualLeftLoad?: number | null; actualRightLoad?: number | null; actualLeftReps?: number | null; actualRightReps?: number | null; actualLeftDurationSeconds?: number | null; actualRightDurationSeconds?: number | null; actualLeftDistance?: number | null; actualRightDistance?: number | null }>;
 };
 
 export type Weekday = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
@@ -260,6 +260,16 @@ export type WorkoutSetInput = {
   status: "completed" | "incomplete";
   actualLoad?: number | null;
   actualReps?: number | null;
+  actualDurationSeconds?: number | null;
+  actualDistance?: number | null;
+  actualLeftLoad?: number | null;
+  actualRightLoad?: number | null;
+  actualLeftReps?: number | null;
+  actualRightReps?: number | null;
+  actualLeftDurationSeconds?: number | null;
+  actualRightDurationSeconds?: number | null;
+  actualLeftDistance?: number | null;
+  actualRightDistance?: number | null;
 };
 
 export type WorkoutSessionInput = {

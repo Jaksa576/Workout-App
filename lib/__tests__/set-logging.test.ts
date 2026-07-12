@@ -3,9 +3,12 @@ import {
   applyMetricSetEdit,
   buildCanonicalMetricSetRows,
   calculateSetProgress,
+  formatDurationInput,
   getInitialSetValues,
+  isSetCompleteable,
   isSuppliedMetricValuesValid,
   parseDeterministicPrescriptionReps,
+  parseDurationInput,
 } from "@/lib/set-logging";
 import type { WorkoutSetInput } from "@/lib/types";
 
@@ -59,6 +62,27 @@ describe("optional metric set completion", () => {
     expect(isSuppliedMetricValuesValid("reps_only", row({ actualLoad: 10 }))).toBe(false);
     expect(isSuppliedMetricValuesValid("reps_only", row({ actualLoad: null, actualReps: 2.5 }))).toBe(false);
     expect(isSuppliedMetricValuesValid("weight_reps", row({ actualLoad: 20.5, actualReps: 8 }))).toBe(true);
+  });
+});
+
+describe("duration and distance tracking", () => {
+  it("parses and formats human-readable durations", () => {
+    expect(parseDurationInput("0:45")).toBe(45);
+    expect(parseDurationInput("1:02:03")).toBe(3723);
+    expect(parseDurationInput("1:99")).toBeNaN();
+    expect(formatDurationInput(65)).toBe("1:05");
+  });
+
+  it("requires valid type-specific fields before completing duration and distance rows", () => {
+    expect(isSetCompleteable("duration", row({ actualLoad: null, actualReps: null, actualDurationSeconds: 45 }))).toBe(true);
+    expect(isSetCompleteable("duration", row({ actualLoad: null, actualReps: null, actualDurationSeconds: null }))).toBe(false);
+    expect(isSetCompleteable("distance_duration", row({ actualLoad: null, actualReps: null, actualDurationSeconds: 510, actualDistance: 1 }))).toBe(true);
+    expect(isSuppliedMetricValuesValid("distance_duration", row({ actualLoad: null, actualReps: null, actualDurationSeconds: 510, actualDistance: -1 }))).toBe(false);
+  });
+
+  it("keeps independent-side values side-specific", () => {
+    expect(isSetCompleteable("reps_only", row({ actualLoad: null, actualReps: null, actualLeftReps: 8, actualRightReps: 7 }), "independent_sides")).toBe(true);
+    expect(isSuppliedMetricValuesValid("reps_only", row({ actualLoad: null, actualReps: 8, actualLeftReps: 8, actualRightReps: 7 }), "independent_sides")).toBe(false);
   });
 });
 
