@@ -20,7 +20,7 @@ export function isSupportedMetricTrackingType(trackingType?: ExerciseTrackingTyp
 }
 
 export function supportsAddedSets(trackingType?: ExerciseTrackingType) {
-  return isSupportedMetricTrackingType(trackingType);
+  return isSupportedMetricTrackingType(trackingType) || trackingType === "completion";
 }
 
 function isNonNegativeNumber(value: number | null | undefined) {
@@ -36,6 +36,7 @@ export function isSuppliedMetricValuesValid(
   row: WorkoutSetInput,
   unilateralMode: UnilateralMode = "bilateral",
 ) {
+  if (trackingType === "completion") return true;
   if (!isSupportedMetricTrackingType(trackingType)) return false;
   const independent = unilateralMode === "independent_sides";
   const scalarEmpty = row.actualLoad == null && row.actualReps == null && row.actualDurationSeconds == null && row.actualDistance == null;
@@ -120,7 +121,7 @@ export function getInitialSetValues(input: { setIndex: number; previousSetDefaul
 export function calculateSetProgress(input: { exercises: Array<{ id: string; sets: number; trackingType?: ExerciseTrackingType }>; setResults: WorkoutSetInput[]; checkedExerciseIds: string[]; }) {
   let completed = 0; let total = 0;
   for (const exercise of input.exercises) {
-    if (isSupportedMetricTrackingType(exercise.trackingType)) {
+    if (isSupportedMetricTrackingType(exercise.trackingType) || exercise.trackingType === "completion") {
       const rows = input.setResults.filter((row) => row.exerciseEntryId === exercise.id);
       total += exercise.sets + rows.filter((row) => row.setKind === "added").length;
       completed += rows.filter((row) => row.status === "completed").length;
@@ -131,7 +132,7 @@ export function calculateSetProgress(input: { exercises: Array<{ id: string; set
 
 export type CanonicalSetMergeResult = { ok: true; rows: WorkoutSetInput[] } | { ok: false; error: string };
 
-export function buildCanonicalMetricSetRows(input: { exerciseEntryId: string; prescribedSetCount: number; submittedRows: WorkoutSetInput[]; defaults?: SetValueDefaults[]; }): CanonicalSetMergeResult {
+export function buildCanonicalSetRows(input: { exerciseEntryId: string; prescribedSetCount: number; submittedRows: WorkoutSetInput[]; defaults?: SetValueDefaults[]; trackingType?: ExerciseTrackingType; legacyCompleted?: boolean; }): CanonicalSetMergeResult {
   const prescribedByIndex = new Map<number, WorkoutSetInput>();
   for (const row of input.submittedRows) {
     if (row.setKind !== "prescribed") continue;
@@ -140,9 +141,43 @@ export function buildCanonicalMetricSetRows(input: { exerciseEntryId: string; pr
     prescribedByIndex.set(row.prescribedSetIndex, row);
   }
   const prescribed = Array.from({ length: input.prescribedSetCount }, (_, index) => ({
-    ...(prescribedByIndex.get(index) ?? { exerciseEntryId: input.exerciseEntryId, setId: `${input.exerciseEntryId}:prescribed:${index}`, status: "incomplete" as const, ...(input.defaults?.[index] ?? {}) }),
+    ...(prescribedByIndex.get(index) ?? { exerciseEntryId: input.exerciseEntryId, setId: `${input.exerciseEntryId}:prescribed:${index}`, status: input.legacyCompleted ? ("completed" as const) : ("incomplete" as const), ...(input.trackingType === "completion" ? completionNullMetrics : (input.defaults?.[index] ?? {})) }),
     exerciseEntryId: input.exerciseEntryId, setOrder: index, prescribedSetIndex: index, setKind: "prescribed" as const,
   }));
-  const added = input.submittedRows.filter((row) => row.setKind === "added").sort((a, b) => a.setOrder - b.setOrder).map((row, index) => ({ ...row, exerciseEntryId: input.exerciseEntryId, setOrder: input.prescribedSetCount + index, prescribedSetIndex: null, setKind: "added" as const }));
+  const added = input.submittedRows.filter((row) => row.setKind === "added").sort((a, b) => a.setOrder - b.setOrder).map((row, index) => ({ ...row, ...(input.trackingType === "completion" ? completionNullMetrics : {}), exerciseEntryId: input.exerciseEntryId, setOrder: input.prescribedSetCount + index, prescribedSetIndex: null, setKind: "added" as const }));
   return { ok: true, rows: [...prescribed, ...added] };
+}
+
+const completionNullMetrics = {
+  actualLoad: null, actualReps: null, actualDurationSeconds: null, actualDistance: null,
+  actualLeftLoad: null, actualRightLoad: null, actualLeftReps: null, actualRightReps: null,
+  actualLeftDurationSeconds: null, actualRightDurationSeconds: null, actualLeftDistance: null, actualRightDistance: null,
+};
+
+export const buildCanonicalMetricSetRows = buildCanonicalSetRows;
+
+export function deriveExerciseCompletionStatus(rows: WorkoutSetInput[]) {
+  const prescribed = rows.filter((row) => row.setKind === "prescribed");
+  if (prescribed.length === 0 || prescribed.every((row) => row.status === "incomplete")) return "incomplete" as const;
+  if (prescribed.every((row) => row.status === "completed")) return "completed" as const;
+  return "partial" as const;
+}
+
+export function migrateLegacyCompletionRows(input: { exercises: Array<{ id: string; sets: number; trackingType?: ExerciseTrackingType }>; setResults: WorkoutSetInput[]; checkedExerciseIds: string[]; }) {
+  let changed = false;
+  let rows = [...input.setResults];
+  for (const exercise of input.exercises) {
+    if (exercise.trackingType !== "completion") continue;
+    const existing = rows.filter((row) => row.exerciseEntryId === exercise.id);
+    if (existing.length > 0) continue;
+    const merge = buildCanonicalSetRows({
+      exerciseEntryId: exercise.id,
+      prescribedSetCount: exercise.sets || 1,
+      submittedRows: [],
+      trackingType: "completion",
+      legacyCompleted: input.checkedExerciseIds.includes(exercise.id),
+    });
+    if (merge.ok) { rows = [...rows, ...merge.rows]; changed = true; }
+  }
+  return { setResults: rows, checkedExerciseIds: input.checkedExerciseIds.filter((id) => !input.exercises.some((exercise) => exercise.id === id && exercise.trackingType === "completion")), changed };
 }

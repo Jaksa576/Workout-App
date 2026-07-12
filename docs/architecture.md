@@ -98,7 +98,7 @@ Tracking type and logging metadata must be explicit persisted metadata, never ru
 - `reps_only`: reps per set; summary may include completed sets and total reps.
 - `duration`: duration per set or interval; duration stores seconds and displays as minute/second formatting.
 - `distance_duration`: distance plus duration; distance units are `mi`, `km`, or `m`; duration stores seconds; summary may include total distance, total duration, and pace.
-- `completion`: set or exercise completion without performance quantity; summary is completion count/status.
+- `completion`: set completion without performance quantity; summary is completion row count/status. Sets are the universal execution unit, so completion tracking renders and persists one set row per prescribed or added set rather than an exercise-level checkbox.
 
 Canonical metadata ownership is:
 
@@ -363,7 +363,7 @@ Schema/app compatibility is intentionally paired for this reset: old app code is
 
 ### Issue #10 PR #25 patch clarifications
 
-The transitional checklist compatibility layer is intentionally conservative. A checked exercise still updates `exercise_results.completion_status`, but prescribed set rows for `weight_reps`, `reps_only`, `duration`, and `distance_duration` remain `incomplete` with `completed_at = null` until an active set-entry UI supplies actual metrics. `completion` tracking is the only tracking type where a checked checklist exercise can mark prescribed set rows completed without numeric actual values.
+The active checklist uses set rows as the execution source of truth for every supported tracking type. `weight_reps`, `reps_only`, `duration`, `distance_duration`, and `completion` each render one row per prescribed set plus any added rows; tracking type only determines which metric fields appear in the row. Completion rows have no numeric inputs and may persist as completed with all metric columns null. Exercise-level checked state is retained only as a legacy draft compatibility input and is converted into completion set rows during recovery.
 
 The runtime source of catalog-backed tracking defaults is the static TypeScript exercise catalog. Plan creation and structured plan updates snapshot the effective tracking metadata onto `exercise_entries`; session finalization snapshots the saved plan metadata onto `exercise_results`. Unknown source IDs and custom exercises use the explicit `completion` fallback rather than name inference or fuzzy matching.
 

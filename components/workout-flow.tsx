@@ -12,7 +12,7 @@ import {
   shouldShowActiveStartCard,
 } from "@/lib/active-workout-shell";
 import { WorkoutChecklist } from "@/components/workout-checklist";
-import { calculateSetProgress } from "@/lib/set-logging";
+import { calculateSetProgress, migrateLegacyCompletionRows } from "@/lib/set-logging";
 import {
   buildActiveWorkoutDraft,
   getActiveWorkoutDraftStorageKey,
@@ -321,8 +321,13 @@ export function WorkoutFlow({
       setAwaitingStaleRecoveryDecision(result.stale);
       setActiveDraft(result.draft);
       setSelectedWorkoutId(result.draft.workoutTemplateId);
-      setCheckedExerciseIds(result.draft.checkedExerciseIds);
-      setSetResults(result.draft.setResults);
+      const migratedDraftRows = migrateLegacyCompletionRows({
+        exercises: recoveredWorkout.exercises,
+        setResults: result.draft.setResults,
+        checkedExerciseIds: result.draft.checkedExerciseIds,
+      });
+      setCheckedExerciseIds(migratedDraftRows.checkedExerciseIds);
+      setSetResults(migratedDraftRows.setResults);
       setExerciseNotes(result.draft.exerciseNotes);
       setCompleted(result.draft.checkIn.completed);
       setPain(result.draft.checkIn.painOccurred);
@@ -425,7 +430,7 @@ export function WorkoutFlow({
 
   useEffect(() => {
     const hasMeaningfulDraft = Boolean(
-      activeDraft && step !== "saved" && checkedExerciseIds.length > 0,
+      activeDraft && step !== "saved" && (checkedExerciseIds.length > 0 || setResults.length > 0),
     );
     if (!hasMeaningfulDraft) {
       return;
@@ -437,7 +442,7 @@ export function WorkoutFlow({
     };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
-  }, [activeDraft, checkedExerciseIds.length, step]);
+  }, [activeDraft, checkedExerciseIds.length, setResults.length, step]);
 
   function handleSelectWorkout(id: string) {
     if (activeDraft && activeDraft.workoutTemplateId !== id) {
