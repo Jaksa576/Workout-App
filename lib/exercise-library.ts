@@ -114,6 +114,17 @@ const durationMetadata = (unilateralMode: UnilateralMode = "bilateral"): Exercis
   secondaryValueLabel: null
 });
 
+const distanceMetadata = (unilateralMode: UnilateralMode = "bilateral", unit: "mi" | "km" | "m" = "m"): ExerciseTrackingMetadata => ({
+  trackingType: "distance",
+  unilateralMode,
+  loadUnit: null,
+  supportedLoadUnits: [],
+  distanceUnit: unit,
+  supportedDistanceUnits: ["m", "km", "mi"],
+  primaryValueLabel: "Distance",
+  secondaryValueLabel: null
+});
+
 const distanceDurationMetadata: ExerciseTrackingMetadata = {
   trackingType: "distance_duration",
   unilateralMode: "bilateral",
@@ -730,9 +741,9 @@ const catalogMetadataOverrides: Record<string, ExerciseTrackingMetadata> = {
   "low-impact-cardio-march": durationMetadata(),
   "run-walk-intervals": durationMetadata(),
   "easy-run": distanceDurationMetadata,
-  "stride-drills": durationMetadata(),
+  "stride-drills": distanceMetadata("bilateral", "m"),
   "lateral-lunge": weightRepsMetadata("same_each_side"),
-  "lateral-shuffle": durationMetadata(),
+  "lateral-shuffle": distanceMetadata("bilateral", "m"),
   "skater-hop": repsMetadata("same_each_side")
 };
 

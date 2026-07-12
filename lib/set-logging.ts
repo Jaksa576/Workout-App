@@ -16,7 +16,7 @@ export type SetValueDefaults = {
 };
 
 export function isSupportedMetricTrackingType(trackingType?: ExerciseTrackingType) {
-  return trackingType === "weight_reps" || trackingType === "reps_only" || trackingType === "duration" || trackingType === "distance_duration";
+  return trackingType === "weight_reps" || trackingType === "reps_only" || trackingType === "duration" || trackingType === "distance" || trackingType === "distance_duration";
 }
 
 export function supportsAddedSets(trackingType?: ExerciseTrackingType) {
@@ -47,7 +47,7 @@ export function isSuppliedMetricValuesValid(
   if (trackingType !== "weight_reps" && (row.actualLoad != null || row.actualLeftLoad != null || row.actualRightLoad != null)) return false;
   if (trackingType !== "weight_reps" && trackingType !== "reps_only" && (row.actualReps != null || row.actualLeftReps != null || row.actualRightReps != null)) return false;
   if (trackingType !== "duration" && trackingType !== "distance_duration" && (row.actualDurationSeconds != null || row.actualLeftDurationSeconds != null || row.actualRightDurationSeconds != null)) return false;
-  if (trackingType !== "distance_duration" && (row.actualDistance != null || row.actualLeftDistance != null || row.actualRightDistance != null)) return false;
+  if (trackingType !== "distance" && trackingType !== "distance_duration" && (row.actualDistance != null || row.actualLeftDistance != null || row.actualRightDistance != null)) return false;
   return true;
 }
 
@@ -55,10 +55,13 @@ export function isSetCompleteable(trackingType: ExerciseTrackingType | undefined
   if (trackingType === "completion") return true;
   if (!isSuppliedMetricValuesValid(trackingType, row, unilateralMode)) return false;
   const independent = unilateralMode === "independent_sides";
-  if (trackingType === "weight_reps") return independent ? row.actualLeftLoad != null && row.actualRightLoad != null && row.actualLeftReps != null && row.actualRightReps != null : row.actualLoad != null && row.actualReps != null;
-  if (trackingType === "reps_only") return independent ? row.actualLeftReps != null && row.actualRightReps != null : row.actualReps != null;
-  if (trackingType === "duration") return independent ? row.actualLeftDurationSeconds != null && row.actualRightDurationSeconds != null : row.actualDurationSeconds != null;
-  if (trackingType === "distance_duration") return independent ? row.actualLeftDistance != null && row.actualRightDistance != null && row.actualLeftDurationSeconds != null && row.actualRightDurationSeconds != null : row.actualDistance != null && row.actualDurationSeconds != null;
+  if (!independent) return true;
+  const bothOrNeither = (left: unknown, right: unknown) => (left == null && right == null) || (left != null && right != null);
+  if (trackingType === "weight_reps") return bothOrNeither(row.actualLeftLoad, row.actualRightLoad) && bothOrNeither(row.actualLeftReps, row.actualRightReps);
+  if (trackingType === "reps_only") return bothOrNeither(row.actualLeftReps, row.actualRightReps);
+  if (trackingType === "duration") return bothOrNeither(row.actualLeftDurationSeconds, row.actualRightDurationSeconds);
+  if (trackingType === "distance") return bothOrNeither(row.actualLeftDistance, row.actualRightDistance);
+  if (trackingType === "distance_duration") return bothOrNeither(row.actualLeftDistance, row.actualRightDistance) && bothOrNeither(row.actualLeftDurationSeconds, row.actualRightDurationSeconds);
   return false;
 }
 
@@ -94,11 +97,14 @@ export function formatPreviousSet(row?: SetValueDefaults, trackingType?: Exercis
   const sideSuffix = unilateralMode === "same_each_side" ? "/side" : "";
   if (unilateralMode === "independent_sides") {
     if (trackingType === "duration") return `${formatDurationInput(row.actualLeftDurationSeconds)} / ${formatDurationInput(row.actualRightDurationSeconds)}`;
+    if (trackingType === "distance") return `${row.actualLeftDistance ?? "—"} / ${row.actualRightDistance ?? "—"} ${unit ?? "mi"}`;
+    if (trackingType === "distance_duration") return `${row.actualLeftDistance ?? "—"} ${unit ?? "mi"} · ${formatDurationInput(row.actualLeftDurationSeconds)} / ${row.actualRightDistance ?? "—"} ${unit ?? "mi"} · ${formatDurationInput(row.actualRightDurationSeconds)}`;
     return `${row.actualLeftReps ?? "—"} / ${row.actualRightReps ?? "—"}`;
   }
   if (trackingType === "weight_reps") return row.actualLoad != null ? `${row.actualLoad} ${unit ?? "lb"} × ${row.actualReps ?? "—"}${sideSuffix}` : `${row.actualReps ?? "—"} reps${sideSuffix}`;
   if (trackingType === "reps_only") return `${row.actualReps ?? "—"} reps${sideSuffix}`;
   if (trackingType === "duration") return `${formatDurationInput(row.actualDurationSeconds)}${sideSuffix}`;
+  if (trackingType === "distance") return `${row.actualDistance ?? "—"} ${unit ?? "mi"}${sideSuffix}`;
   if (trackingType === "distance_duration") return `${row.actualDistance ?? "—"} ${unit ?? "mi"} · ${formatDurationInput(row.actualDurationSeconds)}`;
   return "—";
 }

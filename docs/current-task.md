@@ -196,3 +196,9 @@ Implemented Issue #38 as a focused patch on the active Issue #14 execution-row w
 The existing `exercise_set_results` schema and `finalize_workout_session` RPC can persist completion rows without a new table or migration because completion rows carry set order/kind/status/completed timestamp and leave all metric columns null. Historical saved `exercise_results` and sessions are unchanged; this patch only changes new active execution state, draft recovery conversion, and final payload construction.
 
 Validation focus: one-set and multi-set completion exercises, partial/out-of-order/uncomplete behavior, added completion sets, legacy checked/unchecked draft recovery, mixed-workout progress, final payload null metric fields, save retry after failure, and narrow mobile row layout. Codex could not use GitHub CLI in this container (`gh` is not installed), so Issue #38/PR #37 remote issue updates and hosted Supabase row inspection remain manual follow-up items for the Windows environment with `gh` and Supabase access.
+
+## PR Follow-up — Issue #14 First-Class Distance Tracking
+
+Implementing the PR follow-up request to add `distance` as a first-class set tracking type on top of the existing Issue #13/#14 set-row and atomic finalize path. The patch extends the authoritative TypeScript and SQL tracking unions, keeps `distance_duration` for rows that intentionally capture both distance and elapsed time, and uses the existing active draft, retry, API validation, `exercise_set_results`, and `finalize_workout_session` flow rather than adding a parallel workout-result model.
+
+Migration `supabase/migrations/20260712150000_issue14_first_class_distance_tracking.sql` is committed but not applied to hosted Supabase by Codex. Validation focus: distance-only meter rows, independent-side partial rejection, blank completed metric rows persisting `null`, existing duration and distance-duration rows, and narrow active-workout set row layout.
