@@ -55,6 +55,15 @@ GitHub Issue #8 — **Feature: Direct AI-guided plan creation** — replaces the
 
 Reassess #8 after the first #6 discovery/domain issue is approved. It remains important, but its exercise-output contract should align with the new recording model.
 
+
+## PR Follow-up — Set-aware Finish Recap
+
+Implementing the PR follow-up request for the set-aware finish recap on top of the Issue #13-#15 execution rows and existing atomic final-save path. The Finish action now clears active rest state before opening a compact recap that keeps the order focused on workout name/elapsed time, primary metrics, exercise summaries, incomplete-work notice, existing check-in controls, optional notes, one Save workout action, and Back to workout.
+
+This patch intentionally does not change the draft lifecycle, `POST /api/sessions`, `finalize_workout_session`, retry/idempotency behavior, or progression-after-save ordering. Recap formulas are derived from the active draft set rows: load volume uses completed `load × reps` with same-each-side counted for both sides, reps/duration/distance sum completed rows only, independent-side values preserve side-specific entry and are summed only for aggregate totals, and incompatible metric types are not collapsed into a synthetic score. The comparison section remains hidden unless a trustworthy future comparison contract is available.
+
+Validation focus: complete and partial finish recaps, mixed tracking types, same-each-side labels, independent-side entries, Back preserving draft data, duplicate-save disabled state, retry after failure, and rest-timer cleanup at Finish.
+
 ## Workflow Source Of Truth
 
 Active work is issue-driven:
