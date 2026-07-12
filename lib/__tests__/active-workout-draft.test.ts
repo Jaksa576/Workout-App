@@ -151,6 +151,33 @@ describe("active workout draft lifecycle helpers", () => {
     ).toMatchObject({ status: "valid", stale: true, ageDays: 10 });
   });
 
+  it("persists the per-workout automatic rest preference with a backward-compatible default", () => {
+    const draft = buildActiveWorkoutDraft({
+      userId: "user-a",
+      workout: makeWorkout(),
+      plan: makePlan(),
+      draftId: "draft-a",
+    });
+
+    expect(draft.autoStartRest).toBe(true);
+
+    const disabledResult = validateActiveWorkoutDraft(
+      { ...draft, autoStartRest: false },
+      "user-a",
+    );
+    expect(disabledResult).toMatchObject({
+      status: "valid",
+      draft: { autoStartRest: false },
+    });
+
+    const legacyDraft = { ...draft } as Record<string, unknown>;
+    delete legacyDraft.autoStartRest;
+    expect(validateActiveWorkoutDraft(legacyDraft, "user-a")).toMatchObject({
+      status: "valid",
+      draft: { autoStartRest: true },
+    });
+  });
+
   it("reconstructs elapsed time from durable timestamps instead of a counter", () => {
     const draft = buildActiveWorkoutDraft({
       userId: "user-a",

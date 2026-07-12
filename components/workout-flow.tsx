@@ -6,6 +6,10 @@ import type { Route } from "next";
 import { PhaseProgressPanel } from "@/components/phase-progress-panel";
 import { shouldPersistActiveWorkoutDraft } from "@/lib/active-workout-lifecycle";
 import {
+  activeWorkoutAutoStartRestDefault,
+  selectExerciseForManualRest,
+} from "@/lib/active-workout-rest";
+import {
   canFinishActiveWorkout,
   getDiscardRedirectPath,
   getRecoveredDraftStep,
@@ -129,106 +133,83 @@ function mergeSessions(
   return sortSessionsByLatest(Array.from(sessionsById.values()));
 }
 
-function RestTimerControls({
+function RestTimerDock({
   timer,
-  onStart,
   onPause,
   onResume,
   onAdd,
   onCancel,
 }: {
   timer: RestTimerState;
-  onStart: () => void;
   onPause: () => void;
   onResume: () => void;
   onAdd: () => void;
   onCancel: () => void;
 }) {
-  const isIdle = timer.status === "idle";
-  const label =
+  if (timer.status === "idle") return null;
+
+  const stateLabel =
     timer.status === "expired"
       ? "Rest complete"
-      : isIdle
-        ? "Rest idle"
-        : `Rest ${formatRestTimer(timer.remainingSeconds)}`;
+      : timer.status === "paused"
+        ? "Rest paused"
+        : "Resting";
+  const timeLabel =
+    timer.status === "expired"
+      ? "0:00"
+      : formatRestTimer(timer.remainingSeconds);
+
   return (
     <section
-      className="rounded-[20px] border border-primary/20 bg-primary/10 px-3 py-3"
-      aria-live="polite"
+      className="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 mx-auto max-w-3xl rounded-[28px] border border-primary/25 bg-surface/95 p-4 shadow-2xl backdrop-blur sm:bottom-[max(1rem,env(safe-area-inset-bottom))]"
+      aria-label="Rest timer controls"
+      aria-live={timer.status === "expired" ? "polite" : "off"}
       aria-atomic="true"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-sm font-black text-copy">{label}</p>
-          <p className="mt-1 text-xs font-semibold text-muted">
-            {timer.exerciseName
-              ? `Current rest: ${timer.exerciseName}`
-              : "Start rest with the current exercise prescription."}
+        <div className="min-w-0">
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-primary">
+            {stateLabel}
           </p>
+          <p className="mt-1 text-5xl font-black tabular-nums leading-none text-copy sm:text-6xl">
+            {timeLabel}
+          </p>
+          {timer.exerciseName ? (
+            <p className="mt-2 truncate text-sm font-semibold text-muted">
+              {timer.exerciseName}
+            </p>
+          ) : null}
         </div>
-        <div className="flex flex-wrap gap-2">
-          {isIdle ? (
-            <button
-              type="button"
-              className="ui-button-secondary min-h-11 px-3 py-2 text-xs"
-              onClick={onStart}
-              aria-label="Start rest timer"
-            >
-              Start rest
-            </button>
-          ) : timer.status === "paused" ? (
-            <button
-              type="button"
-              className="ui-button-secondary min-h-11 px-3 py-2 text-xs"
-              onClick={onResume}
-              aria-label="Resume rest timer"
-            >
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
+          {timer.status === "paused" ? (
+            <button type="button" className="ui-button-secondary min-h-12 px-4 py-3" onClick={onResume} aria-label="Resume rest timer">
               Resume
             </button>
           ) : timer.status === "expired" ? (
-            <button
-              type="button"
-              className="ui-button-secondary min-h-11 px-3 py-2 text-xs"
-              onClick={onCancel}
-              aria-label="Dismiss expired rest timer"
-            >
+            <button type="button" className="ui-button-secondary col-span-2 min-h-12 px-4 py-3" onClick={onCancel} aria-label="Dismiss completed rest timer">
               Dismiss
             </button>
           ) : (
-            <button
-              type="button"
-              className="ui-button-secondary min-h-11 px-3 py-2 text-xs"
-              onClick={onPause}
-              aria-label="Pause rest timer"
-            >
+            <button type="button" className="ui-button-ghost min-h-12 px-4 py-3" onClick={onPause} aria-label="Pause rest timer">
               Pause
             </button>
           )}
-          {!isIdle && timer.status !== "expired" ? (
-            <button
-              type="button"
-              className="ui-button-ghost min-h-11 px-3 py-2 text-xs"
-              onClick={onAdd}
-              aria-label="Add 15 seconds to rest timer"
-            >
-              +15s
-            </button>
-          ) : null}
-          {!isIdle && timer.status !== "expired" ? (
-            <button
-              type="button"
-              className="ui-button-ghost min-h-11 px-3 py-2 text-xs"
-              onClick={onCancel}
-              aria-label="Skip or cancel rest timer"
-            >
-              Skip
-            </button>
+          {timer.status !== "expired" ? (
+            <>
+              <button type="button" className="ui-button-secondary min-h-12 px-4 py-3" onClick={onAdd} aria-label="Add 15 seconds to rest timer">
+                +15 sec
+              </button>
+              <button type="button" className="ui-button-primary col-span-2 min-h-12 px-4 py-3 sm:col-span-1" onClick={onCancel} aria-label="Skip rest timer">
+                Skip
+              </button>
+            </>
           ) : null}
         </div>
       </div>
     </section>
   );
 }
+
 
 function ProgressBars({ summary }: { summary: WorkoutProgressSummary }) {
   const maxCompleted = Math.max(
@@ -362,7 +343,10 @@ export function WorkoutFlow({
   const [restTimer, setRestTimer] = useState<RestTimerState | null>(null);
   const [liveRestTimer, setLiveRestTimer] =
     useState<RestTimerState>(idleRestTimerState);
-  const [autoStartRest] = useState(true);
+  const [autoStartRest, setAutoStartRest] = useState(
+    activeWorkoutAutoStartRestDefault,
+  );
+  const [currentRestExerciseId, setCurrentRestExerciseId] = useState<string | null>(null);
   const [completed, setCompleted] = useState(true);
   const [pain, setPain] = useState(false);
   const [effort, setEffort] =
@@ -451,6 +435,10 @@ export function WorkoutFlow({
       setSetResults(migratedDraftRows.setResults);
       setExerciseNotes(result.draft.exerciseNotes);
       setRestTimer(result.draft.restTimer ?? null);
+      setAutoStartRest(
+        result.draft.autoStartRest ?? activeWorkoutAutoStartRestDefault,
+      );
+      setCurrentRestExerciseId(result.draft.restTimer?.exerciseEntryId ?? null);
       setCompleted(result.draft.checkIn.completed);
       setPain(result.draft.checkIn.painOccurred);
       setEffort(
@@ -515,6 +503,7 @@ export function WorkoutFlow({
         setResults,
         exerciseNotes,
         restTimer,
+        autoStartRest,
         checkIn: {
           completedOn,
           completed,
@@ -542,6 +531,7 @@ export function WorkoutFlow({
     setResults,
     exerciseNotes,
     restTimer,
+    autoStartRest,
     completed,
     completedOn,
     effort,
@@ -595,6 +585,7 @@ export function WorkoutFlow({
     setId: string;
   }) {
     if (!autoStartRest) return;
+    setCurrentRestExerciseId(input.exercise.id);
     const durationSeconds = getRestDurationSeconds({
       exerciseRest: input.exercise.rest,
     });
@@ -611,22 +602,20 @@ export function WorkoutFlow({
   }
 
   function handleManualStartRest() {
-    const firstIncomplete =
-      workout.exercises.find(
-        (exercise) =>
-          !setResults.some(
-            (row) =>
-              row.exerciseEntryId === exercise.id && row.status === "completed",
-          ),
-      ) ?? workout.exercises[0];
-    if (!firstIncomplete) return;
+    const selectedExercise = selectExerciseForManualRest({
+      workout,
+      setResults,
+      currentExerciseId: currentRestExerciseId,
+    });
+    if (!selectedExercise) return;
+    setCurrentRestExerciseId(selectedExercise.id);
     setRestTimer(
       startRestTimer({
         durationSeconds: getRestDurationSeconds({
-          exerciseRest: firstIncomplete.rest,
+          exerciseRest: selectedExercise.rest,
         }),
-        exerciseEntryId: firstIncomplete.id,
-        exerciseName: firstIncomplete.name,
+        exerciseEntryId: selectedExercise.id,
+        exerciseName: selectedExercise.name,
         autoStarted: false,
         setId: null,
       }),
@@ -703,6 +692,7 @@ export function WorkoutFlow({
     setSetResults([]);
     setExerciseNotes({});
     setRestTimer(null);
+    setLiveRestTimer(idleRestTimerState);
     setDraftMessage("Active workout draft discarded.");
     setStatus(null);
     setInvalidRecoveryKey(null);
@@ -763,6 +753,8 @@ export function WorkoutFlow({
           checkedExerciseIds,
         }).total,
     );
+    setRestTimer(null);
+    setLiveRestTimer(idleRestTimerState);
     setStep("check-in");
     setStatus(null);
   }
@@ -870,7 +862,7 @@ export function WorkoutFlow({
 
   if (isActiveMode) {
     return (
-      <div className="mx-auto max-w-3xl pb-[max(2rem,env(safe-area-inset-bottom))]">
+      <div className={`mx-auto max-w-3xl ${liveRestTimer.status === "idle" ? "pb-[max(2rem,env(safe-area-inset-bottom))]" : "pb-[max(12rem,calc(env(safe-area-inset-bottom)+10rem))]"}`}>
         <div className="sticky top-0 z-30 -mx-3 border-b border-border/80 bg-shell/95 px-3 py-3 backdrop-blur sm:top-2 sm:mx-0 sm:rounded-[28px] sm:border sm:shadow-soft">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
@@ -879,10 +871,10 @@ export function WorkoutFlow({
               </p>
               <p className="mt-1 text-xs font-semibold text-muted">
                 {formatElapsed(elapsedSeconds)} · {progress.completed}/
-                {progress.total} sets ·{" "}
+                {progress.total} sets
                 {liveRestTimer.status === "idle"
-                  ? "Rest idle"
-                  : `Rest ${formatRestTimer(liveRestTimer.remainingSeconds)}`}
+                  ? ""
+                  : ` · Rest ${formatRestTimer(liveRestTimer.remainingSeconds)}`}
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
@@ -975,9 +967,37 @@ export function WorkoutFlow({
 
           {step === "workout" && activeDraft ? (
             <>
-              <RestTimerControls
+              <div className="flex flex-col gap-3 rounded-[24px] border border-border bg-surface-soft p-4 sm:flex-row sm:items-center sm:justify-between">
+                <label className="flex items-start gap-3 text-sm font-semibold text-copy">
+                  <input
+                    type="checkbox"
+                    className="mt-1 h-5 w-5 accent-[rgb(var(--color-primary))]"
+                    checked={autoStartRest}
+                    onChange={(event) => setAutoStartRest(event.target.checked)}
+                    aria-label="Automatically start rest after completed sets"
+                  />
+                  <span>Automatically start rest after completed sets</span>
+                </label>
+                <button
+                  type="button"
+                  className="ui-button-secondary min-h-11 px-4 py-2 text-sm"
+                  onClick={handleManualStartRest}
+                  aria-label="Start rest timer manually"
+                >
+                  Start rest
+                </button>
+              </div>
+              <WorkoutChecklist
+                workout={workout}
+                checkedExerciseIds={checkedExerciseIds}
+                onCheckedExerciseIdsChange={setCheckedExerciseIds}
+                setResults={setResults}
+                onSetResultsChange={setSetResults}
+                compactExecution
+                onSetCompleted={handleSetCompletedForRest}
+              />
+              <RestTimerDock
                 timer={liveRestTimer}
-                onStart={handleManualStartRest}
                 onPause={() =>
                   setRestTimer((current) =>
                     current ? pauseRestTimer(current) : current,
@@ -994,15 +1014,6 @@ export function WorkoutFlow({
                   )
                 }
                 onCancel={() => setRestTimer(null)}
-              />
-              <WorkoutChecklist
-                workout={workout}
-                checkedExerciseIds={checkedExerciseIds}
-                onCheckedExerciseIdsChange={setCheckedExerciseIds}
-                setResults={setResults}
-                onSetResultsChange={setSetResults}
-                compactExecution
-                onSetCompleted={handleSetCompletedForRest}
               />
             </>
           ) : null}
