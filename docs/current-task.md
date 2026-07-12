@@ -55,6 +55,17 @@ GitHub Issue #8 — **Feature: Direct AI-guided plan creation** — replaces the
 
 Reassess #8 after the first #6 discovery/domain issue is approved. It remains important, but its exercise-output contract should align with the new recording model.
 
+
+## PR Follow-up — Set-aware Finish Recap
+
+Implementing the PR #47 follow-up request for the set-aware Finish recap on top of the Issue #13-#15 execution rows and existing atomic final-save path. The Finish action now captures a client-side elapsed-time snapshot, clears active rest state, scrolls the terminal review view to the top, and opens a clean review-and-save flow with the active-workout sticky header hidden. Back to workout reconstructs the active timer baseline from that frozen duration so time spent reviewing Finish is excluded while preserving the draft's set rows, exercise notes, check-in fields, and workout notes.
+
+This patch intentionally does not change the draft lifecycle storage shape, `POST /api/sessions`, `finalize_workout_session`, retry/idempotency behavior, progression-after-save ordering, or any database schema. Submitting Finish continues to send the existing required `completed` payload field as a deterministic completed-session value while partial set rows remain valid and truthfully represent incomplete work. The Finish form no longer includes an incomplete-work notice or a completion question; its action hierarchy is Save workout, Back to workout, then a subordinate guarded Discard workout action using the existing discard confirmation lifecycle.
+
+Recap formulas are derived from completed active-draft set rows. Load volume now uses one shared helper for workout-level and exercise-level totals: bilateral rows use `load × reps`, same-each-side rows count both sides for aggregate totals, and independent-side rows sum each side independently (`left load × left reps + right load × right reps`) without combining missing values across sides. Same-each-side per-exercise labels preserve the entered per-side amount such as `8 reps/side`, while workout aggregate totals may count both sides such as `16` total reps. Incompatible metric types are not collapsed into a synthetic score.
+
+Validation focus: complete and partial finish recaps, mixed tracking types, same-each-side labels versus aggregate totals, independent-side volume, Back preserving draft data and excluding Finish-review time, duplicate-save disabled state, retry after failure with frozen elapsed seconds, rest-timer cleanup at Finish, top positioning, hidden active header on Finish, and guarded bottom Discard workout behavior.
+
 ## Workflow Source Of Truth
 
 Active work is issue-driven:

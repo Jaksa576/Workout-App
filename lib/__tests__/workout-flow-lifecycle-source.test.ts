@@ -61,4 +61,37 @@ describe("workout flow lifecycle source guards", () => {
     expect(recommendedCard).not.toContain('formatPhaseLabel');
     expect(recommendedCard).not.toContain('activePlan.currentPhase.goal');
   });
+
+  it("freezes and reuses finish elapsed time across review, back, and save", () => {
+    expect(source).toContain("finishElapsedSnapshot");
+    expect(source).toContain("const snapshot = finishElapsedSnapshot ?? getElapsedSeconds(activeDraft)");
+    expect(source).toContain("elapsedOffsetSeconds: snapshot");
+    expect(source).toContain("function handleBackToWorkout()");
+    expect(source).toContain("elapsedSeconds: activeDraft");
+    expect(source).toContain("? (finishElapsedSnapshot ?? getElapsedSeconds(activeDraft))");
+  });
+
+  it("moves terminal active-workout views to the top without focus changes", () => {
+    expect(source.split('window.scrollTo({ top: 0, left: 0, behavior: "auto" })').length - 1).toBeGreaterThanOrEqual(2);
+  });
+
+  it("hides the active sticky header and rest dock padding on finish", () => {
+    expect(source).toContain('{step !== "check-in" ? (');
+    expect(source).toContain('liveRestTimer.status === "idle" || step === "check-in"');
+  });
+
+  it("keeps finish as save, back, then guarded bottom discard", () => {
+    const start = source.indexOf('{step === "check-in" ? (');
+    const end = source.indexOf('{step === "saved" && savedSession ?', start);
+    const finishView = source.slice(start, end);
+
+    expect(finishView).not.toContain("Did you finish?");
+    expect(finishView).not.toContain("sets still incomplete");
+    expect(finishView).toContain("Save workout");
+    expect(finishView).toContain("Back to workout");
+    expect(finishView).toContain("Discard workout");
+    expect(finishView.indexOf("Save workout")).toBeLessThan(finishView.indexOf("Back to workout"));
+    expect(finishView.indexOf("Back to workout")).toBeLessThan(finishView.indexOf("Discard workout"));
+    expect(finishView).toContain("onClick={handleDiscardDraft}");
+  });
 });
