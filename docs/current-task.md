@@ -209,9 +209,16 @@ This review patch addresses the first-class distance tracking feedback for `stri
 
 Validation focus: confirm the catalog defaults and SQL backfill keep `stride-drills` and `lateral-shuffle` as duration rows while retaining `distance` support for true distance-only exercises.
 
-
 ## PR Follow-up — Issue #14 Exhaustive Metadata Inventory
 
 Implementing the PR follow-up request to establish a durable, typed exercise metadata inventory on top of the Issue #14 tracking-row foundation. The committed registry in `lib/exercise-metadata-inventory.ts` derives from the static exercise catalog so runtime defaults and review artifacts cannot drift silently. It records normalized names, aliases, exact catalog prescriptions, tracking type, unilateral mode, units, labels, review status, rationale, intentional completion reasons, and future metric flags.
 
 Hosted Supabase audit/backfill was not run from this environment, so legacy row counts remain pending an authorized database audit. The report in `docs/exercise-metadata-inventory.md` documents current repo-owned coverage, totals by tracking type, intentional completion decisions, ambiguity decisions, and future `load_distance` candidates without applying hosted migrations.
+
+## PR Follow-up — Workout execution rest timer integration
+
+Implementing the PR follow-up request for rest timer integration on top of the active Issue #13/#14 execution-row system. The active workout now uses one draft-backed rest timer state for the whole session instead of reintroducing the old standalone `TimerCard` on workout selection.
+
+Completing a set auto-starts or restarts the timer with the just-completed exercise's prescribed rest duration using deterministic precedence: current-session override hook, exercise rest text, user default hook, bounded app fallback. Timer continuity is timestamp-based (`endsAt`) so refresh/background recovery derives remaining time from absolute time rather than interval ticks. Pause, resume, +15s, skip/cancel, manual start, and expired dismissal remain compact and non-blocking in the active workout surface.
+
+Validation focus: complete a set and confirm the header/inline timer updates without blocking logging, refresh while running, pause/resume/add/skip, expiry after tab backgrounding, complete another set while running to confirm deterministic restart, Finish/Discard reset timer state, and verify no timer appears on `/workout` selection.

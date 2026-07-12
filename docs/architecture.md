@@ -405,9 +405,14 @@ The execution tracking union includes `distance` for set rows where distance is 
 
 Distance units are stored in exercise metadata snapshots (`exercise_entries.distance_unit` and `exercise_results.distance_unit`) and are constrained to the supported distance units (`m`, `km`, `mi`). Scalar bilateral and same-each-side distance rows store `actual_distance`; independent-side rows store `actual_left_distance` and `actual_right_distance` and must not mix scalar distance with side-specific distance. Blank completed metric rows are allowed under the optional-metric rule and persist metric columns as `null`; supplied distance values must be finite and non-negative.
 
-
 ### Repo-owned exercise metadata inventory
 
 The static TypeScript catalog remains the runtime source of default tracking metadata for catalog-backed exercises. The typed inventory module derives from that catalog and is the reviewable registry for deterministic metadata decisions: normalized name, aliases, exact prescription matcher, tracking type, unilateral mode, units, labels, rationale, intentional completion reason, and future metric flags. Tests assert one-to-one coverage and synchronization between the runtime catalog and the inventory so future migration generation can consume one stable repo-owned source instead of hand-maintained divergent TypeScript and SQL lists.
 
 Inventory lookup is exact after normalization and intentionally avoids fuzzy production inference. Unknown/custom exercises continue to use explicit completion fallback semantics until a reviewed catalog identity or metadata override is supplied.
+
+### PR Follow-up — Active Rest Timer State
+
+The active workout rest timer is part of the single browser-local active draft, not a second active-session store. Drafts may carry nullable `restTimer` state with `status`, `durationSeconds`, `remainingSeconds`, absolute `startedAt`/`endsAt`/`pausedAt` timestamps, source exercise identity/name, auto-start flag, and the last completed set ID. Running timers are recovered by deriving remaining time from `endsAt`; paused and expired timers persist their remaining/expired state directly.
+
+Rest duration precedence is explicit and deterministic: current-session override hook, saved exercise rest prescription, user default hook, then a bounded app fallback. Completing another set while a timer is running restarts the one central timer with the newly completed exercise's prescribed duration. Finish and Discard deliberately clear timer state with the rest of the active draft.

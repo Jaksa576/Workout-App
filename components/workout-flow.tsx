@@ -12,7 +12,21 @@ import {
   shouldShowActiveStartCard,
 } from "@/lib/active-workout-shell";
 import { WorkoutChecklist } from "@/components/workout-checklist";
-import { calculateSetProgress, migrateLegacyCompletionRows } from "@/lib/set-logging";
+import {
+  calculateSetProgress,
+  migrateLegacyCompletionRows,
+} from "@/lib/set-logging";
+import {
+  addRestTime,
+  deriveRestTimerState,
+  formatRestTimer,
+  getRestDurationSeconds,
+  idleRestTimerState,
+  pauseRestTimer,
+  resumeRestTimer,
+  startRestTimer,
+  type RestTimerState,
+} from "@/lib/rest-timer";
 import {
   buildActiveWorkoutDraft,
   getActiveWorkoutDraftStorageKey,
@@ -113,6 +127,107 @@ function mergeSessions(
   }
 
   return sortSessionsByLatest(Array.from(sessionsById.values()));
+}
+
+function RestTimerControls({
+  timer,
+  onStart,
+  onPause,
+  onResume,
+  onAdd,
+  onCancel,
+}: {
+  timer: RestTimerState;
+  onStart: () => void;
+  onPause: () => void;
+  onResume: () => void;
+  onAdd: () => void;
+  onCancel: () => void;
+}) {
+  const isIdle = timer.status === "idle";
+  const label =
+    timer.status === "expired"
+      ? "Rest complete"
+      : isIdle
+        ? "Rest idle"
+        : `Rest ${formatRestTimer(timer.remainingSeconds)}`;
+  return (
+    <section
+      className="rounded-[20px] border border-primary/20 bg-primary/10 px-3 py-3"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-sm font-black text-copy">{label}</p>
+          <p className="mt-1 text-xs font-semibold text-muted">
+            {timer.exerciseName
+              ? `Current rest: ${timer.exerciseName}`
+              : "Start rest with the current exercise prescription."}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {isIdle ? (
+            <button
+              type="button"
+              className="ui-button-secondary min-h-11 px-3 py-2 text-xs"
+              onClick={onStart}
+              aria-label="Start rest timer"
+            >
+              Start rest
+            </button>
+          ) : timer.status === "paused" ? (
+            <button
+              type="button"
+              className="ui-button-secondary min-h-11 px-3 py-2 text-xs"
+              onClick={onResume}
+              aria-label="Resume rest timer"
+            >
+              Resume
+            </button>
+          ) : timer.status === "expired" ? (
+            <button
+              type="button"
+              className="ui-button-secondary min-h-11 px-3 py-2 text-xs"
+              onClick={onCancel}
+              aria-label="Dismiss expired rest timer"
+            >
+              Dismiss
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="ui-button-secondary min-h-11 px-3 py-2 text-xs"
+              onClick={onPause}
+              aria-label="Pause rest timer"
+            >
+              Pause
+            </button>
+          )}
+          {!isIdle && timer.status !== "expired" ? (
+            <button
+              type="button"
+              className="ui-button-ghost min-h-11 px-3 py-2 text-xs"
+              onClick={onAdd}
+              aria-label="Add 15 seconds to rest timer"
+            >
+              +15s
+            </button>
+          ) : null}
+          {!isIdle && timer.status !== "expired" ? (
+            <button
+              type="button"
+              className="ui-button-ghost min-h-11 px-3 py-2 text-xs"
+              onClick={onCancel}
+              aria-label="Skip or cancel rest timer"
+            >
+              Skip
+            </button>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  );
 }
 
 function ProgressBars({ summary }: { summary: WorkoutProgressSummary }) {
@@ -241,7 +356,13 @@ export function WorkoutFlow({
   const [storageAvailable, setStorageAvailable] = useState(true);
   const [checkedExerciseIds, setCheckedExerciseIds] = useState<string[]>([]);
   const [setResults, setSetResults] = useState<WorkoutSetInput[]>([]);
-  const [exerciseNotes, setExerciseNotes] = useState<Record<string, string>>({});
+  const [exerciseNotes, setExerciseNotes] = useState<Record<string, string>>(
+    {},
+  );
+  const [restTimer, setRestTimer] = useState<RestTimerState | null>(null);
+  const [liveRestTimer, setLiveRestTimer] =
+    useState<RestTimerState>(idleRestTimerState);
+  const [autoStartRest] = useState(true);
   const [completed, setCompleted] = useState(true);
   const [pain, setPain] = useState(false);
   const [effort, setEffort] =
@@ -329,6 +450,7 @@ export function WorkoutFlow({
       setCheckedExerciseIds(migratedDraftRows.checkedExerciseIds);
       setSetResults(migratedDraftRows.setResults);
       setExerciseNotes(result.draft.exerciseNotes);
+      setRestTimer(result.draft.restTimer ?? null);
       setCompleted(result.draft.checkIn.completed);
       setPain(result.draft.checkIn.painOccurred);
       setEffort(
@@ -392,6 +514,7 @@ export function WorkoutFlow({
         checkedExerciseIds,
         setResults,
         exerciseNotes,
+        restTimer,
         checkIn: {
           completedOn,
           completed,
@@ -418,6 +541,7 @@ export function WorkoutFlow({
     checkedExerciseIds,
     setResults,
     exerciseNotes,
+    restTimer,
     completed,
     completedOn,
     effort,
@@ -430,7 +554,9 @@ export function WorkoutFlow({
 
   useEffect(() => {
     const hasMeaningfulDraft = Boolean(
-      activeDraft && step !== "saved" && (checkedExerciseIds.length > 0 || setResults.length > 0),
+      activeDraft &&
+      step !== "saved" &&
+      (checkedExerciseIds.length > 0 || setResults.length > 0),
     );
     if (!hasMeaningfulDraft) {
       return;
@@ -443,6 +569,69 @@ export function WorkoutFlow({
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
   }, [activeDraft, checkedExerciseIds.length, setResults.length, step]);
+
+  useEffect(() => {
+    setLiveRestTimer(deriveRestTimerState(restTimer));
+    if (!restTimer || restTimer.status !== "running") {
+      return;
+    }
+    const interval = window.setInterval(() => {
+      setLiveRestTimer(deriveRestTimerState(restTimer));
+    }, 1000);
+    return () => window.clearInterval(interval);
+  }, [restTimer]);
+
+  useEffect(() => {
+    if (liveRestTimer.status === "expired" && restTimer?.status === "running") {
+      setRestTimer(liveRestTimer);
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        navigator.vibrate?.(120);
+      }
+    }
+  }, [liveRestTimer, restTimer]);
+
+  function handleSetCompletedForRest(input: {
+    exercise: WorkoutTemplate["exercises"][number];
+    setId: string;
+  }) {
+    if (!autoStartRest) return;
+    const durationSeconds = getRestDurationSeconds({
+      exerciseRest: input.exercise.rest,
+    });
+    setRestTimer(
+      startRestTimer({
+        durationSeconds,
+        exerciseEntryId: input.exercise.id,
+        exerciseName: input.exercise.name,
+        autoStarted: true,
+        setId: input.setId,
+      }),
+    );
+    setDraftMessage(`Rest timer restarted for ${input.exercise.name}.`);
+  }
+
+  function handleManualStartRest() {
+    const firstIncomplete =
+      workout.exercises.find(
+        (exercise) =>
+          !setResults.some(
+            (row) =>
+              row.exerciseEntryId === exercise.id && row.status === "completed",
+          ),
+      ) ?? workout.exercises[0];
+    if (!firstIncomplete) return;
+    setRestTimer(
+      startRestTimer({
+        durationSeconds: getRestDurationSeconds({
+          exerciseRest: firstIncomplete.rest,
+        }),
+        exerciseEntryId: firstIncomplete.id,
+        exerciseName: firstIncomplete.name,
+        autoStarted: false,
+        setId: null,
+      }),
+    );
+  }
 
   function handleSelectWorkout(id: string) {
     if (activeDraft && activeDraft.workoutTemplateId !== id) {
@@ -513,6 +702,7 @@ export function WorkoutFlow({
     setCheckedExerciseIds([]);
     setSetResults([]);
     setExerciseNotes({});
+    setRestTimer(null);
     setDraftMessage("Active workout draft discarded.");
     setStatus(null);
     setInvalidRecoveryKey(null);
@@ -561,7 +751,18 @@ export function WorkoutFlow({
     if (!finishEnabled || !activeDraft) {
       return;
     }
-    setCompleted(calculateSetProgress({ exercises: workout.exercises, setResults, checkedExerciseIds }).completed === calculateSetProgress({ exercises: workout.exercises, setResults, checkedExerciseIds }).total);
+    setCompleted(
+      calculateSetProgress({
+        exercises: workout.exercises,
+        setResults,
+        checkedExerciseIds,
+      }).completed ===
+        calculateSetProgress({
+          exercises: workout.exercises,
+          setResults,
+          checkedExerciseIds,
+        }).total,
+    );
     setStep("check-in");
     setStatus(null);
   }
@@ -607,6 +808,8 @@ export function WorkoutFlow({
           getActiveWorkoutDraftStorageKey(activeDraft.userId),
         );
       }
+      setRestTimer(null);
+      setLiveRestTimer(idleRestTimerState);
       setSavedSession(savedWorkoutSession);
       setSessionHistory((currentSessions) =>
         mergeSessions(currentSessions, [savedWorkoutSession]),
@@ -635,6 +838,8 @@ export function WorkoutFlow({
     setCheckedExerciseIds([]);
     setSetResults([]);
     setExerciseNotes({});
+    setRestTimer(null);
+    setLiveRestTimer(idleRestTimerState);
     setCompleted(true);
     setPain(false);
     setEffort("Appropriate");
@@ -648,7 +853,11 @@ export function WorkoutFlow({
     router.push(`/workout?workoutId=${workout.id}` as Route);
   }
 
-  const progress = calculateSetProgress({ exercises: workout.exercises, setResults, checkedExerciseIds });
+  const progress = calculateSetProgress({
+    exercises: workout.exercises,
+    setResults,
+    checkedExerciseIds,
+  });
   const elapsedSeconds = useLiveElapsedSeconds(activeDraft);
   const finishEnabled = canFinishActiveWorkout({
     mode,
@@ -669,7 +878,11 @@ export function WorkoutFlow({
                 {workout.name}
               </p>
               <p className="mt-1 text-xs font-semibold text-muted">
-                {formatElapsed(elapsedSeconds)} · {progress.completed}/{progress.total} sets
+                {formatElapsed(elapsedSeconds)} · {progress.completed}/
+                {progress.total} sets ·{" "}
+                {liveRestTimer.status === "idle"
+                  ? "Rest idle"
+                  : `Rest ${formatRestTimer(liveRestTimer.remainingSeconds)}`}
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
@@ -761,14 +974,37 @@ export function WorkoutFlow({
           ) : null}
 
           {step === "workout" && activeDraft ? (
-            <WorkoutChecklist
-              workout={workout}
-              checkedExerciseIds={checkedExerciseIds}
-              onCheckedExerciseIdsChange={setCheckedExerciseIds}
-              setResults={setResults}
-              onSetResultsChange={setSetResults}
-              compactExecution
-            />
+            <>
+              <RestTimerControls
+                timer={liveRestTimer}
+                onStart={handleManualStartRest}
+                onPause={() =>
+                  setRestTimer((current) =>
+                    current ? pauseRestTimer(current) : current,
+                  )
+                }
+                onResume={() =>
+                  setRestTimer((current) =>
+                    current ? resumeRestTimer(current) : current,
+                  )
+                }
+                onAdd={() =>
+                  setRestTimer((current) =>
+                    current ? addRestTime(current, 15) : current,
+                  )
+                }
+                onCancel={() => setRestTimer(null)}
+              />
+              <WorkoutChecklist
+                workout={workout}
+                checkedExerciseIds={checkedExerciseIds}
+                onCheckedExerciseIdsChange={setCheckedExerciseIds}
+                setResults={setResults}
+                onSetResultsChange={setSetResults}
+                compactExecution
+                onSetCompleted={handleSetCompletedForRest}
+              />
+            </>
           ) : null}
 
           {step === "check-in" ? (

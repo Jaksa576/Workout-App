@@ -2,7 +2,16 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ExerciseGuidancePanel } from "@/components/exercise-guidance-panel";
-import { applyMetricSetEdit, formatDurationInput, formatPreviousSet, getInitialSetValues, isSetCompleteable, isSupportedMetricTrackingType, parseDurationInput, supportsAddedSets } from "@/lib/set-logging";
+import {
+  applyMetricSetEdit,
+  formatDurationInput,
+  formatPreviousSet,
+  getInitialSetValues,
+  isSetCompleteable,
+  isSupportedMetricTrackingType,
+  parseDurationInput,
+  supportsAddedSets,
+} from "@/lib/set-logging";
 import type { WorkoutSetInput, WorkoutTemplate } from "@/lib/types";
 
 type WorkoutChecklistProps = {
@@ -13,6 +22,10 @@ type WorkoutChecklistProps = {
   setResults?: WorkoutSetInput[];
   onSetResultsChange?: (setResults: WorkoutSetInput[]) => void;
   compactExecution?: boolean;
+  onSetCompleted?: (input: {
+    exercise: WorkoutTemplate["exercises"][number];
+    setId: string;
+  }) => void;
 };
 
 export function WorkoutChecklist({
@@ -22,7 +35,8 @@ export function WorkoutChecklist({
   onCheckedExerciseIdsChange,
   setResults = [],
   onSetResultsChange,
-  compactExecution = false
+  compactExecution = false,
+  onSetCompleted,
 }: WorkoutChecklistProps) {
   const [internalChecked, setInternalChecked] = useState<string[]>([]);
   const [rowErrors, setRowErrors] = useState<Record<string, string>>({});
@@ -52,18 +66,31 @@ export function WorkoutChecklist({
     onSetResultsChange?.([...withoutPrevious, next]);
   }
 
-  function completeSet(row: WorkoutSetInput, exercise: WorkoutTemplate["exercises"][number]) {
-    if (row.status !== "completed" && !isSetCompleteable(exercise.trackingType, row, exercise.unilateralMode)) {
+  function completeSet(
+    row: WorkoutSetInput,
+    exercise: WorkoutTemplate["exercises"][number],
+  ) {
+    if (
+      row.status !== "completed" &&
+      !isSetCompleteable(exercise.trackingType, row, exercise.unilateralMode)
+    ) {
       updateSetResult({ ...row, status: "incomplete" });
       const firstInvalidKey = getFirstMissingFieldKey(row, exercise);
-      setRowErrors((current) => ({ ...current, [row.setId]: "Enter the required values before completing this set." }));
+      setRowErrors((current) => ({
+        ...current,
+        [row.setId]: "Enter the required values before completing this set.",
+      }));
       if (firstInvalidKey) inputRefs.current[firstInvalidKey]?.focus();
       return;
     }
+    const nextStatus = row.status === "completed" ? "incomplete" : "completed";
     updateSetResult({
       ...row,
-      status: row.status === "completed" ? "incomplete" : "completed",
+      status: nextStatus,
     });
+    if (nextStatus === "completed") {
+      onSetCompleted?.({ exercise, setId: row.setId });
+    }
   }
 
   function removeAddedSet(setId: string) {
@@ -71,10 +98,15 @@ export function WorkoutChecklist({
   }
 
   function getExerciseRows(exercise: WorkoutTemplate["exercises"][number]) {
-    const existing = setResults.filter((row) => row.exerciseEntryId === exercise.id);
+    const existing = setResults.filter(
+      (row) => row.exerciseEntryId === exercise.id,
+    );
     const existingByPrescribedIndex = new Map(
       existing
-        .filter((row) => row.setKind === "prescribed" && row.prescribedSetIndex !== null)
+        .filter(
+          (row) =>
+            row.setKind === "prescribed" && row.prescribedSetIndex !== null,
+        )
         .map((row) => [row.prescribedSetIndex, row]),
     );
     const prescribed = Array.from({ length: exercise.sets }, (_, index) => {
@@ -85,26 +117,36 @@ export function WorkoutChecklist({
         prescribedReps: exercise.reps,
         defaultLoad: null,
       });
-      return existingByPrescribedIndex.get(index) ?? {
-        exerciseEntryId: exercise.id,
-        setId,
-        setOrder: index,
-        prescribedSetIndex: index,
-        setKind: "prescribed" as const,
-        status: "incomplete" as const,
-        actualLoad: exercise.trackingType === "weight_reps" ? defaults.actualLoad : null,
-        actualReps: exercise.trackingType === "reps_only" || exercise.trackingType === "weight_reps" ? defaults.actualReps : null,
-        actualDurationSeconds: defaults.actualDurationSeconds ?? null,
-        actualDistance: defaults.actualDistance ?? null,
-        actualLeftLoad: defaults.actualLeftLoad ?? null,
-        actualRightLoad: defaults.actualRightLoad ?? null,
-        actualLeftReps: defaults.actualLeftReps ?? null,
-        actualRightReps: defaults.actualRightReps ?? null,
-        actualLeftDurationSeconds: defaults.actualLeftDurationSeconds ?? null,
-        actualRightDurationSeconds: defaults.actualRightDurationSeconds ?? null,
-        actualLeftDistance: defaults.actualLeftDistance ?? null,
-        actualRightDistance: defaults.actualRightDistance ?? null,
-      };
+      return (
+        existingByPrescribedIndex.get(index) ?? {
+          exerciseEntryId: exercise.id,
+          setId,
+          setOrder: index,
+          prescribedSetIndex: index,
+          setKind: "prescribed" as const,
+          status: "incomplete" as const,
+          actualLoad:
+            exercise.trackingType === "weight_reps"
+              ? defaults.actualLoad
+              : null,
+          actualReps:
+            exercise.trackingType === "reps_only" ||
+            exercise.trackingType === "weight_reps"
+              ? defaults.actualReps
+              : null,
+          actualDurationSeconds: defaults.actualDurationSeconds ?? null,
+          actualDistance: defaults.actualDistance ?? null,
+          actualLeftLoad: defaults.actualLeftLoad ?? null,
+          actualRightLoad: defaults.actualRightLoad ?? null,
+          actualLeftReps: defaults.actualLeftReps ?? null,
+          actualRightReps: defaults.actualRightReps ?? null,
+          actualLeftDurationSeconds: defaults.actualLeftDurationSeconds ?? null,
+          actualRightDurationSeconds:
+            defaults.actualRightDurationSeconds ?? null,
+          actualLeftDistance: defaults.actualLeftDistance ?? null,
+          actualRightDistance: defaults.actualRightDistance ?? null,
+        }
+      );
     });
     const added = existing
       .filter((row) => row.setKind === "added")
@@ -137,7 +179,10 @@ export function WorkoutChecklist({
     });
   }
 
-  function getFirstMissingFieldKey(row: WorkoutSetInput, exercise: WorkoutTemplate["exercises"][number]) {
+  function getFirstMissingFieldKey(
+    row: WorkoutSetInput,
+    exercise: WorkoutTemplate["exercises"][number],
+  ) {
     const prefix = `${row.setId}:`;
     if (exercise.unilateralMode === "independent_sides") {
       if (exercise.trackingType === "weight_reps") {
@@ -151,27 +196,60 @@ export function WorkoutChecklist({
         if (row.actualRightReps == null) return `${prefix}actualRightReps`;
       }
       if (exercise.trackingType === "duration") {
-        if (row.actualLeftDurationSeconds == null) return `${prefix}actualLeftDurationSeconds`;
-        if (row.actualRightDurationSeconds == null) return `${prefix}actualRightDurationSeconds`;
+        if (row.actualLeftDurationSeconds == null)
+          return `${prefix}actualLeftDurationSeconds`;
+        if (row.actualRightDurationSeconds == null)
+          return `${prefix}actualRightDurationSeconds`;
       }
-      if (exercise.trackingType === "distance" || exercise.trackingType === "distance_duration") {
-        if (row.actualLeftDistance != null && row.actualRightDistance == null) return `${prefix}actualRightDistance`;
-        if (row.actualRightDistance != null && row.actualLeftDistance == null) return `${prefix}actualLeftDistance`;
+      if (
+        exercise.trackingType === "distance" ||
+        exercise.trackingType === "distance_duration"
+      ) {
+        if (row.actualLeftDistance != null && row.actualRightDistance == null)
+          return `${prefix}actualRightDistance`;
+        if (row.actualRightDistance != null && row.actualLeftDistance == null)
+          return `${prefix}actualLeftDistance`;
       }
       if (exercise.trackingType === "distance_duration") {
-        if (row.actualLeftDurationSeconds != null && row.actualRightDurationSeconds == null) return `${prefix}actualRightDurationSeconds`;
-        if (row.actualRightDurationSeconds != null && row.actualLeftDurationSeconds == null) return `${prefix}actualLeftDurationSeconds`;
+        if (
+          row.actualLeftDurationSeconds != null &&
+          row.actualRightDurationSeconds == null
+        )
+          return `${prefix}actualRightDurationSeconds`;
+        if (
+          row.actualRightDurationSeconds != null &&
+          row.actualLeftDurationSeconds == null
+        )
+          return `${prefix}actualLeftDurationSeconds`;
       }
     }
-    if (exercise.trackingType === "weight_reps" && row.actualLoad == null) return `${prefix}actualLoad`;
-    if ((exercise.trackingType === "weight_reps" || exercise.trackingType === "reps_only") && row.actualReps == null) return `${prefix}actualReps`;
-    if ((exercise.trackingType === "duration" || exercise.trackingType === "distance_duration") && row.actualDurationSeconds == null) return `${prefix}actualDurationSeconds`;
-    if ((exercise.trackingType === "distance" || exercise.trackingType === "distance_duration") && row.actualDistance == null) return `${prefix}actualDistance`;
+    if (exercise.trackingType === "weight_reps" && row.actualLoad == null)
+      return `${prefix}actualLoad`;
+    if (
+      (exercise.trackingType === "weight_reps" ||
+        exercise.trackingType === "reps_only") &&
+      row.actualReps == null
+    )
+      return `${prefix}actualReps`;
+    if (
+      (exercise.trackingType === "duration" ||
+        exercise.trackingType === "distance_duration") &&
+      row.actualDurationSeconds == null
+    )
+      return `${prefix}actualDurationSeconds`;
+    if (
+      (exercise.trackingType === "distance" ||
+        exercise.trackingType === "distance_duration") &&
+      row.actualDistance == null
+    )
+      return `${prefix}actualDistance`;
     return null;
   }
 
   function setInputRef(key: string) {
-    return (node: HTMLInputElement | null) => { inputRefs.current[key] = node; };
+    return (node: HTMLInputElement | null) => {
+      inputRefs.current[key] = node;
+    };
   }
 
   useEffect(() => {
@@ -200,17 +278,39 @@ export function WorkoutChecklist({
   }, [checked, storageKey]);
 
   const canLogSets = Boolean(onSetResultsChange);
-  const loggableExercises = workout.exercises.filter((exercise) => canLogSets && (isSupportedMetricTrackingType(exercise.trackingType) || exercise.trackingType === "completion"));
-  const completedSetCount = loggableExercises.reduce((sum, exercise) => sum + getExerciseRows(exercise).filter((row) => row.status === "completed").length, 0);
-  const totalLoggableSets = loggableExercises.reduce((sum, exercise) => sum + getExerciseRows(exercise).length, 0);
+  const loggableExercises = workout.exercises.filter(
+    (exercise) =>
+      canLogSets &&
+      (isSupportedMetricTrackingType(exercise.trackingType) ||
+        exercise.trackingType === "completion"),
+  );
+  const completedSetCount = loggableExercises.reduce(
+    (sum, exercise) =>
+      sum +
+      getExerciseRows(exercise).filter((row) => row.status === "completed")
+        .length,
+    0,
+  );
+  const totalLoggableSets = loggableExercises.reduce(
+    (sum, exercise) => sum + getExerciseRows(exercise).length,
+    0,
+  );
   const completion = useMemo(() => {
     const denominator = totalLoggableSets || workout.exercises.length;
     if (denominator === 0) {
       return 0;
     }
 
-    return Math.round(((totalLoggableSets ? completedSetCount : checked.length) / denominator) * 100);
-  }, [checked.length, completedSetCount, totalLoggableSets, workout.exercises.length]);
+    return Math.round(
+      ((totalLoggableSets ? completedSetCount : checked.length) / denominator) *
+        100,
+    );
+  }, [
+    checked.length,
+    completedSetCount,
+    totalLoggableSets,
+    workout.exercises.length,
+  ]);
 
   return (
     <div className={compactExecution ? "space-y-3" : "space-y-5"}>
@@ -219,7 +319,9 @@ export function WorkoutChecklist({
           <div>
             <p className="text-sm font-semibold text-copy">Completion</p>
             <p className="mt-1 text-sm text-muted">
-              {totalLoggableSets ? `${completedSetCount} of ${totalLoggableSets} sets complete` : `${checked.length} of ${workout.exercises.length} exercises checked`}
+              {totalLoggableSets
+                ? `${completedSetCount} of ${totalLoggableSets} sets complete`
+                : `${checked.length} of ${workout.exercises.length} exercises checked`}
             </p>
           </div>
           <div className="rounded-full bg-hero px-4 py-2 text-sm font-semibold text-white">
@@ -230,8 +332,13 @@ export function WorkoutChecklist({
       <div className={compactExecution ? "space-y-2" : "space-y-3"}>
         {workout.exercises.map((exercise, index) => {
           const rows = getExerciseRows(exercise);
-          const supportsSetLogging = canLogSets && (isSupportedMetricTrackingType(exercise.trackingType) || exercise.trackingType === "completion");
-          const active = supportsSetLogging ? rows.some((row) => row.status === "completed") : checked.includes(exercise.id);
+          const supportsSetLogging =
+            canLogSets &&
+            (isSupportedMetricTrackingType(exercise.trackingType) ||
+              exercise.trackingType === "completion");
+          const active = supportsSetLogging
+            ? rows.some((row) => row.status === "completed")
+            : checked.includes(exercise.id);
           const checkboxId = `exercise-check-${exercise.id}`;
 
           return (
@@ -263,103 +370,284 @@ export function WorkoutChecklist({
               </div>
               {supportsSetLogging ? (
                 <div className="mt-2 overflow-hidden rounded-[18px] border border-border bg-surface-soft">
-                  <div className={`grid gap-2 px-2 py-1.5 text-[0.65rem] font-black uppercase tracking-[0.12em] text-muted ${exercise.trackingType === "completion" ? "grid-cols-[2.1rem_1fr_3rem]" : exercise.trackingType === "weight_reps" ? "grid-cols-[2.1rem_1fr_4.7rem_3.8rem_3rem]" : exercise.trackingType === "distance_duration" ? "grid-cols-[2.1rem_1fr_4rem_4.2rem_3rem]" : exercise.trackingType === "distance" ? "grid-cols-[2.1rem_1fr_4.2rem_3rem]" : "grid-cols-[2.1rem_1fr_4rem_3rem]"}`}>
-                    <span>Set</span><span>Previous</span>{exercise.trackingType === "weight_reps" ? <span>Weight</span> : null}{exercise.trackingType !== "completion" ? <span>{exercise.trackingType === "duration" ? (exercise.unilateralMode === "same_each_side" ? "Duration/side" : "Duration") : exercise.trackingType === "distance_duration" ? "Time" : exercise.trackingType === "distance" ? (exercise.unilateralMode === "same_each_side" ? `Distance/side (${exercise.distanceUnit ?? "mi"})` : `Distance (${exercise.distanceUnit ?? "mi"})`) : exercise.unilateralMode === "same_each_side" ? "Reps/side" : "Reps"}</span> : null}{exercise.trackingType === "distance_duration" ? <span>Distance</span> : null}<span>✓</span>
+                  <div
+                    className={`grid gap-2 px-2 py-1.5 text-[0.65rem] font-black uppercase tracking-[0.12em] text-muted ${exercise.trackingType === "completion" ? "grid-cols-[2.1rem_1fr_3rem]" : exercise.trackingType === "weight_reps" ? "grid-cols-[2.1rem_1fr_4.7rem_3.8rem_3rem]" : exercise.trackingType === "distance_duration" ? "grid-cols-[2.1rem_1fr_4rem_4.2rem_3rem]" : exercise.trackingType === "distance" ? "grid-cols-[2.1rem_1fr_4.2rem_3rem]" : "grid-cols-[2.1rem_1fr_4rem_3rem]"}`}
+                  >
+                    <span>Set</span>
+                    <span>Previous</span>
+                    {exercise.trackingType === "weight_reps" ? (
+                      <span>Weight</span>
+                    ) : null}
+                    {exercise.trackingType !== "completion" ? (
+                      <span>
+                        {exercise.trackingType === "duration"
+                          ? exercise.unilateralMode === "same_each_side"
+                            ? "Duration/side"
+                            : "Duration"
+                          : exercise.trackingType === "distance_duration"
+                            ? "Time"
+                            : exercise.trackingType === "distance"
+                              ? exercise.unilateralMode === "same_each_side"
+                                ? `Distance/side (${exercise.distanceUnit ?? "mi"})`
+                                : `Distance (${exercise.distanceUnit ?? "mi"})`
+                              : exercise.unilateralMode === "same_each_side"
+                                ? "Reps/side"
+                                : "Reps"}
+                      </span>
+                    ) : null}
+                    {exercise.trackingType === "distance_duration" ? (
+                      <span>Distance</span>
+                    ) : null}
+                    <span>✓</span>
                   </div>
                   {rows.map((row, rowIndex) => {
-                    const isCompletionRow = exercise.trackingType === "completion";
+                    const isCompletionRow =
+                      exercise.trackingType === "completion";
                     const needsLoad = exercise.trackingType === "weight_reps";
-                    const independent = exercise.unilateralMode === "independent_sides";
+                    const independent =
+                      exercise.unilateralMode === "independent_sides";
                     const rowError = rowErrors[row.setId];
-                    const durationInput = (field: keyof WorkoutSetInput, label: string) => (
+                    const durationInput = (
+                      field: keyof WorkoutSetInput,
+                      label: string,
+                    ) => (
                       <input
                         ref={setInputRef(`${row.setId}:${field}`)}
                         aria-label={`${label} for set ${rowIndex + 1} of ${exercise.name}`}
                         aria-invalid={Boolean(rowError)}
-                        aria-describedby={rowError ? `${row.setId}-error` : undefined}
+                        aria-describedby={
+                          rowError ? `${row.setId}-error` : undefined
+                        }
                         inputMode="numeric"
                         className="min-w-0 rounded-xl border border-border bg-surface px-2 py-2 text-sm font-semibold"
-                        value={formatDurationInput(row[field] as number | null | undefined)}
+                        value={formatDurationInput(
+                          row[field] as number | null | undefined,
+                        )}
                         placeholder="0:45"
                         onChange={(event) => {
                           const parsed = parseDurationInput(event.target.value);
-                          if (parsed === null) updateSetResult(applyMetricSetEdit(row, { [field]: null }));
-                          else if (!Number.isNaN(parsed) && parsed >= 0) updateSetResult(applyMetricSetEdit(row, { [field]: parsed }));
+                          if (parsed === null)
+                            updateSetResult(
+                              applyMetricSetEdit(row, { [field]: null }),
+                            );
+                          else if (!Number.isNaN(parsed) && parsed >= 0)
+                            updateSetResult(
+                              applyMetricSetEdit(row, { [field]: parsed }),
+                            );
                         }}
                       />
                     );
-                    const numberInput = (field: keyof WorkoutSetInput, label: string, integer = false) => (
+                    const numberInput = (
+                      field: keyof WorkoutSetInput,
+                      label: string,
+                      integer = false,
+                    ) => (
                       <input
                         ref={setInputRef(`${row.setId}:${field}`)}
                         aria-label={`${label} for set ${rowIndex + 1} of ${exercise.name}`}
                         aria-invalid={Boolean(rowError)}
-                        aria-describedby={rowError ? `${row.setId}-error` : undefined}
+                        aria-describedby={
+                          rowError ? `${row.setId}-error` : undefined
+                        }
                         inputMode={integer ? "numeric" : "decimal"}
                         className="min-w-0 rounded-xl border border-border bg-surface px-2 py-2 text-sm font-semibold"
                         value={(row[field] as number | null | undefined) ?? ""}
                         onChange={(event) => {
                           const value = event.target.value;
                           const parsed = Number(value);
-                          if (value === "") updateSetResult(applyMetricSetEdit(row, { [field]: null }));
-                          else if ((integer ? Number.isInteger(parsed) : !Number.isNaN(parsed)) && parsed >= 0) updateSetResult(applyMetricSetEdit(row, { [field]: parsed }));
+                          if (value === "")
+                            updateSetResult(
+                              applyMetricSetEdit(row, { [field]: null }),
+                            );
+                          else if (
+                            (integer
+                              ? Number.isInteger(parsed)
+                              : !Number.isNaN(parsed)) &&
+                            parsed >= 0
+                          )
+                            updateSetResult(
+                              applyMetricSetEdit(row, { [field]: parsed }),
+                            );
                         }}
                       />
                     );
                     return (
-                      <div key={row.setId} className={`grid items-center gap-2 border-t border-border px-2 py-1.5 ${isCompletionRow ? "grid-cols-[2.1rem_1fr_3rem]" : independent ? "grid-cols-[2.1rem_1fr_minmax(0,1fr)_minmax(0,1fr)_3rem] sm:grid-cols-[2.1rem_1fr_repeat(4,minmax(3.6rem,1fr))_3rem]" : exercise.trackingType === "weight_reps" ? "grid-cols-[2.1rem_1fr_4.7rem_3.8rem_3rem]" : exercise.trackingType === "distance_duration" ? "grid-cols-[2.1rem_1fr_4rem_4.2rem_3rem]" : exercise.trackingType === "distance" ? "grid-cols-[2.1rem_1fr_4.2rem_3rem]" : "grid-cols-[2.1rem_1fr_4rem_3rem]"} ${row.status === "completed" ? "bg-success/5" : ""}`}>
-                        <span className="text-sm font-black text-copy">{rowIndex + 1}{row.setKind === "added" ? "+" : ""}</span>
-                        <span className="text-xs font-semibold text-muted">{exercise.previousSetSummaries?.[rowIndex] ?? formatPreviousSet(exercise.previousSetDefaults?.[rowIndex], exercise.trackingType, exercise.distanceUnit ?? exercise.loadUnit, exercise.unilateralMode)}</span>
+                      <div
+                        key={row.setId}
+                        className={`grid items-center gap-2 border-t border-border px-2 py-1.5 ${isCompletionRow ? "grid-cols-[2.1rem_1fr_3rem]" : independent ? "grid-cols-[2.1rem_1fr_minmax(0,1fr)_minmax(0,1fr)_3rem] sm:grid-cols-[2.1rem_1fr_repeat(4,minmax(3.6rem,1fr))_3rem]" : exercise.trackingType === "weight_reps" ? "grid-cols-[2.1rem_1fr_4.7rem_3.8rem_3rem]" : exercise.trackingType === "distance_duration" ? "grid-cols-[2.1rem_1fr_4rem_4.2rem_3rem]" : exercise.trackingType === "distance" ? "grid-cols-[2.1rem_1fr_4.2rem_3rem]" : "grid-cols-[2.1rem_1fr_4rem_3rem]"} ${row.status === "completed" ? "bg-success/5" : ""}`}
+                      >
+                        <span className="text-sm font-black text-copy">
+                          {rowIndex + 1}
+                          {row.setKind === "added" ? "+" : ""}
+                        </span>
+                        <span className="text-xs font-semibold text-muted">
+                          {exercise.previousSetSummaries?.[rowIndex] ??
+                            formatPreviousSet(
+                              exercise.previousSetDefaults?.[rowIndex],
+                              exercise.trackingType,
+                              exercise.distanceUnit ?? exercise.loadUnit,
+                              exercise.unilateralMode,
+                            )}
+                        </span>
                         {isCompletionRow ? null : independent ? (
                           <>
-                            {needsLoad ? numberInput("actualLeftLoad", `Left weight in ${exercise.loadUnit ?? "lb"}`) : null}
-                            {exercise.trackingType === "weight_reps" || exercise.trackingType === "reps_only" ? numberInput("actualLeftReps", "Left reps", true) : null}
-                            {exercise.trackingType === "duration" || exercise.trackingType === "distance_duration" ? durationInput("actualLeftDurationSeconds", "Left duration") : null}
-                            {exercise.trackingType === "distance" || exercise.trackingType === "distance_duration" ? numberInput("actualLeftDistance", `Left distance in ${exercise.distanceUnit ?? "mi"}`) : null}
-                            {needsLoad ? numberInput("actualRightLoad", `Right weight in ${exercise.loadUnit ?? "lb"}`) : null}
-                            {exercise.trackingType === "weight_reps" || exercise.trackingType === "reps_only" ? numberInput("actualRightReps", "Right reps", true) : null}
-                            {exercise.trackingType === "duration" || exercise.trackingType === "distance_duration" ? durationInput("actualRightDurationSeconds", "Right duration") : null}
-                            {exercise.trackingType === "distance" || exercise.trackingType === "distance_duration" ? numberInput("actualRightDistance", `Right distance in ${exercise.distanceUnit ?? "mi"}`) : null}
+                            {needsLoad
+                              ? numberInput(
+                                  "actualLeftLoad",
+                                  `Left weight in ${exercise.loadUnit ?? "lb"}`,
+                                )
+                              : null}
+                            {exercise.trackingType === "weight_reps" ||
+                            exercise.trackingType === "reps_only"
+                              ? numberInput("actualLeftReps", "Left reps", true)
+                              : null}
+                            {exercise.trackingType === "duration" ||
+                            exercise.trackingType === "distance_duration"
+                              ? durationInput(
+                                  "actualLeftDurationSeconds",
+                                  "Left duration",
+                                )
+                              : null}
+                            {exercise.trackingType === "distance" ||
+                            exercise.trackingType === "distance_duration"
+                              ? numberInput(
+                                  "actualLeftDistance",
+                                  `Left distance in ${exercise.distanceUnit ?? "mi"}`,
+                                )
+                              : null}
+                            {needsLoad
+                              ? numberInput(
+                                  "actualRightLoad",
+                                  `Right weight in ${exercise.loadUnit ?? "lb"}`,
+                                )
+                              : null}
+                            {exercise.trackingType === "weight_reps" ||
+                            exercise.trackingType === "reps_only"
+                              ? numberInput(
+                                  "actualRightReps",
+                                  "Right reps",
+                                  true,
+                                )
+                              : null}
+                            {exercise.trackingType === "duration" ||
+                            exercise.trackingType === "distance_duration"
+                              ? durationInput(
+                                  "actualRightDurationSeconds",
+                                  "Right duration",
+                                )
+                              : null}
+                            {exercise.trackingType === "distance" ||
+                            exercise.trackingType === "distance_duration"
+                              ? numberInput(
+                                  "actualRightDistance",
+                                  `Right distance in ${exercise.distanceUnit ?? "mi"}`,
+                                )
+                              : null}
                           </>
                         ) : (
                           <>
-                            {needsLoad ? numberInput("actualLoad", `Weight in ${exercise.loadUnit ?? "lb"}`) : null}
-                            {exercise.trackingType === "duration" || exercise.trackingType === "distance_duration" ? durationInput("actualDurationSeconds", exercise.unilateralMode === "same_each_side" ? "Duration each side" : "Duration") : exercise.trackingType === "distance" ? numberInput("actualDistance", exercise.unilateralMode === "same_each_side" ? `Distance each side in ${exercise.distanceUnit ?? "mi"}` : `Distance in ${exercise.distanceUnit ?? "mi"}`) : numberInput("actualReps", exercise.unilateralMode === "same_each_side" ? "Reps each side" : "Reps", true)}
-                            {exercise.trackingType === "distance_duration" ? numberInput("actualDistance", `Distance in ${exercise.distanceUnit ?? "mi"}`) : null}
+                            {needsLoad
+                              ? numberInput(
+                                  "actualLoad",
+                                  `Weight in ${exercise.loadUnit ?? "lb"}`,
+                                )
+                              : null}
+                            {exercise.trackingType === "duration" ||
+                            exercise.trackingType === "distance_duration"
+                              ? durationInput(
+                                  "actualDurationSeconds",
+                                  exercise.unilateralMode === "same_each_side"
+                                    ? "Duration each side"
+                                    : "Duration",
+                                )
+                              : exercise.trackingType === "distance"
+                                ? numberInput(
+                                    "actualDistance",
+                                    exercise.unilateralMode === "same_each_side"
+                                      ? `Distance each side in ${exercise.distanceUnit ?? "mi"}`
+                                      : `Distance in ${exercise.distanceUnit ?? "mi"}`,
+                                  )
+                                : numberInput(
+                                    "actualReps",
+                                    exercise.unilateralMode === "same_each_side"
+                                      ? "Reps each side"
+                                      : "Reps",
+                                    true,
+                                  )}
+                            {exercise.trackingType === "distance_duration"
+                              ? numberInput(
+                                  "actualDistance",
+                                  `Distance in ${exercise.distanceUnit ?? "mi"}`,
+                                )
+                              : null}
                           </>
                         )}
-                        <button type="button" aria-label={`${row.status === "completed" ? "Uncomplete" : "Complete"} set ${rowIndex + 1} of ${exercise.name}`} aria-pressed={row.status === "completed"} className={`min-h-11 rounded-xl border text-sm font-black ${row.status === "completed" ? "border-success bg-success text-white" : "border-border bg-surface text-copy"}`} onClick={() => completeSet(row, exercise)}>✓</button>
-                        {rowError ? <p id={`${row.setId}-error`} className="col-span-full text-xs font-bold text-danger">{rowError}</p> : null}
-                        {row.setKind === "added" ? <button type="button" className="col-span-full text-left text-xs font-bold text-muted underline" onClick={() => removeAddedSet(row.setId)}>Remove added set</button> : null}
+                        <button
+                          type="button"
+                          aria-label={`${row.status === "completed" ? "Uncomplete" : "Complete"} set ${rowIndex + 1} of ${exercise.name}`}
+                          aria-pressed={row.status === "completed"}
+                          className={`min-h-11 rounded-xl border text-sm font-black ${row.status === "completed" ? "border-success bg-success text-white" : "border-border bg-surface text-copy"}`}
+                          onClick={() => completeSet(row, exercise)}
+                        >
+                          ✓
+                        </button>
+                        {rowError ? (
+                          <p
+                            id={`${row.setId}-error`}
+                            className="col-span-full text-xs font-bold text-danger"
+                          >
+                            {rowError}
+                          </p>
+                        ) : null}
+                        {row.setKind === "added" ? (
+                          <button
+                            type="button"
+                            className="col-span-full text-left text-xs font-bold text-muted underline"
+                            onClick={() => removeAddedSet(row.setId)}
+                          >
+                            Remove added set
+                          </button>
+                        ) : null}
                       </div>
                     );
                   })}
-                  {supportsAddedSets(exercise.trackingType) ? <div className="border-t border-border p-1.5"><button type="button" className="ui-button-ghost px-3 py-2 text-xs" onClick={() => addSet(exercise)}>Add set</button></div> : null}
+                  {supportsAddedSets(exercise.trackingType) ? (
+                    <div className="border-t border-border p-1.5">
+                      <button
+                        type="button"
+                        className="ui-button-ghost px-3 py-2 text-xs"
+                        onClick={() => addSet(exercise)}
+                      >
+                        Add set
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
               ) : (
                 <label
-                htmlFor={checkboxId}
-                className={`mt-3 flex min-h-12 cursor-pointer items-center justify-between gap-3 rounded-[18px] border px-4 py-3 text-sm font-bold transition ${
-                  active
-                    ? "border-success/30 bg-success/10 text-success"
-                    : "border-primary/25 bg-primary/10 text-copy hover:border-primary/50"
-                }`}
-              >
-                <span>{active ? "Marked complete" : "Mark complete"}</span>
-                <input
-                  id={checkboxId}
-                  type="checkbox"
-                  className="h-6 w-6 accent-[rgb(var(--color-primary))]"
-                  checked={active}
-                  aria-label={`${active ? "Mark incomplete" : "Mark complete"}: ${exercise.name}`}
-                  onChange={() =>
-                    setNextChecked(
-                      active
-                        ? checked.filter((id) => id !== exercise.id)
-                        : [...checked, exercise.id]
-                    )
-                  }
-                />
-              </label>
+                  htmlFor={checkboxId}
+                  className={`mt-3 flex min-h-12 cursor-pointer items-center justify-between gap-3 rounded-[18px] border px-4 py-3 text-sm font-bold transition ${
+                    active
+                      ? "border-success/30 bg-success/10 text-success"
+                      : "border-primary/25 bg-primary/10 text-copy hover:border-primary/50"
+                  }`}
+                >
+                  <span>{active ? "Marked complete" : "Mark complete"}</span>
+                  <input
+                    id={checkboxId}
+                    type="checkbox"
+                    className="h-6 w-6 accent-[rgb(var(--color-primary))]"
+                    checked={active}
+                    aria-label={`${active ? "Mark incomplete" : "Mark complete"}: ${exercise.name}`}
+                    onChange={() =>
+                      setNextChecked(
+                        active
+                          ? checked.filter((id) => id !== exercise.id)
+                          : [...checked, exercise.id],
+                      )
+                    }
+                  />
+                </label>
               )}
               <ExerciseGuidancePanel
                 exercise={exercise}

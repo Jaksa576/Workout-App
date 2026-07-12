@@ -1,4 +1,9 @@
-import type { WorkoutPlan, WorkoutSetInput, WorkoutTemplate } from "@/lib/types";
+import type { RestTimerState } from "@/lib/rest-timer";
+import type {
+  WorkoutPlan,
+  WorkoutSetInput,
+  WorkoutTemplate,
+} from "@/lib/types";
 
 export const activeWorkoutDraftVersion = 1;
 export const activeWorkoutDraftStoragePrefix =
@@ -32,6 +37,7 @@ export type ActiveWorkoutDraft = {
   checkedExerciseIds: string[];
   setResults: WorkoutSetInput[];
   exerciseNotes: Record<string, string>;
+  restTimer?: RestTimerState | null;
   checkIn: {
     completedOn: string | null;
     completed: boolean;
@@ -88,6 +94,7 @@ export function buildActiveWorkoutDraft(input: {
     checkedExerciseIds: [],
     setResults: [],
     exerciseNotes: {},
+    restTimer: null,
     checkIn: {
       completedOn: null,
       completed: false,
@@ -135,6 +142,9 @@ export function validateActiveWorkoutDraft(
     !value.checkedExerciseIds.every((id) => typeof id === "string") ||
     (value.setResults !== undefined && !Array.isArray(value.setResults)) ||
     (value.exerciseNotes !== undefined && !isRecord(value.exerciseNotes)) ||
+    (value.restTimer !== undefined &&
+      value.restTimer !== null &&
+      !isRecord(value.restTimer)) ||
     !isRecord(checkIn) ||
     (checkIn.completedOn !== null && typeof checkIn.completedOn !== "string") ||
     typeof checkIn.completed !== "boolean" ||
@@ -158,8 +168,15 @@ export function validateActiveWorkoutDraft(
     status: "valid",
     draft: {
       ...(value as ActiveWorkoutDraft),
-      setResults: Array.isArray(value.setResults) ? (value.setResults as ActiveWorkoutDraft["setResults"]) : [],
-      exerciseNotes: isRecord(value.exerciseNotes) ? (value.exerciseNotes as Record<string, string>) : {},
+      setResults: Array.isArray(value.setResults)
+        ? (value.setResults as ActiveWorkoutDraft["setResults"])
+        : [],
+      exerciseNotes: isRecord(value.exerciseNotes)
+        ? (value.exerciseNotes as Record<string, string>)
+        : {},
+      restTimer: isRecord(value.restTimer)
+        ? (value.restTimer as RestTimerState)
+        : null,
     },
     stale: ageMs > staleMs,
     ageDays: Math.floor(ageMs / (24 * 60 * 60 * 1000)),
