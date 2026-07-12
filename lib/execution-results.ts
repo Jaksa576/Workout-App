@@ -31,7 +31,7 @@ export function buildEffectiveTrackingMetadata(
     trackingType,
     unilateralMode: exercise.unilateralMode ?? defaults.unilateralMode,
     loadUnit: trackingType === "weight_reps" ? (exercise.loadUnit ?? defaults.loadUnit ?? "lb") : null,
-    distanceUnit: trackingType === "distance_duration" ? (exercise.distanceUnit ?? defaults.distanceUnit ?? "mi") : null,
+    distanceUnit: trackingType === "distance" || trackingType === "distance_duration" ? (exercise.distanceUnit ?? defaults.distanceUnit ?? "mi") : null,
     primaryValueLabel: exercise.primaryValueLabel ?? defaults.primaryValueLabel,
     secondaryValueLabel: exercise.secondaryValueLabel ?? defaults.secondaryValueLabel
   };

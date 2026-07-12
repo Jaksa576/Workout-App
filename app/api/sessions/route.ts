@@ -135,7 +135,7 @@ export async function POST(request: Request) {
           ? (exercise.load_unit ?? fallback.loadUnit)
           : null,
       distance_unit:
-        trackingType === "distance_duration"
+        trackingType === "distance" || trackingType === "distance_duration"
           ? (exercise.distance_unit ?? fallback.distanceUnit)
           : null,
       primary_value_label:
@@ -211,15 +211,15 @@ export async function POST(request: Request) {
         actual_load: trackingType === "weight_reps" ? (row.actualLoad ?? null) : null,
         actual_reps: trackingType === "weight_reps" || trackingType === "reps_only" ? (row.actualReps ?? null) : null,
         actual_duration_seconds: trackingType === "duration" || trackingType === "distance_duration" ? (row.actualDurationSeconds ?? null) : null,
-        actual_distance: trackingType === "distance_duration" ? (row.actualDistance ?? null) : null,
+        actual_distance: trackingType === "distance" || trackingType === "distance_duration" ? (row.actualDistance ?? null) : null,
         actual_left_load: trackingType === "weight_reps" ? (row.actualLeftLoad ?? null) : null,
         actual_right_load: trackingType === "weight_reps" ? (row.actualRightLoad ?? null) : null,
         actual_left_reps: trackingType === "weight_reps" || trackingType === "reps_only" ? (row.actualLeftReps ?? null) : null,
         actual_right_reps: trackingType === "weight_reps" || trackingType === "reps_only" ? (row.actualRightReps ?? null) : null,
         actual_left_duration_seconds: trackingType === "duration" || trackingType === "distance_duration" ? (row.actualLeftDurationSeconds ?? null) : null,
         actual_right_duration_seconds: trackingType === "duration" || trackingType === "distance_duration" ? (row.actualRightDurationSeconds ?? null) : null,
-        actual_left_distance: trackingType === "distance_duration" ? (row.actualLeftDistance ?? null) : null,
-        actual_right_distance: trackingType === "distance_duration" ? (row.actualRightDistance ?? null) : null,
+        actual_left_distance: trackingType === "distance" || trackingType === "distance_duration" ? (row.actualLeftDistance ?? null) : null,
+        actual_right_distance: trackingType === "distance" || trackingType === "distance_duration" ? (row.actualRightDistance ?? null) : null,
         completed_at: row.status === "completed" ? new Date().toISOString() : null,
       }));
     }

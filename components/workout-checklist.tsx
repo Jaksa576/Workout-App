@@ -154,17 +154,19 @@ export function WorkoutChecklist({
         if (row.actualLeftDurationSeconds == null) return `${prefix}actualLeftDurationSeconds`;
         if (row.actualRightDurationSeconds == null) return `${prefix}actualRightDurationSeconds`;
       }
+      if (exercise.trackingType === "distance" || exercise.trackingType === "distance_duration") {
+        if (row.actualLeftDistance != null && row.actualRightDistance == null) return `${prefix}actualRightDistance`;
+        if (row.actualRightDistance != null && row.actualLeftDistance == null) return `${prefix}actualLeftDistance`;
+      }
       if (exercise.trackingType === "distance_duration") {
-        if (row.actualLeftDistance == null) return `${prefix}actualLeftDistance`;
-        if (row.actualLeftDurationSeconds == null) return `${prefix}actualLeftDurationSeconds`;
-        if (row.actualRightDistance == null) return `${prefix}actualRightDistance`;
-        if (row.actualRightDurationSeconds == null) return `${prefix}actualRightDurationSeconds`;
+        if (row.actualLeftDurationSeconds != null && row.actualRightDurationSeconds == null) return `${prefix}actualRightDurationSeconds`;
+        if (row.actualRightDurationSeconds != null && row.actualLeftDurationSeconds == null) return `${prefix}actualLeftDurationSeconds`;
       }
     }
     if (exercise.trackingType === "weight_reps" && row.actualLoad == null) return `${prefix}actualLoad`;
     if ((exercise.trackingType === "weight_reps" || exercise.trackingType === "reps_only") && row.actualReps == null) return `${prefix}actualReps`;
     if ((exercise.trackingType === "duration" || exercise.trackingType === "distance_duration") && row.actualDurationSeconds == null) return `${prefix}actualDurationSeconds`;
-    if (exercise.trackingType === "distance_duration" && row.actualDistance == null) return `${prefix}actualDistance`;
+    if ((exercise.trackingType === "distance" || exercise.trackingType === "distance_duration") && row.actualDistance == null) return `${prefix}actualDistance`;
     return null;
   }
 
@@ -261,8 +263,8 @@ export function WorkoutChecklist({
               </div>
               {supportsSetLogging ? (
                 <div className="mt-2 overflow-hidden rounded-[18px] border border-border bg-surface-soft">
-                  <div className={`grid gap-2 px-2 py-1.5 text-[0.65rem] font-black uppercase tracking-[0.12em] text-muted ${exercise.trackingType === "completion" ? "grid-cols-[2.1rem_1fr_3rem]" : exercise.trackingType === "weight_reps" ? "grid-cols-[2.1rem_1fr_4.7rem_3.8rem_3rem]" : exercise.trackingType === "distance_duration" ? "grid-cols-[2.1rem_1fr_4rem_4.2rem_3rem]" : "grid-cols-[2.1rem_1fr_4rem_3rem]"}`}>
-                    <span>Set</span><span>Previous</span>{exercise.trackingType === "weight_reps" ? <span>Weight</span> : null}{exercise.trackingType !== "completion" ? <span>{exercise.trackingType === "duration" ? (exercise.unilateralMode === "same_each_side" ? "Duration/side" : "Duration") : exercise.trackingType === "distance_duration" ? "Time" : exercise.unilateralMode === "same_each_side" ? "Reps/side" : "Reps"}</span> : null}{exercise.trackingType === "distance_duration" ? <span>Distance</span> : null}<span>✓</span>
+                  <div className={`grid gap-2 px-2 py-1.5 text-[0.65rem] font-black uppercase tracking-[0.12em] text-muted ${exercise.trackingType === "completion" ? "grid-cols-[2.1rem_1fr_3rem]" : exercise.trackingType === "weight_reps" ? "grid-cols-[2.1rem_1fr_4.7rem_3.8rem_3rem]" : exercise.trackingType === "distance_duration" ? "grid-cols-[2.1rem_1fr_4rem_4.2rem_3rem]" : exercise.trackingType === "distance" ? "grid-cols-[2.1rem_1fr_4.2rem_3rem]" : "grid-cols-[2.1rem_1fr_4rem_3rem]"}`}>
+                    <span>Set</span><span>Previous</span>{exercise.trackingType === "weight_reps" ? <span>Weight</span> : null}{exercise.trackingType !== "completion" ? <span>{exercise.trackingType === "duration" ? (exercise.unilateralMode === "same_each_side" ? "Duration/side" : "Duration") : exercise.trackingType === "distance_duration" ? "Time" : exercise.trackingType === "distance" ? (exercise.unilateralMode === "same_each_side" ? `Distance/side (${exercise.distanceUnit ?? "mi"})` : `Distance (${exercise.distanceUnit ?? "mi"})`) : exercise.unilateralMode === "same_each_side" ? "Reps/side" : "Reps"}</span> : null}{exercise.trackingType === "distance_duration" ? <span>Distance</span> : null}<span>✓</span>
                   </div>
                   {rows.map((row, rowIndex) => {
                     const isCompletionRow = exercise.trackingType === "completion";
@@ -304,7 +306,7 @@ export function WorkoutChecklist({
                       />
                     );
                     return (
-                      <div key={row.setId} className={`grid items-center gap-2 border-t border-border px-2 py-1.5 ${isCompletionRow ? "grid-cols-[2.1rem_1fr_3rem]" : independent ? "grid-cols-[2.1rem_1fr_minmax(0,1fr)_minmax(0,1fr)_3rem] sm:grid-cols-[2.1rem_1fr_repeat(4,minmax(3.6rem,1fr))_3rem]" : exercise.trackingType === "weight_reps" ? "grid-cols-[2.1rem_1fr_4.7rem_3.8rem_3rem]" : exercise.trackingType === "distance_duration" ? "grid-cols-[2.1rem_1fr_4rem_4.2rem_3rem]" : "grid-cols-[2.1rem_1fr_4rem_3rem]"} ${row.status === "completed" ? "bg-success/5" : ""}`}>
+                      <div key={row.setId} className={`grid items-center gap-2 border-t border-border px-2 py-1.5 ${isCompletionRow ? "grid-cols-[2.1rem_1fr_3rem]" : independent ? "grid-cols-[2.1rem_1fr_minmax(0,1fr)_minmax(0,1fr)_3rem] sm:grid-cols-[2.1rem_1fr_repeat(4,minmax(3.6rem,1fr))_3rem]" : exercise.trackingType === "weight_reps" ? "grid-cols-[2.1rem_1fr_4.7rem_3.8rem_3rem]" : exercise.trackingType === "distance_duration" ? "grid-cols-[2.1rem_1fr_4rem_4.2rem_3rem]" : exercise.trackingType === "distance" ? "grid-cols-[2.1rem_1fr_4.2rem_3rem]" : "grid-cols-[2.1rem_1fr_4rem_3rem]"} ${row.status === "completed" ? "bg-success/5" : ""}`}>
                         <span className="text-sm font-black text-copy">{rowIndex + 1}{row.setKind === "added" ? "+" : ""}</span>
                         <span className="text-xs font-semibold text-muted">{exercise.previousSetSummaries?.[rowIndex] ?? formatPreviousSet(exercise.previousSetDefaults?.[rowIndex], exercise.trackingType, exercise.distanceUnit ?? exercise.loadUnit, exercise.unilateralMode)}</span>
                         {isCompletionRow ? null : independent ? (
@@ -312,16 +314,16 @@ export function WorkoutChecklist({
                             {needsLoad ? numberInput("actualLeftLoad", `Left weight in ${exercise.loadUnit ?? "lb"}`) : null}
                             {exercise.trackingType === "weight_reps" || exercise.trackingType === "reps_only" ? numberInput("actualLeftReps", "Left reps", true) : null}
                             {exercise.trackingType === "duration" || exercise.trackingType === "distance_duration" ? durationInput("actualLeftDurationSeconds", "Left duration") : null}
-                            {exercise.trackingType === "distance_duration" ? numberInput("actualLeftDistance", `Left distance in ${exercise.distanceUnit ?? "mi"}`) : null}
+                            {exercise.trackingType === "distance" || exercise.trackingType === "distance_duration" ? numberInput("actualLeftDistance", `Left distance in ${exercise.distanceUnit ?? "mi"}`) : null}
                             {needsLoad ? numberInput("actualRightLoad", `Right weight in ${exercise.loadUnit ?? "lb"}`) : null}
                             {exercise.trackingType === "weight_reps" || exercise.trackingType === "reps_only" ? numberInput("actualRightReps", "Right reps", true) : null}
                             {exercise.trackingType === "duration" || exercise.trackingType === "distance_duration" ? durationInput("actualRightDurationSeconds", "Right duration") : null}
-                            {exercise.trackingType === "distance_duration" ? numberInput("actualRightDistance", `Right distance in ${exercise.distanceUnit ?? "mi"}`) : null}
+                            {exercise.trackingType === "distance" || exercise.trackingType === "distance_duration" ? numberInput("actualRightDistance", `Right distance in ${exercise.distanceUnit ?? "mi"}`) : null}
                           </>
                         ) : (
                           <>
                             {needsLoad ? numberInput("actualLoad", `Weight in ${exercise.loadUnit ?? "lb"}`) : null}
-                            {exercise.trackingType === "duration" || exercise.trackingType === "distance_duration" ? durationInput("actualDurationSeconds", exercise.unilateralMode === "same_each_side" ? "Duration each side" : "Duration") : numberInput("actualReps", exercise.unilateralMode === "same_each_side" ? "Reps each side" : "Reps", true)}
+                            {exercise.trackingType === "duration" || exercise.trackingType === "distance_duration" ? durationInput("actualDurationSeconds", exercise.unilateralMode === "same_each_side" ? "Duration each side" : "Duration") : exercise.trackingType === "distance" ? numberInput("actualDistance", exercise.unilateralMode === "same_each_side" ? `Distance each side in ${exercise.distanceUnit ?? "mi"}` : `Distance in ${exercise.distanceUnit ?? "mi"}`) : numberInput("actualReps", exercise.unilateralMode === "same_each_side" ? "Reps each side" : "Reps", true)}
                             {exercise.trackingType === "distance_duration" ? numberInput("actualDistance", `Distance in ${exercise.distanceUnit ?? "mi"}`) : null}
                           </>
                         )}

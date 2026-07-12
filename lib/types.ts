@@ -30,6 +30,7 @@ export type ExerciseTrackingType =
   | "weight_reps"
   | "reps_only"
   | "duration"
+  | "distance"
   | "distance_duration"
   | "completion";
 

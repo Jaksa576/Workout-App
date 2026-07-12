@@ -141,10 +141,10 @@ Issue #10 should replace disposable execution/history data with a normalized com
 - `source_exercise_id text null` for the stable text catalog/source identity when available, snapshotting the existing string identity from `exercise_entries.source_exercise_id`; do not add `catalog_exercise_id uuid` or a UUID `source_exercise_id` for Issue #10.
 - `exercise_name text not null` or equivalent display-name snapshot.
 - `exercise_order integer not null` with a nonnegative check.
-- `tracking_type text not null` constrained to `weight_reps`, `reps_only`, `duration`, `distance_duration`, or `completion`.
+- `tracking_type text not null` constrained to `weight_reps`, `reps_only`, `duration`, `distance`, `distance_duration`, or `completion`.
 - `unilateral_mode text not null` constrained to `bilateral`, `same_each_side`, or `independent_sides`.
 - `load_unit text null` constrained to `lb` or `kg`; required only when `tracking_type = 'weight_reps'`.
-- `distance_unit text null` constrained to `mi`, `km`, or `m`; required only when `tracking_type = 'distance_duration'`.
+- `distance_unit text null` constrained to `mi`, `km`, or `m`; required only when `tracking_type` is `distance` or `distance_duration`.
 - `primary_value_label text null` and `secondary_value_label text null` as display-label snapshots.
 - `prescribed_target_text text null` for the human-readable prescription snapshot from the plan.
 - `completion_status text not null` constrained to `completed`, `partial`, `skipped`, or `incomplete`; exact labels may align with repo conventions, but the contract must distinguish complete, partial, skipped, and incomplete exercise outcomes.
@@ -398,3 +398,9 @@ For finalization, prescribed set rows are identified by `(exerciseEntryId, setKi
 For `weight_reps` and `reps_only`, set completion status is independent from actual metric presence. A completed metric row may persist `actual_load = null` and/or `actual_reps = null`; supplied values must still satisfy type-specific restrictions and nonnegative numeric/integer constraints. The app must not coerce blanks to zero or invent a parallel status such as "completed without metrics".
 
 Initial actual values are generated only for missing local rows and must never overwrite a recovered draft/user edit. Default precedence is: exact previous completed set position for the same stable exercise identity, most recent applicable completed set for that exercise, deterministic prescribed reps when representable (including lower bound for ranges), and an approved structured default load if one exists; otherwise blanks remain null. The Previous column remains historical reference text even when defaults prefill editable actual inputs.
+
+### First-Class Distance Set Tracking
+
+The execution tracking union includes `distance` for set rows where distance is the primary metric and elapsed time is not required. `distance` reuses the same active set-row draft, API payload, `exercise_set_results.actual_distance` / side-specific distance columns, and `finalize_workout_session` RPC path as other metric tracking types. `distance_duration` remains reserved for workouts that intentionally capture both distance and duration.
+
+Distance units are stored in exercise metadata snapshots (`exercise_entries.distance_unit` and `exercise_results.distance_unit`) and are constrained to the supported distance units (`m`, `km`, `mi`). Scalar bilateral and same-each-side distance rows store `actual_distance`; independent-side rows store `actual_left_distance` and `actual_right_distance` and must not mix scalar distance with side-specific distance. Blank completed metric rows are allowed under the optional-metric rule and persist metric columns as `null`; supplied distance values must be finite and non-negative.

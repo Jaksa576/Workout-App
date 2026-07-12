@@ -608,7 +608,7 @@ alter table public.exercise_entries
 
 alter table public.exercise_entries drop constraint if exists exercise_entries_tracking_type_check;
 alter table public.exercise_entries add constraint exercise_entries_tracking_type_check
-  check (tracking_type in ('weight_reps','reps_only','duration','distance_duration','completion'));
+  check (tracking_type in ('weight_reps','reps_only','duration','distance','distance_duration','completion'));
 alter table public.exercise_entries drop constraint if exists exercise_entries_unilateral_mode_check;
 alter table public.exercise_entries add constraint exercise_entries_unilateral_mode_check
   check (unilateral_mode in ('bilateral','same_each_side','independent_sides'));
@@ -621,8 +621,8 @@ alter table public.exercise_entries add constraint exercise_entries_distance_uni
 alter table public.exercise_entries drop constraint if exists exercise_entries_tracking_units_check;
 alter table public.exercise_entries add constraint exercise_entries_tracking_units_check check (
   (tracking_type = 'weight_reps' and load_unit is not null and distance_unit is null) or
-  (tracking_type = 'distance_duration' and distance_unit is not null and load_unit is null) or
-  (tracking_type not in ('weight_reps','distance_duration') and load_unit is null and distance_unit is null)
+  (tracking_type in ('distance','distance_duration') and distance_unit is not null and load_unit is null) or
+  (tracking_type not in ('weight_reps','distance','distance_duration') and load_unit is null and distance_unit is null)
 );
 
 update public.exercise_entries set
@@ -693,11 +693,11 @@ alter table public.exercise_results
   add column if not exists created_at timestamptz not null default timezone('utc', now()),
   add column if not exists updated_at timestamptz not null default timezone('utc', now());
 alter table public.exercise_results drop constraint if exists exercise_results_tracking_type_check;
-alter table public.exercise_results add constraint exercise_results_tracking_type_check check (tracking_type in ('weight_reps','reps_only','duration','distance_duration','completion'));
+alter table public.exercise_results add constraint exercise_results_tracking_type_check check (tracking_type in ('weight_reps','reps_only','duration','distance','distance_duration','completion'));
 alter table public.exercise_results drop constraint if exists exercise_results_unilateral_mode_check;
 alter table public.exercise_results add constraint exercise_results_unilateral_mode_check check (unilateral_mode in ('bilateral','same_each_side','independent_sides'));
 alter table public.exercise_results drop constraint if exists exercise_results_units_check;
-alter table public.exercise_results add constraint exercise_results_units_check check (((tracking_type='weight_reps')=(load_unit is not null)) and ((tracking_type='distance_duration')=(distance_unit is not null)) and (load_unit is null or load_unit in ('lb','kg')) and (distance_unit is null or distance_unit in ('mi','km','m')));
+alter table public.exercise_results add constraint exercise_results_units_check check (((tracking_type='weight_reps')=(load_unit is not null)) and ((tracking_type in ('distance','distance_duration'))=(distance_unit is not null)) and (load_unit is null or load_unit in ('lb','kg')) and (distance_unit is null or distance_unit in ('mi','km','m')));
 alter table public.exercise_results drop constraint if exists exercise_results_order_check;
 alter table public.exercise_results add constraint exercise_results_order_check check (exercise_order >= 0);
 alter table public.exercise_results drop constraint if exists exercise_results_completion_status_check;
@@ -752,17 +752,12 @@ begin
   if parent_tracking <> 'weight_reps' and (new.actual_load is not null or new.actual_left_load is not null or new.actual_right_load is not null) then raise exception 'load values are only valid for weight_reps'; end if;
   if parent_tracking not in ('weight_reps','reps_only') and (new.actual_reps is not null or new.actual_left_reps is not null or new.actual_right_reps is not null) then raise exception 'rep values are not valid for this tracking type'; end if;
   if parent_tracking not in ('duration','distance_duration') and (new.actual_duration_seconds is not null or new.actual_left_duration_seconds is not null or new.actual_right_duration_seconds is not null) then raise exception 'duration values are not valid for this tracking type'; end if;
-  if parent_tracking <> 'distance_duration' and (new.actual_distance is not null or new.actual_left_distance is not null or new.actual_right_distance is not null) then raise exception 'distance values are only valid for distance_duration'; end if;
-  if new.status = 'completed' then
-    if parent_unilateral = 'independent_sides' then
-      if parent_tracking = 'weight_reps' and (new.actual_left_load is null or new.actual_left_reps is null or new.actual_right_load is null or new.actual_right_reps is null) then raise exception 'completed independent weight_reps requires left/right load and reps'; end if;
-      if parent_tracking = 'reps_only' and (new.actual_left_reps is null or new.actual_right_reps is null) then raise exception 'completed independent reps_only requires left/right reps'; end if;
-      if parent_tracking = 'duration' and (new.actual_left_duration_seconds is null or new.actual_right_duration_seconds is null) then raise exception 'completed independent duration requires left/right duration'; end if;
-      if parent_tracking = 'distance_duration' and (new.actual_left_distance is null or new.actual_left_duration_seconds is null or new.actual_right_distance is null or new.actual_right_duration_seconds is null) then raise exception 'completed independent distance_duration requires left/right distance and duration'; end if;
-    else
-      if parent_tracking = 'duration' and new.actual_duration_seconds is null then raise exception 'completed duration requires duration'; end if;
-      if parent_tracking = 'distance_duration' and (new.actual_distance is null or new.actual_duration_seconds is null) then raise exception 'completed distance_duration requires distance and duration'; end if;
-    end if;
+  if parent_tracking not in ('distance','distance_duration') and (new.actual_distance is not null or new.actual_left_distance is not null or new.actual_right_distance is not null) then raise exception 'distance values are only valid for distance tracking'; end if;
+  if parent_unilateral = 'independent_sides' then
+    if (new.actual_left_load is null) <> (new.actual_right_load is null) then raise exception 'independent_sides requires both load sides when load is supplied'; end if;
+    if (new.actual_left_reps is null) <> (new.actual_right_reps is null) then raise exception 'independent_sides requires both rep sides when reps are supplied'; end if;
+    if (new.actual_left_duration_seconds is null) <> (new.actual_right_duration_seconds is null) then raise exception 'independent_sides requires both duration sides when duration is supplied'; end if;
+    if (new.actual_left_distance is null) <> (new.actual_right_distance is null) then raise exception 'independent_sides requires both distance sides when distance is supplied'; end if;
   end if;
   return new;
 end;

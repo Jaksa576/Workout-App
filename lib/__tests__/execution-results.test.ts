@@ -46,7 +46,7 @@ describe("execution result metadata", () => {
     });
   });
 
-  it.each<ExerciseTrackingType>(["weight_reps", "reps_only", "duration", "distance_duration"])(
+  it.each<ExerciseTrackingType>(["weight_reps", "reps_only", "duration", "distance", "distance_duration"])(
     "keeps checked %s prescribed rows incomplete because the checklist has no actual metrics",
     (trackingType) => {
       expect(buildPrescribedSetRows("result-1", { sets: 2 }, true, trackingType)).toEqual([

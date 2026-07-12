@@ -73,11 +73,18 @@ describe("duration and distance tracking", () => {
     expect(formatDurationInput(65)).toBe("1:05");
   });
 
-  it("requires valid type-specific fields before completing duration and distance rows", () => {
+  it("allows blank completed metric rows while validating supplied duration and distance values", () => {
     expect(isSetCompleteable("duration", row({ actualLoad: null, actualReps: null, actualDurationSeconds: 45 }))).toBe(true);
-    expect(isSetCompleteable("duration", row({ actualLoad: null, actualReps: null, actualDurationSeconds: null }))).toBe(false);
+    expect(isSetCompleteable("duration", row({ actualLoad: null, actualReps: null, actualDurationSeconds: null }))).toBe(true);
+    expect(isSetCompleteable("distance", row({ actualLoad: null, actualReps: null, actualDistance: 20 }))).toBe(true);
     expect(isSetCompleteable("distance_duration", row({ actualLoad: null, actualReps: null, actualDurationSeconds: 510, actualDistance: 1 }))).toBe(true);
+    expect(isSuppliedMetricValuesValid("distance", row({ actualLoad: null, actualReps: null, actualDistance: -1 }))).toBe(false);
     expect(isSuppliedMetricValuesValid("distance_duration", row({ actualLoad: null, actualReps: null, actualDurationSeconds: 510, actualDistance: -1 }))).toBe(false);
+  });
+
+  it("rejects partial independent-side distance completion", () => {
+    expect(isSetCompleteable("distance", row({ actualLoad: null, actualReps: null, actualLeftDistance: 20, actualRightDistance: null }), "independent_sides")).toBe(false);
+    expect(isSetCompleteable("distance", row({ actualLoad: null, actualReps: null, actualLeftDistance: 20, actualRightDistance: 20 }), "independent_sides")).toBe(true);
   });
 
   it("keeps independent-side values side-specific", () => {
