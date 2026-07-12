@@ -55,6 +55,7 @@ export type ExerciseEntry = {
   primaryValueLabel?: string | null;
   secondaryValueLabel?: string | null;
   previousSetSummaries?: string[];
+  previousSetDefaults?: Array<{ actualLoad: number | null; actualReps: number | null }>;
 };
 
 export type Weekday = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";

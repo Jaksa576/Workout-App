@@ -760,8 +760,6 @@ begin
       if parent_tracking = 'duration' and (new.actual_left_duration_seconds is null or new.actual_right_duration_seconds is null) then raise exception 'completed independent duration requires left/right duration'; end if;
       if parent_tracking = 'distance_duration' and (new.actual_left_distance is null or new.actual_left_duration_seconds is null or new.actual_right_distance is null or new.actual_right_duration_seconds is null) then raise exception 'completed independent distance_duration requires left/right distance and duration'; end if;
     else
-      if parent_tracking = 'weight_reps' and (new.actual_load is null or new.actual_reps is null) then raise exception 'completed weight_reps requires load and reps'; end if;
-      if parent_tracking = 'reps_only' and new.actual_reps is null then raise exception 'completed reps_only requires reps'; end if;
       if parent_tracking = 'duration' and new.actual_duration_seconds is null then raise exception 'completed duration requires duration'; end if;
       if parent_tracking = 'distance_duration' and (new.actual_distance is null or new.actual_duration_seconds is null) then raise exception 'completed distance_duration requires distance and duration'; end if;
     end if;
@@ -880,8 +878,6 @@ begin
     where (ee.tracking_type = 'reps_only' and nullif(sr.value->>'actual_load','') is not null)
        or (ee.tracking_type <> 'weight_reps' and nullif(sr.value->>'actual_load','') is not null)
        or (ee.tracking_type not in ('weight_reps','reps_only') and nullif(sr.value->>'actual_reps','') is not null)
-       or (sr.value->>'status' = 'completed' and ee.tracking_type = 'weight_reps' and (nullif(sr.value->>'actual_load','') is null or nullif(sr.value->>'actual_reps','') is null))
-       or (sr.value->>'status' = 'completed' and ee.tracking_type = 'reps_only' and nullif(sr.value->>'actual_reps','') is null)
   ) then raise exception 'set metrics are invalid for exercise tracking type'; end if;
 
   insert into public.workout_sessions (id, user_id, workout_template_id, source_plan_id, source_phase_id, completed_on, completed, pain_occurred, perceived_difficulty, notes, recommendation, phase_id_at_completion, phase_name_snapshot, workout_name_snapshot, started_at, finished_at, elapsed_seconds, elapsed_source)

@@ -13,3 +13,8 @@ where lower(name) in ('goblet squat','romanian deadlift')
 select p.proname, pg_get_functiondef(p.oid) like '%actual_load, actual_reps%' as rpc_inserts_actual_metrics
 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
 where n.nspname='public' and p.proname='finalize_workout_session';
+
+-- Optional completed metrics contract: completed metric rows may persist null scalar values,
+-- while supplied values remain constrained by type/range checks.
+select pg_get_functiondef('public.validate_exercise_set_result'::regproc) not like '%completed weight_reps requires%' as completed_metric_values_are_optional;
+select pg_get_functiondef('public.finalize_workout_session(jsonb,jsonb,jsonb)'::regprocedure) not like '%completed weight_reps%' as finalize_accepts_completed_null_metrics;

@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ExerciseGuidancePanel } from "@/components/exercise-guidance-panel";
-import { applyMetricSetEdit, getMetricSetGuidance, isMetricSetValid, isSupportedMetricTrackingType } from "@/lib/set-logging";
+import { applyMetricSetEdit, getInitialSetValues, isSupportedMetricTrackingType } from "@/lib/set-logging";
 import type { WorkoutSetInput, WorkoutTemplate } from "@/lib/types";
 
 type WorkoutChecklistProps = {
@@ -25,8 +25,6 @@ export function WorkoutChecklist({
   compactExecution = false
 }: WorkoutChecklistProps) {
   const [internalChecked, setInternalChecked] = useState<string[]>([]);
-  const [rowErrors, setRowErrors] = useState<Record<string, string>>({});
-  const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const checked = checkedExerciseIds ?? internalChecked;
   const setChecked = onCheckedExerciseIdsChange ?? setInternalChecked;
 
@@ -35,7 +33,6 @@ export function WorkoutChecklist({
   }
 
   function updateSetResult(next: WorkoutSetInput) {
-    setRowErrors((current) => ({ ...current, [next.setId]: "" }));
     const withoutPrevious = setResults.filter((row) => {
       if (next.setKind === "prescribed") {
         return !(
@@ -49,19 +46,11 @@ export function WorkoutChecklist({
     onSetResultsChange?.([...withoutPrevious, next]);
   }
 
-  function completeSet(row: WorkoutSetInput, exercise: WorkoutTemplate["exercises"][number], rowIndex: number) {
-    if (row.status === "completed") {
-      updateSetResult({ ...row, status: "incomplete" });
-      return;
-    }
-    if (!isMetricSetValid(exercise.trackingType, row)) {
-      const needsLoad = exercise.trackingType === "weight_reps";
-      const missingLoad = needsLoad && (row.actualLoad === null || row.actualLoad === undefined || row.actualLoad < 0);
-      setRowErrors((current) => ({ ...current, [row.setId]: getMetricSetGuidance(exercise.trackingType, row) }));
-      inputRefs.current[`${row.setId}:${missingLoad ? "load" : "reps"}`]?.focus();
-      return;
-    }
-    updateSetResult({ ...row, status: "completed" });
+  function completeSet(row: WorkoutSetInput) {
+    updateSetResult({
+      ...row,
+      status: row.status === "completed" ? "incomplete" : "completed",
+    });
   }
 
   function removeAddedSet(setId: string) {
@@ -77,6 +66,12 @@ export function WorkoutChecklist({
     );
     const prescribed = Array.from({ length: exercise.sets }, (_, index) => {
       const setId = `${exercise.id}:prescribed:${index}`;
+      const defaults = getInitialSetValues({
+        setIndex: index,
+        previousSetDefaults: exercise.previousSetDefaults,
+        prescribedReps: exercise.reps,
+        defaultLoad: null,
+      });
       return existingByPrescribedIndex.get(index) ?? {
         exerciseEntryId: exercise.id,
         setId,
@@ -84,8 +79,8 @@ export function WorkoutChecklist({
         prescribedSetIndex: index,
         setKind: "prescribed" as const,
         status: "incomplete" as const,
-        actualLoad: null,
-        actualReps: null,
+        actualLoad: exercise.trackingType === "weight_reps" ? defaults.actualLoad : null,
+        actualReps: defaults.actualReps,
       };
     });
     const added = existing
@@ -172,7 +167,7 @@ export function WorkoutChecklist({
           return (
             <article
               key={exercise.id}
-              className={`rounded-[24px] border border-border/70 bg-surface transition hover:border-primary/40 ${
+              className={`rounded-[20px] border border-border/70 bg-surface transition hover:border-primary/40 ${
                 compactExecution ? "p-3" : "p-4"
               }`}
             >
@@ -188,44 +183,35 @@ export function WorkoutChecklist({
                     >
                       {exercise.name}
                     </label>
-                    <p className="shrink-0 rounded-full bg-surface-soft px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-muted">
-                      {exercise.sets} sets · {exercise.reps}
-                    </p>
                   </div>
-                  <div className="mt-2 flex flex-wrap gap-2 text-xs uppercase tracking-[0.16em] text-muted">
+                  <div className="mt-1 flex flex-wrap gap-2 text-xs uppercase tracking-[0.16em] text-muted">
                     <span className="rounded-full bg-shell-elevated px-3 py-2">
                       Rest {exercise.rest}
                     </span>
-                    {active ? (
-                      <span className="rounded-full bg-success/10 px-3 py-2 text-success">
-                        Completed
-                      </span>
-                    ) : null}
                   </div>
                 </div>
               </div>
               {supportsSetLogging ? (
-                <div className="mt-3 overflow-hidden rounded-[18px] border border-border bg-surface-soft">
-                  <div className={`grid gap-2 px-3 py-2 text-[0.65rem] font-black uppercase tracking-[0.12em] text-muted ${exercise.trackingType === "weight_reps" ? "grid-cols-[2.1rem_1fr_4.7rem_3.8rem_3rem]" : "grid-cols-[2.1rem_1fr_4rem_3rem]"}`}>
+                <div className="mt-2 overflow-hidden rounded-[18px] border border-border bg-surface-soft">
+                  <div className={`grid gap-2 px-2 py-1.5 text-[0.65rem] font-black uppercase tracking-[0.12em] text-muted ${exercise.trackingType === "weight_reps" ? "grid-cols-[2.1rem_1fr_4.7rem_3.8rem_3rem]" : "grid-cols-[2.1rem_1fr_4rem_3rem]"}`}>
                     <span>Set</span><span>Previous</span>{exercise.trackingType === "weight_reps" ? <span>Weight</span> : null}<span>Reps</span><span>✓</span>
                   </div>
                   {rows.map((row, rowIndex) => {
                     const needsLoad = exercise.trackingType === "weight_reps";
                     return (
-                      <div key={row.setId} className={`grid items-center gap-2 border-t border-border px-3 py-2 ${exercise.trackingType === "weight_reps" ? "grid-cols-[2.1rem_1fr_4.7rem_3.8rem_3rem]" : "grid-cols-[2.1rem_1fr_4rem_3rem]"} ${row.status === "completed" ? "bg-success/5" : ""}`}>
+                      <div key={row.setId} className={`grid items-center gap-2 border-t border-border px-2 py-1.5 ${exercise.trackingType === "weight_reps" ? "grid-cols-[2.1rem_1fr_4.7rem_3.8rem_3rem]" : "grid-cols-[2.1rem_1fr_4rem_3rem]"} ${row.status === "completed" ? "bg-success/5" : ""}`}>
                         <span className="text-sm font-black text-copy">{rowIndex + 1}{row.setKind === "added" ? "+" : ""}</span>
                         <span className="text-xs font-semibold text-muted">{exercise.previousSetSummaries?.[rowIndex] ?? "—"}</span>
                         {needsLoad ? (
-                          <input aria-label={`Weight for set ${rowIndex + 1} of ${exercise.name}`} inputMode="decimal" ref={(node) => { inputRefs.current[`${row.setId}:load`] = node; }} className="min-w-0 rounded-xl border border-border bg-surface px-2 py-2 text-sm font-semibold" value={row.actualLoad ?? ""} onChange={(event) => { const value = event.target.value; const parsed = Number(value); if (value === "") updateSetResult(applyMetricSetEdit(exercise.trackingType, row, { actualLoad: null })); else if (!Number.isNaN(parsed) && parsed >= 0) updateSetResult(applyMetricSetEdit(exercise.trackingType, row, { actualLoad: parsed })); }} />
+                          <input aria-label={`Weight for set ${rowIndex + 1} of ${exercise.name}`} inputMode="decimal" className="min-w-0 rounded-xl border border-border bg-surface px-2 py-2 text-sm font-semibold" value={row.actualLoad ?? ""} onChange={(event) => { const value = event.target.value; const parsed = Number(value); if (value === "") updateSetResult(applyMetricSetEdit(exercise.trackingType, row, { actualLoad: null })); else if (!Number.isNaN(parsed) && parsed >= 0) updateSetResult(applyMetricSetEdit(exercise.trackingType, row, { actualLoad: parsed })); }} />
                         ) : null}
-                        <input aria-label={`Reps for set ${rowIndex + 1} of ${exercise.name}`} inputMode="numeric" ref={(node) => { inputRefs.current[`${row.setId}:reps`] = node; }} className="min-w-0 rounded-xl border border-border bg-surface px-2 py-2 text-sm font-semibold" value={row.actualReps ?? ""} onChange={(event) => { const value = event.target.value; const parsed = Number(value); if (value === "") updateSetResult(applyMetricSetEdit(exercise.trackingType, row, { actualReps: null })); else if (Number.isInteger(parsed) && parsed >= 0) updateSetResult(applyMetricSetEdit(exercise.trackingType, row, { actualReps: parsed })); }} />
-                        <button type="button" aria-label={`${row.status === "completed" ? "Uncomplete" : "Complete"} set ${rowIndex + 1} of ${exercise.name}`} aria-pressed={row.status === "completed"} className={`min-h-11 rounded-xl border text-sm font-black ${row.status === "completed" ? "border-success bg-success text-white" : "border-border bg-surface text-copy"}`} onClick={() => completeSet(row, exercise, rowIndex)}>✓</button>
-                        {rowErrors[row.setId] ? <p className="col-span-full text-xs font-semibold text-danger">{rowErrors[row.setId]}</p> : null}
+                        <input aria-label={`Reps for set ${rowIndex + 1} of ${exercise.name}`} inputMode="numeric" className="min-w-0 rounded-xl border border-border bg-surface px-2 py-2 text-sm font-semibold" value={row.actualReps ?? ""} onChange={(event) => { const value = event.target.value; const parsed = Number(value); if (value === "") updateSetResult(applyMetricSetEdit(exercise.trackingType, row, { actualReps: null })); else if (Number.isInteger(parsed) && parsed >= 0) updateSetResult(applyMetricSetEdit(exercise.trackingType, row, { actualReps: parsed })); }} />
+                        <button type="button" aria-label={`${row.status === "completed" ? "Uncomplete" : "Complete"} set ${rowIndex + 1} of ${exercise.name}`} aria-pressed={row.status === "completed"} className={`min-h-11 rounded-xl border text-sm font-black ${row.status === "completed" ? "border-success bg-success text-white" : "border-border bg-surface text-copy"}`} onClick={() => completeSet(row)}>✓</button>
                         {row.setKind === "added" ? <button type="button" className="col-span-full text-left text-xs font-bold text-muted underline" onClick={() => removeAddedSet(row.setId)}>Remove added set</button> : null}
                       </div>
                     );
                   })}
-                  <div className="border-t border-border p-2"><button type="button" className="ui-button-ghost px-3 py-2 text-xs" onClick={() => addSet(exercise)}>Add set</button></div>
+                  <div className="border-t border-border p-1.5"><button type="button" className="ui-button-ghost px-3 py-2 text-xs" onClick={() => addSet(exercise)}>Add set</button></div>
                 </div>
               ) : (
                 <label

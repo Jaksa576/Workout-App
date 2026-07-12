@@ -1,51 +1,64 @@
 import type { ExerciseTrackingType, WorkoutSetInput } from "@/lib/types";
 
+export type SetValueDefaults = {
+  actualLoad: number | null;
+  actualReps: number | null;
+};
+
 export function isSupportedMetricTrackingType(trackingType?: ExerciseTrackingType) {
   return trackingType === "weight_reps" || trackingType === "reps_only";
 }
 
-export function isMetricSetValid(
+export function isSuppliedMetricValuesValid(
   trackingType: ExerciseTrackingType | undefined,
   row: Pick<WorkoutSetInput, "actualLoad" | "actualReps">,
 ) {
-  const needsLoad = trackingType === "weight_reps";
+  const loadAllowed = trackingType === "weight_reps";
   const validLoad =
-    !needsLoad ||
-    (row.actualLoad !== null &&
-      row.actualLoad !== undefined &&
-      Number.isFinite(row.actualLoad) &&
-      row.actualLoad >= 0);
+    row.actualLoad === null ||
+    row.actualLoad === undefined ||
+    (loadAllowed && Number.isFinite(row.actualLoad) && row.actualLoad >= 0);
   const validReps =
-    row.actualReps !== null &&
-    row.actualReps !== undefined &&
-    Number.isInteger(row.actualReps) &&
-    row.actualReps >= 0;
+    row.actualReps === null ||
+    row.actualReps === undefined ||
+    (Number.isInteger(row.actualReps) && row.actualReps >= 0);
 
   return isSupportedMetricTrackingType(trackingType) && validLoad && validReps;
 }
 
 export function applyMetricSetEdit(
-  trackingType: ExerciseTrackingType | undefined,
+  _trackingType: ExerciseTrackingType | undefined,
   row: WorkoutSetInput,
   patch: Pick<WorkoutSetInput, "actualLoad"> | Pick<WorkoutSetInput, "actualReps">,
 ): WorkoutSetInput {
-  const next = { ...row, ...patch };
-  if (row.status === "completed" && !isMetricSetValid(trackingType, next)) {
-    return { ...next, status: "incomplete" };
-  }
-  return next;
+  return { ...row, ...patch };
 }
 
-export function getMetricSetGuidance(
-  trackingType: ExerciseTrackingType | undefined,
-  row: Pick<WorkoutSetInput, "actualLoad" | "actualReps">,
-) {
-  if (isMetricSetValid(trackingType, row)) {
-    return "";
-  }
-  return trackingType === "weight_reps"
-    ? "Enter weight and whole-number reps to complete this set."
-    : "Enter whole-number reps to complete this set.";
+export function parseDeterministicPrescriptionReps(reps: string) {
+  const trimmed = reps.trim().toLowerCase();
+  const leadingNumber = trimmed.match(/^\d+/)?.[0];
+  if (!leadingNumber) return null;
+  return Number.parseInt(leadingNumber, 10);
+}
+
+export function getInitialSetValues(input: {
+  setIndex: number;
+  previousSetDefaults?: SetValueDefaults[];
+  prescribedReps: string;
+  defaultLoad?: number | null;
+}): SetValueDefaults {
+  const exactPrevious = input.previousSetDefaults?.[input.setIndex];
+  if (exactPrevious) return exactPrevious;
+
+  const mostRecentPrevious = input.previousSetDefaults?.find(
+    (set) => set.actualLoad !== null || set.actualReps !== null,
+  );
+  if (mostRecentPrevious) return mostRecentPrevious;
+
+  return {
+    actualLoad: input.defaultLoad ?? null,
+    actualReps: parseDeterministicPrescriptionReps(input.prescribedReps),
+  };
 }
 
 export function calculateSetProgress(input: {
@@ -76,6 +89,7 @@ export function buildCanonicalMetricSetRows(input: {
   exerciseEntryId: string;
   prescribedSetCount: number;
   submittedRows: WorkoutSetInput[];
+  defaults?: SetValueDefaults[];
 }): CanonicalSetMergeResult {
   const prescribedByIndex = new Map<number, WorkoutSetInput>();
   for (const row of input.submittedRows) {
@@ -95,12 +109,13 @@ export function buildCanonicalMetricSetRows(input: {
 
   const prescribed = Array.from({ length: input.prescribedSetCount }, (_, index) => {
     const submitted = prescribedByIndex.get(index);
+    const defaults = input.defaults?.[index] ?? { actualLoad: null, actualReps: null };
     return {
       ...(submitted ?? {
         exerciseEntryId: input.exerciseEntryId,
         setId: `${input.exerciseEntryId}:prescribed:${index}`,
-        actualLoad: null,
-        actualReps: null,
+        actualLoad: defaults.actualLoad,
+        actualReps: defaults.actualReps,
         status: "incomplete" as const,
       }),
       exerciseEntryId: input.exerciseEntryId,

@@ -10,7 +10,7 @@ import {
   buildPrescribedSetRows,
   getDefaultTrackingMetadata,
 } from "@/lib/execution-results";
-import { buildCanonicalMetricSetRows } from "@/lib/set-logging";
+import { buildCanonicalMetricSetRows, isSuppliedMetricValuesValid } from "@/lib/set-logging";
 import { isValidUuid, isWorkoutSessionInput } from "@/lib/validation";
 
 export async function POST(request: Request) {
@@ -184,7 +184,7 @@ export async function POST(request: Request) {
     }
     if (row.setKind === "added" && row.prescribedSetIndex !== null) return NextResponse.json({ error: "Added set rows cannot include a prescribed index." }, { status: 400 });
     if (trackingType === "reps_only" && row.actualLoad !== null && row.actualLoad !== undefined) return NextResponse.json({ error: "Reps-only rows cannot include load." }, { status: 400 });
-    if (row.status === "completed" && (row.actualReps === null || row.actualReps === undefined || !Number.isInteger(row.actualReps) || row.actualReps < 0 || (trackingType === "weight_reps" && (row.actualLoad === null || row.actualLoad === undefined || row.actualLoad < 0)))) return NextResponse.json({ error: "Completed metric set rows require valid metrics." }, { status: 400 });
+    if (!isSuppliedMetricValuesValid(trackingType, row)) return NextResponse.json({ error: "Set metrics must be non-negative numbers when supplied." }, { status: 400 });
   }
 
   const setPayload = (exercises ?? []).flatMap((exercise) => {

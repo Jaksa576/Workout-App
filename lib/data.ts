@@ -77,6 +77,7 @@ type WorkoutRow = {
 
 type ExerciseRow = {
   previous_set_summaries?: string[];
+  previous_set_defaults?: Array<{ actualLoad: number | null; actualReps: number | null }>;
   id: string;
   workout_template_id: string;
   name: string;
@@ -147,6 +148,7 @@ function mapExercise(row: ExerciseRow): ExerciseEntry {
     primaryValueLabel: row.primary_value_label,
     secondaryValueLabel: row.secondary_value_label,
     previousSetSummaries: row.previous_set_summaries ?? [],
+    previousSetDefaults: row.previous_set_defaults ?? [],
   };
 }
 
@@ -338,17 +340,20 @@ async function getPlanBundle(userId: string, sessionSince?: string) {
       .in("source_exercise_id", catalogExerciseIds)
       .eq("workout_sessions.user_id", userId)
       .order("created_at", { ascending: false }) as { data: Array<{ source_exercise_id: string | null; source_workout_template_id: string | null; created_at: string; exercise_set_results?: Array<{ set_order: number; status: string; actual_load: number | null; actual_reps: number | null }> }> | null };
-    const previousBySource = new Map<string, string[]>();
+    const previousBySource = new Map<string, { summaries: string[]; defaults: Array<{ actualLoad: number | null; actualReps: number | null }> }>();
     for (const row of previousRows ?? []) {
       if (!row.source_exercise_id || previousBySource.has(row.source_exercise_id)) continue;
-      const summaries = (row.exercise_set_results ?? [])
+      const completedSets = (row.exercise_set_results ?? [])
         .filter((set) => set.status === "completed")
-        .sort((a, b) => a.set_order - b.set_order)
-        .map((set) => set.actual_load !== null && set.actual_load !== undefined ? `${set.actual_load} × ${set.actual_reps ?? "—"}` : `${set.actual_reps ?? "—"} reps`);
-      if (summaries.length) previousBySource.set(row.source_exercise_id, summaries);
+        .sort((a, b) => a.set_order - b.set_order);
+      const summaries = completedSets.map((set) => set.actual_load !== null && set.actual_load !== undefined ? `${set.actual_load} × ${set.actual_reps ?? "—"}` : `${set.actual_reps ?? "—"} reps`);
+      const defaults = completedSets.map((set) => ({ actualLoad: set.actual_load, actualReps: set.actual_reps }));
+      if (summaries.length) previousBySource.set(row.source_exercise_id, { summaries, defaults });
     }
     for (const exercise of exercisesWithPrevious) {
-      exercise.previous_set_summaries = exercise.source_exercise_id ? (previousBySource.get(exercise.source_exercise_id) ?? []) : [];
+      const previous = exercise.source_exercise_id ? previousBySource.get(exercise.source_exercise_id) : undefined;
+      exercise.previous_set_summaries = previous?.summaries ?? [];
+      exercise.previous_set_defaults = previous?.defaults ?? [];
     }
   }
 
