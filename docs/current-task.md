@@ -209,9 +209,18 @@ This review patch addresses the first-class distance tracking feedback for `stri
 
 Validation focus: confirm the catalog defaults and SQL backfill keep `stride-drills` and `lateral-shuffle` as duration rows while retaining `distance` support for true distance-only exercises.
 
-
 ## PR Follow-up — Issue #14 Exhaustive Metadata Inventory
 
 Implementing the PR follow-up request to establish a durable, typed exercise metadata inventory on top of the Issue #14 tracking-row foundation. The committed registry in `lib/exercise-metadata-inventory.ts` derives from the static exercise catalog so runtime defaults and review artifacts cannot drift silently. It records normalized names, aliases, exact catalog prescriptions, tracking type, unilateral mode, units, labels, review status, rationale, intentional completion reasons, and future metric flags.
 
 Hosted Supabase audit/backfill was not run from this environment, so legacy row counts remain pending an authorized database audit. The report in `docs/exercise-metadata-inventory.md` documents current repo-owned coverage, totals by tracking type, intentional completion decisions, ambiguity decisions, and future `load_distance` candidates without applying hosted migrations.
+
+## PR Follow-up — Issue #15 Workout execution rest timer integration
+
+Implementing the PR follow-up request for Issue #15 rest timer integration on top of the active Issue #13/#14 execution-row system. The active workout continues to use one draft-backed, timestamp-driven rest timer state for the whole session instead of reintroducing the old standalone `TimerCard` on workout selection.
+
+Completing a set auto-starts or restarts the timer with the just-completed exercise's prescribed rest duration when the current workout's `autoStartRest` draft preference is enabled. The preference defaults to enabled for new or legacy drafts, persists through refresh/recovery, applies only to subsequent set completions, and is shaped so a later global setting can initialize new drafts without rewriting the timer engine. Timer continuity remains timestamp-based (`endsAt`) so refresh/background recovery derives remaining time from absolute time rather than interval ticks.
+
+Patch update: active running, paused, and expired rest controls now live in a non-modal bottom dock with large countdown, exercise context, +15 seconds, pause/resume, skip, and dismiss controls while the workout page keeps enough bottom padding for final rows and Finish controls. Idle rest no longer consumes a permanent large surface; manual Start rest remains a compact active-workout control. Manual start now chooses the current/recent exercise when it still has unfinished visible prescribed or added sets, falls through to the first unfinished exercise, and only uses the bounded fallback when no current context exists. Finish clears `restTimer` and the live derived state before check-in so expiry feedback cannot continue after execution ends; Discard/save/start-over cleanup remains deliberate.
+
+Validation focus: complete a set and confirm the bottom dock follows scroll without blocking logging, refresh while running, refresh with auto-start disabled, pause/resume/add/skip/dismiss, expiry after tab backgrounding, complete another set while running to confirm deterministic restart, manual Start after set 1 of a multi-set exercise, Finish/Discard reset timer state, and verify no timer appears on `/workout` selection.

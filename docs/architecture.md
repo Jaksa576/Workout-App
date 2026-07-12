@@ -237,7 +237,7 @@ For a session-time replacement, prior values follow the performed replacement ex
 
 ### Mobile information architecture
 
-The approved mobile execution IA is one compact vertically scrolling active-workout page. It keeps the app’s current visual system and primitives rather than copying another app’s branding or trade dress. The sticky active header shows workout name, elapsed time, completed sets, applicable totals, timer access, Finish, and discard/overflow behavior. Exercise sections display title/media affordance, planned context, previous value, inline set rows, add-set action where supported, notes, and compact validation. Tapping exercise title/media opens a secondary Summary / History / How-to surface and returns to the active page without draft or scroll-context loss. Finish leads to the existing readiness/symptom/check-in boundary before durable save.
+The approved mobile execution IA is one compact vertically scrolling active-workout page. It keeps the app’s current visual system and primitives rather than copying another app’s branding or trade dress. The sticky active header shows workout name, elapsed time, completed sets, a compact active rest countdown when applicable, Finish, and discard/overflow behavior. Exercise sections display title/media affordance, planned context, previous value, inline set rows, add-set action where supported, notes, and compact validation. Tapping exercise title/media opens a secondary Summary / History / How-to surface and returns to the active page without draft or scroll-context loss. Finish leads to the existing readiness/symptom/check-in boundary before durable save.
 
 ### Progression boundary
 
@@ -405,9 +405,14 @@ The execution tracking union includes `distance` for set rows where distance is 
 
 Distance units are stored in exercise metadata snapshots (`exercise_entries.distance_unit` and `exercise_results.distance_unit`) and are constrained to the supported distance units (`m`, `km`, `mi`). Scalar bilateral and same-each-side distance rows store `actual_distance`; independent-side rows store `actual_left_distance` and `actual_right_distance` and must not mix scalar distance with side-specific distance. Blank completed metric rows are allowed under the optional-metric rule and persist metric columns as `null`; supplied distance values must be finite and non-negative.
 
-
 ### Repo-owned exercise metadata inventory
 
 The static TypeScript catalog remains the runtime source of default tracking metadata for catalog-backed exercises. The typed inventory module derives from that catalog and is the reviewable registry for deterministic metadata decisions: normalized name, aliases, exact prescription matcher, tracking type, unilateral mode, units, labels, rationale, intentional completion reason, and future metric flags. Tests assert one-to-one coverage and synchronization between the runtime catalog and the inventory so future migration generation can consume one stable repo-owned source instead of hand-maintained divergent TypeScript and SQL lists.
 
 Inventory lookup is exact after normalization and intentionally avoids fuzzy production inference. Unknown/custom exercises continue to use explicit completion fallback semantics until a reviewed catalog identity or metadata override is supplied.
+
+### PR Follow-up — Active Rest Timer State
+
+The active workout rest timer is part of the single browser-local active draft, not a second active-session store. Drafts may carry nullable `restTimer` state with `status`, `durationSeconds`, `remainingSeconds`, absolute `startedAt`/`endsAt`/`pausedAt` timestamps, source exercise identity/name, auto-start provenance, and the last completed set ID. Running timers are recovered by deriving remaining time from `endsAt`; paused and expired timers persist their remaining/expired state directly. Drafts also carry the current workout's `autoStartRest` preference, defaulting to enabled for new or legacy drafts until a later global setting initializes that value.
+
+Rest duration precedence is explicit and deterministic: current-session override hook, saved exercise rest prescription, user default hook, then a bounded app fallback. Completing another set while automatic starts are enabled restarts the one central timer with the newly completed exercise's prescribed duration. Turning automatic starts off affects only subsequent set completions and does not cancel a running timer; manual start remains available and chooses the current/recent exercise when it still has unfinished visible sets, then the first exercise with unfinished visible sets. Active running, paused, and expired rest controls render in a non-modal bottom dock above the safe area so logging remains interactive while the timer follows scrolling. Finish and Discard deliberately clear timer state with the rest of the active draft before leaving execution or removing recovery data.

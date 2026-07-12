@@ -6,13 +6,31 @@ import type { Route } from "next";
 import { PhaseProgressPanel } from "@/components/phase-progress-panel";
 import { shouldPersistActiveWorkoutDraft } from "@/lib/active-workout-lifecycle";
 import {
+  activeWorkoutAutoStartRestDefault,
+  selectExerciseForManualRest,
+} from "@/lib/active-workout-rest";
+import {
   canFinishActiveWorkout,
   getDiscardRedirectPath,
   getRecoveredDraftStep,
   shouldShowActiveStartCard,
 } from "@/lib/active-workout-shell";
 import { WorkoutChecklist } from "@/components/workout-checklist";
-import { calculateSetProgress, migrateLegacyCompletionRows } from "@/lib/set-logging";
+import {
+  calculateSetProgress,
+  migrateLegacyCompletionRows,
+} from "@/lib/set-logging";
+import {
+  addRestTime,
+  deriveRestTimerState,
+  formatRestTimer,
+  getRestDurationSeconds,
+  idleRestTimerState,
+  pauseRestTimer,
+  resumeRestTimer,
+  startRestTimer,
+  type RestTimerState,
+} from "@/lib/rest-timer";
 import {
   buildActiveWorkoutDraft,
   getActiveWorkoutDraftStorageKey,
@@ -114,6 +132,84 @@ function mergeSessions(
 
   return sortSessionsByLatest(Array.from(sessionsById.values()));
 }
+
+function RestTimerDock({
+  timer,
+  onPause,
+  onResume,
+  onAdd,
+  onCancel,
+}: {
+  timer: RestTimerState;
+  onPause: () => void;
+  onResume: () => void;
+  onAdd: () => void;
+  onCancel: () => void;
+}) {
+  if (timer.status === "idle") return null;
+
+  const stateLabel =
+    timer.status === "expired"
+      ? "Rest complete"
+      : timer.status === "paused"
+        ? "Rest paused"
+        : "Resting";
+  const timeLabel =
+    timer.status === "expired"
+      ? "0:00"
+      : formatRestTimer(timer.remainingSeconds);
+
+  return (
+    <section
+      className="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 mx-auto max-w-3xl rounded-[28px] border border-primary/25 bg-surface/95 p-4 shadow-2xl backdrop-blur sm:bottom-[max(1rem,env(safe-area-inset-bottom))]"
+      aria-label="Rest timer controls"
+      aria-live={timer.status === "expired" ? "polite" : "off"}
+      aria-atomic="true"
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-primary">
+            {stateLabel}
+          </p>
+          <p className="mt-1 text-5xl font-black tabular-nums leading-none text-copy sm:text-6xl">
+            {timeLabel}
+          </p>
+          {timer.exerciseName ? (
+            <p className="mt-2 truncate text-sm font-semibold text-muted">
+              {timer.exerciseName}
+            </p>
+          ) : null}
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
+          {timer.status === "paused" ? (
+            <button type="button" className="ui-button-secondary min-h-12 px-4 py-3" onClick={onResume} aria-label="Resume rest timer">
+              Resume
+            </button>
+          ) : timer.status === "expired" ? (
+            <button type="button" className="ui-button-secondary col-span-2 min-h-12 px-4 py-3" onClick={onCancel} aria-label="Dismiss completed rest timer">
+              Dismiss
+            </button>
+          ) : (
+            <button type="button" className="ui-button-ghost min-h-12 px-4 py-3" onClick={onPause} aria-label="Pause rest timer">
+              Pause
+            </button>
+          )}
+          {timer.status !== "expired" ? (
+            <>
+              <button type="button" className="ui-button-secondary min-h-12 px-4 py-3" onClick={onAdd} aria-label="Add 15 seconds to rest timer">
+                +15 sec
+              </button>
+              <button type="button" className="ui-button-primary col-span-2 min-h-12 px-4 py-3 sm:col-span-1" onClick={onCancel} aria-label="Skip rest timer">
+                Skip
+              </button>
+            </>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 
 function ProgressBars({ summary }: { summary: WorkoutProgressSummary }) {
   const maxCompleted = Math.max(
@@ -241,7 +337,16 @@ export function WorkoutFlow({
   const [storageAvailable, setStorageAvailable] = useState(true);
   const [checkedExerciseIds, setCheckedExerciseIds] = useState<string[]>([]);
   const [setResults, setSetResults] = useState<WorkoutSetInput[]>([]);
-  const [exerciseNotes, setExerciseNotes] = useState<Record<string, string>>({});
+  const [exerciseNotes, setExerciseNotes] = useState<Record<string, string>>(
+    {},
+  );
+  const [restTimer, setRestTimer] = useState<RestTimerState | null>(null);
+  const [liveRestTimer, setLiveRestTimer] =
+    useState<RestTimerState>(idleRestTimerState);
+  const [autoStartRest, setAutoStartRest] = useState(
+    activeWorkoutAutoStartRestDefault,
+  );
+  const [currentRestExerciseId, setCurrentRestExerciseId] = useState<string | null>(null);
   const [completed, setCompleted] = useState(true);
   const [pain, setPain] = useState(false);
   const [effort, setEffort] =
@@ -329,6 +434,11 @@ export function WorkoutFlow({
       setCheckedExerciseIds(migratedDraftRows.checkedExerciseIds);
       setSetResults(migratedDraftRows.setResults);
       setExerciseNotes(result.draft.exerciseNotes);
+      setRestTimer(result.draft.restTimer ?? null);
+      setAutoStartRest(
+        result.draft.autoStartRest ?? activeWorkoutAutoStartRestDefault,
+      );
+      setCurrentRestExerciseId(result.draft.restTimer?.exerciseEntryId ?? null);
       setCompleted(result.draft.checkIn.completed);
       setPain(result.draft.checkIn.painOccurred);
       setEffort(
@@ -392,6 +502,8 @@ export function WorkoutFlow({
         checkedExerciseIds,
         setResults,
         exerciseNotes,
+        restTimer,
+        autoStartRest,
         checkIn: {
           completedOn,
           completed,
@@ -418,6 +530,8 @@ export function WorkoutFlow({
     checkedExerciseIds,
     setResults,
     exerciseNotes,
+    restTimer,
+    autoStartRest,
     completed,
     completedOn,
     effort,
@@ -430,7 +544,9 @@ export function WorkoutFlow({
 
   useEffect(() => {
     const hasMeaningfulDraft = Boolean(
-      activeDraft && step !== "saved" && (checkedExerciseIds.length > 0 || setResults.length > 0),
+      activeDraft &&
+      step !== "saved" &&
+      (checkedExerciseIds.length > 0 || setResults.length > 0),
     );
     if (!hasMeaningfulDraft) {
       return;
@@ -443,6 +559,68 @@ export function WorkoutFlow({
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
   }, [activeDraft, checkedExerciseIds.length, setResults.length, step]);
+
+  useEffect(() => {
+    setLiveRestTimer(deriveRestTimerState(restTimer));
+    if (!restTimer || restTimer.status !== "running") {
+      return;
+    }
+    const interval = window.setInterval(() => {
+      setLiveRestTimer(deriveRestTimerState(restTimer));
+    }, 1000);
+    return () => window.clearInterval(interval);
+  }, [restTimer]);
+
+  useEffect(() => {
+    if (liveRestTimer.status === "expired" && restTimer?.status === "running") {
+      setRestTimer(liveRestTimer);
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        navigator.vibrate?.(120);
+      }
+    }
+  }, [liveRestTimer, restTimer]);
+
+  function handleSetCompletedForRest(input: {
+    exercise: WorkoutTemplate["exercises"][number];
+    setId: string;
+  }) {
+    if (!autoStartRest) return;
+    setCurrentRestExerciseId(input.exercise.id);
+    const durationSeconds = getRestDurationSeconds({
+      exerciseRest: input.exercise.rest,
+    });
+    setRestTimer(
+      startRestTimer({
+        durationSeconds,
+        exerciseEntryId: input.exercise.id,
+        exerciseName: input.exercise.name,
+        autoStarted: true,
+        setId: input.setId,
+      }),
+    );
+    setDraftMessage(`Rest timer restarted for ${input.exercise.name}.`);
+  }
+
+  function handleManualStartRest() {
+    const selectedExercise = selectExerciseForManualRest({
+      workout,
+      setResults,
+      currentExerciseId: currentRestExerciseId,
+    });
+    if (!selectedExercise) return;
+    setCurrentRestExerciseId(selectedExercise.id);
+    setRestTimer(
+      startRestTimer({
+        durationSeconds: getRestDurationSeconds({
+          exerciseRest: selectedExercise.rest,
+        }),
+        exerciseEntryId: selectedExercise.id,
+        exerciseName: selectedExercise.name,
+        autoStarted: false,
+        setId: null,
+      }),
+    );
+  }
 
   function handleSelectWorkout(id: string) {
     if (activeDraft && activeDraft.workoutTemplateId !== id) {
@@ -513,6 +691,8 @@ export function WorkoutFlow({
     setCheckedExerciseIds([]);
     setSetResults([]);
     setExerciseNotes({});
+    setRestTimer(null);
+    setLiveRestTimer(idleRestTimerState);
     setDraftMessage("Active workout draft discarded.");
     setStatus(null);
     setInvalidRecoveryKey(null);
@@ -561,7 +741,20 @@ export function WorkoutFlow({
     if (!finishEnabled || !activeDraft) {
       return;
     }
-    setCompleted(calculateSetProgress({ exercises: workout.exercises, setResults, checkedExerciseIds }).completed === calculateSetProgress({ exercises: workout.exercises, setResults, checkedExerciseIds }).total);
+    setCompleted(
+      calculateSetProgress({
+        exercises: workout.exercises,
+        setResults,
+        checkedExerciseIds,
+      }).completed ===
+        calculateSetProgress({
+          exercises: workout.exercises,
+          setResults,
+          checkedExerciseIds,
+        }).total,
+    );
+    setRestTimer(null);
+    setLiveRestTimer(idleRestTimerState);
     setStep("check-in");
     setStatus(null);
   }
@@ -607,6 +800,8 @@ export function WorkoutFlow({
           getActiveWorkoutDraftStorageKey(activeDraft.userId),
         );
       }
+      setRestTimer(null);
+      setLiveRestTimer(idleRestTimerState);
       setSavedSession(savedWorkoutSession);
       setSessionHistory((currentSessions) =>
         mergeSessions(currentSessions, [savedWorkoutSession]),
@@ -635,6 +830,8 @@ export function WorkoutFlow({
     setCheckedExerciseIds([]);
     setSetResults([]);
     setExerciseNotes({});
+    setRestTimer(null);
+    setLiveRestTimer(idleRestTimerState);
     setCompleted(true);
     setPain(false);
     setEffort("Appropriate");
@@ -648,7 +845,11 @@ export function WorkoutFlow({
     router.push(`/workout?workoutId=${workout.id}` as Route);
   }
 
-  const progress = calculateSetProgress({ exercises: workout.exercises, setResults, checkedExerciseIds });
+  const progress = calculateSetProgress({
+    exercises: workout.exercises,
+    setResults,
+    checkedExerciseIds,
+  });
   const elapsedSeconds = useLiveElapsedSeconds(activeDraft);
   const finishEnabled = canFinishActiveWorkout({
     mode,
@@ -661,7 +862,7 @@ export function WorkoutFlow({
 
   if (isActiveMode) {
     return (
-      <div className="mx-auto max-w-3xl pb-[max(2rem,env(safe-area-inset-bottom))]">
+      <div className={`mx-auto max-w-3xl ${liveRestTimer.status === "idle" ? "pb-[max(2rem,env(safe-area-inset-bottom))]" : "pb-[max(12rem,calc(env(safe-area-inset-bottom)+10rem))]"}`}>
         <div className="sticky top-0 z-30 -mx-3 border-b border-border/80 bg-shell/95 px-3 py-3 backdrop-blur sm:top-2 sm:mx-0 sm:rounded-[28px] sm:border sm:shadow-soft">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
@@ -669,7 +870,11 @@ export function WorkoutFlow({
                 {workout.name}
               </p>
               <p className="mt-1 text-xs font-semibold text-muted">
-                {formatElapsed(elapsedSeconds)} · {progress.completed}/{progress.total} sets
+                {formatElapsed(elapsedSeconds)} · {progress.completed}/
+                {progress.total} sets
+                {liveRestTimer.status === "idle"
+                  ? ""
+                  : ` · Rest ${formatRestTimer(liveRestTimer.remainingSeconds)}`}
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
@@ -761,14 +966,56 @@ export function WorkoutFlow({
           ) : null}
 
           {step === "workout" && activeDraft ? (
-            <WorkoutChecklist
-              workout={workout}
-              checkedExerciseIds={checkedExerciseIds}
-              onCheckedExerciseIdsChange={setCheckedExerciseIds}
-              setResults={setResults}
-              onSetResultsChange={setSetResults}
-              compactExecution
-            />
+            <>
+              <div className="flex flex-col gap-3 rounded-[24px] border border-border bg-surface-soft p-4 sm:flex-row sm:items-center sm:justify-between">
+                <label className="flex items-start gap-3 text-sm font-semibold text-copy">
+                  <input
+                    type="checkbox"
+                    className="mt-1 h-5 w-5 accent-[rgb(var(--color-primary))]"
+                    checked={autoStartRest}
+                    onChange={(event) => setAutoStartRest(event.target.checked)}
+                    aria-label="Automatically start rest after completed sets"
+                  />
+                  <span>Automatically start rest after completed sets</span>
+                </label>
+                <button
+                  type="button"
+                  className="ui-button-secondary min-h-11 px-4 py-2 text-sm"
+                  onClick={handleManualStartRest}
+                  aria-label="Start rest timer manually"
+                >
+                  Start rest
+                </button>
+              </div>
+              <WorkoutChecklist
+                workout={workout}
+                checkedExerciseIds={checkedExerciseIds}
+                onCheckedExerciseIdsChange={setCheckedExerciseIds}
+                setResults={setResults}
+                onSetResultsChange={setSetResults}
+                compactExecution
+                onSetCompleted={handleSetCompletedForRest}
+              />
+              <RestTimerDock
+                timer={liveRestTimer}
+                onPause={() =>
+                  setRestTimer((current) =>
+                    current ? pauseRestTimer(current) : current,
+                  )
+                }
+                onResume={() =>
+                  setRestTimer((current) =>
+                    current ? resumeRestTimer(current) : current,
+                  )
+                }
+                onAdd={() =>
+                  setRestTimer((current) =>
+                    current ? addRestTime(current, 15) : current,
+                  )
+                }
+                onCancel={() => setRestTimer(null)}
+              />
+            </>
           ) : null}
 
           {step === "check-in" ? (
