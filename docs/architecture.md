@@ -404,3 +404,10 @@ Initial actual values are generated only for missing local rows and must never o
 The execution tracking union includes `distance` for set rows where distance is the primary metric and elapsed time is not required. `distance` reuses the same active set-row draft, API payload, `exercise_set_results.actual_distance` / side-specific distance columns, and `finalize_workout_session` RPC path as other metric tracking types. `distance_duration` remains reserved for workouts that intentionally capture both distance and duration.
 
 Distance units are stored in exercise metadata snapshots (`exercise_entries.distance_unit` and `exercise_results.distance_unit`) and are constrained to the supported distance units (`m`, `km`, `mi`). Scalar bilateral and same-each-side distance rows store `actual_distance`; independent-side rows store `actual_left_distance` and `actual_right_distance` and must not mix scalar distance with side-specific distance. Blank completed metric rows are allowed under the optional-metric rule and persist metric columns as `null`; supplied distance values must be finite and non-negative.
+
+
+### Repo-owned exercise metadata inventory
+
+The static TypeScript catalog remains the runtime source of default tracking metadata for catalog-backed exercises. The typed inventory module derives from that catalog and is the reviewable registry for deterministic metadata decisions: normalized name, aliases, exact prescription matcher, tracking type, unilateral mode, units, labels, rationale, intentional completion reason, and future metric flags. Tests assert one-to-one coverage and synchronization between the runtime catalog and the inventory so future migration generation can consume one stable repo-owned source instead of hand-maintained divergent TypeScript and SQL lists.
+
+Inventory lookup is exact after normalization and intentionally avoids fuzzy production inference. Unknown/custom exercises continue to use explicit completion fallback semantics until a reviewed catalog identity or metadata override is supplied.

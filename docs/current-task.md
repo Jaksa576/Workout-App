@@ -208,3 +208,10 @@ Migration `supabase/migrations/20260712150000_issue14_first_class_distance_track
 This review patch addresses the first-class distance tracking feedback for `stride-drills` and `lateral-shuffle`: both catalog entries remain prescribed in seconds, so they stay on `duration` tracking rather than being converted to distance-only rows. The distance-only tracking type remains available for future exercises whose prescription is actually distance-based; no hosted Supabase migration was applied by Codex.
 
 Validation focus: confirm the catalog defaults and SQL backfill keep `stride-drills` and `lateral-shuffle` as duration rows while retaining `distance` support for true distance-only exercises.
+
+
+## PR Follow-up — Issue #14 Exhaustive Metadata Inventory
+
+Implementing the PR follow-up request to establish a durable, typed exercise metadata inventory on top of the Issue #14 tracking-row foundation. The committed registry in `lib/exercise-metadata-inventory.ts` derives from the static exercise catalog so runtime defaults and review artifacts cannot drift silently. It records normalized names, aliases, exact catalog prescriptions, tracking type, unilateral mode, units, labels, review status, rationale, intentional completion reasons, and future metric flags.
+
+Hosted Supabase audit/backfill was not run from this environment, so legacy row counts remain pending an authorized database audit. The report in `docs/exercise-metadata-inventory.md` documents current repo-owned coverage, totals by tracking type, intentional completion decisions, ambiguity decisions, and future `load_distance` candidates without applying hosted migrations.
