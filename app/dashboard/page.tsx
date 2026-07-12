@@ -14,8 +14,15 @@ import type {
   PhaseProgressSummary,
   TrainingGoalType,
   WorkoutPlan,
+  WorkoutSession,
   WorkoutTemplate
 } from "@/lib/types";
+
+function formatDisplayDate(date: string) {
+  return new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(
+    new Date(`${date}T00:00:00`),
+  );
+}
 
 const goalLabels: Record<TrainingGoalType, string> = {
   recovery: "Recovery",
@@ -80,7 +87,7 @@ export default async function DashboardPage() {
       </section>
 
       <section className="grid gap-5 xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
-        <ActivityCard activity={dashboard.activitySummary} painTrend={dashboard.painTrend} />
+        <ActivityCard activity={dashboard.activitySummary} painTrend={dashboard.painTrend} recentSessions={dashboard.recentSessions} />
         <section className="grid gap-4 md:grid-cols-3 xl:grid-cols-1">
           {dashboard.metrics.map((metric, index) => (
             <MetricCard
@@ -363,10 +370,12 @@ function NextStepCard({
 
 function ActivityCard({
   activity,
-  painTrend
+  painTrend,
+  recentSessions
 }: {
   activity: DashboardActivitySummary;
   painTrend: DashboardPainTrend | null;
+  recentSessions: WorkoutSession[];
 }) {
   return (
     <SurfaceCard>
@@ -430,6 +439,30 @@ function ActivityCard({
       <p className="mt-5 text-sm leading-6 text-muted">
         {painTrend?.detail ?? "Log workouts to build a clearer weekly signal."}
       </p>
+      <div className="mt-6 grid gap-3">
+        {recentSessions.length > 0 ? (
+          recentSessions.slice(0, 3).map((session) => (
+            <div key={session.id} className="rounded-[20px] border border-border bg-surface-soft p-3 text-sm">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate font-black text-copy">{session.workoutNameSnapshot}</p>
+                  <p className="mt-1 font-semibold text-muted">{formatDisplayDate(session.completedOn)}</p>
+                </div>
+                <span className="rounded-full bg-surface px-2.5 py-1 text-xs font-bold text-muted">
+                  {session.status ?? (session.completed ? "Completed" : "Partial")}
+                </span>
+              </div>
+              <p className="mt-2 font-semibold leading-6 text-muted">
+                {session.metrics?.summary ?? session.recommendation}
+              </p>
+            </div>
+          ))
+        ) : (
+          <p className="rounded-[20px] border border-dashed border-border bg-surface-soft p-3 text-sm font-semibold text-muted">
+            Complete your first workout to see training history here.
+          </p>
+        )}
+      </div>
     </SurfaceCard>
   );
 }

@@ -66,6 +66,13 @@ Recap formulas are derived from completed active-draft set rows. Load volume now
 
 Validation focus: complete and partial finish recaps, mixed tracking types, same-each-side labels versus aggregate totals, independent-side volume, Back preserving draft data and excluding Finish-review time, duplicate-save disabled state, retry after failure with frozen elapsed seconds, rest-timer cleanup at Finish, top positioning, hidden active header on Finish, and guarded bottom Discard workout behavior.
 
+
+## PR Follow-up — Issue #17A compatibility and aggregation
+
+Implementing the PR follow-up request to treat dashboard/history/progression compatibility as the correctness/data-layer step before progress-trends Issue #36. This patch adds shared session and exercise metric derivation over the durable `workout_sessions` -> `exercise_results` -> `exercise_set_results` model, including Completed/Partial status, elapsed seconds, set and exercise completion counts, load volume, total reps, work duration, distance, units, unilateral semantics, concise summaries, and ordered trend-series objects for future chart consumers.
+
+The dashboard now reads the shared saved-session metrics for compact recent activity rows instead of asking users to infer raw set data. Progression policy is unchanged: existing `completed`, pain, perceived-difficulty, phase, and recommendation fields remain the deterministic progression inputs, while richer set metrics are informational and prepared for #36. No schema, RLS, final-save, active-draft, or hosted Supabase behavior changed in this follow-up.
+
 ## Workflow Source Of Truth
 
 Active work is issue-driven:

@@ -162,6 +162,7 @@ export type DashboardData = {
   activitySummary: DashboardActivitySummary;
   progressionPrompt: DashboardProgressionPrompt | null;
   painTrend: DashboardPainTrend | null;
+  recentSessions: WorkoutSession[];
 };
 
 export type DashboardWeekPreviewItem = {
@@ -236,6 +237,24 @@ export type PhaseProgressSummary = {
   completionPercent: number;
 };
 
+export type WorkoutSessionStatus = "Completed" | "Partial";
+
+export type WorkoutSessionMetrics = {
+  status: WorkoutSessionStatus;
+  elapsedSeconds: number;
+  completedSets: number;
+  totalSets: number;
+  completedExercises: number;
+  performedExercises: number;
+  totalExercises: number;
+  loadVolume: number;
+  totalReps: number;
+  workDurationSeconds: number;
+  distance: number;
+  distanceUnit: "mi" | "km" | "m" | null;
+  summary: string;
+};
+
 export type WorkoutSession = {
   id: string;
   createdAt: string;
@@ -250,6 +269,8 @@ export type WorkoutSession = {
   phaseIdAtCompletion?: string | null;
   progressionDecision?: ProgressionDecision | null;
   progressionReason?: string | null;
+  status?: WorkoutSessionStatus;
+  metrics?: WorkoutSessionMetrics;
 };
 
 export type WorkoutSetInput = {
