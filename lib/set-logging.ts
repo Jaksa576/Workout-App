@@ -5,10 +5,14 @@ export type SetValueDefaults = {
   actualReps: number | null;
   actualDurationSeconds?: number | null;
   actualDistance?: number | null;
+  actualLeftLoad?: number | null;
+  actualRightLoad?: number | null;
   actualLeftReps?: number | null;
   actualRightReps?: number | null;
   actualLeftDurationSeconds?: number | null;
   actualRightDurationSeconds?: number | null;
+  actualLeftDistance?: number | null;
+  actualRightDistance?: number | null;
 };
 
 export function isSupportedMetricTrackingType(trackingType?: ExerciseTrackingType) {
