@@ -261,7 +261,27 @@ function getRecapVolumeMultiplier(unilateralMode = "bilateral") {
   return unilateralMode === "same_each_side" ? 2 : 1;
 }
 
-function buildWorkoutRecap(workout: WorkoutTemplate, setResults: WorkoutSetInput[], checkedExerciseIds: string[], elapsedSeconds: number) {
+export function getSetLoadVolume(row: WorkoutSetInput, unilateralMode = "bilateral") {
+  if (unilateralMode === "independent_sides") {
+    const leftVolume =
+      row.actualLeftLoad != null && row.actualLeftReps != null
+        ? row.actualLeftLoad * row.actualLeftReps
+        : 0;
+    const rightVolume =
+      row.actualRightLoad != null && row.actualRightReps != null
+        ? row.actualRightLoad * row.actualRightReps
+        : 0;
+    return leftVolume + rightVolume;
+  }
+
+  const load = getSetScalar(row, "load");
+  const rowReps = getSetScalar(row, "reps");
+  return load != null && rowReps != null
+    ? load * rowReps * getRecapVolumeMultiplier(unilateralMode)
+    : 0;
+}
+
+export function buildWorkoutRecap(workout: WorkoutTemplate, setResults: WorkoutSetInput[], checkedExerciseIds: string[], elapsedSeconds: number) {
   const progress = calculateSetProgress({ exercises: workout.exercises, setResults, checkedExerciseIds });
   const completedExercises = workout.exercises.filter((exercise) => {
     const rows = setResults.filter((row) => row.exerciseEntryId === exercise.id);
@@ -275,11 +295,10 @@ function buildWorkoutRecap(workout: WorkoutTemplate, setResults: WorkoutSetInput
   const exerciseSummaries = workout.exercises.map((exercise) => {
     const rows = getCompletedSetRows(exercise.id, setResults);
     for (const row of rows) {
-      const load = getSetScalar(row, "load");
       const rowReps = getSetScalar(row, "reps");
       const rowDuration = getSetScalar(row, "duration");
       const rowDistance = getSetScalar(row, "distance");
-      if (load != null && rowReps != null) volume += load * rowReps * getRecapVolumeMultiplier(exercise.unilateralMode);
+      volume += getSetLoadVolume(row, exercise.unilateralMode);
       if (rowReps != null) reps += rowReps * getRecapVolumeMultiplier(exercise.unilateralMode);
       if (rowDuration != null) duration += rowDuration * getRecapVolumeMultiplier(exercise.unilateralMode);
       if (rowDistance != null) distance += rowDistance * getRecapVolumeMultiplier(exercise.unilateralMode);
@@ -290,11 +309,7 @@ function buildWorkoutRecap(workout: WorkoutTemplate, setResults: WorkoutSetInput
     const side = exercise.unilateralMode === "same_each_side" ? "/side" : "";
     const parts = [`${completed}/${total} sets`];
     if (exercise.trackingType === "weight_reps") {
-      const exerciseVolume = rows.reduce((sum, row) => {
-        const load = getSetScalar(row, "load");
-        const rowReps = getSetScalar(row, "reps");
-        return load != null && rowReps != null ? sum + load * rowReps * getRecapVolumeMultiplier(exercise.unilateralMode) : sum;
-      }, 0);
+      const exerciseVolume = rows.reduce((sum, row) => sum + getSetLoadVolume(row, exercise.unilateralMode), 0);
       const best = rows.reduce<string | null>((current, row) => {
         const load = getSetScalar(row, "load");
         const rowReps = getSetScalar(row, "reps");
@@ -309,8 +324,15 @@ function buildWorkoutRecap(workout: WorkoutTemplate, setResults: WorkoutSetInput
       const exerciseDistance = rows.reduce((sum, row) => sum + (getSetScalar(row, "distance") ?? 0) * getRecapVolumeMultiplier(exercise.unilateralMode), 0);
       if (exerciseDistance > 0) parts.push(`${formatWorkoutMetricNumber(exerciseDistance)} ${exercise.distanceUnit ?? "mi"}`);
     } else if (exercise.trackingType === "reps_only") {
-      const exerciseReps = rows.reduce((sum, row) => sum + (getSetScalar(row, "reps") ?? 0) * getRecapVolumeMultiplier(exercise.unilateralMode), 0);
-      if (exerciseReps > 0) parts.push(`${formatWorkoutMetricNumber(exerciseReps)} reps${side}`);
+      const perSideReps = rows.reduce((sum, row) => sum + (getSetScalar(row, "reps") ?? 0), 0);
+      const exerciseReps = perSideReps * getRecapVolumeMultiplier(exercise.unilateralMode);
+      if (exerciseReps > 0) {
+        parts.push(
+          exercise.unilateralMode === "same_each_side"
+            ? `${formatWorkoutMetricNumber(perSideReps)} reps${side}`
+            : `${formatWorkoutMetricNumber(exerciseReps)} reps`,
+        );
+      }
     }
     return { id: exercise.id, name: exercise.name, detail: parts.join(" · ") };
   });
@@ -329,15 +351,13 @@ function buildWorkoutRecap(workout: WorkoutTemplate, setResults: WorkoutSetInput
   const metrics = [
     { label: "Elapsed", value: formatElapsed(elapsedSeconds) },
     { label: "Sets", value: `${progress.completed}/${progress.total}` },
-    { label: "Exercises", value: `${completedExercises.length}/${workout.exercises.length}` },
+    { label: "Exercises logged", value: `${completedExercises.length}/${workout.exercises.length}` },
     workload ?? { label: progress.completed === progress.total ? "Status" : "Status", value: progress.completed === progress.total ? "Completed" : "Partial" },
   ];
 
   return {
     metrics,
     exerciseSummaries,
-    incompleteNotice: progress.completed < progress.total ? `${progress.total - progress.completed} set${progress.total - progress.completed === 1 ? "" : "s"} still incomplete. Saving will record a partial workout.` : null,
-    comparison: null,
   };
 }
 
@@ -493,6 +513,9 @@ export function WorkoutFlow({
   );
   const [status, setStatus] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [finishElapsedSnapshot, setFinishElapsedSnapshot] = useState<number | null>(
+    null,
+  );
 
   useEffect(() => {
     setSessionHistory((currentSessions) =>
@@ -766,6 +789,7 @@ export function WorkoutFlow({
     setSetResults([]);
     setExerciseNotes({});
     setStep(isActiveMode ? "workout" : "idle");
+    setFinishElapsedSnapshot(null);
     setSavedSession(null);
     setStatus(null);
     router.replace(
@@ -872,22 +896,38 @@ export function WorkoutFlow({
     if (!finishEnabled || !activeDraft) {
       return;
     }
-    setCompleted(
-      calculateSetProgress({
-        exercises: workout.exercises,
-        setResults,
-        checkedExerciseIds,
-      }).completed ===
-        calculateSetProgress({
-          exercises: workout.exercises,
-          setResults,
-          checkedExerciseIds,
-        }).total,
-    );
+    const snapshot = finishElapsedSnapshot ?? getElapsedSeconds(activeDraft);
+    setFinishElapsedSnapshot(snapshot);
+    setCompleted(true);
+    setActiveDraft({
+      ...activeDraft,
+      lifecycle: "finishing",
+      elapsedOffsetSeconds: snapshot,
+      startedAt: new Date().toISOString(),
+      restTimer: null,
+    });
     setRestTimer(null);
+    setCurrentRestExerciseId(null);
     setLiveRestTimer(idleRestTimerState);
     setStep("check-in");
     setStatus(null);
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }
+
+  function handleBackToWorkout() {
+    if (activeDraft && finishElapsedSnapshot != null) {
+      setActiveDraft({
+        ...activeDraft,
+        lifecycle: "active",
+        elapsedOffsetSeconds: finishElapsedSnapshot,
+        startedAt: new Date().toISOString(),
+        restTimer: null,
+      });
+    }
+    setFinishElapsedSnapshot(null);
+    setRestTimer(null);
+    setLiveRestTimer(idleRestTimerState);
+    setStep("workout");
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -914,7 +954,7 @@ export function WorkoutFlow({
           clientSessionId: activeDraft?.draftId,
           startedAt: activeDraft?.startedAt,
           elapsedSeconds: activeDraft
-            ? getElapsedSeconds(activeDraft)
+            ? (finishElapsedSnapshot ?? getElapsedSeconds(activeDraft))
             : undefined,
         }),
       });
@@ -933,12 +973,14 @@ export function WorkoutFlow({
       }
       setRestTimer(null);
       setLiveRestTimer(idleRestTimerState);
+      setFinishElapsedSnapshot(null);
       setSavedSession(savedWorkoutSession);
       setSessionHistory((currentSessions) =>
         mergeSessions(currentSessions, [savedWorkoutSession]),
       );
       setActiveDraft(null);
       setStep("saved");
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
       setNotes("");
       startTransition(() => router.refresh());
     } catch (error) {
@@ -970,6 +1012,7 @@ export function WorkoutFlow({
     const nextTodayDate = getClientTodayDateString();
     setTodayDate(nextTodayDate);
     setCompletedOn(nextTodayDate);
+    setFinishElapsedSnapshot(null);
     setSavedSession(null);
     setStatus(null);
     setStep("idle");
@@ -981,7 +1024,11 @@ export function WorkoutFlow({
     setResults,
     checkedExerciseIds,
   });
-  const elapsedSeconds = useLiveElapsedSeconds(activeDraft);
+  const liveElapsedSeconds = useLiveElapsedSeconds(activeDraft);
+  const elapsedSeconds =
+    step === "check-in" && finishElapsedSnapshot != null
+      ? finishElapsedSnapshot
+      : liveElapsedSeconds;
   const finishRecap = useMemo(
     () => buildWorkoutRecap(workout, setResults, checkedExerciseIds, elapsedSeconds),
     [checkedExerciseIds, elapsedSeconds, setResults, workout],
@@ -997,7 +1044,8 @@ export function WorkoutFlow({
 
   if (isActiveMode) {
     return (
-      <div className={`mx-auto max-w-3xl ${liveRestTimer.status === "idle" ? "pb-[max(2rem,env(safe-area-inset-bottom))]" : "pb-[max(12rem,calc(env(safe-area-inset-bottom)+10rem))]"}`}>
+      <div className={`mx-auto max-w-3xl ${liveRestTimer.status === "idle" || step === "check-in" ? "pb-[max(2rem,env(safe-area-inset-bottom))]" : "pb-[max(12rem,calc(env(safe-area-inset-bottom)+10rem))]"}`}>
+        {step !== "check-in" ? (
         <div className="sticky top-0 z-30 -mx-3 border-b border-border/80 bg-shell/95 px-3 py-3 backdrop-blur sm:top-2 sm:mx-0 sm:rounded-[28px] sm:border sm:shadow-soft">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
@@ -1033,6 +1081,7 @@ export function WorkoutFlow({
             </div>
           </div>
         </div>
+        ) : null}
 
         <div className="mt-4 space-y-4">
           {draftMessage ? (
@@ -1159,9 +1208,6 @@ export function WorkoutFlow({
               <h1 className="mt-2 text-2xl font-black text-copy">
                 {workout.name}
               </h1>
-              <p className="mt-2 text-sm font-semibold text-muted">
-                {formatElapsed(elapsedSeconds)} elapsed
-              </p>
               <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {finishRecap.metrics.map((metric) => (
                   <div
@@ -1194,19 +1240,6 @@ export function WorkoutFlow({
                   ))}
                 </div>
               </div>
-              {finishRecap.incompleteNotice ? (
-                <div className="mt-4 rounded-[22px] border border-amber-300/40 bg-amber-100/40 p-4 text-sm font-semibold leading-6 text-copy">
-                  {finishRecap.incompleteNotice}
-                </div>
-              ) : null}
-              {finishRecap.comparison ? (
-                <div className="mt-4 rounded-[22px] border border-primary/20 bg-primary/10 p-4 text-sm leading-6 text-copy">
-                  <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
-                    Compared with last time
-                  </p>
-                  <p className="mt-1">{finishRecap.comparison}</p>
-                </div>
-              ) : null}
               <form className="mt-5 space-y-5" onSubmit={handleSubmit}>
                 <label className="block rounded-[24px] border border-border bg-surface-soft p-4">
                   <span className="text-sm font-semibold text-copy">
@@ -1221,26 +1254,6 @@ export function WorkoutFlow({
                   />
                 </label>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <fieldset className="rounded-[24px] border border-border bg-surface-soft p-4">
-                    <legend className="text-sm font-semibold text-copy">
-                      Did you finish?
-                    </legend>
-                    <div className="mt-4 flex gap-3">
-                      {[
-                        { label: "Yes", value: true },
-                        { label: "No", value: false },
-                      ].map((option) => (
-                        <button
-                          key={option.label}
-                          type="button"
-                          onClick={() => setCompleted(option.value)}
-                          className={`rounded-full px-4 py-2 text-sm font-semibold ${completed === option.value ? "bg-hero text-white" : "bg-surface text-muted"}`}
-                        >
-                          {option.label}
-                        </button>
-                      ))}
-                    </div>
-                  </fieldset>
                   <fieldset className="rounded-[24px] border border-border bg-surface-soft p-4">
                     <legend className="text-sm font-semibold text-copy">
                       Did anything hurt?
@@ -1291,7 +1304,7 @@ export function WorkoutFlow({
                 {status ? (
                   <p className="text-sm leading-6 text-muted">{status}</p>
                 ) : null}
-                <div className="flex flex-col gap-3 sm:flex-row">
+                <div className="flex flex-col gap-3">
                   <button
                     className="ui-button-primary"
                     disabled={saving || isPending}
@@ -1304,10 +1317,18 @@ export function WorkoutFlow({
                   </button>
                   <button
                     type="button"
-                    onClick={() => setStep("workout")}
+                    onClick={handleBackToWorkout}
                     className="ui-button-secondary"
                   >
                     Back to workout
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDiscardDraft}
+                    className="ui-button-ghost text-danger"
+                    disabled={saving || isPending || !activeDraft}
+                  >
+                    Discard workout
                   </button>
                 </div>
               </form>
@@ -1514,7 +1535,7 @@ export function WorkoutFlow({
                     onClick={handleDiscardDraft}
                     className="ui-button-ghost w-full sm:w-auto"
                   >
-                    Discard draft
+                    Discard workout
                   </button>
                 </div>
               </div>
@@ -1544,31 +1565,6 @@ export function WorkoutFlow({
                 </label>
 
                 <div className="grid gap-4 md:grid-cols-2">
-                  <fieldset className="rounded-[24px] border border-border bg-surface-soft p-4">
-                    <legend className="text-sm font-semibold text-copy">
-                      Did you finish the workout?
-                    </legend>
-                    <div className="mt-4 flex gap-3">
-                      {[
-                        { label: "Yes", value: true },
-                        { label: "No", value: false },
-                      ].map((option) => (
-                        <button
-                          key={option.label}
-                          type="button"
-                          onClick={() => setCompleted(option.value)}
-                          className={`rounded-full px-4 py-2 text-sm font-semibold ${
-                            completed === option.value
-                              ? "bg-hero text-white"
-                              : "bg-surface text-muted"
-                          }`}
-                        >
-                          {option.label}
-                        </button>
-                      ))}
-                    </div>
-                  </fieldset>
-
                   <fieldset className="rounded-[24px] border border-border bg-surface-soft p-4">
                     <legend className="text-sm font-semibold text-copy">
                       Did anything hurt?
@@ -1660,14 +1656,14 @@ export function WorkoutFlow({
                     onClick={() => setStep("workout")}
                     className="ui-button-secondary"
                   >
-                    Back to exercises
+                    Back to workout
                   </button>
                   <button
                     type="button"
                     onClick={handleDiscardDraft}
                     className="ui-button-ghost"
                   >
-                    Discard draft
+                    Discard workout
                   </button>
                 </div>
               </form>
