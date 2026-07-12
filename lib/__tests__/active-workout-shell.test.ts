@@ -102,6 +102,8 @@ describe("active workout shell behavior", () => {
       lastUpdatedAt: "2026-07-11T12:10:00.000Z",
       elapsedOffsetSeconds: 30,
       checkedExerciseIds: [],
+      setResults: [],
+      exerciseNotes: {},
       checkIn: {
         completedOn: null,
         completed: false,

@@ -12,6 +12,7 @@ import {
   shouldShowActiveStartCard,
 } from "@/lib/active-workout-shell";
 import { WorkoutChecklist } from "@/components/workout-checklist";
+import { calculateSetProgress } from "@/lib/set-logging";
 import {
   buildActiveWorkoutDraft,
   getActiveWorkoutDraftStorageKey,
@@ -30,6 +31,7 @@ import type {
   WorkoutPlan,
   WorkoutProgressSummary,
   WorkoutSession,
+  WorkoutSetInput,
   WorkoutTemplate,
 } from "@/lib/types";
 
@@ -238,6 +240,8 @@ export function WorkoutFlow({
   const [draftMessage, setDraftMessage] = useState<string | null>(null);
   const [storageAvailable, setStorageAvailable] = useState(true);
   const [checkedExerciseIds, setCheckedExerciseIds] = useState<string[]>([]);
+  const [setResults, setSetResults] = useState<WorkoutSetInput[]>([]);
+  const [exerciseNotes, setExerciseNotes] = useState<Record<string, string>>({});
   const [completed, setCompleted] = useState(true);
   const [pain, setPain] = useState(false);
   const [effort, setEffort] =
@@ -318,6 +322,8 @@ export function WorkoutFlow({
       setActiveDraft(result.draft);
       setSelectedWorkoutId(result.draft.workoutTemplateId);
       setCheckedExerciseIds(result.draft.checkedExerciseIds);
+      setSetResults(result.draft.setResults);
+      setExerciseNotes(result.draft.exerciseNotes);
       setCompleted(result.draft.checkIn.completed);
       setPain(result.draft.checkIn.painOccurred);
       setEffort(
@@ -379,6 +385,8 @@ export function WorkoutFlow({
               : "finishing"
             : "active",
         checkedExerciseIds,
+        setResults,
+        exerciseNotes,
         checkIn: {
           completedOn,
           completed,
@@ -403,6 +411,8 @@ export function WorkoutFlow({
     activeDraft?.draftId,
     awaitingStaleRecoveryDecision,
     checkedExerciseIds,
+    setResults,
+    exerciseNotes,
     completed,
     completedOn,
     effort,
@@ -439,6 +449,8 @@ export function WorkoutFlow({
 
     setSelectedWorkoutId(id);
     setCheckedExerciseIds([]);
+    setSetResults([]);
+    setExerciseNotes({});
     setStep(isActiveMode ? "workout" : "idle");
     setSavedSession(null);
     setStatus(null);
@@ -461,6 +473,8 @@ export function WorkoutFlow({
       const storedDraft = writeActiveWorkoutDraft(window.localStorage, draft);
       setActiveDraft(storedDraft);
       setCheckedExerciseIds([]);
+      setSetResults([]);
+      setExerciseNotes({});
       setInvalidRecoveryKey(null);
       setAwaitingStaleRecoveryDecision(false);
       setDraftMessage(
@@ -492,6 +506,8 @@ export function WorkoutFlow({
     setActiveDraft(null);
     setAwaitingStaleRecoveryDecision(false);
     setCheckedExerciseIds([]);
+    setSetResults([]);
+    setExerciseNotes({});
     setDraftMessage("Active workout draft discarded.");
     setStatus(null);
     setInvalidRecoveryKey(null);
@@ -540,7 +556,7 @@ export function WorkoutFlow({
     if (!finishEnabled || !activeDraft) {
       return;
     }
-    setCompleted(checkedExerciseIds.length === workout.exercises.length);
+    setCompleted(calculateSetProgress({ exercises: workout.exercises, setResults, checkedExerciseIds }).completed === calculateSetProgress({ exercises: workout.exercises, setResults, checkedExerciseIds }).total);
     setStep("check-in");
     setStatus(null);
   }
@@ -564,6 +580,8 @@ export function WorkoutFlow({
           perceivedDifficulty: toDifficultyValue(effort),
           notes,
           completedExerciseIds: checkedExerciseIds,
+          setResults,
+          exerciseNotes,
           clientSessionId: activeDraft?.draftId,
           startedAt: activeDraft?.startedAt,
           elapsedSeconds: activeDraft
@@ -610,6 +628,8 @@ export function WorkoutFlow({
     setActiveDraft(null);
     setAwaitingStaleRecoveryDecision(false);
     setCheckedExerciseIds([]);
+    setSetResults([]);
+    setExerciseNotes({});
     setCompleted(true);
     setPain(false);
     setEffort("Appropriate");
@@ -623,6 +643,7 @@ export function WorkoutFlow({
     router.push(`/workout?workoutId=${workout.id}` as Route);
   }
 
+  const progress = calculateSetProgress({ exercises: workout.exercises, setResults, checkedExerciseIds });
   const elapsedSeconds = useLiveElapsedSeconds(activeDraft);
   const finishEnabled = canFinishActiveWorkout({
     mode,
@@ -643,8 +664,7 @@ export function WorkoutFlow({
                 {workout.name}
               </p>
               <p className="mt-1 text-xs font-semibold text-muted">
-                {formatElapsed(elapsedSeconds)} · {checkedExerciseIds.length}/
-                {workout.exercises.length} exercises
+                {formatElapsed(elapsedSeconds)} · {progress.completed}/{progress.total} sets
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
@@ -740,6 +760,8 @@ export function WorkoutFlow({
               workout={workout}
               checkedExerciseIds={checkedExerciseIds}
               onCheckedExerciseIdsChange={setCheckedExerciseIds}
+              setResults={setResults}
+              onSetResultsChange={setSetResults}
               compactExecution
             />
           ) : null}

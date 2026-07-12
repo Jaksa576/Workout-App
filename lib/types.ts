@@ -54,6 +54,8 @@ export type ExerciseEntry = {
   distanceUnit?: "mi" | "km" | "m" | null;
   primaryValueLabel?: string | null;
   secondaryValueLabel?: string | null;
+  previousSetSummaries?: string[];
+  previousSetDefaults?: Array<{ actualLoad: number | null; actualReps: number | null }>;
 };
 
 export type Weekday = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
@@ -249,6 +251,17 @@ export type WorkoutSession = {
   progressionReason?: string | null;
 };
 
+export type WorkoutSetInput = {
+  exerciseEntryId: string;
+  setId: string;
+  setOrder: number;
+  prescribedSetIndex: number | null;
+  setKind: "prescribed" | "added";
+  status: "completed" | "incomplete";
+  actualLoad?: number | null;
+  actualReps?: number | null;
+};
+
 export type WorkoutSessionInput = {
   workoutTemplateId: string;
   completedOn: string;
@@ -257,6 +270,8 @@ export type WorkoutSessionInput = {
   perceivedDifficulty: "too_easy" | "appropriate" | "too_hard";
   notes: string;
   completedExerciseIds: string[];
+  setResults?: WorkoutSetInput[];
+  exerciseNotes?: Record<string, string>;
   clientSessionId?: string;
   startedAt?: string;
   elapsedSeconds?: number;
