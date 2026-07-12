@@ -183,3 +183,67 @@ describe("canonical prescribed set merging", () => {
     ]);
   });
 });
+
+describe("completion set rows", () => {
+  it("creates one prescribed row for a one-set completion exercise", () => {
+    const result = buildCanonicalMetricSetRows({ exerciseEntryId: "completion-1", prescribedSetCount: 1, submittedRows: [], trackingType: "completion" });
+    expect(result).toMatchObject({ ok: true });
+    if (!result.ok) throw new Error(result.error);
+    expect(result.rows).toHaveLength(1);
+    expect(result.rows[0]).toMatchObject({ setOrder: 0, prescribedSetIndex: 0, setKind: "prescribed", status: "incomplete", actualLoad: null, actualReps: null, actualDurationSeconds: null, actualDistance: null });
+  });
+
+  it("creates four prescribed rows for a four-set completion exercise", () => {
+    const result = buildCanonicalMetricSetRows({ exerciseEntryId: "completion-4", prescribedSetCount: 4, submittedRows: [], trackingType: "completion" });
+    expect(result).toMatchObject({ ok: true });
+    if (!result.ok) throw new Error(result.error);
+    expect(result.rows.map((row) => row.prescribedSetIndex)).toEqual([0, 1, 2, 3]);
+  });
+
+  it("reports partial completion as truthful completed and total set counts", () => {
+    expect(calculateSetProgress({
+      exercises: [{ id: "completion-4", sets: 4, trackingType: "completion" }],
+      setResults: [0, 1, 2].map((index) => row({ exerciseEntryId: "completion-4", setId: `c-${index}`, prescribedSetIndex: index, setOrder: index, status: "completed", actualLoad: null, actualReps: null })),
+      checkedExerciseIds: [],
+    })).toEqual({ completed: 3, total: 4 });
+  });
+
+  it("supports out-of-order completion and uncompletion", () => {
+    const completedOutOfOrder = row({ exerciseEntryId: "completion-4", setId: "c-2", prescribedSetIndex: 2, setOrder: 2, status: "completed", actualLoad: null, actualReps: null });
+    const result = buildCanonicalMetricSetRows({ exerciseEntryId: "completion-4", prescribedSetCount: 4, submittedRows: [completedOutOfOrder], trackingType: "completion" });
+    expect(result).toMatchObject({ ok: true });
+    if (!result.ok) throw new Error(result.error);
+    expect(result.rows.map((item) => item.status)).toEqual(["incomplete", "incomplete", "completed", "incomplete"]);
+    expect(buildCanonicalMetricSetRows({ exerciseEntryId: "completion-4", prescribedSetCount: 4, submittedRows: [{ ...completedOutOfOrder, status: "incomplete" }], trackingType: "completion" })).toMatchObject({ ok: true, rows: expect.arrayContaining([expect.objectContaining({ prescribedSetIndex: 2, status: "incomplete" })]) });
+  });
+
+  it("counts added completion sets in progress", () => {
+    expect(calculateSetProgress({
+      exercises: [{ id: "completion-1", sets: 1, trackingType: "completion" }],
+      setResults: [row({ exerciseEntryId: "completion-1", setId: "added", setKind: "added", prescribedSetIndex: null, setOrder: 1, status: "completed", actualLoad: null, actualReps: null })],
+      checkedExerciseIds: [],
+    })).toEqual({ completed: 1, total: 2 });
+  });
+
+  it("migrates legacy checked and unchecked completion exercises into rows", async () => {
+    const { migrateLegacyCompletionRows } = await import("@/lib/set-logging");
+    const migrated = migrateLegacyCompletionRows({ exercises: [{ id: "checked", sets: 2, trackingType: "completion" }, { id: "unchecked", sets: 1, trackingType: "completion" }], setResults: [], checkedExerciseIds: ["checked"] });
+    expect(migrated.checkedExerciseIds).toEqual([]);
+    expect(migrated.setResults.filter((item) => item.exerciseEntryId === "checked").map((item) => item.status)).toEqual(["completed", "completed"]);
+    expect(migrated.setResults.filter((item) => item.exerciseEntryId === "unchecked").map((item) => item.status)).toEqual(["incomplete"]);
+  });
+
+  it("derives exercise status from prescribed rows", async () => {
+    const { deriveExerciseCompletionStatus } = await import("@/lib/set-logging");
+    expect(deriveExerciseCompletionStatus([row({ status: "completed" }), row({ setId: "b", prescribedSetIndex: 1, setOrder: 1, status: "incomplete" })])).toBe("partial");
+    expect(deriveExerciseCompletionStatus([row({ status: "completed" })])).toBe("completed");
+  });
+
+  it("calculates mixed workout progress from rows", () => {
+    expect(calculateSetProgress({
+      exercises: [{ id: "metric", sets: 2, trackingType: "reps_only" }, { id: "done", sets: 1, trackingType: "completion" }],
+      setResults: [row({ exerciseEntryId: "metric", setId: "m-0", prescribedSetIndex: 0, setOrder: 0, status: "completed", actualLoad: null, actualReps: 8 }), row({ exerciseEntryId: "done", setId: "d-0", prescribedSetIndex: 0, setOrder: 0, status: "completed", actualLoad: null, actualReps: null })],
+      checkedExerciseIds: [],
+    })).toEqual({ completed: 2, total: 3 });
+  });
+});

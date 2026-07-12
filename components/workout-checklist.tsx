@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ExerciseGuidancePanel } from "@/components/exercise-guidance-panel";
-import { applyMetricSetEdit, formatDurationInput, formatPreviousSet, getInitialSetValues, isSetCompleteable, isSupportedMetricTrackingType, parseDurationInput } from "@/lib/set-logging";
+import { applyMetricSetEdit, formatDurationInput, formatPreviousSet, getInitialSetValues, isSetCompleteable, isSupportedMetricTrackingType, parseDurationInput, supportsAddedSets } from "@/lib/set-logging";
 import type { WorkoutSetInput, WorkoutTemplate } from "@/lib/types";
 
 type WorkoutChecklistProps = {
@@ -93,7 +93,7 @@ export function WorkoutChecklist({
         setKind: "prescribed" as const,
         status: "incomplete" as const,
         actualLoad: exercise.trackingType === "weight_reps" ? defaults.actualLoad : null,
-        actualReps: exercise.trackingType === "duration" || exercise.trackingType === "distance_duration" ? null : defaults.actualReps,
+        actualReps: exercise.trackingType === "reps_only" || exercise.trackingType === "weight_reps" ? defaults.actualReps : null,
         actualDurationSeconds: defaults.actualDurationSeconds ?? null,
         actualDistance: defaults.actualDistance ?? null,
         actualLeftLoad: defaults.actualLeftLoad ?? null,
@@ -198,7 +198,7 @@ export function WorkoutChecklist({
   }, [checked, storageKey]);
 
   const canLogSets = Boolean(onSetResultsChange);
-  const loggableExercises = workout.exercises.filter((exercise) => canLogSets && (isSupportedMetricTrackingType(exercise.trackingType)));
+  const loggableExercises = workout.exercises.filter((exercise) => canLogSets && (isSupportedMetricTrackingType(exercise.trackingType) || exercise.trackingType === "completion"));
   const completedSetCount = loggableExercises.reduce((sum, exercise) => sum + getExerciseRows(exercise).filter((row) => row.status === "completed").length, 0);
   const totalLoggableSets = loggableExercises.reduce((sum, exercise) => sum + getExerciseRows(exercise).length, 0);
   const completion = useMemo(() => {
@@ -228,7 +228,7 @@ export function WorkoutChecklist({
       <div className={compactExecution ? "space-y-2" : "space-y-3"}>
         {workout.exercises.map((exercise, index) => {
           const rows = getExerciseRows(exercise);
-          const supportsSetLogging = canLogSets && (isSupportedMetricTrackingType(exercise.trackingType));
+          const supportsSetLogging = canLogSets && (isSupportedMetricTrackingType(exercise.trackingType) || exercise.trackingType === "completion");
           const active = supportsSetLogging ? rows.some((row) => row.status === "completed") : checked.includes(exercise.id);
           const checkboxId = `exercise-check-${exercise.id}`;
 
@@ -261,10 +261,11 @@ export function WorkoutChecklist({
               </div>
               {supportsSetLogging ? (
                 <div className="mt-2 overflow-hidden rounded-[18px] border border-border bg-surface-soft">
-                  <div className={`grid gap-2 px-2 py-1.5 text-[0.65rem] font-black uppercase tracking-[0.12em] text-muted ${exercise.trackingType === "weight_reps" ? "grid-cols-[2.1rem_1fr_4.7rem_3.8rem_3rem]" : exercise.trackingType === "distance_duration" ? "grid-cols-[2.1rem_1fr_4rem_4.2rem_3rem]" : "grid-cols-[2.1rem_1fr_4rem_3rem]"}`}>
-                    <span>Set</span><span>Previous</span>{exercise.trackingType === "weight_reps" ? <span>Weight</span> : null}<span>{exercise.trackingType === "duration" ? (exercise.unilateralMode === "same_each_side" ? "Duration/side" : "Duration") : exercise.trackingType === "distance_duration" ? "Time" : exercise.unilateralMode === "same_each_side" ? "Reps/side" : "Reps"}</span>{exercise.trackingType === "distance_duration" ? <span>Distance</span> : null}<span>✓</span>
+                  <div className={`grid gap-2 px-2 py-1.5 text-[0.65rem] font-black uppercase tracking-[0.12em] text-muted ${exercise.trackingType === "completion" ? "grid-cols-[2.1rem_1fr_3rem]" : exercise.trackingType === "weight_reps" ? "grid-cols-[2.1rem_1fr_4.7rem_3.8rem_3rem]" : exercise.trackingType === "distance_duration" ? "grid-cols-[2.1rem_1fr_4rem_4.2rem_3rem]" : "grid-cols-[2.1rem_1fr_4rem_3rem]"}`}>
+                    <span>Set</span><span>Previous</span>{exercise.trackingType === "weight_reps" ? <span>Weight</span> : null}{exercise.trackingType !== "completion" ? <span>{exercise.trackingType === "duration" ? (exercise.unilateralMode === "same_each_side" ? "Duration/side" : "Duration") : exercise.trackingType === "distance_duration" ? "Time" : exercise.unilateralMode === "same_each_side" ? "Reps/side" : "Reps"}</span> : null}{exercise.trackingType === "distance_duration" ? <span>Distance</span> : null}<span>✓</span>
                   </div>
                   {rows.map((row, rowIndex) => {
+                    const isCompletionRow = exercise.trackingType === "completion";
                     const needsLoad = exercise.trackingType === "weight_reps";
                     const independent = exercise.unilateralMode === "independent_sides";
                     const rowError = rowErrors[row.setId];
@@ -303,10 +304,10 @@ export function WorkoutChecklist({
                       />
                     );
                     return (
-                      <div key={row.setId} className={`grid items-center gap-2 border-t border-border px-2 py-1.5 ${independent ? "grid-cols-[2.1rem_1fr_minmax(0,1fr)_minmax(0,1fr)_3rem] sm:grid-cols-[2.1rem_1fr_repeat(4,minmax(3.6rem,1fr))_3rem]" : exercise.trackingType === "weight_reps" ? "grid-cols-[2.1rem_1fr_4.7rem_3.8rem_3rem]" : exercise.trackingType === "distance_duration" ? "grid-cols-[2.1rem_1fr_4rem_4.2rem_3rem]" : "grid-cols-[2.1rem_1fr_4rem_3rem]"} ${row.status === "completed" ? "bg-success/5" : ""}`}>
+                      <div key={row.setId} className={`grid items-center gap-2 border-t border-border px-2 py-1.5 ${isCompletionRow ? "grid-cols-[2.1rem_1fr_3rem]" : independent ? "grid-cols-[2.1rem_1fr_minmax(0,1fr)_minmax(0,1fr)_3rem] sm:grid-cols-[2.1rem_1fr_repeat(4,minmax(3.6rem,1fr))_3rem]" : exercise.trackingType === "weight_reps" ? "grid-cols-[2.1rem_1fr_4.7rem_3.8rem_3rem]" : exercise.trackingType === "distance_duration" ? "grid-cols-[2.1rem_1fr_4rem_4.2rem_3rem]" : "grid-cols-[2.1rem_1fr_4rem_3rem]"} ${row.status === "completed" ? "bg-success/5" : ""}`}>
                         <span className="text-sm font-black text-copy">{rowIndex + 1}{row.setKind === "added" ? "+" : ""}</span>
                         <span className="text-xs font-semibold text-muted">{exercise.previousSetSummaries?.[rowIndex] ?? formatPreviousSet(exercise.previousSetDefaults?.[rowIndex], exercise.trackingType, exercise.distanceUnit ?? exercise.loadUnit, exercise.unilateralMode)}</span>
-                        {independent ? (
+                        {isCompletionRow ? null : independent ? (
                           <>
                             {needsLoad ? numberInput("actualLeftLoad", `Left weight in ${exercise.loadUnit ?? "lb"}`) : null}
                             {exercise.trackingType === "weight_reps" || exercise.trackingType === "reps_only" ? numberInput("actualLeftReps", "Left reps", true) : null}
@@ -330,7 +331,7 @@ export function WorkoutChecklist({
                       </div>
                     );
                   })}
-                  <div className="border-t border-border p-1.5"><button type="button" className="ui-button-ghost px-3 py-2 text-xs" onClick={() => addSet(exercise)}>Add set</button></div>
+                  {supportsAddedSets(exercise.trackingType) ? <div className="border-t border-border p-1.5"><button type="button" className="ui-button-ghost px-3 py-2 text-xs" onClick={() => addSet(exercise)}>Add set</button></div> : null}
                 </div>
               ) : (
                 <label

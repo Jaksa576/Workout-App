@@ -10,7 +10,7 @@ import {
   buildPrescribedSetRows,
   getDefaultTrackingMetadata,
 } from "@/lib/execution-results";
-import { buildCanonicalMetricSetRows, isSuppliedMetricValuesValid } from "@/lib/set-logging";
+import { buildCanonicalSetRows, deriveExerciseCompletionStatus, isSuppliedMetricValuesValid, isSupportedMetricTrackingType } from "@/lib/set-logging";
 import { isValidUuid, isWorkoutSessionInput } from "@/lib/validation";
 
 export async function POST(request: Request) {
@@ -114,10 +114,7 @@ export async function POST(request: Request) {
   };
 
   const submittedSetResults = body.setResults ?? [];
-  const validExerciseIds = new Set([
-    ...body.completedExerciseIds,
-    ...submittedSetResults.filter((row) => row.status === "completed").map((row) => row.exerciseEntryId),
-  ]);
+  const completedExerciseIds = new Set(body.completedExerciseIds);
   const exercisePayload = (exercises ?? []).map((exercise, index) => {
     const fallback = getDefaultTrackingMetadata(exercise.source_exercise_id);
     const trackingType = exercise.tracking_type ?? fallback.trackingType;
@@ -146,7 +143,7 @@ export async function POST(request: Request) {
       secondary_value_label:
         exercise.secondary_value_label ?? fallback.secondaryValueLabel,
       prescribed_target_text: `${exercise.sets} sets × ${exercise.reps}`,
-      completion_status: validExerciseIds.has(exercise.id)
+      completion_status: completedExerciseIds.has(exercise.id)
         ? "completed"
         : "incomplete",
       notes: body.exerciseNotes?.[exercise.id]?.trim() || null,
@@ -178,7 +175,7 @@ export async function POST(request: Request) {
     const exercise = exerciseById.get(row.exerciseEntryId);
     const trackingType = trackingTypeByEntryId.get(row.exerciseEntryId) ?? "completion";
     if (!exercise) return NextResponse.json({ error: "Submitted set row does not belong to this workout." }, { status: 400 });
-    if (!["weight_reps", "reps_only", "duration", "distance_duration"].includes(trackingType)) return NextResponse.json({ error: "Unsupported exercises cannot submit metric set rows." }, { status: 400 });
+    if (!isSupportedMetricTrackingType(trackingType) && trackingType !== "completion") return NextResponse.json({ error: "Unsupported exercises cannot submit set rows." }, { status: 400 });
     if (row.setKind === "prescribed") {
       if (row.prescribedSetIndex === null || row.prescribedSetIndex < 0 || row.prescribedSetIndex >= exercise.sets) return NextResponse.json({ error: "Submitted prescribed set index is invalid." }, { status: 400 });
       const prescribedKey = `${row.exerciseEntryId}:${row.prescribedSetIndex}`;
@@ -194,11 +191,13 @@ export async function POST(request: Request) {
     const trackingType = trackingTypeByEntryId.get(exercise.id) ?? "completion";
     if (!exerciseResultId) return [];
     const submittedRows = submittedSetResultsByExerciseId.get(exercise.id) ?? [];
-    if (trackingType === "weight_reps" || trackingType === "reps_only" || trackingType === "duration" || trackingType === "distance_duration") {
-      const mergeResult = buildCanonicalMetricSetRows({
+    if (isSupportedMetricTrackingType(trackingType) || trackingType === "completion") {
+      const mergeResult = buildCanonicalSetRows({
         exerciseEntryId: exercise.id,
         prescribedSetCount: exercise.sets,
         submittedRows,
+        trackingType,
+        legacyCompleted: trackingType === "completion" && completedExerciseIds.has(exercise.id),
       });
       if (!mergeResult.ok) {
         throw new Error(mergeResult.error);
@@ -224,8 +223,24 @@ export async function POST(request: Request) {
         completed_at: row.status === "completed" ? new Date().toISOString() : null,
       }));
     }
-    return buildPrescribedSetRows(exerciseResultId, exercise, validExerciseIds.has(exercise.id), trackingType);
+    return buildPrescribedSetRows(exerciseResultId, exercise, completedExerciseIds.has(exercise.id), trackingType);
   });
+
+  for (const exercise of exercisePayload) {
+    const submittedRows = submittedSetResultsByExerciseId.get(exercise.exercise_entry_id) ?? [];
+    if (isSupportedMetricTrackingType(exercise.tracking_type) || exercise.tracking_type === "completion") {
+      const canonicalRows = buildCanonicalSetRows({
+        exerciseEntryId: exercise.exercise_entry_id,
+        prescribedSetCount: exerciseById.get(exercise.exercise_entry_id)?.sets ?? 0,
+        submittedRows,
+        trackingType: exercise.tracking_type,
+        legacyCompleted: exercise.tracking_type === "completion" && completedExerciseIds.has(exercise.exercise_entry_id),
+      });
+      if (canonicalRows.ok) exercise.completion_status = deriveExerciseCompletionStatus(canonicalRows.rows);
+    }
+  }
+
+  const validExerciseIds = new Set(exercisePayload.filter((exercise) => exercise.completion_status === "completed").map((exercise) => exercise.exercise_entry_id));
 
   type SavedSessionRow = {
     id: string;
