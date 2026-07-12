@@ -50,10 +50,3 @@ begin
 end;
 $$;
 
-update public.exercise_entries
-set tracking_type = 'distance',
-    load_unit = null,
-    distance_unit = 'm',
-    primary_value_label = 'Distance',
-    secondary_value_label = null
-where nullif(source_exercise_id,'') in ('stride-drills','lateral-shuffle');

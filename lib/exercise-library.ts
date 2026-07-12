@@ -741,9 +741,7 @@ const catalogMetadataOverrides: Record<string, ExerciseTrackingMetadata> = {
   "low-impact-cardio-march": durationMetadata(),
   "run-walk-intervals": durationMetadata(),
   "easy-run": distanceDurationMetadata,
-  "stride-drills": distanceMetadata("bilateral", "m"),
   "lateral-lunge": weightRepsMetadata("same_each_side"),
-  "lateral-shuffle": distanceMetadata("bilateral", "m"),
   "skater-hop": repsMetadata("same_each_side")
 };
 

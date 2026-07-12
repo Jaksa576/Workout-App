@@ -141,10 +141,10 @@ Issue #10 should replace disposable execution/history data with a normalized com
 - `source_exercise_id text null` for the stable text catalog/source identity when available, snapshotting the existing string identity from `exercise_entries.source_exercise_id`; do not add `catalog_exercise_id uuid` or a UUID `source_exercise_id` for Issue #10.
 - `exercise_name text not null` or equivalent display-name snapshot.
 - `exercise_order integer not null` with a nonnegative check.
-- `tracking_type text not null` constrained to `weight_reps`, `reps_only`, `duration`, `distance_duration`, or `completion`.
+- `tracking_type text not null` constrained to `weight_reps`, `reps_only`, `duration`, `distance`, `distance_duration`, or `completion`.
 - `unilateral_mode text not null` constrained to `bilateral`, `same_each_side`, or `independent_sides`.
 - `load_unit text null` constrained to `lb` or `kg`; required only when `tracking_type = 'weight_reps'`.
-- `distance_unit text null` constrained to `mi`, `km`, or `m`; required only when `tracking_type = 'distance_duration'`.
+- `distance_unit text null` constrained to `mi`, `km`, or `m`; required only when `tracking_type` is `distance` or `distance_duration`.
 - `primary_value_label text null` and `secondary_value_label text null` as display-label snapshots.
 - `prescribed_target_text text null` for the human-readable prescription snapshot from the plan.
 - `completion_status text not null` constrained to `completed`, `partial`, `skipped`, or `incomplete`; exact labels may align with repo conventions, but the contract must distinguish complete, partial, skipped, and incomplete exercise outcomes.

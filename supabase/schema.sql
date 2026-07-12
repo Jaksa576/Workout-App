@@ -629,8 +629,7 @@ update public.exercise_entries set
   tracking_type = case
     when nullif(source_exercise_id,'') in ('goblet-squat','barbell-back-squat','romanian-deadlift','dumbbell-floor-press','dumbbell-shoulder-press','dumbbell-row','farmer-carry','dumbbell-lateral-raise','dumbbell-curl','lateral-lunge') then 'weight_reps'
     when nullif(source_exercise_id,'') in ('brisk-walk','easy-run') then 'distance_duration'
-    when nullif(source_exercise_id,'') in ('stride-drills','lateral-shuffle') then 'distance'
-    when nullif(source_exercise_id,'') in ('low-impact-cardio-march','run-walk-intervals','side-plank') then 'duration'
+    when nullif(source_exercise_id,'') in ('low-impact-cardio-march','run-walk-intervals','stride-drills','side-plank','lateral-shuffle') then 'duration'
     when nullif(source_exercise_id,'') in ('bodyweight-squat','box-squat','hip-hinge-drill','glute-bridge','reverse-lunge','step-up','walking-lunge','incline-push-up','push-up','band-row','dead-bug','bird-dog','calf-raise','tibialis-raise','hip-flexor-rockback','thoracic-rotation','ankle-rock','skater-hop') then 'reps_only'
     else 'completion'
   end,
@@ -642,11 +641,11 @@ update public.exercise_entries set
     when nullif(source_exercise_id,'') in ('goblet-squat','barbell-back-squat','romanian-deadlift','dumbbell-floor-press','dumbbell-shoulder-press','dumbbell-row','farmer-carry','dumbbell-lateral-raise','dumbbell-curl','lateral-lunge') then 'lb'
     else null
   end,
-  distance_unit = case when nullif(source_exercise_id,'') in ('brisk-walk','easy-run') then 'mi' when nullif(source_exercise_id,'') in ('stride-drills','lateral-shuffle') then 'm' else null end,
+  distance_unit = case when nullif(source_exercise_id,'') in ('brisk-walk','easy-run') then 'mi' else null end,
   primary_value_label = case
     when nullif(source_exercise_id,'') in ('goblet-squat','barbell-back-squat','romanian-deadlift','dumbbell-floor-press','dumbbell-shoulder-press','dumbbell-row','farmer-carry','dumbbell-lateral-raise','dumbbell-curl','lateral-lunge') then 'Load'
-    when nullif(source_exercise_id,'') in ('brisk-walk','easy-run','stride-drills','lateral-shuffle') then 'Distance'
-    when nullif(source_exercise_id,'') in ('low-impact-cardio-march','run-walk-intervals','side-plank') then 'Duration'
+    when nullif(source_exercise_id,'') in ('brisk-walk','easy-run') then 'Distance'
+    when nullif(source_exercise_id,'') in ('low-impact-cardio-march','run-walk-intervals','stride-drills','side-plank','lateral-shuffle') then 'Duration'
     when nullif(source_exercise_id,'') in ('bodyweight-squat','box-squat','hip-hinge-drill','glute-bridge','reverse-lunge','step-up','walking-lunge','incline-push-up','push-up','band-row','dead-bug','bird-dog','calf-raise','tibialis-raise','hip-flexor-rockback','thoracic-rotation','ankle-rock','skater-hop') then 'Reps'
     else 'Completion'
   end,
