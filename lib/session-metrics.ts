@@ -2,6 +2,8 @@ import type { ExerciseTrackingType, UnilateralMode } from "@/lib/types";
 
 export type SessionStatus = "Completed" | "Partial";
 
+type Unit = "lb" | "kg" | "mi" | "km" | "m";
+
 export type SetMetricRow = {
   status: string;
   actual_load: number | null;
@@ -58,6 +60,10 @@ export type ExerciseMetrics = {
   loadVolume: number;
   durationSeconds: number;
   distance: number;
+  hasReps: boolean;
+  hasLoadVolume: boolean;
+  hasDuration: boolean;
+  hasDistance: boolean;
   summary: string;
 };
 
@@ -78,38 +84,59 @@ export type SessionMetrics = {
   exercises: ExerciseMetrics[];
 };
 
-function asNumber(value: number | null | undefined) {
-  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+function isNumber(value: number | null | undefined): value is number {
+  return typeof value === "number" && Number.isFinite(value);
 }
 
-function sideSum(left: number | null, right: number | null) {
-  return asNumber(left) + asNumber(right);
+function sideMetric(left: number | null, right: number | null) {
+  const hasLeft = isNumber(left);
+  const hasRight = isNumber(right);
+  return { hasValue: hasLeft || hasRight, value: (hasLeft ? left : 0) + (hasRight ? right : 0) };
+}
+
+function scalarMetric(value: number | null, mode: UnilateralMode) {
+  if (!isNumber(value)) return { hasValue: false, value: 0 };
+  return { hasValue: true, value: mode === "same_each_side" ? value * 2 : value };
 }
 
 function setReps(set: SetMetricRow, mode: UnilateralMode) {
-  if (mode === "independent_sides") return sideSum(set.actual_left_reps, set.actual_right_reps);
-  const reps = asNumber(set.actual_reps);
-  return mode === "same_each_side" ? reps * 2 : reps;
+  return mode === "independent_sides" ? sideMetric(set.actual_left_reps, set.actual_right_reps) : scalarMetric(set.actual_reps, mode);
 }
 
 function setDuration(set: SetMetricRow, mode: UnilateralMode) {
-  if (mode === "independent_sides") return sideSum(set.actual_left_duration_seconds, set.actual_right_duration_seconds);
-  const seconds = asNumber(set.actual_duration_seconds);
-  return mode === "same_each_side" ? seconds * 2 : seconds;
+  return mode === "independent_sides"
+    ? sideMetric(set.actual_left_duration_seconds, set.actual_right_duration_seconds)
+    : scalarMetric(set.actual_duration_seconds, mode);
 }
 
 function setDistance(set: SetMetricRow, mode: UnilateralMode) {
-  if (mode === "independent_sides") return sideSum(set.actual_left_distance, set.actual_right_distance);
-  const distance = asNumber(set.actual_distance);
-  return mode === "same_each_side" ? distance * 2 : distance;
+  return mode === "independent_sides" ? sideMetric(set.actual_left_distance, set.actual_right_distance) : scalarMetric(set.actual_distance, mode);
 }
 
 function setLoadVolume(set: SetMetricRow, mode: UnilateralMode) {
   if (mode === "independent_sides") {
-    return asNumber(set.actual_left_load) * asNumber(set.actual_left_reps) + asNumber(set.actual_right_load) * asNumber(set.actual_right_reps);
+    const left = isNumber(set.actual_left_load) && isNumber(set.actual_left_reps) ? set.actual_left_load * set.actual_left_reps : 0;
+    const right = isNumber(set.actual_right_load) && isNumber(set.actual_right_reps) ? set.actual_right_load * set.actual_right_reps : 0;
+    return { hasValue: left > 0 || right > 0 || (isNumber(set.actual_left_load) && isNumber(set.actual_left_reps)) || (isNumber(set.actual_right_load) && isNumber(set.actual_right_reps)), value: left + right };
   }
-  const volume = asNumber(set.actual_load) * asNumber(set.actual_reps);
-  return mode === "same_each_side" ? volume * 2 : volume;
+  if (!isNumber(set.actual_load) || !isNumber(set.actual_reps)) return { hasValue: false, value: 0 };
+  const volume = set.actual_load * set.actual_reps;
+  return { hasValue: true, value: mode === "same_each_side" ? volume * 2 : volume };
+}
+
+function addMetric(total: { value: number; hasValue: boolean }, metric: { value: number; hasValue: boolean }) {
+  if (metric.hasValue) {
+    total.value += metric.value;
+    total.hasValue = true;
+  }
+}
+
+function plural(count: number, singular: string, pluralText = `${singular}s`) {
+  return `${count} ${count === 1 ? singular : pluralText}`;
+}
+
+function setsSummary(completed: number, total: number) {
+  return `${completed}/${total} ${total === 1 ? "set" : "sets"}`;
 }
 
 export function formatDuration(totalSeconds: number) {
@@ -119,25 +146,50 @@ export function formatDuration(totalSeconds: number) {
   return minutes > 0 ? `${minutes}:${remainder.toString().padStart(2, "0")}` : `${remainder}s`;
 }
 
+function formatDistance(distance: number, unit: Unit | null) {
+  return `${Number(distance.toFixed(2))}${unit ? ` ${unit}` : ""}`;
+}
+
+function exerciseSummary(exercise: ExerciseMetricRow, values: Pick<ExerciseMetrics, "completedSets" | "totalSets" | "totalReps" | "loadVolume" | "durationSeconds" | "distance" | "hasReps" | "hasLoadVolume" | "hasDuration" | "hasDistance">) {
+  if (exercise.tracking_type === "weight_reps" && values.hasLoadVolume) return `${setsSummary(values.completedSets, values.totalSets)} · ${Math.round(values.loadVolume)} ${exercise.load_unit ?? ""} volume`.trim();
+  if (exercise.tracking_type === "reps_only" && values.hasReps) return `${setsSummary(values.completedSets, values.totalSets)} · ${values.totalReps} reps`;
+  if (exercise.tracking_type === "duration" && values.hasDuration) return `${setsSummary(values.completedSets, values.totalSets)} · ${formatDuration(values.durationSeconds)} total`;
+  if (exercise.tracking_type === "distance" && values.hasDistance) return formatDistance(values.distance, exercise.distance_unit);
+  if (exercise.tracking_type === "distance_duration") {
+    const parts = [];
+    if (values.hasDistance) parts.push(formatDistance(values.distance, exercise.distance_unit));
+    if (values.hasDuration) parts.push(formatDuration(values.durationSeconds));
+    if (parts.length) return parts.join(" · ");
+  }
+  return `${setsSummary(values.completedSets, values.totalSets)} completed`;
+}
+
 export function deriveSessionMetrics(session: SessionMetricRow): SessionMetrics {
   const exercises = [...(session.exercise_results ?? [])].sort((a, b) => a.exercise_order - b.exercise_order).map((exercise) => {
     const sets = exercise.exercise_set_results ?? [];
     const completedSets = sets.filter((set) => set.status === "completed");
-    const totalReps = completedSets.reduce((sum, set) => sum + setReps(set, exercise.unilateral_mode), 0);
-    const loadVolume = completedSets.reduce((sum, set) => sum + setLoadVolume(set, exercise.unilateral_mode), 0);
-    const durationSeconds = completedSets.reduce((sum, set) => sum + setDuration(set, exercise.unilateral_mode), 0);
-    const distance = completedSets.reduce((sum, set) => sum + setDistance(set, exercise.unilateral_mode), 0);
-    const summary = exercise.tracking_type === "distance_duration"
-      ? `${Number(distance.toFixed(2))} ${exercise.distance_unit ?? ""} · ${formatDuration(durationSeconds)}`.trim()
-      : exercise.tracking_type === "distance"
-        ? `${Number(distance.toFixed(2))} ${exercise.distance_unit ?? ""}`.trim()
-        : exercise.tracking_type === "duration"
-          ? `${completedSets.length} timed sets · ${formatDuration(durationSeconds)} total`
-          : exercise.tracking_type === "weight_reps"
-            ? `${completedSets.length}/${sets.length} sets · ${Math.round(loadVolume)} ${exercise.load_unit ?? ""} volume`.trim()
-            : exercise.tracking_type === "reps_only"
-              ? `${completedSets.length}/${sets.length} sets · ${totalReps} reps`
-              : `${completedSets.length}/${sets.length} sets`;
+    const reps = { value: 0, hasValue: false };
+    const loadVolume = { value: 0, hasValue: false };
+    const duration = { value: 0, hasValue: false };
+    const distance = { value: 0, hasValue: false };
+    for (const set of completedSets) {
+      addMetric(reps, setReps(set, exercise.unilateral_mode));
+      addMetric(loadVolume, setLoadVolume(set, exercise.unilateral_mode));
+      addMetric(duration, setDuration(set, exercise.unilateral_mode));
+      addMetric(distance, setDistance(set, exercise.unilateral_mode));
+    }
+    const values = {
+      completedSets: completedSets.length,
+      totalSets: sets.length,
+      totalReps: reps.value,
+      loadVolume: loadVolume.value,
+      durationSeconds: duration.value,
+      distance: distance.value,
+      hasReps: reps.hasValue,
+      hasLoadVolume: loadVolume.hasValue,
+      hasDuration: duration.hasValue,
+      hasDistance: distance.hasValue,
+    };
     return {
       exerciseResultId: exercise.id,
       exerciseEntryId: exercise.exercise_entry_id,
@@ -148,28 +200,32 @@ export function deriveSessionMetrics(session: SessionMetricRow): SessionMetrics 
       unilateralMode: exercise.unilateral_mode,
       loadUnit: exercise.load_unit,
       distanceUnit: exercise.distance_unit,
-      completedSets: completedSets.length,
-      totalSets: sets.length,
-      totalReps,
-      loadVolume,
-      durationSeconds,
-      distance,
-      summary,
+      ...values,
+      summary: exerciseSummary(exercise, values),
     };
   });
   const completedSets = exercises.reduce((sum, exercise) => sum + exercise.completedSets, 0);
   const totalSets = exercises.reduce((sum, exercise) => sum + exercise.totalSets, 0);
   const completedExercises = exercises.filter((exercise) => exercise.totalSets > 0 && exercise.completedSets === exercise.totalSets).length;
   const performedExercises = exercises.filter((exercise) => exercise.completedSets > 0).length;
-  const distanceExercise = exercises.find((exercise) => exercise.distance > 0 && exercise.distanceUnit);
   const workDurationSeconds = exercises.reduce((sum, exercise) => sum + exercise.durationSeconds, 0);
-  const distance = distanceExercise ? exercises.filter((exercise) => exercise.distanceUnit === distanceExercise.distanceUnit).reduce((sum, exercise) => sum + exercise.distance, 0) : 0;
+  const distanceGroups = new Map<string, ExerciseMetrics[]>();
+  for (const exercise of exercises) {
+    if (!exercise.hasDistance || !exercise.distanceUnit) continue;
+    const unit = exercise.distanceUnit;
+    distanceGroups.set(unit, [...(distanceGroups.get(unit) ?? []), exercise]);
+  }
+  const compatibleDistance = distanceGroups.size === 1 ? [...distanceGroups.values()][0] ?? [] : [];
+  const distance = compatibleDistance.reduce((sum, exercise) => sum + exercise.distance, 0);
+  const distanceUnit = compatibleDistance[0]?.distanceUnit ?? null;
+  const compatibleDuration = compatibleDistance.length > 0 && exercises.every((exercise) => !exercise.hasDuration || compatibleDistance.includes(exercise));
+  const hasOnlyDuration = exercises.some((exercise) => exercise.hasDuration) && exercises.every((exercise) => !exercise.hasDistance && !exercise.hasLoadVolume && !exercise.hasReps);
   const status: SessionStatus = session.completed && (totalSets === 0 || completedSets >= totalSets) ? "Completed" : "Partial";
-  const summary = distanceExercise
-    ? `${Number(distance.toFixed(2))} ${distanceExercise.distanceUnit} · ${formatDuration(workDurationSeconds)}`
-    : workDurationSeconds > 0
-      ? `${completedSets} timed sets · ${formatDuration(workDurationSeconds)} total`
-      : `${performedExercises || completedExercises} exercises · ${completedSets}/${totalSets} sets`;
+  const summary = distanceUnit && compatibleDistance.length > 0 && (compatibleDuration || !workDurationSeconds)
+    ? [formatDistance(distance, distanceUnit), compatibleDuration && workDurationSeconds ? formatDuration(workDurationSeconds) : null].filter(Boolean).join(" · ")
+    : hasOnlyDuration
+      ? `${setsSummary(completedSets, totalSets)} · ${formatDuration(workDurationSeconds)} total`
+      : `${plural(performedExercises || completedExercises, "exercise")} · ${setsSummary(completedSets, totalSets)}`;
   return {
     status,
     elapsedSeconds: session.elapsed_seconds ?? 0,
@@ -182,7 +238,7 @@ export function deriveSessionMetrics(session: SessionMetricRow): SessionMetrics 
     totalReps: exercises.reduce((sum, exercise) => sum + exercise.totalReps, 0),
     workDurationSeconds,
     distance,
-    distanceUnit: distanceExercise?.distanceUnit ?? null,
+    distanceUnit,
     summary,
     exercises,
   };

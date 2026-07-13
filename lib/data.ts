@@ -117,6 +117,8 @@ type SessionRow = {
 
 const progressHistoryDays = 90;
 
+export const savedSessionMetricSelect = "id, workout_template_id, workout_name_snapshot, created_at, completed_on, completed, pain_occurred, perceived_difficulty, notes, recommendation, phase_id_at_completion, progression_decision, progression_reason, elapsed_seconds, exercise_results(id, exercise_entry_id, source_exercise_id, exercise_name:exercise_name_snapshot, exercise_order, tracking_type, unilateral_mode, load_unit, distance_unit, completion_status, exercise_set_results(status, actual_load, actual_reps, actual_duration_seconds, actual_distance, actual_left_load, actual_left_reps, actual_left_duration_seconds, actual_left_distance, actual_right_load, actual_right_reps, actual_right_duration_seconds, actual_right_distance))";
+
 function mapPhase(row: PhaseRow): PlanPhase {
   return {
     id: row.id,
@@ -310,7 +312,7 @@ async function getPlanBundle(userId: string, sessionSince?: string) {
         let query = supabase
           .from("workout_sessions")
           .select(
-            "id, workout_template_id, workout_name_snapshot, created_at, completed_on, completed, pain_occurred, perceived_difficulty, notes, recommendation, phase_id_at_completion, progression_decision, progression_reason, elapsed_seconds, exercise_results(id, exercise_entry_id, source_exercise_id, exercise_name, exercise_order, tracking_type, unilateral_mode, load_unit, distance_unit, completion_status, exercise_set_results(status, actual_load, actual_reps, actual_duration_seconds, actual_distance, actual_left_load, actual_left_reps, actual_left_duration_seconds, actual_left_distance, actual_right_load, actual_right_reps, actual_right_duration_seconds, actual_right_distance))",
+            savedSessionMetricSelect,
           )
           .eq("user_id", userId)
           .in("workout_template_id", workoutIds)
@@ -622,7 +624,7 @@ export async function getLatestSessionForWorkout(
   const { data, error } = await supabase
     .from("workout_sessions")
     .select(
-      "id, workout_template_id, workout_name_snapshot, created_at, completed_on, completed, pain_occurred, perceived_difficulty, notes, recommendation, phase_id_at_completion, progression_decision, progression_reason, elapsed_seconds, exercise_results(id, exercise_entry_id, source_exercise_id, exercise_name, exercise_order, tracking_type, unilateral_mode, load_unit, distance_unit, completion_status, exercise_set_results(status, actual_load, actual_reps, actual_duration_seconds, actual_distance, actual_left_load, actual_left_reps, actual_left_duration_seconds, actual_left_distance, actual_right_load, actual_right_reps, actual_right_duration_seconds, actual_right_distance))",
+      savedSessionMetricSelect,
     )
     .eq("user_id", user.id)
     .eq("workout_template_id", workoutTemplateId)
@@ -639,6 +641,8 @@ export async function getLatestSessionForWorkout(
     return null;
   }
 
+  const metrics = deriveSessionMetrics(data);
+
   return {
     id: data.id,
     workoutTemplateId: data.workout_template_id,
@@ -653,8 +657,8 @@ export async function getLatestSessionForWorkout(
     phaseIdAtCompletion: data.phase_id_at_completion,
     progressionDecision: data.progression_decision,
     progressionReason: data.progression_reason,
-    status: deriveSessionMetrics(data).status,
-    metrics: deriveSessionMetrics(data),
+    status: metrics.status,
+    metrics,
   };
 }
 
@@ -827,6 +831,6 @@ export async function getDashboardData(): Promise<DashboardData> {
       phaseProgress,
     ),
     painTrend,
-    recentSessions: activePlanSessions.slice(0, 4),
+    recentSessions: recentSessions.slice(0, 4),
   };
 }
