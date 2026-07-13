@@ -499,6 +499,7 @@ export function isProfileSettingsInput(
     "sportsInterests",
     "daysPerWeek",
     "sessionMinutes",
+    "defaultRestSeconds",
   ]);
 
   return (
@@ -532,7 +533,12 @@ export function isProfileSettingsInput(
       (typeof input.sessionMinutes === "number" &&
         Number.isInteger(input.sessionMinutes) &&
         input.sessionMinutes >= 10 &&
-        input.sessionMinutes <= 180))
+        input.sessionMinutes <= 180)) &&
+    (input.defaultRestSeconds === undefined ||
+      (typeof input.defaultRestSeconds === "number" &&
+        Number.isInteger(input.defaultRestSeconds) &&
+        input.defaultRestSeconds >= 1 &&
+        input.defaultRestSeconds <= 1800))
   );
 }
 

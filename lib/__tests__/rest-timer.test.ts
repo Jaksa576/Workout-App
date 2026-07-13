@@ -9,8 +9,15 @@ import {
   resumeRestTimer,
   startRestTimer,
 } from "@/lib/rest-timer";
+import { resolveRestDurationSeconds } from "@/lib/workout-timer-settings";
 
 describe("rest timer", () => {
+  it("resolves workout, exercise, global, then app fallback rest precedence", () => {
+    expect(resolveRestDurationSeconds({ workoutOverrideSeconds: 120, exerciseRest: "45 sec", globalDefaultSeconds: 90 })).toBe(120);
+    expect(resolveRestDurationSeconds({ workoutOverrideSeconds: null, exerciseRest: "45 sec", globalDefaultSeconds: 90 })).toBe(45);
+    expect(resolveRestDurationSeconds({ exerciseRest: "as needed", globalDefaultSeconds: 75 })).toBe(75);
+    expect(resolveRestDurationSeconds({ exerciseRest: "as needed", globalDefaultSeconds: null })).toBe(90);
+  });
   it("parses prescribed rest with deterministic fallback precedence", () => {
     expect(parseRestDurationSeconds("90 sec")).toBe(90);
     expect(parseRestDurationSeconds("2-3 min")).toBe(180);

@@ -19,6 +19,7 @@ export type ProfileUpdateValues = Partial<{
   sports_interests: string[];
   days_per_week: number;
   session_minutes: number;
+  default_rest_seconds: number;
 }>;
 
 function cleanStringList(values: string[]) {
@@ -83,6 +84,10 @@ export function buildProfileUpdateValues(input: ProfileSettingsInput): ProfileUp
 
   if ("sessionMinutes" in input && input.sessionMinutes !== undefined) {
     values.session_minutes = input.sessionMinutes;
+  }
+
+  if ("defaultRestSeconds" in input && input.defaultRestSeconds !== undefined) {
+    values.default_rest_seconds = input.defaultRestSeconds;
   }
 
   return values;

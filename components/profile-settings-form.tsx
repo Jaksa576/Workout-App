@@ -2,6 +2,7 @@
 
 import { useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { formatRestDurationLabel, restDurationOptionsSeconds } from "@/lib/workout-timer-settings";
 import type {
   ActivityLevel,
   Profile,
@@ -54,7 +55,8 @@ function getInitialForm(profile: Profile): ProfileSettingsInput {
     exerciseDislikes: profile.exerciseDislikes ?? [],
     sportsInterests: profile.sportsInterests ?? [],
     daysPerWeek: profile.daysPerWeek,
-    sessionMinutes: profile.sessionMinutes
+    sessionMinutes: profile.sessionMinutes,
+    defaultRestSeconds: profile.defaultRestSeconds ?? 90
   };
 }
 
@@ -153,6 +155,28 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
 
   return (
     <div className="space-y-6">
+      <section className="surface-panel space-y-4">
+        <div>
+          <p className="text-sm font-semibold text-copy">Workout</p>
+          <p className="mt-1 text-sm leading-6 text-muted">Timer defaults used by future workout rests.</p>
+        </div>
+        <Field label="Default rest duration">
+          <select
+            value={form.defaultRestSeconds ?? 90}
+            onChange={(event) =>
+              setForm((current) => ({ ...current, defaultRestSeconds: Number(event.target.value) }))
+            }
+            className="ui-input"
+          >
+            {restDurationOptionsSeconds.map((seconds) => (
+              <option key={seconds} value={seconds}>
+                {formatRestDurationLabel(seconds)}
+              </option>
+            ))}
+          </select>
+        </Field>
+      </section>
+
       <section className="surface-panel space-y-4">
       <div>
         <p className="text-sm font-semibold text-copy">Body and training background</p>

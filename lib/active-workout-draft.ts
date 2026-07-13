@@ -40,6 +40,8 @@ export type ActiveWorkoutDraft = {
   exerciseNotes: Record<string, string>;
   restTimer?: RestTimerState | null;
   autoStartRest?: boolean;
+  timerSoundEnabled?: boolean;
+  workoutDefaultRestSeconds?: number | null;
   checkIn: {
     completedOn: string | null;
     completed: boolean;
@@ -98,6 +100,8 @@ export function buildActiveWorkoutDraft(input: {
     exerciseNotes: {},
     restTimer: null,
     autoStartRest: activeWorkoutAutoStartRestDefault,
+    timerSoundEnabled: true,
+    workoutDefaultRestSeconds: null,
     checkIn: {
       completedOn: null,
       completed: false,
@@ -150,6 +154,11 @@ export function validateActiveWorkoutDraft(
       !isRecord(value.restTimer)) ||
     (value.autoStartRest !== undefined &&
       typeof value.autoStartRest !== "boolean") ||
+    (value.timerSoundEnabled !== undefined &&
+      typeof value.timerSoundEnabled !== "boolean") ||
+    (value.workoutDefaultRestSeconds !== undefined &&
+      value.workoutDefaultRestSeconds !== null &&
+      (typeof value.workoutDefaultRestSeconds !== "number" || value.workoutDefaultRestSeconds <= 0)) ||
     !isRecord(checkIn) ||
     (checkIn.completedOn !== null && typeof checkIn.completedOn !== "string") ||
     typeof checkIn.completed !== "boolean" ||
@@ -186,6 +195,12 @@ export function validateActiveWorkoutDraft(
         typeof value.autoStartRest === "boolean"
           ? value.autoStartRest
           : activeWorkoutAutoStartRestDefault,
+      timerSoundEnabled:
+        typeof value.timerSoundEnabled === "boolean" ? value.timerSoundEnabled : true,
+      workoutDefaultRestSeconds:
+        typeof value.workoutDefaultRestSeconds === "number"
+          ? value.workoutDefaultRestSeconds
+          : null,
     },
     stale: ageMs > staleMs,
     ageDays: Math.floor(ageMs / (24 * 60 * 60 * 1000)),

@@ -160,14 +160,16 @@ describe("active workout draft lifecycle helpers", () => {
     });
 
     expect(draft.autoStartRest).toBe(true);
+    expect(draft.timerSoundEnabled).toBe(true);
+    expect(draft.workoutDefaultRestSeconds).toBeNull();
 
     const disabledResult = validateActiveWorkoutDraft(
-      { ...draft, autoStartRest: false },
+      { ...draft, autoStartRest: false, timerSoundEnabled: false, workoutDefaultRestSeconds: 120 },
       "user-a",
     );
     expect(disabledResult).toMatchObject({
       status: "valid",
-      draft: { autoStartRest: false },
+      draft: { autoStartRest: false, timerSoundEnabled: false, workoutDefaultRestSeconds: 120 },
     });
 
     const legacyDraft = { ...draft } as Record<string, unknown>;

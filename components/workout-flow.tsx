@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import { PhaseProgressPanel } from "@/components/phase-progress-panel";
@@ -25,13 +25,18 @@ import {
   addRestTime,
   deriveRestTimerState,
   formatRestTimer,
-  getRestDurationSeconds,
   idleRestTimerState,
   pauseRestTimer,
   resumeRestTimer,
   startRestTimer,
   type RestTimerState,
 } from "@/lib/rest-timer";
+import {
+  formatRestDurationLabel,
+  getEffectiveTimerSound,
+  resolveRestDurationSeconds,
+  restDurationOptionsSeconds,
+} from "@/lib/workout-timer-settings";
 import {
   buildActiveWorkoutDraft,
   getActiveWorkoutDraftStorageKey,
@@ -69,6 +74,7 @@ type WorkoutFlowProps = {
   progressSummary: WorkoutProgressSummary;
   phaseProgress: PhaseProgressSummary | null;
   userId: string | null;
+  defaultRestSeconds: number;
 };
 
 type SessionSaveResult = {
@@ -132,6 +138,85 @@ function mergeSessions(
   }
 
   return sortSessionsByLatest(Array.from(sessionsById.values()));
+}
+
+function playTimerCompleteSound() {
+  try {
+    const AudioContextCtor = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextCtor) return;
+    const context = new AudioContextCtor();
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.type = "sine";
+    oscillator.frequency.value = 880;
+    gain.gain.setValueAtTime(0.0001, context.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.15, context.currentTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.28);
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start();
+    oscillator.stop(context.currentTime + 0.3);
+    window.setTimeout(() => void context.close().catch(() => undefined), 500);
+  } catch {
+    // Browser audio can be blocked until a user gesture; timer completion remains functional.
+  }
+}
+
+function WorkoutSettingsDialog({
+  autoStartRest,
+  timerSoundEnabled,
+  workoutDefaultRestSeconds,
+  globalDefaultRestSeconds,
+  onAutoStartChange,
+  onSoundChange,
+  onDefaultRestChange,
+  onReset,
+  onClose,
+}: {
+  autoStartRest: boolean;
+  timerSoundEnabled: boolean;
+  workoutDefaultRestSeconds: number | null;
+  globalDefaultRestSeconds: number;
+  onAutoStartChange: (value: boolean) => void;
+  onSoundChange: (value: boolean) => void;
+  onDefaultRestChange: (value: number | null) => void;
+  onReset: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-end bg-ink/30 p-3 sm:items-center sm:justify-center" role="dialog" aria-modal="true" aria-labelledby="workout-settings-title">
+      <div className="w-full max-w-md rounded-[28px] border border-border bg-surface p-5 shadow-2xl">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="ui-eyebrow">Workout settings</p>
+            <h2 id="workout-settings-title" className="mt-2 text-xl font-black text-copy">Timer preferences</h2>
+          </div>
+          <button type="button" className="ui-button-ghost px-3 py-2" onClick={onClose} aria-label="Close workout settings">×</button>
+        </div>
+        <div className="mt-5 space-y-4">
+          <label className="flex items-center justify-between gap-4 text-sm font-semibold text-copy">
+            <span>Auto-start rest timer</span>
+            <input type="checkbox" className="h-5 w-5 accent-[rgb(var(--color-primary))]" checked={autoStartRest} onChange={(event) => onAutoStartChange(event.target.checked)} />
+          </label>
+          <label className="flex items-center justify-between gap-4 text-sm font-semibold text-copy">
+            <span>Timer-complete sound</span>
+            <input type="checkbox" className="h-5 w-5 accent-[rgb(var(--color-primary))]" checked={timerSoundEnabled} onChange={(event) => onSoundChange(event.target.checked)} />
+          </label>
+          <label className="block text-sm font-semibold text-copy">
+            <span>Default rest for this workout</span>
+            <select className="ui-input mt-2" value={workoutDefaultRestSeconds ?? ""} onChange={(event) => onDefaultRestChange(event.target.value ? Number(event.target.value) : null)}>
+              <option value="">Global default ({formatRestDurationLabel(globalDefaultRestSeconds)})</option>
+              {restDurationOptionsSeconds.map((seconds) => <option key={seconds} value={seconds}>{formatRestDurationLabel(seconds)}</option>)}
+            </select>
+          </label>
+        </div>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-between">
+          <button type="button" className="ui-button-ghost" onClick={onReset}>Reset to defaults</button>
+          <button type="button" className="ui-button-primary" onClick={onClose}>Done</button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function RestTimerDock({
@@ -466,6 +551,7 @@ export function WorkoutFlow({
   progressSummary,
   phaseProgress,
   userId,
+  defaultRestSeconds,
 }: WorkoutFlowProps) {
   const router = useRouter();
   const isActiveMode = mode === "active";
@@ -497,6 +583,10 @@ export function WorkoutFlow({
   const [autoStartRest, setAutoStartRest] = useState(
     activeWorkoutAutoStartRestDefault,
   );
+  const [timerSoundEnabled, setTimerSoundEnabled] = useState(true);
+  const [workoutDefaultRestSeconds, setWorkoutDefaultRestSeconds] = useState<number | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const completedSoundKeys = useRef(new Set<string>());
   const [currentRestExerciseId, setCurrentRestExerciseId] = useState<string | null>(null);
   const [completed, setCompleted] = useState(true);
   const [pain, setPain] = useState(false);
@@ -592,6 +682,8 @@ export function WorkoutFlow({
       setAutoStartRest(
         result.draft.autoStartRest ?? activeWorkoutAutoStartRestDefault,
       );
+      setTimerSoundEnabled(result.draft.timerSoundEnabled ?? true);
+      setWorkoutDefaultRestSeconds(result.draft.workoutDefaultRestSeconds ?? null);
       setCurrentRestExerciseId(result.draft.restTimer?.exerciseEntryId ?? null);
       setCompleted(result.draft.checkIn.completed);
       setPain(result.draft.checkIn.painOccurred);
@@ -658,6 +750,8 @@ export function WorkoutFlow({
         exerciseNotes,
         restTimer,
         autoStartRest,
+        timerSoundEnabled,
+        workoutDefaultRestSeconds,
         checkIn: {
           completedOn,
           completed,
@@ -686,6 +780,8 @@ export function WorkoutFlow({
     exerciseNotes,
     restTimer,
     autoStartRest,
+    timerSoundEnabled,
+    workoutDefaultRestSeconds,
     completed,
     completedOn,
     effort,
@@ -728,20 +824,25 @@ export function WorkoutFlow({
   useEffect(() => {
     if (liveRestTimer.status === "expired" && restTimer?.status === "running") {
       setRestTimer(liveRestTimer);
-      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
-        navigator.vibrate?.(120);
+      const soundKey = `${liveRestTimer.startedAt ?? ""}:${liveRestTimer.lastCompletedSetId ?? "manual"}`;
+      if (getEffectiveTimerSound(timerSoundEnabled) && !completedSoundKeys.current.has(soundKey)) {
+        completedSoundKeys.current.add(soundKey);
+        playTimerCompleteSound();
       }
     }
-  }, [liveRestTimer, restTimer]);
+  }, [liveRestTimer, restTimer, timerSoundEnabled]);
 
   function handleSetCompletedForRest(input: {
     exercise: WorkoutTemplate["exercises"][number];
     setId: string;
   }) {
     if (!autoStartRest) return;
+    if (restTimer?.status === "running" && restTimer.lastCompletedSetId === input.setId) return;
     setCurrentRestExerciseId(input.exercise.id);
-    const durationSeconds = getRestDurationSeconds({
+    const durationSeconds = resolveRestDurationSeconds({
+      workoutOverrideSeconds: workoutDefaultRestSeconds,
       exerciseRest: input.exercise.rest,
+      globalDefaultSeconds: defaultRestSeconds,
     });
     setRestTimer(
       startRestTimer({
@@ -765,8 +866,10 @@ export function WorkoutFlow({
     setCurrentRestExerciseId(selectedExercise.id);
     setRestTimer(
       startRestTimer({
-        durationSeconds: getRestDurationSeconds({
+        durationSeconds: resolveRestDurationSeconds({
+          workoutOverrideSeconds: workoutDefaultRestSeconds,
           exerciseRest: selectedExercise.rest,
+          globalDefaultSeconds: defaultRestSeconds,
         }),
         exerciseEntryId: selectedExercise.id,
         exerciseName: selectedExercise.name,
@@ -813,6 +916,8 @@ export function WorkoutFlow({
       setCheckedExerciseIds([]);
       setSetResults([]);
       setExerciseNotes({});
+      setTimerSoundEnabled(true);
+      setWorkoutDefaultRestSeconds(null);
       setInvalidRecoveryKey(null);
       setAwaitingStaleRecoveryDecision(false);
       setDraftMessage(
@@ -848,6 +953,8 @@ export function WorkoutFlow({
     setExerciseNotes({});
     setRestTimer(null);
     setLiveRestTimer(idleRestTimerState);
+    setTimerSoundEnabled(true);
+    setWorkoutDefaultRestSeconds(null);
     setDraftMessage("Active workout draft discarded.");
     setStatus(null);
     setInvalidRecoveryKey(null);
@@ -1005,6 +1112,8 @@ export function WorkoutFlow({
     setExerciseNotes({});
     setRestTimer(null);
     setLiveRestTimer(idleRestTimerState);
+    setTimerSoundEnabled(true);
+    setWorkoutDefaultRestSeconds(null);
     setCompleted(true);
     setPain(false);
     setEffort("Appropriate");
@@ -1077,6 +1186,15 @@ export function WorkoutFlow({
                 aria-label="Discard active workout"
               >
                 Discard
+              </button>
+              <button
+                type="button"
+                onClick={() => setSettingsOpen(true)}
+                className="ui-button-secondary min-h-11 px-3 py-2"
+                disabled={!activeDraft}
+                aria-label="Workout settings"
+              >
+                ⋯
               </button>
             </div>
           </div>
@@ -1171,6 +1289,23 @@ export function WorkoutFlow({
                   Start rest
                 </button>
               </div>
+              {settingsOpen ? (
+                <WorkoutSettingsDialog
+                  autoStartRest={autoStartRest}
+                  timerSoundEnabled={timerSoundEnabled}
+                  workoutDefaultRestSeconds={workoutDefaultRestSeconds}
+                  globalDefaultRestSeconds={defaultRestSeconds}
+                  onAutoStartChange={setAutoStartRest}
+                  onSoundChange={setTimerSoundEnabled}
+                  onDefaultRestChange={setWorkoutDefaultRestSeconds}
+                  onReset={() => {
+                    setAutoStartRest(activeWorkoutAutoStartRestDefault);
+                    setTimerSoundEnabled(true);
+                    setWorkoutDefaultRestSeconds(null);
+                  }}
+                  onClose={() => setSettingsOpen(false)}
+                />
+              ) : null}
               <WorkoutChecklist
                 workout={workout}
                 checkedExerciseIds={checkedExerciseIds}
@@ -1516,7 +1651,24 @@ export function WorkoutFlow({
 
             {step === "workout" ? (
               <div className="space-y-5">
-                <WorkoutChecklist
+                {settingsOpen ? (
+                <WorkoutSettingsDialog
+                  autoStartRest={autoStartRest}
+                  timerSoundEnabled={timerSoundEnabled}
+                  workoutDefaultRestSeconds={workoutDefaultRestSeconds}
+                  globalDefaultRestSeconds={defaultRestSeconds}
+                  onAutoStartChange={setAutoStartRest}
+                  onSoundChange={setTimerSoundEnabled}
+                  onDefaultRestChange={setWorkoutDefaultRestSeconds}
+                  onReset={() => {
+                    setAutoStartRest(activeWorkoutAutoStartRestDefault);
+                    setTimerSoundEnabled(true);
+                    setWorkoutDefaultRestSeconds(null);
+                  }}
+                  onClose={() => setSettingsOpen(false)}
+                />
+              ) : null}
+              <WorkoutChecklist
                   workout={workout}
                   checkedExerciseIds={checkedExerciseIds}
                   onCheckedExerciseIdsChange={setCheckedExerciseIds}

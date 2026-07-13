@@ -1,4 +1,5 @@
 import { getCurrentUser } from "@/lib/auth";
+import { restTimerDefaultSeconds } from "@/lib/rest-timer";
 import {
   type DashboardData,
   type ExerciseEntry,
@@ -654,7 +655,7 @@ export async function getProfile(): Promise<Profile | null> {
   const { data, error } = await supabase
     .from("profiles")
     .select(
-      "id, goal, primary_goal_type, injuries, limitations_detail, equipment, age, weight, training_experience, activity_level, training_environment, exercise_preferences, exercise_dislikes, sports_interests, days_per_week, session_minutes, onboarding_completed_at",
+      "id, goal, primary_goal_type, injuries, limitations_detail, equipment, age, weight, training_experience, activity_level, training_environment, exercise_preferences, exercise_dislikes, sports_interests, days_per_week, session_minutes, onboarding_completed_at, default_rest_seconds",
     )
     .eq("id", user.id)
     .maybeSingle();
@@ -685,6 +686,7 @@ export async function getProfile(): Promise<Profile | null> {
     daysPerWeek: data.days_per_week,
     sessionMinutes: data.session_minutes,
     onboardingCompletedAt: data.onboarding_completed_at,
+    defaultRestSeconds: data.default_rest_seconds ?? restTimerDefaultSeconds,
   };
 }
 
@@ -802,6 +804,7 @@ export async function getWorkoutPageData(
       progressSummary: computeProgressSummary([], 3, timeZone),
       phaseProgress: null,
       userId: null,
+      defaultRestSeconds: restTimerDefaultSeconds,
     };
   }
 
@@ -811,7 +814,7 @@ export async function getWorkoutPageData(
     getPlanBundle(user.id, sessionSince),
     supabase
       .from("profiles")
-      .select("days_per_week")
+      .select("days_per_week, default_rest_seconds")
       .eq("id", user.id)
       .maybeSingle(),
   ]);
@@ -867,6 +870,7 @@ export async function getWorkoutPageData(
     ),
     phaseProgress,
     userId: user.id,
+    defaultRestSeconds: profileResult.data?.default_rest_seconds ?? restTimerDefaultSeconds,
   };
 }
 

@@ -276,3 +276,11 @@ Implemented a narrow PWA installability/supporting-work patch for the install-ic
 The patch versions the existing approved icon assets as the active install icon family, updates manifest metadata with a stable app id and install categories, adds a compact dismissible install surface for eligible Chromium prompts and iOS Safari Add to Home Screen guidance, suppresses install UI during active workout routes, and registers a conservative production service worker. The service worker intentionally performs network fetches only and does not cache authenticated pages, Supabase/API requests, session saves, progression data, or user-specific responses.
 
 Validation focus: manifest icon references, app-owned `beforeinstallprompt` state, standalone detection, dismissal cooldown, `appinstalled` cleanup, iOS Safari guidance, unsupported-browser hiding, active-workout suppression, and `npm run check`.
+
+## PR Follow-up — Rest Timer Defaults and Workout Settings
+
+Implementing the PR follow-up request for the workout execution rest-timer preference slice on top of the centralized active-workout timer. This patch keeps the centralized timer as the only timer authority, adds one durable `profiles.default_rest_seconds` global preference with a 90-second default, and stores workout-only timer overrides inside the existing browser active-workout draft.
+
+Rest duration now resolves deterministically as active-workout default override, exercise prescribed rest, global profile default rest, then the application fallback. Auto-start and timer-complete sound remain enabled by default; workout settings can disable them for the current draft without mutating global settings, workout templates, exercise prescriptions, saved sessions, or active running timer duration. Timer-complete sound uses a short Web Audio beep and silently degrades when browser audio is unavailable or blocked.
+
+Validation focus: profile preference persistence, draft serialization/recovery of workout-only timer settings, rest-duration precedence, auto-start duplicate prevention for the same completion event, sound-on-expiration behavior, and preserving Finish/Discard lifecycle cleanup.
