@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import type { UserSummary } from "@/lib/types";
 import { AppLogo } from "@/components/app-logo";
+import { InstallAppPrompt } from "@/components/install-app-prompt";
 import { SignOutButton } from "@/components/sign-out-button";
 import { TimeZoneDetector } from "@/components/time-zone-detector";
 import { isAuthenticatedShellRoute } from "@/lib/app-route-boundary";
@@ -31,6 +32,7 @@ export function AppShell({
   return (
     <div className="min-h-screen px-3 pb-24 pt-4 sm:px-6 sm:pb-28 sm:pt-5 lg:px-8 lg:pb-8">
       {showShell ? <TimeZoneDetector /> : null}
+      <InstallAppPrompt />
       <div className={clsx("mx-auto max-w-6xl", showShell && "lg:max-w-7xl")}>
         {showShell ? (
           <div className="lg:grid lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
