@@ -66,6 +66,13 @@ Recap formulas are derived from completed active-draft set rows. Load volume now
 
 Validation focus: complete and partial finish recaps, mixed tracking types, same-each-side labels versus aggregate totals, independent-side volume, Back preserving draft data and excluding Finish-review time, duplicate-save disabled state, retry after failure with frozen elapsed seconds, rest-timer cleanup at Finish, top positioning, hidden active header on Finish, and guarded bottom Discard workout behavior.
 
+
+## PR Follow-up — Issue #17A compatibility and aggregation
+
+Implementing the PR follow-up request to treat dashboard/history/progression compatibility as the correctness/data-layer step before progress-trends Issue #36. This patch adds shared session and exercise metric derivation over the durable `workout_sessions` -> `exercise_results` -> `exercise_set_results` model, including Completed/Partial status, elapsed seconds, set and exercise completion counts, load volume, total reps, work duration, distance, units, unilateral semantics, concise summaries, and ordered trend-series objects for future chart consumers.
+
+The dashboard now reads the shared saved-session metrics for compact recent activity rows instead of asking users to infer raw set data. Progression policy is unchanged: existing `completed`, pain, perceived-difficulty, phase, and recommendation fields remain the deterministic progression inputs, while richer set metrics are informational and prepared for #36. No schema, RLS, final-save, active-draft, or hosted Supabase behavior changed in this follow-up.
+
 ## Workflow Source Of Truth
 
 Active work is issue-driven:
@@ -235,3 +242,11 @@ Completing a set auto-starts or restarts the timer with the just-completed exerc
 Patch update: active running, paused, and expired rest controls now live in a non-modal bottom dock with large countdown, exercise context, +15 seconds, pause/resume, skip, and dismiss controls while the workout page keeps enough bottom padding for final rows and Finish controls. Idle rest no longer consumes a permanent large surface; manual Start rest remains a compact active-workout control. Manual start now chooses the current/recent exercise when it still has unfinished visible prescribed or added sets, falls through to the first unfinished exercise, and only uses the bounded fallback when no current context exists. Finish clears `restTimer` and the live derived state before check-in so expiry feedback cannot continue after execution ends; Discard/save/start-over cleanup remains deliberate.
 
 Validation focus: complete a set and confirm the bottom dock follows scroll without blocking logging, refresh while running, refresh with auto-start disabled, pause/resume/add/skip/dismiss, expiry after tab backgrounding, complete another set while running to confirm deterministic restart, manual Start after set 1 of a multi-set exercise, Finish/Discard reset timer state, and verify no timer appears on `/workout` selection.
+
+### PR #51 follow-up — saved-session metric safety patch
+
+The PR #51 merge-safety patch narrows the Issue #17A implementation to the saved-session aggregation/dashboard compatibility slice. It fixes the saved-session Supabase select contract by aliasing `exercise_name:exercise_name_snapshot` from the persisted exercise-result snapshot column, keeps dashboard recent activity sourced from true recent saved sessions across plans while retaining active-plan sessions for phase/progression widgets, and derives latest-session metrics once per read.
+
+Session summaries are now tracking-type-aware and null-aware: missing completed-set metrics fall back to set completion instead of zero-value claims, explicit persisted zero values remain visible, distance and duration are combined only within compatible distance-duration exercise groups, different distance units are not collapsed, and mixed strength/timed/distance workouts use neutral exercise/set completion summaries. Bilateral, same-each-side, and independent-side totals preserve the existing finish-recap aggregate semantics without changing progression policy, schema, RLS, or final-save behavior.
+
+Remaining Issue #17 scope stays open for broader reusable metric outputs such as best/latest values, planned/performed identity details, richer trend-ready groupings, and explicit side-specific trend payloads beyond the compatibility metrics exposed in this patch.

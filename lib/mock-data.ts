@@ -194,6 +194,7 @@ export const dashboardData: DashboardData = {
     painFlags: 0,
     tone: "stable"
   },
+  recentSessions: [],
   metrics: [
     {
       label: "Weekly streak",

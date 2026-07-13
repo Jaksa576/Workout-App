@@ -35,6 +35,7 @@ import {
   getWeekdayFromDateKey,
 } from "@/lib/time-zone";
 import { isPlanSetupInput, normalizeWeekdays } from "@/lib/validation";
+import { deriveSessionMetrics, type ExerciseMetricRow } from "@/lib/session-metrics";
 
 type PlanRow = {
   id: string;
@@ -110,9 +111,13 @@ type SessionRow = {
   phase_id_at_completion: string | null;
   progression_decision: ProgressionDecision | null;
   progression_reason: string | null;
+  elapsed_seconds: number | null;
+  exercise_results?: ExerciseMetricRow[] | null;
 };
 
 const progressHistoryDays = 90;
+
+export const savedSessionMetricSelect = "id, workout_template_id, workout_name_snapshot, created_at, completed_on, completed, pain_occurred, perceived_difficulty, notes, recommendation, phase_id_at_completion, progression_decision, progression_reason, elapsed_seconds, exercise_results(id, exercise_entry_id, source_exercise_id, exercise_name:exercise_name_snapshot, exercise_order, tracking_type, unilateral_mode, load_unit, distance_unit, completion_status, exercise_set_results(status, actual_load, actual_reps, actual_duration_seconds, actual_distance, actual_left_load, actual_left_reps, actual_left_duration_seconds, actual_left_distance, actual_right_load, actual_right_reps, actual_right_duration_seconds, actual_right_distance))";
 
 function mapPhase(row: PhaseRow): PlanPhase {
   return {
@@ -184,6 +189,8 @@ function deriveReadiness(session?: SessionRow) {
 }
 
 function mapSession(row: SessionRow): WorkoutSession {
+  const metrics = deriveSessionMetrics(row);
+
   return {
     id: row.id,
     workoutTemplateId: row.workout_template_id,
@@ -198,6 +205,8 @@ function mapSession(row: SessionRow): WorkoutSession {
     phaseIdAtCompletion: row.phase_id_at_completion,
     progressionDecision: row.progression_decision,
     progressionReason: row.progression_reason,
+    status: metrics.status,
+    metrics,
   };
 }
 
@@ -303,7 +312,7 @@ async function getPlanBundle(userId: string, sessionSince?: string) {
         let query = supabase
           .from("workout_sessions")
           .select(
-            "id, workout_template_id, workout_name_snapshot, created_at, completed_on, completed, pain_occurred, perceived_difficulty, notes, recommendation, phase_id_at_completion, progression_decision, progression_reason",
+            savedSessionMetricSelect,
           )
           .eq("user_id", userId)
           .in("workout_template_id", workoutIds)
@@ -615,7 +624,7 @@ export async function getLatestSessionForWorkout(
   const { data, error } = await supabase
     .from("workout_sessions")
     .select(
-      "id, workout_template_id, workout_name_snapshot, created_at, completed_on, completed, pain_occurred, perceived_difficulty, notes, recommendation, phase_id_at_completion, progression_decision, progression_reason",
+      savedSessionMetricSelect,
     )
     .eq("user_id", user.id)
     .eq("workout_template_id", workoutTemplateId)
@@ -632,6 +641,8 @@ export async function getLatestSessionForWorkout(
     return null;
   }
 
+  const metrics = deriveSessionMetrics(data);
+
   return {
     id: data.id,
     workoutTemplateId: data.workout_template_id,
@@ -646,6 +657,8 @@ export async function getLatestSessionForWorkout(
     phaseIdAtCompletion: data.phase_id_at_completion,
     progressionDecision: data.progression_decision,
     progressionReason: data.progression_reason,
+    status: metrics.status,
+    metrics,
   };
 }
 
@@ -755,6 +768,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       activitySummary,
       progressionPrompt: null,
       painTrend: null,
+      recentSessions: [],
     };
   }
 
@@ -817,5 +831,6 @@ export async function getDashboardData(): Promise<DashboardData> {
       phaseProgress,
     ),
     painTrend,
+    recentSessions: recentSessions.slice(0, 4),
   };
 }
