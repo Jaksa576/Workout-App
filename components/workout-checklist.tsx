@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ExerciseGuidancePanel } from "@/components/exercise-guidance-panel";
+import type { ReactNode } from "react";
+import {
+  formatHistoryDate,
+  formatHistorySet,
+  formatTrackingDisplay,
+} from "@/lib/exercise-history";
 import {
   applyMetricSetEdit,
   formatDurationInput,
@@ -40,9 +45,34 @@ export function WorkoutChecklist({
 }: WorkoutChecklistProps) {
   const [internalChecked, setInternalChecked] = useState<string[]>([]);
   const [rowErrors, setRowErrors] = useState<Record<string, string>>({});
+  const [detailsExerciseId, setDetailsExerciseId] = useState<string | null>(
+    null,
+  );
+  const [detailsSection, setDetailsSection] = useState<"summary" | "history">(
+    "summary",
+  );
+  const detailsButtonRefs = useRef<Record<string, HTMLButtonElement | null>>(
+    {},
+  );
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const checked = checkedExerciseIds ?? internalChecked;
   const setChecked = onCheckedExerciseIdsChange ?? setInternalChecked;
+  const detailsExercise =
+    workout.exercises.find((exercise) => exercise.id === detailsExerciseId) ??
+    null;
+
+  function openExerciseDetails(exerciseId: string) {
+    setDetailsSection("summary");
+    setDetailsExerciseId(exerciseId);
+  }
+
+  function closeExerciseDetails() {
+    const originId = detailsExerciseId;
+    setDetailsExerciseId(null);
+    window.setTimeout(() => {
+      if (originId) detailsButtonRefs.current[originId]?.focus();
+    }, 0);
+  }
 
   function setNextChecked(nextChecked: string[]) {
     setChecked(nextChecked);
@@ -353,14 +383,22 @@ export function WorkoutChecklist({
                   {index + 1}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                    <label
-                      htmlFor={checkboxId}
-                      className="cursor-pointer text-lg font-black leading-tight text-copy"
-                    >
+                  <button
+                    ref={(node) => {
+                      detailsButtonRefs.current[exercise.id] = node;
+                    }}
+                    type="button"
+                    className="flex min-h-11 w-full items-start justify-between gap-3 rounded-2xl px-1 py-1 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                    aria-label={`View details for ${exercise.name}`}
+                    onClick={() => openExerciseDetails(exercise.id)}
+                  >
+                    <span className="text-lg font-black leading-tight text-copy">
                       {exercise.name}
-                    </label>
-                  </div>
+                    </span>
+                    <span className="shrink-0 rounded-full border border-border bg-surface-soft px-3 py-2 text-xs font-black text-muted">
+                      Details
+                    </span>
+                  </button>
                   <div className="mt-1 flex flex-wrap gap-2 text-xs uppercase tracking-[0.16em] text-muted">
                     <span className="rounded-full bg-shell-elevated px-3 py-2">
                       Rest {exercise.rest}
@@ -649,15 +687,305 @@ export function WorkoutChecklist({
                   />
                 </label>
               )}
-              <ExerciseGuidancePanel
-                exercise={exercise}
-                compact
-                defaultOpen={!compactExecution}
-              />
             </article>
           );
         })}
       </div>
+      {detailsExercise ? (
+        <ExerciseDetailsSurface
+          exercise={detailsExercise}
+          section={detailsSection}
+          onSectionChange={setDetailsSection}
+          onClose={closeExerciseDetails}
+        />
+      ) : null}
     </div>
+  );
+}
+
+function ExerciseDetailsSurface({
+  exercise,
+  section,
+  onSectionChange,
+  onClose,
+}: {
+  exercise: WorkoutTemplate["exercises"][number];
+  section: "summary" | "history";
+  onSectionChange: (section: "summary" | "history") => void;
+  onClose: () => void;
+}) {
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const closeRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeRef.current?.focus();
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [exercise.id]);
+
+  function onDialogKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      onClose();
+      return;
+    }
+    if (event.key !== "Tab") return;
+    const focusable = Array.from(
+      dialogRef.current?.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ) ?? [],
+    ).filter((node) => !node.hasAttribute("disabled"));
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (!first || !last) return;
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/50 p-3 pt-[max(1rem,env(safe-area-inset-top))] sm:flex sm:items-center sm:p-6"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div
+        ref={dialogRef}
+        className="mx-auto flex h-[calc(100dvh-2rem)] w-full max-w-2xl flex-col overflow-hidden rounded-[28px] border border-border bg-surface shadow-2xl sm:h-[min(44rem,92vh)]"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="exercise-details-title"
+        onKeyDown={onDialogKeyDown}
+      >
+        <div className="shrink-0 border-b border-border bg-surface p-4 sm:p-6">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-primary">
+                Exercise Details
+              </p>
+              <h2
+                id="exercise-details-title"
+                className="mt-1 text-2xl font-black text-copy"
+              >
+                {exercise.name}
+              </h2>
+              <p className="mt-1 text-sm text-muted">
+                {formatPrescription(exercise)}
+              </p>
+            </div>
+            <button
+              ref={closeRef}
+              type="button"
+              className="ui-button-ghost px-3 py-2 text-sm"
+              onClick={onClose}
+            >
+              Close
+            </button>
+          </div>
+
+          <div
+            role="tablist"
+            aria-label={`Details sections for ${exercise.name}`}
+            className="mt-4 grid grid-cols-2 rounded-2xl border border-border bg-surface-soft p-1"
+          >
+            {(["summary", "history"] as const).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                role="tab"
+                aria-selected={section === tab}
+                className={`rounded-xl px-3 py-2 text-sm font-black capitalize ${section === tab ? "bg-primary text-white" : "text-muted"}`}
+                onClick={() => onSectionChange(tab)}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+          {section === "summary" ? (
+            <ExerciseDetailsSummary exercise={exercise} />
+          ) : (
+            <ExerciseDetailsHistory exercise={exercise} />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ExerciseDetailsSummary({
+  exercise,
+}: {
+  exercise: WorkoutTemplate["exercises"][number];
+}) {
+  const guidance = exercise.guidance;
+  const hasDisplayableGuidance = Boolean(
+    guidance?.setup ||
+    guidance?.executionCues?.length ||
+    guidance?.safetyNotes ||
+    guidance?.modifications?.length ||
+    guidance?.commonMistakes?.length,
+  );
+  const hasAnyDetail = Boolean(
+    hasDisplayableGuidance || exercise.coachingNote || exercise.videoUrl,
+  );
+  const recent = exercise.completedHistory?.[0];
+  return (
+    <div className="space-y-4">
+      <SummaryBlock title="Tracking">
+        <p>{formatTrackingDisplay(exercise)}</p>
+      </SummaryBlock>
+      {recent ? (
+        <SummaryBlock title="Last completed session">
+          <p className="font-semibold">
+            {recent.sets
+              .slice(0, 3)
+              .map((set) => formatHistorySet(set, recent))
+              .join(", ")}
+          </p>
+          <p className="mt-1 text-muted">
+            From {recent.workoutName} on {formatHistoryDate(recent.completedOn)}
+            .
+          </p>
+        </SummaryBlock>
+      ) : null}
+      {hasDisplayableGuidance ? (
+        <SummaryBlock title="How to perform">
+          {guidance?.setup ? <p>{guidance.setup}</p> : null}
+          {guidance?.executionCues?.length ? (
+            <ul className="mt-3 list-disc space-y-1 pl-5">
+              {guidance.executionCues.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          ) : null}
+          {guidance?.commonMistakes?.length ? (
+            <>
+              <p className="mt-3 font-black">Common mistakes</p>
+              <ul className="mt-1 list-disc space-y-1 pl-5">
+                {guidance.commonMistakes.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </>
+          ) : null}
+        </SummaryBlock>
+      ) : null}
+      {guidance?.safetyNotes || guidance?.modifications?.length ? (
+        <SummaryBlock title="Safety and modifications">
+          {guidance.safetyNotes ? <p>{guidance.safetyNotes}</p> : null}
+          {guidance.modifications?.length ? (
+            <ul className="mt-3 list-disc space-y-1 pl-5">
+              {guidance.modifications.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          ) : null}
+        </SummaryBlock>
+      ) : null}
+      {exercise.coachingNote ? (
+        <SummaryBlock title="Coaching note">
+          <p>{exercise.coachingNote}</p>
+        </SummaryBlock>
+      ) : null}
+      {exercise.videoUrl ? (
+        <a
+          href={exercise.videoUrl}
+          target="_blank"
+          rel="noreferrer noopener"
+          className="inline-flex min-h-11 items-center rounded-full bg-primary px-4 py-2 text-sm font-black text-white"
+          aria-label={`${isYouTubeUrl(exercise.videoUrl) ? "Watch Demo on YouTube" : "Watch Demo"} (opens in a new tab)`}
+        >
+          {isYouTubeUrl(exercise.videoUrl)
+            ? "Watch Demo on YouTube"
+            : "Watch Demo"}
+        </a>
+      ) : null}
+      {!hasAnyDetail ? (
+        <p className="rounded-2xl border border-border bg-surface-soft p-4 text-sm text-muted">
+          No reviewed guidance is available for this exercise yet.
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function ExerciseDetailsHistory({
+  exercise,
+}: {
+  exercise: WorkoutTemplate["exercises"][number];
+}) {
+  const entries = exercise.completedHistory ?? [];
+  return (
+    <div className="space-y-3">
+      {entries.length ? (
+        entries.map((entry) => (
+          <section
+            key={`${entry.sessionId}-${entry.exerciseResultId}`}
+            className="rounded-2xl border border-border bg-surface-soft p-4"
+          >
+            <p className="text-sm font-black text-copy">
+              {formatHistoryDate(entry.completedOn)}
+            </p>
+            <p className="mt-1 text-xs uppercase tracking-[0.14em] text-muted">
+              {entry.workoutName}
+            </p>
+            <ol className="mt-3 space-y-1 text-sm text-copy">
+              {entry.sets.map((set, index) => (
+                <li key={`${entry.exerciseResultId}-${index}`}>
+                  {formatHistorySet(set, entry)}
+                </li>
+              ))}
+            </ol>
+          </section>
+        ))
+      ) : (
+        <p className="rounded-2xl border border-border bg-surface-soft p-4 text-sm text-muted">
+          No completed history for this exercise yet.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function isYouTubeUrl(value: string) {
+  try {
+    const host = new URL(value).hostname.replace(/^www\./, "");
+    return host === "youtube.com" || host === "youtu.be";
+  } catch {
+    return false;
+  }
+}
+
+function SummaryBlock({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="rounded-2xl border border-border bg-surface-soft p-4">
+      <h3 className="text-xs font-black uppercase tracking-[0.14em] text-muted">
+        {title}
+      </h3>
+      <div className="mt-2 text-sm leading-6 text-copy">{children}</div>
+    </section>
+  );
+}
+
+function formatPrescription(exercise: WorkoutTemplate["exercises"][number]) {
+  return [`${exercise.sets} sets`, exercise.reps, `Rest ${exercise.rest}`].join(
+    " · ",
   );
 }

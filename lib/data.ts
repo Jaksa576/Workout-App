@@ -35,7 +35,14 @@ import {
   getWeekdayFromDateKey,
 } from "@/lib/time-zone";
 import { isPlanSetupInput, normalizeWeekdays } from "@/lib/validation";
-import { deriveSessionMetrics, type ExerciseMetricRow } from "@/lib/session-metrics";
+import {
+  deriveSessionMetrics,
+  type ExerciseMetricRow,
+} from "@/lib/session-metrics";
+import type {
+  ExerciseHistoryEntry,
+  ExerciseHistorySet,
+} from "@/lib/exercise-history";
 
 type PlanRow = {
   id: string;
@@ -78,7 +85,11 @@ type WorkoutRow = {
 
 type ExerciseRow = {
   previous_set_summaries?: string[];
-  previous_set_defaults?: Array<{ actualLoad: number | null; actualReps: number | null }>;
+  previous_set_defaults?: Array<{
+    actualLoad: number | null;
+    actualReps: number | null;
+  }>;
+  completed_history?: ExerciseHistoryEntry[];
   id: string;
   workout_template_id: string;
   name: string;
@@ -117,7 +128,8 @@ type SessionRow = {
 
 const progressHistoryDays = 90;
 
-export const savedSessionMetricSelect = "id, workout_template_id, workout_name_snapshot, created_at, completed_on, completed, pain_occurred, perceived_difficulty, notes, recommendation, phase_id_at_completion, progression_decision, progression_reason, elapsed_seconds, exercise_results(id, exercise_entry_id, source_exercise_id, exercise_name:exercise_name_snapshot, exercise_order, tracking_type, unilateral_mode, load_unit, distance_unit, completion_status, exercise_set_results(status, actual_load, actual_reps, actual_duration_seconds, actual_distance, actual_left_load, actual_left_reps, actual_left_duration_seconds, actual_left_distance, actual_right_load, actual_right_reps, actual_right_duration_seconds, actual_right_distance))";
+export const savedSessionMetricSelect =
+  "id, workout_template_id, workout_name_snapshot, created_at, completed_on, completed, pain_occurred, perceived_difficulty, notes, recommendation, phase_id_at_completion, progression_decision, progression_reason, elapsed_seconds, exercise_results(id, exercise_entry_id, source_exercise_id, exercise_name:exercise_name_snapshot, exercise_order, tracking_type, unilateral_mode, load_unit, distance_unit, completion_status, exercise_set_results(status, actual_load, actual_reps, actual_duration_seconds, actual_distance, actual_left_load, actual_left_reps, actual_left_duration_seconds, actual_left_distance, actual_right_load, actual_right_reps, actual_right_duration_seconds, actual_right_distance))";
 
 function mapPhase(row: PhaseRow): PlanPhase {
   return {
@@ -154,6 +166,7 @@ function mapExercise(row: ExerciseRow): ExerciseEntry {
     secondaryValueLabel: row.secondary_value_label,
     previousSetSummaries: row.previous_set_summaries ?? [],
     previousSetDefaults: row.previous_set_defaults ?? [],
+    completedHistory: row.completed_history ?? [],
   };
 }
 
@@ -311,9 +324,7 @@ async function getPlanBundle(userId: string, sessionSince?: string) {
     ? (() => {
         let query = supabase
           .from("workout_sessions")
-          .select(
-            savedSessionMetricSelect,
-          )
+          .select(savedSessionMetricSelect)
           .eq("user_id", userId)
           .in("workout_template_id", workoutIds)
           .order("completed_on", { ascending: false })
@@ -340,29 +351,142 @@ async function getPlanBundle(userId: string, sessionSince?: string) {
     throw new Error(sessionsResult.error.message);
   }
 
-  const exercisesWithPrevious = ((exercisesResult.data ?? []) as ExerciseRow[]).map((exercise) => ({ ...exercise }));
-  const catalogExerciseIds = Array.from(new Set(exercisesWithPrevious.map((exercise) => exercise.source_exercise_id).filter(Boolean))) as string[];
-  if (catalogExerciseIds.length > 0) {
-    const { data: previousRows } = await supabase
+  const exercisesWithPrevious = (
+    (exercisesResult.data ?? []) as ExerciseRow[]
+  ).map((exercise) => ({ ...exercise }));
+  const catalogExerciseIds = Array.from(
+    new Set(
+      exercisesWithPrevious
+        .map((exercise) => exercise.source_exercise_id)
+        .filter(Boolean),
+    ),
+  ) as string[];
+  const exerciseEntryIds = exercisesWithPrevious.map((exercise) => exercise.id);
+  if (catalogExerciseIds.length > 0 || exerciseEntryIds.length > 0) {
+    const { data: previousRows } = (await supabase
       .from("exercise_results")
-      .select("id, source_exercise_id, source_workout_template_id, created_at, workout_sessions!inner(user_id, finished_at, created_at), exercise_set_results(set_order, status, actual_load, actual_reps)")
-      .in("source_exercise_id", catalogExerciseIds)
+      .select(
+        "id, exercise_entry_id, source_exercise_id, exercise_name:exercise_name_snapshot, tracking_type, unilateral_mode, load_unit, distance_unit, completion_status, workout_sessions!inner(id, user_id, completed_on, workout_name_snapshot), exercise_set_results(set_order, status, actual_load, actual_reps, actual_duration_seconds, actual_distance, actual_left_load, actual_left_reps, actual_left_duration_seconds, actual_left_distance, actual_right_load, actual_right_reps, actual_right_duration_seconds, actual_right_distance)",
+      )
+      .or(
+        [
+          catalogExerciseIds.length
+            ? `source_exercise_id.in.(${catalogExerciseIds.join(",")})`
+            : "",
+          exerciseEntryIds.length
+            ? `exercise_entry_id.in.(${exerciseEntryIds.join(",")})`
+            : "",
+        ]
+          .filter(Boolean)
+          .join(","),
+      )
       .eq("workout_sessions.user_id", userId)
-      .order("created_at", { ascending: false }) as { data: Array<{ source_exercise_id: string | null; source_workout_template_id: string | null; created_at: string; exercise_set_results?: Array<{ set_order: number; status: string; actual_load: number | null; actual_reps: number | null }> }> | null };
-    const previousBySource = new Map<string, { summaries: string[]; defaults: Array<{ actualLoad: number | null; actualReps: number | null }> }>();
+      .order("created_at", { ascending: false })) as {
+      data: Array<{
+        id: string;
+        exercise_entry_id: string | null;
+        source_exercise_id: string | null;
+        exercise_name: string;
+        tracking_type: ExerciseEntry["trackingType"];
+        unilateral_mode: ExerciseEntry["unilateralMode"];
+        load_unit: ExerciseEntry["loadUnit"];
+        distance_unit: ExerciseEntry["distanceUnit"];
+        completion_status: string;
+        workout_sessions: {
+          id: string;
+          completed_on: string;
+          workout_name_snapshot: string;
+        };
+        exercise_set_results?: Array<
+          ExerciseHistorySet & {
+            set_order: number;
+            actual_load: number | null;
+            actual_reps: number | null;
+            actual_duration_seconds: number | null;
+            actual_distance: number | null;
+            actual_left_load: number | null;
+            actual_left_reps: number | null;
+            actual_left_duration_seconds: number | null;
+            actual_left_distance: number | null;
+            actual_right_load: number | null;
+            actual_right_reps: number | null;
+            actual_right_duration_seconds: number | null;
+            actual_right_distance: number | null;
+          }
+        >;
+      }> | null;
+    };
+    const previousBySource = new Map<
+      string,
+      {
+        summaries: string[];
+        defaults: Array<{
+          actualLoad: number | null;
+          actualReps: number | null;
+        }>;
+        history: ExerciseHistoryEntry[];
+      }
+    >();
     for (const row of previousRows ?? []) {
-      if (!row.source_exercise_id || previousBySource.has(row.source_exercise_id)) continue;
+      const historyKey = row.source_exercise_id ?? row.exercise_entry_id;
+      if (!historyKey) continue;
       const completedSets = (row.exercise_set_results ?? [])
         .filter((set) => set.status === "completed")
         .sort((a, b) => a.set_order - b.set_order);
-      const summaries = completedSets.map((set) => set.actual_load !== null && set.actual_load !== undefined ? `${set.actual_load} × ${set.actual_reps ?? "—"}` : `${set.actual_reps ?? "—"} reps`);
-      const defaults = completedSets.map((set) => ({ actualLoad: set.actual_load, actualReps: set.actual_reps }));
-      if (summaries.length) previousBySource.set(row.source_exercise_id, { summaries, defaults });
+      if (!completedSets.length) continue;
+      const bucket = previousBySource.get(historyKey) ?? {
+        summaries: [],
+        defaults: [],
+        history: [],
+      };
+      const sets = completedSets.map((set) => ({
+        status: set.status,
+        actualLoad: set.actual_load,
+        actualReps: set.actual_reps,
+        actualDurationSeconds: set.actual_duration_seconds,
+        actualDistance: set.actual_distance,
+        actualLeftLoad: set.actual_left_load,
+        actualLeftReps: set.actual_left_reps,
+        actualLeftDurationSeconds: set.actual_left_duration_seconds,
+        actualLeftDistance: set.actual_left_distance,
+        actualRightLoad: set.actual_right_load,
+        actualRightReps: set.actual_right_reps,
+        actualRightDurationSeconds: set.actual_right_duration_seconds,
+        actualRightDistance: set.actual_right_distance,
+      }));
+      bucket.history.push({
+        sessionId: row.workout_sessions.id,
+        exerciseResultId: row.id,
+        completedOn: row.workout_sessions.completed_on,
+        workoutName: row.workout_sessions.workout_name_snapshot,
+        exerciseName: row.exercise_name,
+        trackingType: row.tracking_type ?? "completion",
+        unilateralMode: row.unilateral_mode ?? "bilateral",
+        loadUnit: row.load_unit ?? null,
+        distanceUnit: row.distance_unit ?? null,
+        completionStatus: row.completion_status,
+        sets,
+      });
+      if (!bucket.summaries.length) {
+        bucket.summaries = completedSets.map((set) =>
+          set.actual_load !== null && set.actual_load !== undefined
+            ? `${set.actual_load} ${row.load_unit ?? "lb"} × ${set.actual_reps ?? "—"}`
+            : `${set.actual_reps ?? "—"} reps`,
+        );
+        bucket.defaults = completedSets.map((set) => ({
+          actualLoad: set.actual_load,
+          actualReps: set.actual_reps,
+        }));
+      }
+      previousBySource.set(historyKey, bucket);
     }
     for (const exercise of exercisesWithPrevious) {
-      const previous = exercise.source_exercise_id ? previousBySource.get(exercise.source_exercise_id) : undefined;
+      const previous = exercise.source_exercise_id
+        ? previousBySource.get(exercise.source_exercise_id)
+        : previousBySource.get(exercise.id);
       exercise.previous_set_summaries = previous?.summaries ?? [];
       exercise.previous_set_defaults = previous?.defaults ?? [];
+      exercise.completed_history = previous?.history ?? [];
     }
   }
 
@@ -623,9 +747,7 @@ export async function getLatestSessionForWorkout(
   const supabase = await getSupabaseServerClient();
   const { data, error } = await supabase
     .from("workout_sessions")
-    .select(
-      savedSessionMetricSelect,
-    )
+    .select(savedSessionMetricSelect)
     .eq("user_id", user.id)
     .eq("workout_template_id", workoutTemplateId)
     .order("completed_on", { ascending: false })
