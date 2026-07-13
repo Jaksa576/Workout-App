@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AppShell } from "@/components/app-shell";
+import { InstallAppPrompt } from "@/components/install-app-prompt";
+import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
 import { ThemeScript } from "@/components/theme-script";
 import { getCurrentUser } from "@/lib/auth";
 
@@ -11,9 +13,9 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
-      { url: "/icon-192.png", type: "image/png", sizes: "192x192" }
+      { url: "/icon-192-v2.png", type: "image/png", sizes: "192x192" }
     ],
-    apple: "/apple-touch-icon.png"
+    apple: "/apple-touch-icon-v2.png"
   }
 };
 
@@ -37,6 +39,7 @@ export default async function RootLayout({
         <ThemeScript />
       </head>
       <body>
+        <ServiceWorkerRegistration />
         <AppShell user={user}>{children}</AppShell>
       </body>
     </html>
