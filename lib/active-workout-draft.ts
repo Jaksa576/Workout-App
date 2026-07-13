@@ -41,6 +41,7 @@ export type ActiveWorkoutDraft = {
   restTimer?: RestTimerState | null;
   autoStartRest?: boolean;
   timerSoundEnabled?: boolean;
+  workoutRestOverrideEnabled?: boolean;
   workoutDefaultRestSeconds?: number | null;
   checkIn: {
     completedOn: string | null;
@@ -101,7 +102,8 @@ export function buildActiveWorkoutDraft(input: {
     restTimer: null,
     autoStartRest: activeWorkoutAutoStartRestDefault,
     timerSoundEnabled: true,
-    workoutDefaultRestSeconds: null,
+    workoutRestOverrideEnabled: false,
+    workoutDefaultRestSeconds: 90,
     checkIn: {
       completedOn: null,
       completed: false,
@@ -156,6 +158,8 @@ export function validateActiveWorkoutDraft(
       typeof value.autoStartRest !== "boolean") ||
     (value.timerSoundEnabled !== undefined &&
       typeof value.timerSoundEnabled !== "boolean") ||
+    (value.workoutRestOverrideEnabled !== undefined &&
+      typeof value.workoutRestOverrideEnabled !== "boolean") ||
     (value.workoutDefaultRestSeconds !== undefined &&
       value.workoutDefaultRestSeconds !== null &&
       (typeof value.workoutDefaultRestSeconds !== "number" || value.workoutDefaultRestSeconds <= 0)) ||
@@ -197,10 +201,14 @@ export function validateActiveWorkoutDraft(
           : activeWorkoutAutoStartRestDefault,
       timerSoundEnabled:
         typeof value.timerSoundEnabled === "boolean" ? value.timerSoundEnabled : true,
+      workoutRestOverrideEnabled:
+        typeof value.workoutRestOverrideEnabled === "boolean"
+          ? value.workoutRestOverrideEnabled
+          : typeof value.workoutDefaultRestSeconds === "number",
       workoutDefaultRestSeconds:
         typeof value.workoutDefaultRestSeconds === "number"
           ? value.workoutDefaultRestSeconds
-          : null,
+          : 90,
     },
     stale: ageMs > staleMs,
     ageDays: Math.floor(ageMs / (24 * 60 * 60 * 1000)),

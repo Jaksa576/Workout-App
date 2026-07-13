@@ -5,10 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import { PhaseProgressPanel } from "@/components/phase-progress-panel";
 import { shouldPersistActiveWorkoutDraft } from "@/lib/active-workout-lifecycle";
-import {
-  activeWorkoutAutoStartRestDefault,
-  selectExerciseForManualRest,
-} from "@/lib/active-workout-rest";
+import { activeWorkoutAutoStartRestDefault } from "@/lib/active-workout-rest";
 import {
   canFinishActiveWorkout,
   getDiscardRedirectPath,
@@ -214,21 +211,25 @@ function vibrateRestComplete() {
 function WorkoutSettingsDialog({
   autoStartRest,
   timerSoundEnabled,
+  workoutRestOverrideEnabled,
   workoutDefaultRestSeconds,
   globalDefaultRestSeconds,
   onAutoStartChange,
   onSoundChange,
+  onOverrideEnabledChange,
   onDefaultRestChange,
   onReset,
   onClose,
 }: {
   autoStartRest: boolean;
   timerSoundEnabled: boolean;
-  workoutDefaultRestSeconds: number | null;
+  workoutRestOverrideEnabled: boolean;
+  workoutDefaultRestSeconds: number;
   globalDefaultRestSeconds: number;
   onAutoStartChange: (value: boolean) => void;
   onSoundChange: (value: boolean) => void;
-  onDefaultRestChange: (value: number | null) => void;
+  onOverrideEnabledChange: (value: boolean) => void;
+  onDefaultRestChange: (value: number) => void;
   onReset: () => void;
   onClose: () => void;
 }) {
@@ -294,14 +295,23 @@ function WorkoutSettingsDialog({
             <span>Timer-complete sound</span>
             <input type="checkbox" className="h-5 w-5 accent-[rgb(var(--color-primary))]" checked={timerSoundEnabled} onChange={(event) => onSoundChange(event.target.checked)} />
           </label>
-          <label className="block text-sm font-semibold text-copy">
-            <span>Override rest for this workout</span>
-            <span className="mt-1 block text-xs font-medium leading-5 text-muted">Overrides prescribed rest for every exercise in this workout.</span>
-            <select className="ui-input mt-2" value={workoutDefaultRestSeconds ?? ""} onChange={(event) => onDefaultRestChange(event.target.value ? Number(event.target.value) : null)}>
-              <option value="">Use exercise rest or global default ({formatRestDurationLabel(globalDefaultRestSeconds)})</option>
-              {restDurationOptionsSeconds.map((seconds) => <option key={seconds} value={seconds}>{formatRestDurationLabel(seconds)}</option>)}
-            </select>
-          </label>
+          <div className="space-y-3">
+            <label className="flex min-h-11 items-center justify-between gap-4 text-sm font-semibold text-copy">
+              <span>Override rest for this workout</span>
+              <input type="checkbox" className="h-5 w-5 accent-[rgb(var(--color-primary))]" checked={workoutRestOverrideEnabled} onChange={(event) => onOverrideEnabledChange(event.target.checked)} />
+            </label>
+            {workoutRestOverrideEnabled ? (
+              <label className="block text-sm font-semibold text-copy">
+                <span>Rest duration</span>
+                <select className="ui-input mt-2" value={workoutDefaultRestSeconds} onChange={(event) => onDefaultRestChange(Number(event.target.value))}>
+                  {restDurationOptionsSeconds.map((seconds) => <option key={seconds} value={seconds}>{formatRestDurationLabel(seconds)}</option>)}
+                </select>
+                <span className="mt-1 block text-xs font-medium leading-5 text-muted">Uses this rest duration for every exercise in this workout.</span>
+              </label>
+            ) : (
+              <p className="text-xs font-medium leading-5 text-muted">Uses exercise rest, then your global default ({formatRestDurationLabel(globalDefaultRestSeconds)}).</p>
+            )}
+          </div>
         </div>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-between">
           <button type="button" className="ui-button-ghost min-h-11" onClick={onReset}>Reset to defaults</button>
@@ -677,7 +687,8 @@ export function WorkoutFlow({
     activeWorkoutAutoStartRestDefault,
   );
   const [timerSoundEnabled, setTimerSoundEnabled] = useState(true);
-  const [workoutDefaultRestSeconds, setWorkoutDefaultRestSeconds] = useState<number | null>(null);
+  const [workoutRestOverrideEnabled, setWorkoutRestOverrideEnabled] = useState(false);
+  const [workoutDefaultRestSeconds, setWorkoutDefaultRestSeconds] = useState(90);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const settingsTriggerRef = useRef<HTMLButtonElement | null>(null);
   const completedFeedbackEvents = useRef(new Set<string>());
@@ -778,7 +789,8 @@ export function WorkoutFlow({
         result.draft.autoStartRest ?? activeWorkoutAutoStartRestDefault,
       );
       setTimerSoundEnabled(result.draft.timerSoundEnabled ?? true);
-      setWorkoutDefaultRestSeconds(result.draft.workoutDefaultRestSeconds ?? null);
+      setWorkoutRestOverrideEnabled(result.draft.workoutRestOverrideEnabled ?? false);
+      setWorkoutDefaultRestSeconds(result.draft.workoutDefaultRestSeconds ?? 90);
       setCurrentRestExerciseId(result.draft.restTimer?.exerciseEntryId ?? null);
       setCompleted(result.draft.checkIn.completed);
       setPain(result.draft.checkIn.painOccurred);
@@ -846,6 +858,7 @@ export function WorkoutFlow({
         restTimer,
         autoStartRest,
         timerSoundEnabled,
+        workoutRestOverrideEnabled,
         workoutDefaultRestSeconds,
         checkIn: {
           completedOn,
@@ -876,6 +889,7 @@ export function WorkoutFlow({
     restTimer,
     autoStartRest,
     timerSoundEnabled,
+    workoutRestOverrideEnabled,
     workoutDefaultRestSeconds,
     completed,
     completedOn,
@@ -942,6 +956,7 @@ export function WorkoutFlow({
     if (restTimer?.status === "running" && restTimer.lastCompletedSetId === input.setId) return;
     setCurrentRestExerciseId(input.exercise.id);
     const durationSeconds = resolveRestDurationSeconds({
+      workoutOverrideEnabled: workoutRestOverrideEnabled,
       workoutOverrideSeconds: workoutDefaultRestSeconds,
       exerciseRest: input.exercise.rest,
       globalDefaultSeconds: defaultRestSeconds,
@@ -958,29 +973,6 @@ export function WorkoutFlow({
     setDraftMessage(`Rest timer restarted for ${input.exercise.name}.`);
   }
 
-  function handleManualStartRest() {
-    unlockAudio();
-    const selectedExercise = selectExerciseForManualRest({
-      workout,
-      setResults,
-      currentExerciseId: currentRestExerciseId,
-    });
-    if (!selectedExercise) return;
-    setCurrentRestExerciseId(selectedExercise.id);
-    setRestTimer(
-      startRestTimer({
-        durationSeconds: resolveRestDurationSeconds({
-          workoutOverrideSeconds: workoutDefaultRestSeconds,
-          exerciseRest: selectedExercise.rest,
-          globalDefaultSeconds: defaultRestSeconds,
-        }),
-        exerciseEntryId: selectedExercise.id,
-        exerciseName: selectedExercise.name,
-        autoStarted: false,
-        setId: null,
-      }),
-    );
-  }
 
   function handleSelectWorkout(id: string) {
     if (activeDraft && activeDraft.workoutTemplateId !== id) {
@@ -1020,7 +1012,8 @@ export function WorkoutFlow({
       setSetResults([]);
       setExerciseNotes({});
       setTimerSoundEnabled(true);
-      setWorkoutDefaultRestSeconds(null);
+      setWorkoutRestOverrideEnabled(false);
+      setWorkoutDefaultRestSeconds(90);
       setInvalidRecoveryKey(null);
       setAwaitingStaleRecoveryDecision(false);
       setDraftMessage(
@@ -1074,7 +1067,8 @@ export function WorkoutFlow({
     setExerciseNotes({});
     clearRestTimerFeedback();
     setTimerSoundEnabled(true);
-    setWorkoutDefaultRestSeconds(null);
+    setWorkoutRestOverrideEnabled(false);
+    setWorkoutDefaultRestSeconds(90);
     setDraftMessage("Active workout draft discarded.");
     setStatus(null);
     setInvalidRecoveryKey(null);
@@ -1229,7 +1223,8 @@ export function WorkoutFlow({
     setExerciseNotes({});
     clearRestTimerFeedback();
     setTimerSoundEnabled(true);
-    setWorkoutDefaultRestSeconds(null);
+    setWorkoutRestOverrideEnabled(false);
+    setWorkoutDefaultRestSeconds(90);
     setCompleted(true);
     setPain(false);
     setEffort("Appropriate");
@@ -1271,15 +1266,18 @@ export function WorkoutFlow({
     <WorkoutSettingsDialog
       autoStartRest={autoStartRest}
       timerSoundEnabled={timerSoundEnabled}
+      workoutRestOverrideEnabled={workoutRestOverrideEnabled}
       workoutDefaultRestSeconds={workoutDefaultRestSeconds}
       globalDefaultRestSeconds={defaultRestSeconds}
       onAutoStartChange={setAutoStartRest}
       onSoundChange={updateTimerSoundEnabled}
+      onOverrideEnabledChange={setWorkoutRestOverrideEnabled}
       onDefaultRestChange={setWorkoutDefaultRestSeconds}
       onReset={() => {
         setAutoStartRest(activeWorkoutAutoStartRestDefault);
         updateTimerSoundEnabled(true);
-        setWorkoutDefaultRestSeconds(null);
+        setWorkoutRestOverrideEnabled(false);
+        setWorkoutDefaultRestSeconds(90);
       }}
       onClose={closeWorkoutSettings}
     />
@@ -1338,11 +1336,6 @@ export function WorkoutFlow({
         ) : null}
 
         <div className="mt-4 space-y-4">
-          {draftMessage ? (
-            <div className="rounded-[24px] border border-primary/20 bg-primary/10 px-4 py-3 text-sm leading-6 text-copy">
-              {draftMessage}
-            </div>
-          ) : null}
           {shouldShowActiveStartCard({
             mode,
             hasActiveDraft: Boolean(activeDraft),
@@ -1405,35 +1398,6 @@ export function WorkoutFlow({
 
           {step === "workout" && activeDraft ? (
             <>
-              <div className="flex flex-col gap-3 rounded-[24px] border border-border bg-surface-soft p-4 sm:flex-row sm:items-center sm:justify-between">
-                <label className="flex items-start gap-3 text-sm font-semibold text-copy">
-                  <input
-                    type="checkbox"
-                    className="mt-1 h-5 w-5 accent-[rgb(var(--color-primary))]"
-                    checked={autoStartRest}
-                    onChange={(event) => setAutoStartRest(event.target.checked)}
-                    aria-label="Automatically start rest after completed sets"
-                  />
-                  <span>Automatically start rest after completed sets</span>
-                </label>
-                <button
-                  type="button"
-                  className="ui-button-secondary min-h-11 px-4 py-2 text-sm"
-                  onClick={handleManualStartRest}
-                  aria-label="Start rest timer manually"
-                >
-                  Start rest
-                </button>
-              </div>
-              <WorkoutChecklist
-                workout={workout}
-                checkedExerciseIds={checkedExerciseIds}
-                onCheckedExerciseIdsChange={setCheckedExerciseIds}
-                setResults={setResults}
-                onSetResultsChange={setSetResults}
-                compactExecution
-                onSetCompleted={handleSetCompletedForRest}
-              />
               <RestTimerDock
                 timer={liveRestTimer}
                 onPause={() =>
@@ -1452,6 +1416,15 @@ export function WorkoutFlow({
                   )
                 }
                 onCancel={clearRestTimerFeedback}
+              />
+              <WorkoutChecklist
+                workout={workout}
+                checkedExerciseIds={checkedExerciseIds}
+                onCheckedExerciseIdsChange={setCheckedExerciseIds}
+                setResults={setResults}
+                onSetResultsChange={setSetResults}
+                compactExecution
+                onSetCompleted={handleSetCompletedForRest}
               />
             </>
           ) : null}

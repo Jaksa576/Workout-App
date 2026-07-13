@@ -6,6 +6,7 @@ export const restDurationOptionsSeconds = [30, 45, 60, 75, 90, 120, 150, 180, 24
 export type WorkoutTimerSettings = {
   autoStartRest?: boolean;
   timerSoundEnabled?: boolean;
+  workoutRestOverrideEnabled?: boolean;
   defaultRestSeconds?: number | null;
 };
 
@@ -18,14 +19,20 @@ export function getEffectiveDefaultRestSeconds(value: number | null | undefined)
 }
 
 export function resolveRestDurationSeconds(input: {
+  workoutOverrideEnabled?: boolean;
   workoutOverrideSeconds?: number | null;
   exerciseRest?: string | null;
   globalDefaultSeconds?: number | null;
   fallbackSeconds?: number;
 }) {
+  if (input.workoutOverrideEnabled) {
+    return normalizeRestSeconds(
+      input.workoutOverrideSeconds ?? input.fallbackSeconds ?? restTimerDefaultSeconds,
+    );
+  }
+
   return normalizeRestSeconds(
-    input.workoutOverrideSeconds ??
-      parseRestDurationSeconds(input.exerciseRest) ??
+    parseRestDurationSeconds(input.exerciseRest) ??
       input.globalDefaultSeconds ??
       input.fallbackSeconds ??
       restTimerDefaultSeconds,
