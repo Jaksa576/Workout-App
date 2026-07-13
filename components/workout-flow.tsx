@@ -1,14 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import { PhaseProgressPanel } from "@/components/phase-progress-panel";
 import { shouldPersistActiveWorkoutDraft } from "@/lib/active-workout-lifecycle";
-import {
-  activeWorkoutAutoStartRestDefault,
-  selectExerciseForManualRest,
-} from "@/lib/active-workout-rest";
+import { activeWorkoutAutoStartRestDefault } from "@/lib/active-workout-rest";
 import {
   canFinishActiveWorkout,
   getDiscardRedirectPath,
@@ -25,13 +22,19 @@ import {
   addRestTime,
   deriveRestTimerState,
   formatRestTimer,
-  getRestDurationSeconds,
   idleRestTimerState,
+  shouldEmitRestTimerCompletionFeedback,
   pauseRestTimer,
   resumeRestTimer,
   startRestTimer,
   type RestTimerState,
 } from "@/lib/rest-timer";
+import {
+  formatRestDurationLabel,
+  getEffectiveTimerSound,
+  resolveRestDurationSeconds,
+  restDurationOptionsSeconds,
+} from "@/lib/workout-timer-settings";
 import {
   buildActiveWorkoutDraft,
   getActiveWorkoutDraftStorageKey,
@@ -69,6 +72,7 @@ type WorkoutFlowProps = {
   progressSummary: WorkoutProgressSummary;
   phaseProgress: PhaseProgressSummary | null;
   userId: string | null;
+  defaultRestSeconds: number;
 };
 
 type SessionSaveResult = {
@@ -132,6 +136,190 @@ function mergeSessions(
   }
 
   return sortSessionsByLatest(Array.from(sessionsById.values()));
+}
+
+type TimerAudioContext = AudioContext & { close: () => Promise<void>; resume: () => Promise<void> };
+
+function getAudioContextCtor() {
+  if (typeof window === "undefined") return null;
+  return window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext || null;
+}
+
+function useTimerCompletionAudio() {
+  const contextRef = useRef<TimerAudioContext | null>(null);
+
+  const unlockAudio = () => {
+    try {
+      const AudioContextCtor = getAudioContextCtor();
+      if (!AudioContextCtor) return;
+      const context = contextRef.current ?? new AudioContextCtor();
+      contextRef.current = context as TimerAudioContext;
+      if (context.state === "suspended") {
+        void context.resume().catch(() => undefined);
+      }
+    } catch {
+      // Web Audio may be unavailable or blocked; rest timing still works.
+    }
+  };
+
+  const playCompletionCue = () => {
+    try {
+      const context = contextRef.current;
+      if (!context) return;
+      if (context.state === "suspended") {
+        void context.resume().catch(() => undefined);
+        return;
+      }
+      if (context.state !== "running") return;
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.type = "sine";
+      oscillator.frequency.value = 880;
+      gain.gain.setValueAtTime(0.0001, context.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.15, context.currentTime + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.28);
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+      oscillator.start();
+      oscillator.stop(context.currentTime + 0.3);
+    } catch {
+      // Completion feedback degrades silently when audio playback is unavailable.
+    }
+  };
+
+  const closeAudio = () => {
+    const context = contextRef.current;
+    contextRef.current = null;
+    if (context && context.state !== "closed") {
+      void context.close().catch(() => undefined);
+    }
+  };
+
+  useEffect(() => closeAudio, []);
+
+  return { unlockAudio, playCompletionCue, closeAudio };
+}
+
+function vibrateRestComplete() {
+  try {
+    window.navigator.vibrate?.(120);
+  } catch {
+    // Unsupported vibration APIs must not affect timer completion.
+  }
+}
+
+function WorkoutSettingsDialog({
+  autoStartRest,
+  timerSoundEnabled,
+  workoutRestOverrideEnabled,
+  workoutDefaultRestSeconds,
+  globalDefaultRestSeconds,
+  onAutoStartChange,
+  onSoundChange,
+  onOverrideEnabledChange,
+  onDefaultRestChange,
+  onReset,
+  onClose,
+}: {
+  autoStartRest: boolean;
+  timerSoundEnabled: boolean;
+  workoutRestOverrideEnabled: boolean;
+  workoutDefaultRestSeconds: number;
+  globalDefaultRestSeconds: number;
+  onAutoStartChange: (value: boolean) => void;
+  onSoundChange: (value: boolean) => void;
+  onOverrideEnabledChange: (value: boolean) => void;
+  onDefaultRestChange: (value: number) => void;
+  onReset: () => void;
+  onClose: () => void;
+}) {
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeButtonRef.current?.focus();
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
+
+  function onDialogKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      onClose();
+      return;
+    }
+    if (event.key !== "Tab") return;
+    const focusable = Array.from(
+      dialogRef.current?.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [href], [tabindex]:not([tabindex="-1"])',
+      ) ?? [],
+    ).filter((element) => element.offsetParent !== null);
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end bg-ink/30 p-3 sm:items-center sm:justify-center" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+      <div
+        ref={dialogRef}
+        className="w-full max-w-md rounded-[28px] border border-border bg-surface p-5 shadow-2xl"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="workout-settings-title"
+        onKeyDown={onDialogKeyDown}
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="ui-eyebrow">Workout settings</p>
+            <h2 id="workout-settings-title" className="mt-2 text-xl font-black text-copy">Timer preferences</h2>
+          </div>
+          <button ref={closeButtonRef} type="button" className="ui-button-ghost min-h-11 px-3 py-2" onClick={onClose} aria-label="Close workout settings">×</button>
+        </div>
+        <div className="mt-5 space-y-4">
+          <label className="flex min-h-11 items-center justify-between gap-4 text-sm font-semibold text-copy">
+            <span>Auto-start rest timer</span>
+            <input type="checkbox" className="h-5 w-5 accent-[rgb(var(--color-primary))]" checked={autoStartRest} onChange={(event) => onAutoStartChange(event.target.checked)} />
+          </label>
+          <label className="flex min-h-11 items-center justify-between gap-4 text-sm font-semibold text-copy">
+            <span>Timer-complete sound</span>
+            <input type="checkbox" className="h-5 w-5 accent-[rgb(var(--color-primary))]" checked={timerSoundEnabled} onChange={(event) => onSoundChange(event.target.checked)} />
+          </label>
+          <div className="space-y-3">
+            <label className="flex min-h-11 items-center justify-between gap-4 text-sm font-semibold text-copy">
+              <span>Override rest for this workout</span>
+              <input type="checkbox" className="h-5 w-5 accent-[rgb(var(--color-primary))]" checked={workoutRestOverrideEnabled} onChange={(event) => onOverrideEnabledChange(event.target.checked)} />
+            </label>
+            {workoutRestOverrideEnabled ? (
+              <label className="block text-sm font-semibold text-copy">
+                <span>Rest duration</span>
+                <select className="ui-input mt-2" value={workoutDefaultRestSeconds} onChange={(event) => onDefaultRestChange(Number(event.target.value))}>
+                  {restDurationOptionsSeconds.map((seconds) => <option key={seconds} value={seconds}>{formatRestDurationLabel(seconds)}</option>)}
+                </select>
+                <span className="mt-1 block text-xs font-medium leading-5 text-muted">Uses this rest duration for every exercise in this workout.</span>
+              </label>
+            ) : (
+              <p className="text-xs font-medium leading-5 text-muted">Uses exercise rest, then your global default ({formatRestDurationLabel(globalDefaultRestSeconds)}).</p>
+            )}
+          </div>
+        </div>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-between">
+          <button type="button" className="ui-button-ghost min-h-11" onClick={onReset}>Reset to defaults</button>
+          <button type="button" className="ui-button-primary min-h-11" onClick={onClose}>Done</button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function RestTimerDock({
@@ -466,6 +654,7 @@ export function WorkoutFlow({
   progressSummary,
   phaseProgress,
   userId,
+  defaultRestSeconds,
 }: WorkoutFlowProps) {
   const router = useRouter();
   const isActiveMode = mode === "active";
@@ -497,6 +686,13 @@ export function WorkoutFlow({
   const [autoStartRest, setAutoStartRest] = useState(
     activeWorkoutAutoStartRestDefault,
   );
+  const [timerSoundEnabled, setTimerSoundEnabled] = useState(true);
+  const [workoutRestOverrideEnabled, setWorkoutRestOverrideEnabled] = useState(false);
+  const [workoutDefaultRestSeconds, setWorkoutDefaultRestSeconds] = useState(90);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const settingsTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const completedFeedbackEvents = useRef(new Set<string>());
+  const { unlockAudio, playCompletionCue, closeAudio } = useTimerCompletionAudio();
   const [currentRestExerciseId, setCurrentRestExerciseId] = useState<string | null>(null);
   const [completed, setCompleted] = useState(true);
   const [pain, setPain] = useState(false);
@@ -588,10 +784,13 @@ export function WorkoutFlow({
       setCheckedExerciseIds(migratedDraftRows.checkedExerciseIds);
       setSetResults(migratedDraftRows.setResults);
       setExerciseNotes(result.draft.exerciseNotes);
-      setRestTimer(result.draft.restTimer ?? null);
+      setRestTimer(deriveRestTimerState(result.draft.restTimer));
       setAutoStartRest(
         result.draft.autoStartRest ?? activeWorkoutAutoStartRestDefault,
       );
+      setTimerSoundEnabled(result.draft.timerSoundEnabled ?? true);
+      setWorkoutRestOverrideEnabled(result.draft.workoutRestOverrideEnabled ?? false);
+      setWorkoutDefaultRestSeconds(result.draft.workoutDefaultRestSeconds ?? 90);
       setCurrentRestExerciseId(result.draft.restTimer?.exerciseEntryId ?? null);
       setCompleted(result.draft.checkIn.completed);
       setPain(result.draft.checkIn.painOccurred);
@@ -658,6 +857,9 @@ export function WorkoutFlow({
         exerciseNotes,
         restTimer,
         autoStartRest,
+        timerSoundEnabled,
+        workoutRestOverrideEnabled,
+        workoutDefaultRestSeconds,
         checkIn: {
           completedOn,
           completed,
@@ -686,6 +888,9 @@ export function WorkoutFlow({
     exerciseNotes,
     restTimer,
     autoStartRest,
+    timerSoundEnabled,
+    workoutRestOverrideEnabled,
+    workoutDefaultRestSeconds,
     completed,
     completedOn,
     effort,
@@ -728,20 +933,33 @@ export function WorkoutFlow({
   useEffect(() => {
     if (liveRestTimer.status === "expired" && restTimer?.status === "running") {
       setRestTimer(liveRestTimer);
-      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
-        navigator.vibrate?.(120);
+      const completionEventId = shouldEmitRestTimerCompletionFeedback({
+        previousTimer: restTimer,
+        currentTimer: liveRestTimer,
+        emittedEventIds: completedFeedbackEvents.current,
+      });
+      if (!completionEventId) return;
+      completedFeedbackEvents.current.add(completionEventId);
+      vibrateRestComplete();
+      if (getEffectiveTimerSound(timerSoundEnabled)) {
+        playCompletionCue();
       }
     }
-  }, [liveRestTimer, restTimer]);
+  }, [liveRestTimer, playCompletionCue, restTimer, timerSoundEnabled]);
 
   function handleSetCompletedForRest(input: {
     exercise: WorkoutTemplate["exercises"][number];
     setId: string;
   }) {
+    unlockAudio();
     if (!autoStartRest) return;
+    if (restTimer?.status === "running" && restTimer.lastCompletedSetId === input.setId) return;
     setCurrentRestExerciseId(input.exercise.id);
-    const durationSeconds = getRestDurationSeconds({
+    const durationSeconds = resolveRestDurationSeconds({
+      workoutOverrideEnabled: workoutRestOverrideEnabled,
+      workoutOverrideSeconds: workoutDefaultRestSeconds,
       exerciseRest: input.exercise.rest,
+      globalDefaultSeconds: defaultRestSeconds,
     });
     setRestTimer(
       startRestTimer({
@@ -755,26 +973,6 @@ export function WorkoutFlow({
     setDraftMessage(`Rest timer restarted for ${input.exercise.name}.`);
   }
 
-  function handleManualStartRest() {
-    const selectedExercise = selectExerciseForManualRest({
-      workout,
-      setResults,
-      currentExerciseId: currentRestExerciseId,
-    });
-    if (!selectedExercise) return;
-    setCurrentRestExerciseId(selectedExercise.id);
-    setRestTimer(
-      startRestTimer({
-        durationSeconds: getRestDurationSeconds({
-          exerciseRest: selectedExercise.rest,
-        }),
-        exerciseEntryId: selectedExercise.id,
-        exerciseName: selectedExercise.name,
-        autoStarted: false,
-        setId: null,
-      }),
-    );
-  }
 
   function handleSelectWorkout(id: string) {
     if (activeDraft && activeDraft.workoutTemplateId !== id) {
@@ -813,6 +1011,9 @@ export function WorkoutFlow({
       setCheckedExerciseIds([]);
       setSetResults([]);
       setExerciseNotes({});
+      setTimerSoundEnabled(true);
+      setWorkoutRestOverrideEnabled(false);
+      setWorkoutDefaultRestSeconds(90);
       setInvalidRecoveryKey(null);
       setAwaitingStaleRecoveryDecision(false);
       setDraftMessage(
@@ -826,6 +1027,24 @@ export function WorkoutFlow({
         "Workout recovery storage is unavailable. Free space or enable storage, then try again.",
       );
     }
+  }
+
+  function closeWorkoutSettings() {
+    setSettingsOpen(false);
+    window.requestAnimationFrame(() => settingsTriggerRef.current?.focus());
+  }
+
+  function updateTimerSoundEnabled(value: boolean) {
+    setTimerSoundEnabled(value);
+    if (value) {
+      unlockAudio();
+    }
+  }
+
+  function clearRestTimerFeedback() {
+    setRestTimer(null);
+    setLiveRestTimer(idleRestTimerState);
+    closeAudio();
   }
 
   function handleDiscardDraft() {
@@ -846,8 +1065,10 @@ export function WorkoutFlow({
     setCheckedExerciseIds([]);
     setSetResults([]);
     setExerciseNotes({});
-    setRestTimer(null);
-    setLiveRestTimer(idleRestTimerState);
+    clearRestTimerFeedback();
+    setTimerSoundEnabled(true);
+    setWorkoutRestOverrideEnabled(false);
+    setWorkoutDefaultRestSeconds(90);
     setDraftMessage("Active workout draft discarded.");
     setStatus(null);
     setInvalidRecoveryKey(null);
@@ -906,9 +1127,8 @@ export function WorkoutFlow({
       startedAt: new Date().toISOString(),
       restTimer: null,
     });
-    setRestTimer(null);
+    clearRestTimerFeedback();
     setCurrentRestExerciseId(null);
-    setLiveRestTimer(idleRestTimerState);
     setStep("check-in");
     setStatus(null);
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
@@ -925,8 +1145,7 @@ export function WorkoutFlow({
       });
     }
     setFinishElapsedSnapshot(null);
-    setRestTimer(null);
-    setLiveRestTimer(idleRestTimerState);
+    clearRestTimerFeedback();
     setStep("workout");
   }
 
@@ -971,8 +1190,7 @@ export function WorkoutFlow({
           getActiveWorkoutDraftStorageKey(activeDraft.userId),
         );
       }
-      setRestTimer(null);
-      setLiveRestTimer(idleRestTimerState);
+      clearRestTimerFeedback();
       setFinishElapsedSnapshot(null);
       setSavedSession(savedWorkoutSession);
       setSessionHistory((currentSessions) =>
@@ -1003,8 +1221,10 @@ export function WorkoutFlow({
     setCheckedExerciseIds([]);
     setSetResults([]);
     setExerciseNotes({});
-    setRestTimer(null);
-    setLiveRestTimer(idleRestTimerState);
+    clearRestTimerFeedback();
+    setTimerSoundEnabled(true);
+    setWorkoutRestOverrideEnabled(false);
+    setWorkoutDefaultRestSeconds(90);
     setCompleted(true);
     setPain(false);
     setEffort("Appropriate");
@@ -1042,9 +1262,31 @@ export function WorkoutFlow({
     saving,
   });
 
+  const workoutSettingsDialog = settingsOpen && activeDraft ? (
+    <WorkoutSettingsDialog
+      autoStartRest={autoStartRest}
+      timerSoundEnabled={timerSoundEnabled}
+      workoutRestOverrideEnabled={workoutRestOverrideEnabled}
+      workoutDefaultRestSeconds={workoutDefaultRestSeconds}
+      globalDefaultRestSeconds={defaultRestSeconds}
+      onAutoStartChange={setAutoStartRest}
+      onSoundChange={updateTimerSoundEnabled}
+      onOverrideEnabledChange={setWorkoutRestOverrideEnabled}
+      onDefaultRestChange={setWorkoutDefaultRestSeconds}
+      onReset={() => {
+        setAutoStartRest(activeWorkoutAutoStartRestDefault);
+        updateTimerSoundEnabled(true);
+        setWorkoutRestOverrideEnabled(false);
+        setWorkoutDefaultRestSeconds(90);
+      }}
+      onClose={closeWorkoutSettings}
+    />
+  ) : null;
+
   if (isActiveMode) {
     return (
       <div className={`mx-auto max-w-3xl ${liveRestTimer.status === "idle" || step === "check-in" ? "pb-[max(2rem,env(safe-area-inset-bottom))]" : "pb-[max(12rem,calc(env(safe-area-inset-bottom)+10rem))]"}`}>
+        {workoutSettingsDialog}
         {step !== "check-in" ? (
         <div className="sticky top-0 z-30 -mx-3 border-b border-border/80 bg-shell/95 px-3 py-3 backdrop-blur sm:top-2 sm:mx-0 sm:rounded-[28px] sm:border sm:shadow-soft">
           <div className="flex items-center justify-between gap-3">
@@ -1078,17 +1320,22 @@ export function WorkoutFlow({
               >
                 Discard
               </button>
+              <button
+                type="button"
+                ref={settingsTriggerRef}
+                onClick={() => setSettingsOpen(true)}
+                className="ui-button-secondary min-h-11 px-3 py-2"
+                disabled={!activeDraft}
+                aria-label="Workout settings"
+              >
+                ⋯
+              </button>
             </div>
           </div>
         </div>
         ) : null}
 
         <div className="mt-4 space-y-4">
-          {draftMessage ? (
-            <div className="rounded-[24px] border border-primary/20 bg-primary/10 px-4 py-3 text-sm leading-6 text-copy">
-              {draftMessage}
-            </div>
-          ) : null}
           {shouldShowActiveStartCard({
             mode,
             hasActiveDraft: Boolean(activeDraft),
@@ -1151,35 +1398,6 @@ export function WorkoutFlow({
 
           {step === "workout" && activeDraft ? (
             <>
-              <div className="flex flex-col gap-3 rounded-[24px] border border-border bg-surface-soft p-4 sm:flex-row sm:items-center sm:justify-between">
-                <label className="flex items-start gap-3 text-sm font-semibold text-copy">
-                  <input
-                    type="checkbox"
-                    className="mt-1 h-5 w-5 accent-[rgb(var(--color-primary))]"
-                    checked={autoStartRest}
-                    onChange={(event) => setAutoStartRest(event.target.checked)}
-                    aria-label="Automatically start rest after completed sets"
-                  />
-                  <span>Automatically start rest after completed sets</span>
-                </label>
-                <button
-                  type="button"
-                  className="ui-button-secondary min-h-11 px-4 py-2 text-sm"
-                  onClick={handleManualStartRest}
-                  aria-label="Start rest timer manually"
-                >
-                  Start rest
-                </button>
-              </div>
-              <WorkoutChecklist
-                workout={workout}
-                checkedExerciseIds={checkedExerciseIds}
-                onCheckedExerciseIdsChange={setCheckedExerciseIds}
-                setResults={setResults}
-                onSetResultsChange={setSetResults}
-                compactExecution
-                onSetCompleted={handleSetCompletedForRest}
-              />
               <RestTimerDock
                 timer={liveRestTimer}
                 onPause={() =>
@@ -1197,7 +1415,16 @@ export function WorkoutFlow({
                     current ? addRestTime(current, 15) : current,
                   )
                 }
-                onCancel={() => setRestTimer(null)}
+                onCancel={clearRestTimerFeedback}
+              />
+              <WorkoutChecklist
+                workout={workout}
+                checkedExerciseIds={checkedExerciseIds}
+                onCheckedExerciseIdsChange={setCheckedExerciseIds}
+                setResults={setResults}
+                onSetResultsChange={setSetResults}
+                compactExecution
+                onSetCompleted={handleSetCompletedForRest}
               />
             </>
           ) : null}
@@ -1361,6 +1588,7 @@ export function WorkoutFlow({
 
   return (
     <div className="space-y-5 sm:space-y-6">
+      {workoutSettingsDialog}
       <section className="overflow-hidden rounded-[30px] bg-hero p-5 text-white shadow-premium sm:rounded-[36px] sm:p-7">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
           <div>

@@ -38,6 +38,7 @@ create table if not exists public.profiles (
   sports_interests text[] not null default '{}',
   days_per_week integer not null check (days_per_week between 1 and 7),
   session_minutes integer not null check (session_minutes between 10 and 180),
+  default_rest_seconds integer not null default 90 check (default_rest_seconds between 1 and 1800),
   onboarding_completed_at timestamptz,
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
@@ -160,6 +161,15 @@ alter table public.workout_plans
 
 alter table public.profiles
   add column if not exists onboarding_completed_at timestamptz;
+
+alter table public.profiles
+  add column if not exists default_rest_seconds integer not null default 90;
+
+alter table public.profiles
+  drop constraint if exists profiles_default_rest_seconds_check;
+alter table public.profiles
+  add constraint profiles_default_rest_seconds_check
+    check (default_rest_seconds between 1 and 1800);
 
 alter table public.profiles
   add column if not exists goal_notes text;

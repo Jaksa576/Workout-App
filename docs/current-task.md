@@ -276,3 +276,27 @@ Implemented a narrow PWA installability/supporting-work patch for the install-ic
 The patch versions the existing approved icon assets as the active install icon family, updates manifest metadata with a stable app id and install categories, adds a compact dismissible install surface for eligible Chromium prompts and iOS Safari Add to Home Screen guidance, suppresses install UI during active workout routes, and registers a conservative production service worker. The service worker intentionally performs network fetches only and does not cache authenticated pages, Supabase/API requests, session saves, progression data, or user-specific responses.
 
 Validation focus: manifest icon references, app-owned `beforeinstallprompt` state, standalone detection, dismissal cooldown, `appinstalled` cleanup, iOS Safari guidance, unsupported-browser hiding, active-workout suppression, and `npm run check`.
+
+## PR Follow-up — Rest Timer Defaults and Workout Settings
+
+Implementing the PR follow-up request for the workout execution rest-timer preference slice on top of the centralized active-workout timer. This patch keeps the centralized timer as the only timer authority, adds one durable `profiles.default_rest_seconds` global preference with a 90-second default, and stores workout-only timer overrides inside the existing browser active-workout draft.
+
+Rest duration now resolves deterministically as active-workout default override, exercise prescribed rest, global profile default rest, then the application fallback. Auto-start and timer-complete sound remain enabled by default; workout settings can disable them for the current draft without mutating global settings, workout templates, exercise prescriptions, saved sessions, or active running timer duration. Timer-complete sound uses a short Web Audio beep and silently degrades when browser audio is unavailable or blocked.
+
+Validation focus: profile preference persistence, draft serialization/recovery of workout-only timer settings, rest-duration precedence, auto-start duplicate prevention for the same completion event, sound-on-expiration behavior, and preserving Finish/Discard lifecycle cleanup.
+
+## PR #56 Follow-up — Rest timer feedback and settings accessibility
+
+This patch addresses the PR #56 review follow-up for GitHub Issue #22 without adding another Supabase migration. The active workout still uses the existing draft-backed centralized rest timer authority. Natural timer expiry now restores the prior mobile vibration cue independently of the timer-complete sound setting, and sound playback uses a reusable Web Audio context unlocked from deliberate workout interactions instead of constructing a new context at expiry.
+
+Timer completion feedback is keyed by the timer lifecycle (`startedAt`, `endsAt`, and completed-set/manual source) so a natural completion can emit at most one vibration and one optional cue, while refresh recovery of an already-expired timer, Skip/Clear/Finish/Discard cleanup, pause, and settings changes do not replay completion feedback. Extending an expired timer creates a new running lifecycle that can emit once when it naturally completes.
+
+The Workout settings surface is now a single active-route rendering path using the existing focused dialog pattern: initial focus moves inside the dialog, Escape closes it, Tab is contained, body scroll is locked, and focus returns to the three-dot trigger. Rest override copy now clarifies that a workout-level selection overrides every exercise prescription, while the unset option preserves exercise-rest/global-default precedence.
+
+## PR Follow-up — PR #56 Product-owner QA cleanup
+
+Implemented the focused product-owner QA cleanup for GitHub Issue #22 / PR #56 on top of the rest-timer settings patch. The active `/workout/active` workout body no longer renders the duplicate auto-start control or a redundant completion/progress presentation before exercises; normal active-workout content now proceeds from the sticky execution header to the active rest-timer dock when one is running, then directly into the exercise list. Routine draft/recovery informational success messages are not shown above the exercise list, while malformed recovery, stale resume/discard decisions, unavailable workout, save failure/retry, and destructive confirmation states remain available through their existing exceptional-state surfaces.
+
+Workout rest override state is now explicit in the active draft: `workoutRestOverrideEnabled` records the user's Yes/No intent and `workoutDefaultRestSeconds` preserves the selected duration. Legacy drafts from the earlier PR representation remain recoverable: a missing explicit flag with a legacy `null` duration recovers as override disabled, while a missing explicit flag with a numeric duration recovers as override enabled with that duration. Reset to defaults disables the override and restores the approved default selected duration without mutating global profile settings, workout templates, exercise prescriptions, or saved history.
+
+Validation focus: legacy nullable draft migration, new explicit override serialization, disabled override ignoring stored duration, enabled override precedence over exercise-prescribed rest, disabled override falling back through exercise rest then global default, preserving selected duration while toggling off/on, active workout opening directly into exercises, existing auto-start and sound settings persistence, and no new Supabase migration.

@@ -20,6 +20,7 @@ export type Profile = {
   daysPerWeek: number;
   sessionMinutes: number;
   onboardingCompletedAt: string | null;
+  defaultRestSeconds?: number;
 };
 
 export type UserSummary = {
@@ -340,6 +341,7 @@ export type WorkoutPageData = {
   progressSummary: WorkoutProgressSummary;
   phaseProgress: PhaseProgressSummary | null;
   userId: string | null;
+  defaultRestSeconds: number;
 };
 
 export type PlanFormInput = {
@@ -540,7 +542,7 @@ export type ProfileSetupInput = {
 };
 
 export type ProfileSettingsInput = Partial<
-  Omit<ProfileSetupInput, "weeklySchedule">
+  Omit<ProfileSetupInput, "weeklySchedule"> & { defaultRestSeconds: number }
 >;
 
 export type OnboardingInput = ProfileSetupInput & {

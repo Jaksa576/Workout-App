@@ -160,14 +160,17 @@ describe("active workout draft lifecycle helpers", () => {
     });
 
     expect(draft.autoStartRest).toBe(true);
+    expect(draft.timerSoundEnabled).toBe(true);
+    expect(draft.workoutRestOverrideEnabled).toBe(false);
+    expect(draft.workoutDefaultRestSeconds).toBe(90);
 
     const disabledResult = validateActiveWorkoutDraft(
-      { ...draft, autoStartRest: false },
+      { ...draft, autoStartRest: false, timerSoundEnabled: false, workoutRestOverrideEnabled: true, workoutDefaultRestSeconds: 120 },
       "user-a",
     );
     expect(disabledResult).toMatchObject({
       status: "valid",
-      draft: { autoStartRest: false },
+      draft: { autoStartRest: false, timerSoundEnabled: false, workoutRestOverrideEnabled: true, workoutDefaultRestSeconds: 120 },
     });
 
     const legacyDraft = { ...draft } as Record<string, unknown>;
@@ -175,6 +178,29 @@ describe("active workout draft lifecycle helpers", () => {
     expect(validateActiveWorkoutDraft(legacyDraft, "user-a")).toMatchObject({
       status: "valid",
       draft: { autoStartRest: true },
+    });
+  });
+
+  it("migrates legacy nullable workout rest overrides into explicit state", () => {
+    const draft = buildActiveWorkoutDraft({
+      userId: "user-a",
+      workout: makeWorkout(),
+      plan: makePlan(),
+      draftId: "draft-a",
+    });
+
+    const legacyNull = { ...draft, workoutDefaultRestSeconds: null } as Record<string, unknown>;
+    delete legacyNull.workoutRestOverrideEnabled;
+    expect(validateActiveWorkoutDraft(legacyNull, "user-a")).toMatchObject({
+      status: "valid",
+      draft: { workoutRestOverrideEnabled: false, workoutDefaultRestSeconds: 90 },
+    });
+
+    const legacyNumeric = { ...draft, workoutDefaultRestSeconds: 120 } as Record<string, unknown>;
+    delete legacyNumeric.workoutRestOverrideEnabled;
+    expect(validateActiveWorkoutDraft(legacyNumeric, "user-a")).toMatchObject({
+      status: "valid",
+      draft: { workoutRestOverrideEnabled: true, workoutDefaultRestSeconds: 120 },
     });
   });
 
