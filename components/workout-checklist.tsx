@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ExerciseGuidancePanel } from "@/components/exercise-guidance-panel";
+import type { ReactNode } from "react";
+import { hasExerciseGuidance } from "@/lib/exercise-guidance";
 import {
   applyMetricSetEdit,
   formatDurationInput,
@@ -40,9 +41,26 @@ export function WorkoutChecklist({
 }: WorkoutChecklistProps) {
   const [internalChecked, setInternalChecked] = useState<string[]>([]);
   const [rowErrors, setRowErrors] = useState<Record<string, string>>({});
+  const [detailsExerciseId, setDetailsExerciseId] = useState<string | null>(null);
+  const [detailsSection, setDetailsSection] = useState<"summary" | "history">("summary");
+  const detailsButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const checked = checkedExerciseIds ?? internalChecked;
   const setChecked = onCheckedExerciseIdsChange ?? setInternalChecked;
+  const detailsExercise = workout.exercises.find((exercise) => exercise.id === detailsExerciseId) ?? null;
+
+  function openExerciseDetails(exerciseId: string) {
+    setDetailsSection("summary");
+    setDetailsExerciseId(exerciseId);
+  }
+
+  function closeExerciseDetails() {
+    const originId = detailsExerciseId;
+    setDetailsExerciseId(null);
+    window.setTimeout(() => {
+      if (originId) detailsButtonRefs.current[originId]?.focus();
+    }, 0);
+  }
 
   function setNextChecked(nextChecked: string[]) {
     setChecked(nextChecked);
@@ -354,12 +372,23 @@ export function WorkoutChecklist({
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                    <label
-                      htmlFor={checkboxId}
-                      className="cursor-pointer text-lg font-black leading-tight text-copy"
+                    <button
+                      type="button"
+                      className="min-h-11 text-left text-lg font-black leading-tight text-copy underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                      aria-label={`View details for ${exercise.name}`}
+                      onClick={() => openExerciseDetails(exercise.id)}
                     >
                       {exercise.name}
-                    </label>
+                    </button>
+                    <button
+                      ref={(node) => { detailsButtonRefs.current[exercise.id] = node; }}
+                      type="button"
+                      className="ui-button-ghost min-h-11 shrink-0 px-3 py-2 text-xs"
+                      aria-label={`View details for ${exercise.name}`}
+                      onClick={() => openExerciseDetails(exercise.id)}
+                    >
+                      Details
+                    </button>
                   </div>
                   <div className="mt-1 flex flex-wrap gap-2 text-xs uppercase tracking-[0.16em] text-muted">
                     <span className="rounded-full bg-shell-elevated px-3 py-2">
@@ -649,15 +678,131 @@ export function WorkoutChecklist({
                   />
                 </label>
               )}
-              <ExerciseGuidancePanel
-                exercise={exercise}
-                compact
-                defaultOpen={!compactExecution}
-              />
             </article>
           );
         })}
       </div>
+      {detailsExercise ? (
+        <ExerciseDetailsSurface
+          exercise={detailsExercise}
+          section={detailsSection}
+          onSectionChange={setDetailsSection}
+          onClose={closeExerciseDetails}
+        />
+      ) : null}
     </div>
   );
 }
+
+function ExerciseDetailsSurface({
+  exercise,
+  section,
+  onSectionChange,
+  onClose,
+}: {
+  exercise: WorkoutTemplate["exercises"][number];
+  section: "summary" | "history";
+  onSectionChange: (section: "summary" | "history") => void;
+  onClose: () => void;
+}) {
+  const closeRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    closeRef.current?.focus();
+  }, [exercise.id]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end bg-black/50 p-0 sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-labelledby="exercise-details-title">
+      <div className="max-h-[92vh] w-full overflow-y-auto rounded-t-[28px] border border-border bg-surface p-4 shadow-2xl sm:mx-auto sm:max-w-2xl sm:rounded-[28px] sm:p-6">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-primary">Exercise Details</p>
+            <h2 id="exercise-details-title" className="mt-1 text-2xl font-black text-copy">{exercise.name}</h2>
+            <p className="mt-1 text-sm text-muted">{formatPrescription(exercise)}</p>
+          </div>
+          <button ref={closeRef} type="button" className="ui-button-ghost px-3 py-2 text-sm" onClick={onClose}>Close</button>
+        </div>
+
+        <div role="tablist" aria-label={`Details sections for ${exercise.name}`} className="mt-4 grid grid-cols-2 rounded-2xl border border-border bg-surface-soft p-1">
+          {(["summary", "history"] as const).map((tab) => (
+            <button key={tab} type="button" role="tab" aria-selected={section === tab} className={`rounded-xl px-3 py-2 text-sm font-black capitalize ${section === tab ? "bg-primary text-white" : "text-muted"}`} onClick={() => onSectionChange(tab)}>
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        {section === "summary" ? <ExerciseDetailsSummary exercise={exercise} /> : <ExerciseDetailsHistory exercise={exercise} />}
+      </div>
+    </div>
+  );
+}
+
+function ExerciseDetailsSummary({ exercise }: { exercise: WorkoutTemplate["exercises"][number] }) {
+  const guidance = exercise.guidance;
+  const hasGuidance = hasExerciseGuidance(guidance);
+  const hasAnyDetail = Boolean(hasGuidance || exercise.coachingNote || exercise.videoUrl);
+  return (
+    <div className="mt-4 space-y-4">
+      <SummaryBlock title="Current prescription">
+        <p>{formatPrescription(exercise)}</p>
+        <p className="mt-1 text-muted">Tracking: {formatTrackingLabel(exercise)}</p>
+      </SummaryBlock>
+      {exercise.previousSetSummaries?.length ? (
+        <SummaryBlock title="Recent performance">
+          <p>{exercise.previousSetSummaries.slice(0, 3).join(" · ")}</p>
+        </SummaryBlock>
+      ) : null}
+      {exercise.videoUrl ? (
+        <a href={exercise.videoUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center rounded-full bg-primary px-4 py-2 text-sm font-black text-white">
+          Open reviewed demo externally
+        </a>
+      ) : null}
+      {guidance?.setup ? <SummaryBlock title="Setup"><p>{guidance.setup}</p></SummaryBlock> : null}
+      {guidance?.executionCues?.length ? <SummaryList title="Cues" items={guidance.executionCues} /> : null}
+      {guidance?.safetyNotes ? <SummaryBlock title="Safety"><p>{guidance.safetyNotes}</p></SummaryBlock> : null}
+      {guidance?.modifications?.length ? <SummaryList title="Modifications" items={guidance.modifications} /> : null}
+      {guidance?.commonMistakes?.length ? <SummaryList title="Common mistakes" items={guidance.commonMistakes} /> : null}
+      {exercise.coachingNote ? <SummaryBlock title="Coaching note"><p>{exercise.coachingNote}</p></SummaryBlock> : null}
+      {!hasAnyDetail ? <p className="rounded-2xl border border-border bg-surface-soft p-4 text-sm text-muted">No reviewed guidance is available for this exercise yet.</p> : null}
+    </div>
+  );
+}
+
+function ExerciseDetailsHistory({ exercise }: { exercise: WorkoutTemplate["exercises"][number] }) {
+  const rows = exercise.previousSetSummaries ?? [];
+  return (
+    <div className="mt-4">
+      {rows.length ? (
+        <div className="rounded-2xl border border-border bg-surface-soft p-4">
+          <p className="text-sm font-black text-copy">Most recent completed session</p>
+          <p className="mt-1 text-xs uppercase tracking-[0.14em] text-muted">{exercise.name}</p>
+          <ol className="mt-3 space-y-2 text-sm text-copy">
+            {rows.map((row, index) => <li key={`${row}-${index}`}>Set {index + 1}: {row}</li>)}
+          </ol>
+        </div>
+      ) : (
+        <p className="rounded-2xl border border-border bg-surface-soft p-4 text-sm text-muted">No completed history for this exercise yet.</p>
+      )}
+    </div>
+  );
+}
+
+function SummaryBlock({ title, children }: { title: string; children: ReactNode }) {
+  return <section className="rounded-2xl border border-border bg-surface-soft p-4"><h3 className="text-xs font-black uppercase tracking-[0.14em] text-muted">{title}</h3><div className="mt-2 text-sm leading-6 text-copy">{children}</div></section>;
+}
+
+function SummaryList({ title, items }: { title: string; items: string[] }) {
+  return <SummaryBlock title={title}><ul className="space-y-1">{items.map((item) => <li key={item}>{item}</li>)}</ul></SummaryBlock>;
+}
+
+function formatPrescription(exercise: WorkoutTemplate["exercises"][number]) {
+  return [`${exercise.sets} sets`, exercise.reps, `Rest ${exercise.rest}`].join(" · ");
+}
+
+function formatTrackingLabel(exercise: WorkoutTemplate["exercises"][number]) {
+  const type = exercise.trackingType ?? "completion";
+  const unit = type === "weight_reps" ? ` (${exercise.loadUnit ?? "lb"})` : type === "distance" || type === "distance_duration" ? ` (${exercise.distanceUnit ?? "mi"})` : "";
+  const side = exercise.unilateralMode && exercise.unilateralMode !== "bilateral" ? ` · ${exercise.unilateralMode.replaceAll("_", " ")}` : "";
+  return `${type.replaceAll("_", " ")}${unit}${side}`;
+}
+
