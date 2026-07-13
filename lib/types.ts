@@ -1,4 +1,5 @@
 import type { ExerciseGuidance } from "@/lib/exercise-guidance";
+import type { ExerciseHistoryEntry } from "@/lib/exercise-history";
 
 export type Profile = {
   id: string;
@@ -56,7 +57,21 @@ export type ExerciseEntry = {
   primaryValueLabel?: string | null;
   secondaryValueLabel?: string | null;
   previousSetSummaries?: string[];
-  previousSetDefaults?: Array<{ actualLoad: number | null; actualReps: number | null; actualDurationSeconds?: number | null; actualDistance?: number | null; actualLeftLoad?: number | null; actualRightLoad?: number | null; actualLeftReps?: number | null; actualRightReps?: number | null; actualLeftDurationSeconds?: number | null; actualRightDurationSeconds?: number | null; actualLeftDistance?: number | null; actualRightDistance?: number | null }>;
+  previousSetDefaults?: Array<{
+    actualLoad: number | null;
+    actualReps: number | null;
+    actualDurationSeconds?: number | null;
+    actualDistance?: number | null;
+    actualLeftLoad?: number | null;
+    actualRightLoad?: number | null;
+    actualLeftReps?: number | null;
+    actualRightReps?: number | null;
+    actualLeftDurationSeconds?: number | null;
+    actualRightDurationSeconds?: number | null;
+    actualLeftDistance?: number | null;
+    actualRightDistance?: number | null;
+  }>;
+  completedHistory?: ExerciseHistoryEntry[];
 };
 
 export type Weekday = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
