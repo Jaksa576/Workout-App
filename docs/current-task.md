@@ -284,3 +284,11 @@ Implementing the PR follow-up request for the workout execution rest-timer prefe
 Rest duration now resolves deterministically as active-workout default override, exercise prescribed rest, global profile default rest, then the application fallback. Auto-start and timer-complete sound remain enabled by default; workout settings can disable them for the current draft without mutating global settings, workout templates, exercise prescriptions, saved sessions, or active running timer duration. Timer-complete sound uses a short Web Audio beep and silently degrades when browser audio is unavailable or blocked.
 
 Validation focus: profile preference persistence, draft serialization/recovery of workout-only timer settings, rest-duration precedence, auto-start duplicate prevention for the same completion event, sound-on-expiration behavior, and preserving Finish/Discard lifecycle cleanup.
+
+## PR #56 Follow-up — Rest timer feedback and settings accessibility
+
+This patch addresses the PR #56 review follow-up for GitHub Issue #22 without adding another Supabase migration. The active workout still uses the existing draft-backed centralized rest timer authority. Natural timer expiry now restores the prior mobile vibration cue independently of the timer-complete sound setting, and sound playback uses a reusable Web Audio context unlocked from deliberate workout interactions instead of constructing a new context at expiry.
+
+Timer completion feedback is keyed by the timer lifecycle (`startedAt`, `endsAt`, and completed-set/manual source) so a natural completion can emit at most one vibration and one optional cue, while refresh recovery of an already-expired timer, Skip/Clear/Finish/Discard cleanup, pause, and settings changes do not replay completion feedback. Extending an expired timer creates a new running lifecycle that can emit once when it naturally completes.
+
+The Workout settings surface is now a single active-route rendering path using the existing focused dialog pattern: initial focus moves inside the dialog, Escape closes it, Tab is contained, body scroll is locked, and focus returns to the three-dot trigger. Rest override copy now clarifies that a workout-level selection overrides every exercise prescription, while the unset option preserves exercise-rest/global-default precedence.

@@ -3,10 +3,12 @@ import {
   addRestTime,
   deriveRestTimerState,
   formatRestTimer,
+  idleRestTimerState,
   getRestDurationSeconds,
   parseRestDurationSeconds,
   pauseRestTimer,
   resumeRestTimer,
+  shouldEmitRestTimerCompletionFeedback,
   startRestTimer,
 } from "@/lib/rest-timer";
 import { resolveRestDurationSeconds } from "@/lib/workout-timer-settings";
@@ -69,6 +71,70 @@ describe("rest timer", () => {
     expect(
       deriveRestTimerState(added, new Date("2026-07-12T12:02:15.000Z")).status,
     ).toBe("expired");
+  });
+
+
+  it("emits one natural completion feedback event per timer lifecycle", () => {
+    const start = new Date("2026-07-12T12:00:00.000Z");
+    const timer = startRestTimer({ durationSeconds: 5, now: start, setId: "set-1" });
+    const expired = deriveRestTimerState(timer, new Date("2026-07-12T12:00:05.000Z"));
+    const emitted = new Set<string>();
+    const eventId = shouldEmitRestTimerCompletionFeedback({
+      previousTimer: timer,
+      currentTimer: expired,
+      emittedEventIds: emitted,
+    });
+    expect(eventId).toBe("2026-07-12T12:00:00.000Z:2026-07-12T12:00:05.000Z:set-1");
+    emitted.add(eventId ?? "");
+    expect(
+      shouldEmitRestTimerCompletionFeedback({
+        previousTimer: timer,
+        currentTimer: expired,
+        emittedEventIds: emitted,
+      }),
+    ).toBeNull();
+  });
+
+  it("does not replay feedback for recovered expired or skipped timers", () => {
+    const timer = startRestTimer({
+      durationSeconds: 5,
+      now: new Date("2026-07-12T12:00:00.000Z"),
+      setId: "set-1",
+    });
+    const recoveredExpired = deriveRestTimerState(
+      timer,
+      new Date("2026-07-12T12:01:00.000Z"),
+    );
+    expect(
+      shouldEmitRestTimerCompletionFeedback({
+        previousTimer: recoveredExpired,
+        currentTimer: recoveredExpired,
+        emittedEventIds: new Set(),
+      }),
+    ).toBeNull();
+    expect(
+      shouldEmitRestTimerCompletionFeedback({
+        previousTimer: timer,
+        currentTimer: idleRestTimerState,
+        emittedEventIds: new Set(),
+      }),
+    ).toBeNull();
+  });
+
+  it("creates a new completion event after extending an expired timer", () => {
+    const start = new Date("2026-07-12T12:00:00.000Z");
+    const timer = startRestTimer({ durationSeconds: 5, now: start, setId: "set-1" });
+    const expired = deriveRestTimerState(timer, new Date("2026-07-12T12:00:05.000Z"));
+    const extended = addRestTime(expired, 15, new Date("2026-07-12T12:00:10.000Z"));
+    expect(extended.status).toBe("running");
+    const expiredAgain = deriveRestTimerState(extended, new Date("2026-07-12T12:00:25.000Z"));
+    expect(
+      shouldEmitRestTimerCompletionFeedback({
+        previousTimer: extended,
+        currentTimer: expiredAgain,
+        emittedEventIds: new Set(),
+      }),
+    ).toBe("2026-07-12T12:00:10.000Z:2026-07-12T12:00:25.000Z:set-1");
   });
 
   it("formats compact countdown text", () => {

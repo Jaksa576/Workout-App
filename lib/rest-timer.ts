@@ -152,12 +152,44 @@ export function addRestTime(
       endsAt: new Date(now.getTime() + remainingSeconds * 1000).toISOString(),
     };
   }
+  if (current.status === "expired") {
+    return {
+      ...current,
+      status: "running" as const,
+      remainingSeconds,
+      durationSeconds: Math.max(current.durationSeconds, remainingSeconds),
+      startedAt: now.toISOString(),
+      endsAt: new Date(now.getTime() + remainingSeconds * 1000).toISOString(),
+      pausedAt: null,
+    };
+  }
   return {
     ...current,
     status: current.status === "idle" ? ("paused" as const) : current.status,
     remainingSeconds,
     durationSeconds: Math.max(current.durationSeconds, remainingSeconds),
   };
+}
+
+export function getRestTimerCompletionEventId(timer: RestTimerState) {
+  if (!timer.startedAt || !timer.endsAt) return null;
+  return [timer.startedAt, timer.endsAt, timer.lastCompletedSetId ?? "manual"].join(":");
+}
+
+export function shouldEmitRestTimerCompletionFeedback(input: {
+  previousTimer: RestTimerState | null | undefined;
+  currentTimer: RestTimerState;
+  emittedEventIds: ReadonlySet<string>;
+}) {
+  if (
+    input.previousTimer?.status !== "running" ||
+    input.currentTimer.status !== "expired"
+  ) {
+    return null;
+  }
+  const eventId = getRestTimerCompletionEventId(input.currentTimer);
+  if (!eventId || input.emittedEventIds.has(eventId)) return null;
+  return eventId;
 }
 
 export function formatRestTimer(seconds: number) {
