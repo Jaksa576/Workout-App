@@ -129,6 +129,7 @@ export type WorkoutTemplate = {
   focus: string;
   summary: string;
   readiness: string;
+  dayOrder?: number;
   scheduledDays: Weekday[];
   exercises: ExerciseEntry[];
 };
@@ -342,6 +343,7 @@ export type WorkoutPageData = {
   phaseProgress: PhaseProgressSummary | null;
   userId: string | null;
   defaultRestSeconds: number;
+  timeZone?: string;
 };
 
 export type PlanFormInput = {

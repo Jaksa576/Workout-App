@@ -28,6 +28,7 @@ export default async function ActiveWorkoutPage({
       phaseProgress={data.phaseProgress}
       userId={data.userId}
       defaultRestSeconds={data.defaultRestSeconds}
+      timeZone={data.timeZone}
     />
   );
 }

@@ -246,6 +246,7 @@ function mapWorkout(
     focus: workout.focus,
     summary: workout.summary,
     readiness: deriveReadiness(latestSession),
+    dayOrder: workout.day_order,
     scheduledDays: workout.scheduled_days ?? [],
     exercises: exercises
       .filter((exercise) => exercise.workout_template_id === workout.id)
@@ -805,6 +806,7 @@ export async function getWorkoutPageData(
       phaseProgress: null,
       userId: null,
       defaultRestSeconds: restTimerDefaultSeconds,
+      timeZone,
     };
   }
 
@@ -874,6 +876,7 @@ export async function getWorkoutPageData(
     userId: user.id,
     defaultRestSeconds:
       profileResult.data?.default_rest_seconds ?? restTimerDefaultSeconds,
+    timeZone,
   };
 }
 

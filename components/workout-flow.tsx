@@ -44,6 +44,7 @@ import {
 } from "@/lib/active-workout-draft";
 import { generateRecommendation } from "@/lib/recommendation";
 import { detectBrowserTimeZone } from "@/lib/time-zone";
+import { orderWorkoutsForUpcomingSchedule } from "@/lib/workout-schedule";
 import { getTodayDateString } from "@/lib/validation";
 import type {
   SavedWorkoutSession,
@@ -71,6 +72,7 @@ type WorkoutFlowProps = {
   phaseProgress: PhaseProgressSummary | null;
   userId: string | null;
   defaultRestSeconds: number;
+  timeZone?: string;
 };
 
 type SessionSaveResult = {
@@ -732,6 +734,7 @@ export function WorkoutFlow({
   phaseProgress,
   userId,
   defaultRestSeconds,
+  timeZone,
 }: WorkoutFlowProps) {
   const router = useRouter();
   const isActiveMode = mode === "active";
@@ -1077,15 +1080,24 @@ export function WorkoutFlow({
     );
   }
 
-  function handleStartWorkout() {
-    if (!userId || activeDraft) {
+  function handleStartWorkout(workoutToStart = workout) {
+    if (!userId) {
+      return;
+    }
+
+    if (activeDraft) {
+      if (activeDraft.workoutTemplateId === workoutToStart.id) {
+        handleResumeDraft();
+      } else {
+        handleSelectWorkout(workoutToStart.id);
+      }
       return;
     }
 
     try {
       const draft = buildActiveWorkoutDraft({
         userId,
-        workout,
+        workout: workoutToStart,
         plan: activePlan,
       });
       const storedDraft = writeActiveWorkoutDraft(window.localStorage, draft);
@@ -1099,10 +1111,10 @@ export function WorkoutFlow({
       setInvalidRecoveryKey(null);
       setAwaitingStaleRecoveryDecision(false);
       setDraftMessage(
-        `Started ${workout.name}. Your draft is saved on this device.`,
+        `Started ${workoutToStart.name}. Your draft is saved on this device.`,
       );
       setStep(isActiveMode ? "workout" : "idle");
-      router.push(`/workout/active?workoutId=${workout.id}` as Route);
+      router.push(`/workout/active?workoutId=${workoutToStart.id}` as Route);
     } catch {
       setStorageAvailable(false);
       setStatus(
@@ -1679,7 +1691,15 @@ export function WorkoutFlow({
   const otherWorkoutOwnsActiveDraft = Boolean(
     activeDraft && activeDraft.workoutTemplateId !== workout.id,
   );
-
+  const orderedWorkouts = useMemo(
+    () =>
+      orderWorkoutsForUpcomingSchedule({
+        workouts,
+        recommendedWorkoutId: recommendedWorkout?.id,
+        timeZone,
+      }),
+    [recommendedWorkout?.id, timeZone, workouts],
+  );
   return (
     <div className="space-y-5 sm:space-y-6">
       {workoutSettingsDialog}
@@ -1698,63 +1718,70 @@ export function WorkoutFlow({
           <div>
             <p className="ui-eyebrow">Phase workouts</p>
             <h2 className="mt-2 text-2xl font-black leading-tight text-copy">
-              Select a session
+              Start from the list
             </h2>
           </div>
         </div>
+        {draftMessage ? (
+          <div className="mt-4 rounded-[24px] border border-primary/20 bg-primary/10 px-4 py-3 text-sm leading-6 text-copy">
+            {draftMessage}
+          </div>
+        ) : null}
         <div className="mt-5 grid gap-3">
-          {workouts.map((item) => {
-            const isSelected = item.id === workout.id;
-            const isRecommended = recommendedWorkout?.id === item.id;
+          {orderedWorkouts.map(({ workout: item, scheduleLabel, isTodayWorkout }) => {
             const ownsDraft = activeDraft?.workoutTemplateId === item.id;
+            const isSelected = item.id === workout.id;
             return (
-              <button
+              <article
                 key={item.id}
-                type="button"
-                onClick={() => handleSelectWorkout(item.id)}
-                aria-pressed={isSelected}
-                className={`rounded-[24px] border p-4 text-left transition ${
-                  isSelected
+                id={`workout-card-${item.id}`}
+                className={`rounded-[24px] border p-4 transition ${
+                  isTodayWorkout
                     ? "border-primary bg-primary/10 shadow-soft"
-                    : "border-border bg-surface-soft hover:border-primary/40"
+                    : ownsDraft
+                      ? "border-success/40 bg-success/10"
+                      : isSelected
+                        ? "border-primary/40 bg-surface-soft"
+                        : "border-border bg-surface-soft"
                 }`}
               >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="font-black text-copy">{item.name}</p>
-                    <p className="mt-1 text-sm leading-6 text-muted">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <button
+                    type="button"
+                    onClick={() => handleSelectWorkout(item.id)}
+                    className="min-w-0 flex-1 text-left"
+                    aria-label={`View details for ${item.name}`}
+                  >
+                    {scheduleLabel ? (
+                      <p className={`text-xs font-black uppercase tracking-[0.14em] ${isTodayWorkout ? "text-primary" : "text-muted"}`}>
+                        {scheduleLabel}
+                      </p>
+                    ) : null}
+                    <p className="mt-1 break-words font-black text-copy">{item.name}</p>
+                    <p className="mt-1 line-clamp-2 text-sm leading-6 text-muted">
                       {item.focus || item.summary}
                     </p>
                     <p className="mt-2 text-xs font-bold uppercase tracking-[0.12em] text-muted">
-                      {item.exercises.length} exercises
+                      {item.exercises.length} exercises{ownsDraft ? " · Active workout" : ""}
                     </p>
-                  </div>
-                  <div className="flex flex-wrap justify-end gap-2">
-                    {isRecommended ? (
-                      <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-primary">
-                        Recommended
-                      </span>
-                    ) : null}
-                    {ownsDraft ? (
-                      <span className="rounded-full bg-success/10 px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-success">
-                        Resume
-                      </span>
-                    ) : null}
-                    {isSelected ? (
-                      <span className="rounded-full bg-surface px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-copy">
-                        Selected
-                      </span>
-                    ) : null}
-                  </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => (ownsDraft ? handleResumeDraft() : handleStartWorkout(item))}
+                    className="ui-button-primary min-h-11 shrink-0 self-end px-4 py-2 sm:self-start"
+                    aria-label={`${ownsDraft ? "Resume" : "Start"} ${item.name}`}
+                  >
+                    {ownsDraft ? "Resume" : "Start"}
+                  </button>
                 </div>
-              </button>
+              </article>
             );
           })}
         </div>
       </section>
 
       <section className="surface-card p-5 sm:p-6">
-        <p className="ui-eyebrow">Selected workout</p>
+        <p className="ui-eyebrow">Workout details</p>
         <h2 className="mt-2 text-2xl font-black leading-tight text-copy">
           {workout.name}
         </h2>
@@ -1803,57 +1830,7 @@ export function WorkoutFlow({
           </ol>
         </div>
 
-        <div className="mt-5 rounded-[24px] border border-border bg-surface-soft p-5">
-          {selectedOwnsActiveDraft ? (
-            <button
-              type="button"
-              onClick={handleResumeDraft}
-              className="ui-button-primary w-full sm:w-auto"
-            >
-              Resume workout
-            </button>
-          ) : invalidRecoveryKey ? (
-            <button
-              type="button"
-              onClick={handleClearRecoveryData}
-              className="ui-button-primary w-full sm:w-auto"
-            >
-              Clear recovery data
-            </button>
-          ) : otherWorkoutOwnsActiveDraft ? (
-            <div className="space-y-3">
-              <p className="text-sm leading-6 text-muted">
-                {activeDraft?.workoutNameSnapshot} has an active draft. Resume
-                or discard it before starting another workout.
-              </p>
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <button
-                  type="button"
-                  onClick={handleResumeDraft}
-                  className="ui-button-primary"
-                >
-                  Resume active draft
-                </button>
-                <button
-                  type="button"
-                  onClick={handleDiscardDraft}
-                  className="ui-button-ghost"
-                >
-                  Discard draft
-                </button>
-              </div>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={handleStartWorkout}
-              className="ui-button-primary w-full sm:w-auto"
-              disabled={!userId}
-            >
-              Start workout
-            </button>
-          )}
-        </div>
+
       </section>
     </div>
   );

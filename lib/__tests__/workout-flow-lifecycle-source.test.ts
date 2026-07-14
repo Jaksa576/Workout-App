@@ -45,11 +45,15 @@ describe("workout flow lifecycle source guards", () => {
     );
   });
 
-  it("renders one visible selector with the recommendation folded into the list", () => {
+  it("renders the workout list as the direct start surface without selected/recommended badges", () => {
     expect(source).toContain("Choose today&apos;s workout");
-    expect(source).toContain("Select a session");
-    expect(source).toContain("Recommended");
-    expect(source).toContain("Selected");
+    expect(source).toContain("Start from the list");
+    expect(source).toContain("scheduleLabel");
+    expect(source).toContain("handleStartWorkout(item)");
+    expect(source).not.toContain(">Recommended<");
+    expect(source).not.toContain(">Selected<");
+    expect(source).not.toContain("Selected workout");
+    expect(source).not.toContain("Resume workout</button>");
     expect(source).toContain("Exercise preview");
     expect(source).not.toContain("Execute today&apos;s session");
     expect(source).not.toContain("Recommended today");

@@ -34,6 +34,7 @@ export default async function WorkoutPage({
       phaseProgress={data.phaseProgress}
       userId={data.userId}
       defaultRestSeconds={data.defaultRestSeconds}
+      timeZone={data.timeZone}
     />
   );
 }
