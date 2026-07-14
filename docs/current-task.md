@@ -300,3 +300,28 @@ Implemented the focused product-owner QA cleanup for GitHub Issue #22 / PR #56 o
 Workout rest override state is now explicit in the active draft: `workoutRestOverrideEnabled` records the user's Yes/No intent and `workoutDefaultRestSeconds` preserves the selected duration. Legacy drafts from the earlier PR representation remain recoverable: a missing explicit flag with a legacy `null` duration recovers as override disabled, while a missing explicit flag with a numeric duration recovers as override enabled with that duration. Reset to defaults disables the override and restores the approved default selected duration without mutating global profile settings, workout templates, exercise prescriptions, or saved history.
 
 Validation focus: legacy nullable draft migration, new explicit override serialization, disabled override ignoring stored duration, enabled override precedence over exercise-prescribed rest, disabled override falling back through exercise rest then global default, preserving selected duration while toggling off/on, active workout opening directly into exercises, existing auto-start and sound settings persistence, and no new Supabase migration.
+
+## PR Follow-up — Dashboard Training Home
+
+The initial PR #57 dashboard simplification changed only presentation while preserving the existing dashboard data loader, saved-session metric derivation, progression calculation, Supabase schema, auth boundaries, workout start/log destinations, and deterministic progression behavior. Its durable outcome is the compact Today’s Training card and the compact This Week schedule as the top of the dashboard.
+
+That initial intermediate layout was superseded by the follow-up below: the standalone progression attention card and condensed Progress Summary card are no longer current dashboard surfaces. The current dashboard state is Today’s Training, This Week, Current Phase, and Recent Activity, with detailed plan/progression review remaining on the existing Plans surfaces.
+
+Validation focus for the current dashboard remains: active plan with a normal workout, active plan with no workout today, no active plan, long workout names, Start workout and Log past workout links, Review plan/progression links, keyboard focus, mobile density, and no unsafe no-workout fallthrough into plan creation.
+
+## PR Follow-up — Dashboard Current Phase and Recent Activity Restore
+
+Implementing the GitHub Issue #54 / dashboard PR follow-up request to preserve the simplified Today and This Week hierarchy while restoring meaningful progression and training-history context. The dashboard presentation now stays ordered as Today’s Training, This Week, Current Phase, and Recent Activity. The standalone Needs Attention progression card and condensed Progress Summary card are removed so progression readiness is not duplicated across multiple dashboard surfaces.
+
+The restored Current Phase card reuses the existing dashboard `phaseProgress` and `progressionPrompt` contracts: phase percentage and progress-bar width are visually capped at 100%, while clean-session counts remain truthful (for example, over-target counts can still display as `6 / 4`). Ready users get the existing Review & progress link to the plan review/progression surface plus a secondary Review plan action; non-ready users keep a truthful plan-progress review action without a misleading progress CTA. The Today card remains compact and now carries workout-specific Monitor/Review readiness warnings inline rather than through a permanent attention slot.
+
+Recent Activity is restored below Current Phase using the existing `activitySummary`, `painTrend`, and saved-session `metrics` fields already derived by shared session aggregation. No schema, Supabase query shape, session persistence, progression rules, clean-session calculation, active-workout lifecycle, or plan-detail behavior intentionally changed.
+
+Validation focus: mobile/desktop dashboard order, no standalone Needs Attention card, no condensed Progress Summary card, compact Today card without old hero stat tiles, This Week directly below Today, Current Phase ready and non-ready action states, over-target visual progress capped to 100% with truthful counts, seven-day activity strip active/inactive/pain labeling, recent Completed/Partial rows with saved-session metric summaries, and workout-specific readiness warnings for Monitor/Review workouts.
+
+
+### PR #57 narrow no-workout CTA follow-up
+
+The active-plan/no-workout dashboard empty state now keeps a single plan-review action to the specific active plan route (`/plans/{planId}`) and no longer renders the secondary Choose workout link to `/workout`. This avoids the current `/workout` behavior where missing or invalid `workoutId` can redirect to `/plans/new`. The no-active-plan empty state continues to route Create a plan to `/plans/new`.
+
+Validation focus: no-plan destination remains `/plans/new`; active-plan/no-workout destination is the plan review route; active-plan/no-workout renders no `/workout` link and exposes no path that falls through to `/plans/new`; the final dashboard order and workout-specific Monitor/Review readiness messaging remain unchanged.

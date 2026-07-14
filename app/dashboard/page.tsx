@@ -2,7 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Route } from "next";
 import clsx from "clsx";
-import { MetricCard } from "@/components/metric-card";
 import { SurfaceCard } from "@/components/surface-card";
 import { getDashboardData, getProfile } from "@/lib/data";
 import { formatPhaseLabel } from "@/lib/plan-labels";
@@ -12,7 +11,6 @@ import type {
   DashboardProgressionPrompt,
   DashboardWeekPreviewItem,
   PhaseProgressSummary,
-  TrainingGoalType,
   WorkoutPlan,
   WorkoutSession,
   WorkoutTemplate
@@ -24,202 +22,165 @@ function formatDisplayDate(date: string) {
   );
 }
 
-const goalLabels: Record<TrainingGoalType, string> = {
-  recovery: "Recovery",
-  general_fitness: "General fitness",
-  strength: "Strength",
-  hypertrophy: "Hypertrophy",
-  running: "Running",
-  sport_performance: "Sport performance",
-  consistency: "Consistency"
-};
-
 export default async function DashboardPage() {
   const [dashboard, profile] = await Promise.all([getDashboardData(), getProfile()]);
   const activePlan = dashboard.activePlan;
   const nextWorkout = dashboard.todayWorkout;
-  const progressPrompt = dashboard.progressionPrompt;
 
   if (!profile?.onboardingCompletedAt) {
     redirect("/onboarding" as Route);
   }
 
   if (!activePlan || !nextWorkout) {
-    return <DashboardEmptyState hasPlan={Boolean(activePlan)} />;
+    return <DashboardEmptyState activePlan={activePlan} />;
   }
 
-  const exerciseCount = nextWorkout.exercises.length;
-  const exerciseLabel = exerciseCount === 1 ? "1 exercise" : `${exerciseCount} exercises`;
-  const phaseLabel = formatPhaseLabel(activePlan.currentPhase.phaseNumber);
-  const goalLabel = activePlan.goalType ? goalLabels[activePlan.goalType] : "Adaptive training";
+  return (
+    <div className="mx-auto max-w-5xl space-y-4 sm:space-y-5">
+      <TodayTrainingCard workout={nextWorkout} />
+      <WeekPreview days={dashboard.weekPreview} activity={dashboard.activitySummary} />
+      <CurrentPhaseCard
+        plan={activePlan}
+        progress={dashboard.phaseProgress}
+        prompt={dashboard.progressionPrompt}
+      />
+      <ActivityCard
+        activity={dashboard.activitySummary}
+        painTrend={dashboard.painTrend}
+        recentSessions={dashboard.recentSessions}
+      />
+    </div>
+  );
+}
+
+export function DashboardEmptyState({ activePlan }: { activePlan: WorkoutPlan | null }) {
+  const planHref = activePlan ? `/plans/${activePlan.id}` : "/plans/new";
+
+  return (
+    <div className="mx-auto max-w-3xl">
+      <section className="rounded-[28px] bg-hero p-6 text-white shadow-premium sm:p-8">
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/58">Dashboard</p>
+        <h1 className="mt-4 text-3xl font-black leading-tight text-balance sm:text-4xl">
+          {activePlan ? "Review your active plan." : "Build your first adaptive plan."}
+        </h1>
+        <p className="mt-4 max-w-2xl text-sm leading-6 text-white/72 sm:text-base">
+          {activePlan
+            ? "Your active plan does not have a workout scheduled for today. Review the plan before choosing another workout."
+            : "Create a structured program before your dashboard fills in with today, your week, and progression signals."}
+        </p>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          <Link
+            href={planHref as Route}
+            className="ui-button-primary inline-flex justify-center focus-visible:ring-white focus-visible:ring-offset-hero"
+          >
+            {activePlan ? "Review plan" : "Create a plan"}
+          </Link>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function TodayTrainingCard({ workout }: { workout: WorkoutTemplate }) {
+  const supportingLine = workout.summary || workout.focus || `${workout.exercises.length} exercises planned`;
   const readinessWarning =
-    nextWorkout.readiness === "Review"
+    workout.readiness === "Review"
       ? "Review your last check-in before pushing harder."
-      : nextWorkout.readiness === "Monitor"
+      : workout.readiness === "Monitor"
         ? "Take it easier today if that last workout still feels heavy."
         : null;
 
   return (
-    <div className="space-y-5 sm:space-y-6">
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.7fr)]">
-        <TodayWorkoutHero
-          workout={nextWorkout}
-          exerciseLabel={exerciseLabel}
-          phaseLabel={phaseLabel}
-          goalLabel={goalLabel}
-          readinessWarning={readinessWarning}
-        />
-        <PhaseProgressCard
-          plan={activePlan}
-          progress={dashboard.phaseProgress}
-          prompt={progressPrompt}
-        />
-      </section>
-
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-        <WeekPreview days={dashboard.weekPreview} />
-        <NextStepCard
-          plan={activePlan}
-          workout={nextWorkout}
-          prompt={progressPrompt}
-          painTrend={dashboard.painTrend}
-        />
-      </section>
-
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
-        <ActivityCard activity={dashboard.activitySummary} painTrend={dashboard.painTrend} recentSessions={dashboard.recentSessions} />
-        <section className="grid gap-4 md:grid-cols-3 xl:grid-cols-1">
-          {dashboard.metrics.map((metric, index) => (
-            <MetricCard
-              key={metric.label}
-              label={metric.label}
-              value={metric.value}
-              detail={metric.detail}
-              tone={index === 1 ? "secondary" : index === 2 ? "success" : "default"}
-            />
-          ))}
-        </section>
-      </section>
-    </div>
-  );
-}
-
-function DashboardEmptyState({ hasPlan }: { hasPlan: boolean }) {
-  return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
-      <section className="rounded-[30px] bg-hero p-6 text-white shadow-premium sm:p-8">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/58">
-          Dashboard
-        </p>
-        <h1 className="mt-4 max-w-2xl text-3xl font-black leading-tight text-balance sm:text-4xl">
-          {hasPlan ? "Choose your next workout." : "Build your first adaptive plan."}
-        </h1>
-        <p className="mt-4 max-w-2xl text-sm leading-6 text-white/72 sm:text-base">
-          {hasPlan
-            ? "Your active plan does not have a workout for today. Review the plan to keep moving."
-            : "Create a structured program before your dashboard fills in."}
-        </p>
-        <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+    <section className="rounded-[28px] bg-hero p-5 text-white shadow-premium sm:p-6">
+      <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/58">Today&apos;s training</p>
+      <div className="mt-3 grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-black leading-tight text-balance sm:text-3xl">{workout.name}</h1>
+          <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-white/72">{supportingLine}</p>
+          {readinessWarning ? (
+            <p className="mt-3 max-w-2xl rounded-2xl border border-warning/35 bg-warning/15 px-4 py-3 text-sm font-semibold leading-6 text-white">
+              {readinessWarning}
+            </p>
+          ) : null}
+        </div>
+        <div className="flex flex-col gap-3 sm:flex-row md:justify-end">
           <Link
-            href={(hasPlan ? "/plans" : "/plans/new") as Route}
+            href={`/workout?workoutId=${workout.id}` as Route}
             className="ui-button-primary inline-flex justify-center focus-visible:ring-white focus-visible:ring-offset-hero"
           >
-            {hasPlan ? "Review plans" : "Create a plan"}
+            Start workout
           </Link>
           <Link
-            href="/settings"
+            href={`/workout?workoutId=${workout.id}&step=check-in` as Route}
             className="rounded-full border border-white/20 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-hero"
           >
-            Check profile
+            Log past workout
           </Link>
-        </div>
-      </section>
-
-      <SurfaceCard className="flex h-full flex-col justify-between">
-        <div>
-          <p className="ui-eyebrow">What happens next</p>
-          <h2 className="mt-2 text-xl font-black leading-tight text-copy">
-            Your plan powers the dashboard.
-          </h2>
-          <p className="mt-3 text-sm leading-6 text-muted">
-            Once a plan is active, this page shows today, this phase, the week, and recent progress.
-          </p>
-        </div>
-        <div className="mt-6 grid gap-3">
-          {["Create or activate a plan", "Log workouts", "Review progression"].map((item) => (
-            <div key={item} className="flex items-center gap-3 rounded-2xl bg-surface-soft p-3">
-              <span className="h-2.5 w-2.5 rounded-full bg-primary" />
-              <span className="text-sm font-semibold text-copy">{item}</span>
-            </div>
-          ))}
-        </div>
-      </SurfaceCard>
-    </div>
-  );
-}
-
-function TodayWorkoutHero({
-  workout,
-  exerciseLabel,
-  phaseLabel,
-  goalLabel,
-  readinessWarning
-}: {
-  workout: WorkoutTemplate;
-  exerciseLabel: string;
-  phaseLabel: string;
-  goalLabel: string;
-  readinessWarning: string | null;
-}) {
-  return (
-    <section className="overflow-hidden rounded-[30px] bg-hero text-white shadow-premium sm:rounded-[36px]">
-      <div className="grid gap-6 p-5 sm:p-7 lg:grid-cols-[minmax(0,1fr)_260px] lg:p-8">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <Pill tone="green">Today&apos;s training</Pill>
-            <Pill tone="blue">{goalLabel}</Pill>
-          </div>
-          <h1 className="mt-5 max-w-3xl text-3xl font-black leading-tight text-balance sm:text-4xl">
-            {workout.name}
-          </h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-white/74">
-            {workout.focus} - {exerciseLabel}
-          </p>
-          {workout.summary ? (
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-white/58">{workout.summary}</p>
-          ) : null}
-          {readinessWarning ? (
-            <div className="mt-5 rounded-2xl border border-goal-orange/35 bg-goal-orange/14 px-4 py-3 text-sm font-semibold leading-6 text-white">
-              {readinessWarning}
-            </div>
-          ) : null}
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <Link
-              href={`/workout?workoutId=${workout.id}` as Route}
-              className="ui-button-primary inline-flex justify-center focus-visible:ring-white focus-visible:ring-offset-hero"
-            >
-              Start workout
-            </Link>
-            <Link
-              href={`/workout?workoutId=${workout.id}&step=check-in` as Route}
-              className="rounded-full border border-white/20 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-hero"
-            >
-              Log past workout
-            </Link>
-          </div>
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-          <HeroStat label="Phase" value={phaseLabel} />
-          <HeroStat label="Readiness" value={workout.readiness} />
-          <HeroStat label="Workload" value={exerciseLabel} />
         </div>
       </div>
     </section>
   );
 }
 
-function PhaseProgressCard({
+function WeekPreview({
+  days,
+  activity
+}: {
+  days: DashboardWeekPreviewItem[];
+  activity: DashboardActivitySummary;
+}) {
+  const completedKeys = new Set(
+    activity.days.filter((day) => day.completed).map((day) => day.key)
+  );
+
+  return (
+    <SurfaceCard>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="ui-eyebrow">This week</p>
+          <h2 className="mt-1 text-xl font-black leading-tight text-copy">Training rhythm</h2>
+        </div>
+        <span className="rounded-full bg-surface-soft px-3 py-1.5 text-xs font-bold text-muted">5 days</span>
+      </div>
+      <div className="mt-4 grid gap-2">
+        {days.map((day) => {
+          const completed = completedKeys.has(day.key);
+          const status = completed
+            ? "Completed"
+            : day.isToday
+              ? "Today"
+              : day.tone === "rest"
+                ? "Open/rest"
+                : "Upcoming";
+
+          return (
+            <div
+              key={day.key}
+              className={clsx(
+                "grid grid-cols-[3rem_minmax(0,1fr)_6.5rem] items-center gap-3 rounded-2xl border px-3 py-2.5",
+                day.isToday ? "border-primary/40 bg-primary/10" : "border-border bg-surface-soft"
+              )}
+            >
+              <div>
+                <p className="text-sm font-black text-copy">{day.weekdayLabel}</p>
+                <p className="text-[11px] font-semibold text-muted">{day.isToday ? "Today" : day.dateLabel}</p>
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-black text-copy">{day.workoutName}</p>
+              </div>
+              <div className="flex items-center justify-end gap-2 text-right">
+                <WeekStatusDot completed={completed} day={day} />
+                <span className="text-xs font-bold text-muted">{status}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </SurfaceCard>
+  );
+}
+
+function CurrentPhaseCard({
   plan,
   progress,
   prompt
@@ -228,12 +189,14 @@ function PhaseProgressCard({
   progress: PhaseProgressSummary | null;
   prompt: DashboardProgressionPrompt | null;
 }) {
-  const percent = progress?.completionPercent ?? 0;
+  const percent = Math.min(100, Math.max(0, progress?.completionPercent ?? 0));
   const cleanSessions = progress?.cleanSessions ?? 0;
   const requiredSessions = progress?.requiredCleanSessions ?? 0;
+  const status = prompt?.eyebrow ?? progress?.recommendation ?? "Progression";
+  const canProgress = Boolean(progress?.canAdvance && prompt?.actionHref && prompt.actionLabel);
 
   return (
-    <SurfaceCard className="h-full">
+    <SurfaceCard>
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="ui-eyebrow">Current phase</p>
@@ -250,118 +213,27 @@ function PhaseProgressCard({
         <div className="h-3 overflow-hidden rounded-full bg-shell-elevated">
           <div className="h-full rounded-full bg-primary" style={{ width: `${percent}%` }} />
         </div>
-        <div className="mt-3 flex items-center justify-between gap-3 text-sm">
+        <div className="mt-3 flex flex-col gap-2 text-sm sm:flex-row sm:items-center sm:justify-between">
           <span className="font-semibold text-copy">
             {cleanSessions} / {requiredSessions} clean sessions
           </span>
-          <span className="font-semibold text-muted">{prompt?.eyebrow ?? "Progression"}</span>
+          <span className="font-semibold text-muted">{status}</span>
         </div>
       </div>
-      <Link
-        href={`/plans/${plan.id}` as Route}
-        className="ui-button-secondary mt-6 inline-flex w-full justify-center"
-      >
-        Review plan progress
-      </Link>
-    </SurfaceCard>
-  );
-}
-
-function WeekPreview({ days }: { days: DashboardWeekPreviewItem[] }) {
-  return (
-    <SurfaceCard>
-      <div className="flex items-end justify-between gap-4">
-        <div>
-          <p className="ui-eyebrow">This week</p>
-          <h2 className="mt-2 text-2xl font-black leading-tight text-copy">Training rhythm</h2>
-        </div>
-        <span className="hidden rounded-full bg-surface-soft px-3 py-1.5 text-xs font-bold text-muted sm:inline-flex">
-          5-day view
-        </span>
-      </div>
-      <div className="mt-5 grid gap-3">
-        {days.map((day) => (
-          <div
-            key={day.key}
-            className={clsx(
-              "grid grid-cols-[3.25rem_minmax(0,1fr)_auto] items-center gap-3 rounded-[20px] border px-3 py-3",
-              day.isToday
-                ? "border-primary/35 bg-primary/10"
-                : day.tone === "workout"
-                  ? "border-secondary/25 bg-secondary/8"
-                  : "border-border bg-surface-soft"
-            )}
-          >
-            <div className="text-center">
-              <p className="text-sm font-black text-copy">{day.weekdayLabel}</p>
-              <p className="mt-1 text-[11px] font-semibold text-muted">
-                {day.isToday ? "Today" : day.dateLabel}
-              </p>
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-black text-copy">{day.workoutName}</p>
-              <p className="mt-1 truncate text-xs font-semibold text-muted">{day.detail}</p>
-            </div>
-            <WeekToneDot tone={day.tone} active={day.isToday} />
-          </div>
-        ))}
-      </div>
-    </SurfaceCard>
-  );
-}
-
-function NextStepCard({
-  plan,
-  workout,
-  prompt,
-  painTrend
-}: {
-  plan: WorkoutPlan;
-  workout: WorkoutTemplate;
-  prompt: DashboardProgressionPrompt | null;
-  painTrend: DashboardPainTrend | null;
-}) {
-  const tone = prompt?.tone ?? "steady";
-
-  return (
-    <SurfaceCard className="h-full">
-      <div className="flex flex-wrap items-center gap-2">
-        <Pill tone={tone === "caution" ? "orange" : tone === "ready" ? "green" : "blue"}>
-          {prompt?.eyebrow ?? "Next step"}
-        </Pill>
-        {painTrend ? (
-          <Pill tone={painTrend.tone === "caution" ? "orange" : "green"}>
-            {painTrend.label}
-          </Pill>
-        ) : null}
-      </div>
-      <h2 className="mt-4 text-2xl font-black leading-tight text-copy">
-        {prompt?.title ?? "Keep building this phase."}
-      </h2>
-      <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
-        {prompt?.detail ?? plan.currentPhase.goal}
-      </p>
       <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-        {prompt?.actionHref && prompt.actionLabel ? (
-          <Link
-            href={prompt.actionHref as Route}
-            className="ui-button-primary inline-flex justify-center"
-          >
-            {prompt.actionLabel}
+        {canProgress ? (
+          <Link href={prompt!.actionHref as Route} className="ui-button-primary inline-flex justify-center">
+            {prompt!.actionLabel}
           </Link>
-        ) : (
-          <Link
-            href={`/workout?workoutId=${workout.id}` as Route}
-            className="ui-button-primary inline-flex justify-center"
-          >
-            Start next workout
-          </Link>
-        )}
+        ) : null}
         <Link
           href={`/plans/${plan.id}` as Route}
-          className="ui-button-secondary inline-flex justify-center"
+          className={clsx(
+            "inline-flex justify-center",
+            canProgress ? "ui-button-secondary" : "ui-button-primary"
+          )}
         >
-          View plan
+          {canProgress ? "Review plan" : "Review plan progress"}
         </Link>
       </div>
     </SurfaceCard>
@@ -399,15 +271,15 @@ function ActivityCard({
           </span>
         ) : null}
       </div>
-      <div className="mt-6 grid grid-cols-7 gap-2">
+      <div className="mt-6 grid min-w-0 grid-cols-7 gap-2">
         {activity.days.map((day) => (
-          <div key={day.key} className="text-center">
+          <div key={day.key} className="min-w-0 text-center">
             <div
               title={`${day.weekdayLabel}: ${
                 day.completed ? "workout logged" : "no workout logged"
               }${day.painFlagged ? ", pain flagged" : ""}`}
               className={clsx(
-                "mx-auto flex h-10 w-10 items-center justify-center rounded-2xl border",
+                "mx-auto flex h-10 w-full max-w-10 items-center justify-center rounded-2xl border",
                 day.painFlagged
                   ? "border-warning bg-warning/18"
                   : day.completed
@@ -417,6 +289,10 @@ function ActivityCard({
                       : "border-border bg-surface-soft"
               )}
             >
+              <span className="sr-only">
+                {day.completed ? "Workout logged" : "No workout logged"}
+                {day.painFlagged ? ", pain flagged" : ""}
+              </span>
               <span
                 className={clsx(
                   "h-2.5 w-2.5 rounded-full",
@@ -428,16 +304,17 @@ function ActivityCard({
                         ? "bg-primary"
                         : "bg-border"
                 )}
+                aria-hidden="true"
               />
             </div>
-            <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.08em] text-muted">
+            <p className="mt-2 truncate text-[11px] font-bold uppercase tracking-[0.08em] text-muted">
               {day.weekdayLabel}
             </p>
           </div>
         ))}
       </div>
       <p className="mt-5 text-sm leading-6 text-muted">
-        {painTrend?.detail ?? "Log workouts to build a clearer weekly signal."}
+        {painTrend?.detail ?? "No recent pain flags."}
       </p>
       <div className="mt-6 grid gap-3">
         {recentSessions.length > 0 ? (
@@ -448,7 +325,7 @@ function ActivityCard({
                   <p className="truncate font-black text-copy">{session.workoutNameSnapshot}</p>
                   <p className="mt-1 font-semibold text-muted">{formatDisplayDate(session.completedOn)}</p>
                 </div>
-                <span className="rounded-full bg-surface px-2.5 py-1 text-xs font-bold text-muted">
+                <span className="shrink-0 rounded-full bg-surface px-2.5 py-1 text-xs font-bold text-muted">
                   {session.status ?? (session.completed ? "Completed" : "Partial")}
                 </span>
               </div>
@@ -467,56 +344,24 @@ function ActivityCard({
   );
 }
 
-function HeroStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-[22px] border border-white/10 bg-white/[0.06] p-4">
-      <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/45">{label}</p>
-      <p className="mt-2 text-base font-black leading-tight text-white">{value}</p>
-    </div>
-  );
-}
-
-function WeekToneDot({
-  tone,
-  active
+function WeekStatusDot({
+  completed,
+  day
 }: {
-  tone: DashboardWeekPreviewItem["tone"];
-  active: boolean;
+  completed: boolean;
+  day: DashboardWeekPreviewItem;
 }) {
   return (
     <span
       className={clsx(
-        "h-3 w-3 rounded-full",
-        active
-          ? "bg-primary"
-          : tone === "workout"
-            ? "bg-secondary"
-            : tone === "fallback"
-              ? "bg-warning"
-              : "bg-border"
+        "h-3 w-3 shrink-0 rounded-full border",
+        completed && "border-success bg-success",
+        !completed && day.isToday && "border-primary bg-primary",
+        !completed && !day.isToday && day.tone === "workout" && "border-secondary bg-secondary",
+        !completed && !day.isToday && day.tone === "fallback" && "border-warning bg-warning",
+        !completed && !day.isToday && day.tone === "rest" && "border-border bg-surface"
       )}
       aria-hidden="true"
     />
-  );
-}
-
-function Pill({
-  children,
-  tone
-}: {
-  children: React.ReactNode;
-  tone: "green" | "blue" | "orange";
-}) {
-  return (
-    <span
-      className={clsx(
-        "inline-flex rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em]",
-        tone === "green" && "bg-primary/14 text-primary",
-        tone === "blue" && "bg-secondary/14 text-secondary",
-        tone === "orange" && "bg-goal-orange/16 text-goal-orange"
-      )}
-    >
-      {children}
-    </span>
   );
 }
