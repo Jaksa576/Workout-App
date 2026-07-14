@@ -54,7 +54,12 @@ describe("workout flow lifecycle source guards", () => {
     expect(source).not.toContain(">Selected<");
     expect(source).not.toContain("Selected workout");
     expect(source).not.toContain("Resume workout</button>");
-    expect(source).toContain("Exercise preview");
+    expect(source).toContain("formatExercisePrescription(exercise)");
+    expect(source).toContain("remainingExerciseCount");
+    expect(source).toContain("+{remainingExerciseCount} more");
+    expect(source).not.toContain("Workout details");
+    expect(source).not.toContain("Exercise preview");
+    expect(source).not.toContain("{item.exercises.length} exercises");
     expect(source).not.toContain("Execute today&apos;s session");
     expect(source).not.toContain("Recommended today");
     expect(source).not.toContain("Other workouts in this phase");

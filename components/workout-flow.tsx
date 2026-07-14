@@ -43,6 +43,7 @@ import {
   type ActiveWorkoutDraft,
 } from "@/lib/active-workout-draft";
 import { generateRecommendation } from "@/lib/recommendation";
+import { formatExercisePrescription } from "@/lib/exercise-prescription";
 import { detectBrowserTimeZone } from "@/lib/time-zone";
 import { orderWorkoutsForUpcomingSchedule } from "@/lib/workout-schedule";
 import { getTodayDateString } from "@/lib/validation";
@@ -773,6 +774,7 @@ export function WorkoutFlow({
     useState(90);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const settingsTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const workoutCardRefs = useRef<Record<string, HTMLElement | null>>({});
   const completedFeedbackEvents = useRef(new Set<string>());
   const { unlockAudio, playCompletionCue, closeAudio } =
     useTimerCompletionAudio();
@@ -819,13 +821,6 @@ export function WorkoutFlow({
     [selectedWorkout, selectedWorkoutId, workouts],
   );
   const recommendation = generateRecommendation({ completed, pain, effort });
-  const latestSession = useMemo(
-    () =>
-      sessionHistory.find(
-        (session) => session.workoutTemplateId === workout.id,
-      ) ?? null,
-    [sessionHistory, workout.id],
-  );
   useEffect(() => {
     if (!userId) {
       return;
@@ -908,6 +903,19 @@ export function WorkoutFlow({
       setStep("idle");
     }
   }, [mode, userId, workouts]);
+
+  useEffect(() => {
+    if (isActiveMode) {
+      return;
+    }
+
+    const card = workoutCardRefs.current[selectedWorkoutId];
+    if (!card) {
+      return;
+    }
+
+    card.scrollIntoView({ block: "nearest" });
+  }, [isActiveMode, selectedWorkoutId]);
 
   useEffect(() => {
     if (
@@ -1687,10 +1695,6 @@ export function WorkoutFlow({
     );
   }
 
-  const selectedOwnsActiveDraft = activeDraft?.workoutTemplateId === workout.id;
-  const otherWorkoutOwnsActiveDraft = Boolean(
-    activeDraft && activeDraft.workoutTemplateId !== workout.id,
-  );
   const orderedWorkouts = useMemo(
     () =>
       orderWorkoutsForUpcomingSchedule({
@@ -1727,110 +1731,101 @@ export function WorkoutFlow({
             {draftMessage}
           </div>
         ) : null}
-        <div className="mt-5 grid gap-3">
-          {orderedWorkouts.map(({ workout: item, scheduleLabel, isTodayWorkout }) => {
-            const ownsDraft = activeDraft?.workoutTemplateId === item.id;
-            const isSelected = item.id === workout.id;
-            return (
-              <article
-                key={item.id}
-                id={`workout-card-${item.id}`}
-                className={`rounded-[24px] border p-4 transition ${
-                  isTodayWorkout
-                    ? "border-primary bg-primary/10 shadow-soft"
-                    : ownsDraft
-                      ? "border-success/40 bg-success/10"
-                      : isSelected
-                        ? "border-primary/40 bg-surface-soft"
-                        : "border-border bg-surface-soft"
-                }`}
-              >
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <button
-                    type="button"
-                    onClick={() => handleSelectWorkout(item.id)}
-                    className="min-w-0 flex-1 text-left"
-                    aria-label={`View details for ${item.name}`}
-                  >
-                    {scheduleLabel ? (
-                      <p className={`text-xs font-black uppercase tracking-[0.14em] ${isTodayWorkout ? "text-primary" : "text-muted"}`}>
-                        {scheduleLabel}
+        <div className="mt-4 grid gap-3">
+          {orderedWorkouts.map(
+            ({ workout: item, scheduleLabel, isTodayWorkout }) => {
+              const ownsDraft = activeDraft?.workoutTemplateId === item.id;
+              const isSelected = item.id === workout.id;
+              const visibleExercises = item.exercises.slice(0, 5);
+              const remainingExerciseCount = Math.max(
+                item.exercises.length - visibleExercises.length,
+                0,
+              );
+
+              return (
+                <article
+                  key={item.id}
+                  id={`workout-card-${item.id}`}
+                  ref={(node) => {
+                    workoutCardRefs.current[item.id] = node;
+                  }}
+                  className={`rounded-[22px] border px-4 py-3 transition sm:px-5 ${
+                    isTodayWorkout
+                      ? "border-primary bg-primary/10 shadow-soft"
+                      : ownsDraft
+                        ? "border-success/40 bg-success/10"
+                        : isSelected
+                          ? "border-primary/40 bg-surface-soft"
+                          : "border-border bg-surface-soft"
+                  }`}
+                >
+                  <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:gap-4">
+                    <button
+                      type="button"
+                      onClick={() => handleSelectWorkout(item.id)}
+                      className="min-w-0 text-left"
+                      aria-label={`View details for ${item.name}`}
+                    >
+                      {scheduleLabel ? (
+                        <p
+                          className={`text-[0.68rem] font-black uppercase tracking-[0.14em] ${isTodayWorkout ? "text-primary" : "text-muted"}`}
+                        >
+                          {scheduleLabel}
+                        </p>
+                      ) : null}
+                      <p className="mt-0.5 break-words text-base font-black leading-snug text-copy">
+                        {item.name}
                       </p>
-                    ) : null}
-                    <p className="mt-1 break-words font-black text-copy">{item.name}</p>
-                    <p className="mt-1 line-clamp-2 text-sm leading-6 text-muted">
-                      {item.focus || item.summary}
-                    </p>
-                    <p className="mt-2 text-xs font-bold uppercase tracking-[0.12em] text-muted">
-                      {item.exercises.length} exercises{ownsDraft ? " · Active workout" : ""}
-                    </p>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => (ownsDraft ? handleResumeDraft() : handleStartWorkout(item))}
-                    className="ui-button-primary min-h-11 shrink-0 self-end px-4 py-2 sm:self-start"
-                    aria-label={`${ownsDraft ? "Resume" : "Start"} ${item.name}`}
-                  >
-                    {ownsDraft ? "Resume" : "Start"}
-                  </button>
-                </div>
-              </article>
-            );
-          })}
+                      <p className="mt-1 line-clamp-2 text-sm leading-5 text-muted">
+                        {item.focus || item.summary}
+                      </p>
+                      {ownsDraft ? (
+                        <p className="mt-1 text-xs font-bold uppercase tracking-[0.12em] text-success">
+                          Active workout
+                        </p>
+                      ) : null}
+                      <ul className="mt-2 space-y-1 text-sm leading-5 text-copy">
+                        {visibleExercises.map((exercise) => (
+                          <li key={exercise.id} className="flex gap-2">
+                            <span className="text-muted" aria-hidden="true">
+                              •
+                            </span>
+                            <span className="min-w-0 break-words">
+                              <span className="font-semibold">
+                                {exercise.name}
+                              </span>
+                              <span className="text-muted">
+                                {` · ${formatExercisePrescription(exercise)}`}
+                              </span>
+                            </span>
+                          </li>
+                        ))}
+                        {remainingExerciseCount > 0 ? (
+                          <li className="flex gap-2 text-muted">
+                            <span aria-hidden="true">•</span>
+                            <span>+{remainingExerciseCount} more</span>
+                          </li>
+                        ) : null}
+                      </ul>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        ownsDraft
+                          ? handleResumeDraft()
+                          : handleStartWorkout(item)
+                      }
+                      className="ui-button-primary min-h-12 shrink-0 rounded-2xl px-5 py-3 text-sm sm:px-6"
+                      aria-label={`${ownsDraft ? "Resume" : "Start"} ${item.name}`}
+                    >
+                      {ownsDraft ? "Resume" : "Start"}
+                    </button>
+                  </div>
+                </article>
+              );
+            },
+          )}
         </div>
-      </section>
-
-      <section className="surface-card p-5 sm:p-6">
-        <p className="ui-eyebrow">Workout details</p>
-        <h2 className="mt-2 text-2xl font-black leading-tight text-copy">
-          {workout.name}
-        </h2>
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">
-          {workout.summary}
-        </p>
-
-        {draftMessage ? (
-          <div className="mt-4 rounded-[24px] border border-primary/20 bg-primary/10 px-4 py-3 text-sm leading-6 text-copy">
-            {draftMessage}
-          </div>
-        ) : null}
-        {!storageAvailable ? (
-          <div className="mt-4 rounded-[24px] border border-danger/20 bg-danger/10 px-4 py-3 text-sm leading-6 text-copy">
-            Browser storage is unavailable, so refresh recovery may not work
-            until storage is enabled.
-          </div>
-        ) : null}
-        {latestSession ? (
-          <div className="mt-4 rounded-[24px] border border-success/20 bg-success/10 px-4 py-3 text-sm leading-6 text-copy">
-            Last performed {formatDisplayDate(latestSession.completedOn)}.
-          </div>
-        ) : (
-          <div className="mt-4 rounded-[24px] border border-border bg-surface-soft px-4 py-3 text-sm leading-6 text-muted">
-            No saved session for this workout yet.
-          </div>
-        )}
-
-        <div className="mt-5 rounded-[24px] border border-border bg-surface-soft p-4">
-          <p className="text-sm font-black text-copy">Exercise preview</p>
-          <ol className="mt-3 space-y-3">
-            {workout.exercises.map((exercise, index) => (
-              <li key={exercise.id} className="flex gap-3 text-sm">
-                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-surface text-xs font-black text-muted">
-                  {index + 1}
-                </span>
-                <div>
-                  <p className="font-bold text-copy">{exercise.name}</p>
-                  <p className="mt-1 text-muted">
-                    {exercise.sets} × {exercise.reps}
-                    {exercise.rest ? ` · Rest ${exercise.rest}` : ""}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </div>
-
-
       </section>
     </div>
   );

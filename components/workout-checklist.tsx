@@ -7,6 +7,7 @@ import {
   formatHistorySet,
   formatTrackingDisplay,
 } from "@/lib/exercise-history";
+import { formatExercisePrescriptionWithRest } from "@/lib/exercise-prescription";
 import {
   applyMetricSetEdit,
   formatDurationInput,
@@ -779,7 +780,7 @@ function ExerciseDetailsSurface({
                 {exercise.name}
               </h2>
               <p className="mt-1 text-sm text-muted">
-                {formatPrescription(exercise)}
+                {formatExercisePrescriptionWithRest(exercise)}
               </p>
             </div>
             <button
@@ -981,11 +982,5 @@ function SummaryBlock({
       </h3>
       <div className="mt-2 text-sm leading-6 text-copy">{children}</div>
     </section>
-  );
-}
-
-function formatPrescription(exercise: WorkoutTemplate["exercises"][number]) {
-  return [`${exercise.sets} sets`, exercise.reps, `Rest ${exercise.rest}`].join(
-    " · ",
   );
 }

@@ -343,3 +343,11 @@ Repository inspection for this patch found that active-phase workout scheduling 
 No schema, migration, progression, recommendation, active execution, plan-editor, dashboard, or session persistence behavior changed. The Issue #11 active-draft guard remains in force: the draft-owning card shows Resume, and starting another card routes through the existing explicit resume/discard protection instead of creating a second draft or silently replacing the current draft.
 
 Validation focus: today-first ordering, tomorrow/weekday labels, week rollover, multi-day workouts, unscheduled fallback ordering, direct card Start/Resume exact workout IDs, active-draft guard preservation, valid `workoutId` deep-link context, no Recommended/Selected badges, no standalone downstream Start button, and compact mobile card density above the authenticated bottom navigation.
+
+## PR #58 follow-up — self-contained `/workout` cards
+
+Implementing the requested Issue #34 PR #58 cleanup that removes the obsolete standalone workout-details card below the phase workout list. The `/workout` page now treats each scheduled workout card as the self-contained context for when the workout occurs, what it is, the concise exercise prescription list, and the exact Start/Resume action for that card.
+
+This patch preserves the prior calendar ordering helper, Today’s Workout treatment, direct per-card Start/Resume behavior, active-draft guard, and `?workoutId=` context. Deep-link context is now used only to keep the corresponding card accessible rather than restoring a selected-details UI. Exercise lists render all items up to five exercises, then deterministically show the first five plus `+N more`; no accordion, schema, progression, or `/workout/active` behavior changes are introduced.
+
+Validation focus: standalone details section remains absent, every workout card shows exercise names and concise prescriptions, generic exercise-count copy is not duplicated when names are visible, Start/Resume stays in the right-side action column, draft ownership is still the only Resume state, starting a different workout still invokes the existing active-draft protection, and Today/Tomorrow/weekday ordering remains unchanged.
