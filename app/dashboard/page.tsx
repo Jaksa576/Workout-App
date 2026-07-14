@@ -32,7 +32,7 @@ export default async function DashboardPage() {
   }
 
   if (!activePlan || !nextWorkout) {
-    return <DashboardEmptyState hasPlan={Boolean(activePlan)} />;
+    return <DashboardEmptyState activePlan={activePlan} />;
   }
 
   return (
@@ -53,34 +53,28 @@ export default async function DashboardPage() {
   );
 }
 
-function DashboardEmptyState({ hasPlan }: { hasPlan: boolean }) {
+export function DashboardEmptyState({ activePlan }: { activePlan: WorkoutPlan | null }) {
+  const planHref = activePlan ? `/plans/${activePlan.id}` : "/plans/new";
+
   return (
     <div className="mx-auto max-w-3xl">
       <section className="rounded-[28px] bg-hero p-6 text-white shadow-premium sm:p-8">
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/58">Dashboard</p>
         <h1 className="mt-4 text-3xl font-black leading-tight text-balance sm:text-4xl">
-          {hasPlan ? "Choose your next workout." : "Build your first adaptive plan."}
+          {activePlan ? "Review your active plan." : "Build your first adaptive plan."}
         </h1>
         <p className="mt-4 max-w-2xl text-sm leading-6 text-white/72 sm:text-base">
-          {hasPlan
-            ? "Your active plan does not have a workout scheduled for today. Review your plan or choose a workout deliberately."
+          {activePlan
+            ? "Your active plan does not have a workout scheduled for today. Review the plan before choosing another workout."
             : "Create a structured program before your dashboard fills in with today, your week, and progression signals."}
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <Link
-            href={(hasPlan ? "/plans" : "/plans/new") as Route}
+            href={planHref as Route}
             className="ui-button-primary inline-flex justify-center focus-visible:ring-white focus-visible:ring-offset-hero"
           >
-            {hasPlan ? "View plan" : "Create a plan"}
+            {activePlan ? "Review plan" : "Create a plan"}
           </Link>
-          {hasPlan ? (
-            <Link
-              href="/workout"
-              className="rounded-full border border-white/20 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-hero"
-            >
-              Choose workout
-            </Link>
-          ) : null}
         </div>
       </section>
     </div>
