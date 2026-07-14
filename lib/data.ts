@@ -841,7 +841,9 @@ export async function getWorkoutPageData(
   );
   const selectedWorkout =
     activePhaseWorkouts.find((workout) => workout.id === selectedWorkoutId) ??
-    recommendedWorkout;
+    recommendedWorkout ??
+    activePhaseWorkouts[0] ??
+    null;
   const recentSessions = bundle.sessions.map(mapSession);
   const phaseProgress: PhaseProgressSummary | null = activePlan
     ? calculatePhaseProgress({
@@ -870,7 +872,8 @@ export async function getWorkoutPageData(
     ),
     phaseProgress,
     userId: user.id,
-    defaultRestSeconds: profileResult.data?.default_rest_seconds ?? restTimerDefaultSeconds,
+    defaultRestSeconds:
+      profileResult.data?.default_rest_seconds ?? restTimerDefaultSeconds,
   };
 }
 

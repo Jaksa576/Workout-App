@@ -325,3 +325,11 @@ Validation focus: mobile/desktop dashboard order, no standalone Needs Attention 
 The active-plan/no-workout dashboard empty state now keeps a single plan-review action to the specific active plan route (`/plans/{planId}`) and no longer renders the secondary Choose workout link to `/workout`. This avoids the current `/workout` behavior where missing or invalid `workoutId` can redirect to `/plans/new`. The no-active-plan empty state continues to route Create a plan to `/plans/new`.
 
 Validation focus: no-plan destination remains `/plans/new`; active-plan/no-workout destination is the plan review route; active-plan/no-workout renders no `/workout` link and exposes no path that falls through to `/plans/new`; the final dashboard order and workout-specific Monitor/Review readiness messaging remain unchanged.
+
+## PR Follow-up — Issue #34 Workout Page Cleanup
+
+Implemented the Issue #34 `/workout` cleanup as a selection/details-only surface on top of the existing Issue #11 active-draft lifecycle and Issue #12 `/workout/active` execution boundary. The selection route now uses a compact heading, one visible active-phase workout selector with the recommended workout badged in-place, canonical `workoutId` fallback/redirect behavior, selected-workout readiness/history context, an ordered exercise preview, and a single selected-workout Start/Resume/Clear action surface.
+
+This patch intentionally does not change progression logic, workout execution on `/workout/active`, final-save behavior, database schema, migrations, RLS, or API contracts. Dashboard-style recent logs, phase progress/exit criteria, workout rhythm, and latest-suggestion reporting were removed only from `/workout`; the underlying shared data and destination behavior remain available elsewhere.
+
+Validation focus: valid explicit `workoutId`, missing/invalid ID fallback to recommended or first active-phase workout, alternate selection URL synchronization, refresh preservation via canonical URL, Start using the selected workout, active-draft owner badging and Resume behavior, explicit Resume/Discard when another workout owns the draft, absence of duplicated dashboard/reporting sections, and no regression to `/workout/active` lifecycle behavior.

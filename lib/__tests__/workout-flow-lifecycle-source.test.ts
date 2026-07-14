@@ -38,46 +38,52 @@ describe("workout flow lifecycle source guards", () => {
   });
 
   it("keeps workout selection concise and free of execution-only timer copy", () => {
-    expect(source).not.toContain('import { TimerCard }');
-    expect(source).not.toContain('<TimerCard />');
+    expect(source).not.toContain("import { TimerCard }");
+    expect(source).not.toContain("<TimerCard />");
     expect(source).not.toContain(
       "Start creates one local active draft for this signed-in user and browser.",
     );
   });
 
-  it("uses only the recommended workout name and summary in the recommendation card", () => {
-    const start = source.indexOf(
-      '<p className="ui-eyebrow">Recommended today</p>',
-    );
-    const end = source.indexOf('{workouts.length > 1 ?', start);
-    const recommendedCard = source.slice(start, end);
-
-    expect(recommendedCard).toContain(
-      '{recommendedWorkout?.name ?? workout.name}',
-    );
-    expect(recommendedCard).toContain(
-      '{(recommendedWorkout ?? workout).summary}',
-    );
-    expect(recommendedCard).not.toContain('formatPhaseLabel');
-    expect(recommendedCard).not.toContain('activePlan.currentPhase.goal');
+  it("renders one visible selector with the recommendation folded into the list", () => {
+    expect(source).toContain("Choose today&apos;s workout");
+    expect(source).toContain("Select a session");
+    expect(source).toContain("Recommended");
+    expect(source).toContain("Selected");
+    expect(source).toContain("Exercise preview");
+    expect(source).not.toContain("Execute today&apos;s session");
+    expect(source).not.toContain("Recommended today");
+    expect(source).not.toContain("Other workouts in this phase");
+    expect(source).not.toContain("Recent workouts");
+    expect(source).not.toContain("Workout rhythm");
+    expect(source).not.toContain("Latest suggestion");
   });
 
   it("freezes and reuses finish elapsed time across review, back, and save", () => {
     expect(source).toContain("finishElapsedSnapshot");
-    expect(source).toContain("const snapshot = finishElapsedSnapshot ?? getElapsedSeconds(activeDraft)");
+    expect(source).toContain(
+      "const snapshot = finishElapsedSnapshot ?? getElapsedSeconds(activeDraft)",
+    );
     expect(source).toContain("elapsedOffsetSeconds: snapshot");
     expect(source).toContain("function handleBackToWorkout()");
     expect(source).toContain("elapsedSeconds: activeDraft");
-    expect(source).toContain("? (finishElapsedSnapshot ?? getElapsedSeconds(activeDraft))");
+    expect(source).toContain(
+      "? (finishElapsedSnapshot ?? getElapsedSeconds(activeDraft))",
+    );
   });
 
   it("moves terminal active-workout views to the top without focus changes", () => {
-    expect(source.split('window.scrollTo({ top: 0, left: 0, behavior: "auto" })').length - 1).toBeGreaterThanOrEqual(2);
+    expect(
+      source.split('window.scrollTo({ top: 0, left: 0, behavior: "auto" })')
+        .length - 1,
+    ).toBeGreaterThanOrEqual(2);
   });
 
   it("hides the active sticky header and rest dock padding on finish", () => {
     expect(source).toContain('{step !== "check-in" ? (');
-    expect(source).toContain('liveRestTimer.status === "idle" || step === "check-in"');
+    expect(source).toContain(
+      'liveRestTimer.status === "idle" || step === "check-in"',
+    );
   });
 
   it("keeps finish as save, back, then guarded bottom discard", () => {
@@ -90,8 +96,12 @@ describe("workout flow lifecycle source guards", () => {
     expect(finishView).toContain("Save workout");
     expect(finishView).toContain("Back to workout");
     expect(finishView).toContain("Discard workout");
-    expect(finishView.indexOf("Save workout")).toBeLessThan(finishView.indexOf("Back to workout"));
-    expect(finishView.indexOf("Back to workout")).toBeLessThan(finishView.indexOf("Discard workout"));
+    expect(finishView.indexOf("Save workout")).toBeLessThan(
+      finishView.indexOf("Back to workout"),
+    );
+    expect(finishView.indexOf("Back to workout")).toBeLessThan(
+      finishView.indexOf("Discard workout"),
+    );
     expect(finishView).toContain("onClick={handleDiscardDraft}");
   });
 });
