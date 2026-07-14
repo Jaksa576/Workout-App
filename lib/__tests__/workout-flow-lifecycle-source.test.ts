@@ -113,6 +113,26 @@ describe("workout flow lifecycle source guards", () => {
     expect(finishView.indexOf("Back to workout")).toBeLessThan(
       finishView.indexOf("Discard workout"),
     );
-    expect(finishView).toContain("onClick={handleDiscardDraft}");
+    expect(finishView).toContain("onClick={requestDiscardDraft}");
   });
+
+  it("uses an in-app discard confirmation instead of a native browser prompt", () => {
+    const requestStart = source.indexOf("function requestDiscardDraft()");
+    const discardStart = source.indexOf("function handleDiscardDraft()");
+    const discardEnd = source.indexOf(
+      "  function handleClearRecoveryData()",
+      discardStart,
+    );
+    const discardHandler = source.slice(requestStart, discardEnd);
+
+    expect(source).toContain("function DiscardWorkoutDialog(");
+    expect(source).toContain("Discard workout?");
+    expect(source).toContain("Your progress from this workout will be lost.");
+    expect(source).toContain("Keep workout");
+    expect(source).toContain("Discard workout");
+    expect(discardHandler).not.toContain("window.confirm");
+    expect(discardHandler).toContain("setDiscardDialogOpen(true)");
+    expect(discardHandler).toContain("setDiscardDialogOpen(false)");
+  });
+
 });

@@ -394,6 +394,93 @@ function WorkoutSettingsDialog({
   );
 }
 
+function DiscardWorkoutDialog({
+  onKeepWorkout,
+  onDiscardWorkout,
+}: {
+  onKeepWorkout: () => void;
+  onDiscardWorkout: () => void;
+}) {
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const keepButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    keepButtonRef.current?.focus();
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
+
+  function onDialogKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      onKeepWorkout();
+      return;
+    }
+    if (event.key !== "Tab") return;
+    const focusable = Array.from(
+      dialogRef.current?.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [href], [tabindex]:not([tabindex="-1"])',
+      ) ?? [],
+    ).filter((element) => element.offsetParent !== null);
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end bg-ink/30 p-3 sm:items-center sm:justify-center"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onKeepWorkout();
+      }}
+    >
+      <div
+        ref={dialogRef}
+        className="w-full max-w-md rounded-[28px] border border-border bg-surface p-5 shadow-2xl"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="discard-workout-title"
+        aria-describedby="discard-workout-description"
+        onKeyDown={onDialogKeyDown}
+      >
+        <h2 id="discard-workout-title" className="text-xl font-black text-copy">
+          Discard workout?
+        </h2>
+        <p id="discard-workout-description" className="mt-2 text-sm text-muted">
+          Your progress from this workout will be lost.
+        </p>
+        <div className="mt-6 grid gap-3 sm:grid-cols-[1fr_auto]">
+          <button
+            ref={keepButtonRef}
+            type="button"
+            className="ui-button-primary justify-center"
+            onClick={onKeepWorkout}
+          >
+            Keep workout
+          </button>
+          <button
+            type="button"
+            className="ui-button-ghost justify-center text-danger"
+            onClick={onDiscardWorkout}
+          >
+            Discard workout
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function RestTimerDock({
   timer,
   onPause,
@@ -773,6 +860,7 @@ export function WorkoutFlow({
   const [workoutDefaultRestSeconds, setWorkoutDefaultRestSeconds] =
     useState(90);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [discardDialogOpen, setDiscardDialogOpen] = useState(false);
   const settingsTriggerRef = useRef<HTMLButtonElement | null>(null);
   const workoutCardRefs = useRef<Record<string, HTMLElement | null>>({});
   const completedFeedbackEvents = useRef(new Set<string>());
@@ -1149,16 +1237,24 @@ export function WorkoutFlow({
     closeAudio();
   }
 
+  function requestDiscardDraft() {
+    if (!activeDraft) {
+      return;
+    }
+    setDiscardDialogOpen(true);
+  }
+
+  function keepActiveWorkout() {
+    setDiscardDialogOpen(false);
+  }
+
   function handleDiscardDraft() {
-    if (
-      !activeDraft ||
-      !window.confirm(
-        "Discard this active workout? Unsaved workout performance will be lost, but plans and completed history stay unchanged.",
-      )
-    ) {
+    if (!activeDraft) {
+      setDiscardDialogOpen(false);
       return;
     }
 
+    setDiscardDialogOpen(false);
     window.localStorage.removeItem(
       getActiveWorkoutDraftStorageKey(activeDraft.userId),
     );
@@ -1398,6 +1494,12 @@ export function WorkoutFlow({
         className={`mx-auto max-w-3xl ${liveRestTimer.status === "idle" || step === "check-in" ? "pb-[max(2rem,env(safe-area-inset-bottom))]" : "pb-[max(12rem,calc(env(safe-area-inset-bottom)+10rem))]"}`}
       >
         {workoutSettingsDialog}
+        {discardDialogOpen ? (
+          <DiscardWorkoutDialog
+            onKeepWorkout={keepActiveWorkout}
+            onDiscardWorkout={handleDiscardDraft}
+          />
+        ) : null}
         {step !== "check-in" ? (
           <div className="sticky top-0 z-30 -mx-3 border-b border-border/80 bg-shell/95 px-3 py-3 backdrop-blur sm:top-2 sm:mx-0 sm:rounded-[28px] sm:border sm:shadow-soft">
             <div className="flex items-center justify-between gap-3">
@@ -1424,7 +1526,7 @@ export function WorkoutFlow({
                 </button>
                 <button
                   type="button"
-                  onClick={handleDiscardDraft}
+                  onClick={requestDiscardDraft}
                   className="ui-button-ghost px-3 py-2"
                   disabled={!activeDraft}
                   aria-label="Discard active workout"
@@ -1498,7 +1600,7 @@ export function WorkoutFlow({
                 </button>
                 <button
                   type="button"
-                  onClick={handleDiscardDraft}
+                  onClick={requestDiscardDraft}
                   className="ui-button-ghost"
                 >
                   Discard
@@ -1660,7 +1762,7 @@ export function WorkoutFlow({
                   </button>
                   <button
                     type="button"
-                    onClick={handleDiscardDraft}
+                    onClick={requestDiscardDraft}
                     className="ui-button-ghost text-danger"
                     disabled={saving || isPending || !activeDraft}
                   >

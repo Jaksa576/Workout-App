@@ -359,3 +359,11 @@ Implemented the requested PR #58 cleanup that removes the remaining presentation
 This patch preserves Today’s Workout labeling, calendar ordering, self-contained workout summaries and exercise lists, per-card Start/Resume actions, active-draft protection, deep-link context, and bottom-navigation clearance. The parent card padding and internal list spacing were tightened so no empty heading whitespace remains and the first workout card sits near the top of the rounded list container. No schema, data, progression, recommendation, or execution-route behavior changed.
 
 Validation focus: absence of `WORKOUT`, `PHASE WORKOUTS`, and `Start from the list`; balanced top padding after heading removal; first workout card placement; unchanged direct Start/Resume and active-draft guard behavior; and unchanged calendar labels/order.
+
+## PR Follow-up — Active Workout Discard Confirmation
+
+Implementing the requested active-workout Discard polish on top of the existing `/workout/active` execution shell. The readiness gate confirmed the active discard path still used a native `window.confirm()` prompt in `components/workout-flow.tsx`, while the same file already contained an app-styled modal/bottom-sheet pattern for workout settings that could be reused without introducing a new dialog system.
+
+This patch replaces the native browser confirmation with an in-app confirmation dialog using the approved copy and actions: `Discard workout?`, `Your progress from this workout will be lost.`, `Keep workout`, and `Discard workout`. Keep workout is the primary action, non-destructive dismissal routes close the dialog without clearing the active draft, and confirming Discard workout calls the existing local-draft discard/reset/redirect path exactly once. No schema, Supabase, final-save, workout header, Finish-flow, or data-discard scope changes are introduced.
+
+Validation focus: active workout Discard opens the in-app confirmation with exact copy, Keep workout/backdrop/Escape preserve progress, Discard workout clears the existing local draft and returns to the existing workout-details redirect, and no native browser URL/says heading appears.
