@@ -12,16 +12,15 @@ import type {
   DashboardWeekPreviewItem,
   PhaseProgressSummary,
   WorkoutPlan,
+  WorkoutSession,
   WorkoutTemplate
 } from "@/lib/types";
 
-type AttentionItem = {
-  tone: "ready" | "caution" | "complete";
-  title: string;
-  detail: string;
-  actionLabel: string;
-  actionHref: string;
-};
+function formatDisplayDate(date: string) {
+  return new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(
+    new Date(`${date}T00:00:00`),
+  );
+}
 
 export default async function DashboardPage() {
   const [dashboard, profile] = await Promise.all([getDashboardData(), getProfile()]);
@@ -36,22 +35,19 @@ export default async function DashboardPage() {
     return <DashboardEmptyState hasPlan={Boolean(activePlan)} />;
   }
 
-  const attention = getAttentionItem({
-    plan: activePlan,
-    prompt: dashboard.progressionPrompt,
-    painTrend: dashboard.painTrend,
-    workout: nextWorkout
-  });
-
   return (
     <div className="mx-auto max-w-5xl space-y-4 sm:space-y-5">
       <TodayTrainingCard workout={nextWorkout} />
-      {attention ? <AttentionCard item={attention} /> : null}
       <WeekPreview days={dashboard.weekPreview} activity={dashboard.activitySummary} />
-      <ProgressSummary
+      <CurrentPhaseCard
         plan={activePlan}
-        activity={dashboard.activitySummary}
         progress={dashboard.phaseProgress}
+        prompt={dashboard.progressionPrompt}
+      />
+      <ActivityCard
+        activity={dashboard.activitySummary}
+        painTrend={dashboard.painTrend}
+        recentSessions={dashboard.recentSessions}
       />
     </div>
   );
@@ -93,6 +89,12 @@ function DashboardEmptyState({ hasPlan }: { hasPlan: boolean }) {
 
 function TodayTrainingCard({ workout }: { workout: WorkoutTemplate }) {
   const supportingLine = workout.summary || workout.focus || `${workout.exercises.length} exercises planned`;
+  const readinessWarning =
+    workout.readiness === "Review"
+      ? "Review your last check-in before pushing harder."
+      : workout.readiness === "Monitor"
+        ? "Take it easier today if that last workout still feels heavy."
+        : null;
 
   return (
     <section className="rounded-[28px] bg-hero p-5 text-white shadow-premium sm:p-6">
@@ -101,6 +103,11 @@ function TodayTrainingCard({ workout }: { workout: WorkoutTemplate }) {
         <div className="min-w-0">
           <h1 className="text-2xl font-black leading-tight text-balance sm:text-3xl">{workout.name}</h1>
           <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-white/72">{supportingLine}</p>
+          {readinessWarning ? (
+            <p className="mt-3 max-w-2xl rounded-2xl border border-warning/35 bg-warning/15 px-4 py-3 text-sm font-semibold leading-6 text-white">
+              {readinessWarning}
+            </p>
+          ) : null}
         </div>
         <div className="flex flex-col gap-3 sm:flex-row md:justify-end">
           <Link
@@ -118,78 +125,6 @@ function TodayTrainingCard({ workout }: { workout: WorkoutTemplate }) {
         </div>
       </div>
     </section>
-  );
-}
-
-function getAttentionItem({
-  plan,
-  prompt,
-  painTrend,
-  workout
-}: {
-  plan: WorkoutPlan;
-  prompt: DashboardProgressionPrompt | null;
-  painTrend: DashboardPainTrend | null;
-  workout: WorkoutTemplate;
-}): AttentionItem | null {
-  if (painTrend?.tone === "caution") {
-    return {
-      tone: "caution",
-      title: "Review readiness before pushing today.",
-      detail: painTrend.detail,
-      actionLabel: "Review readiness",
-      actionHref: `/workout?workoutId=${workout.id}`
-    };
-  }
-
-  if (!prompt) {
-    return null;
-  }
-
-  if (prompt.actionHref && prompt.actionLabel) {
-    return {
-      tone: prompt.tone === "complete" ? "complete" : prompt.tone === "ready" ? "ready" : "caution",
-      title: prompt.title,
-      detail: prompt.detail,
-      actionLabel: prompt.actionLabel,
-      actionHref: prompt.actionHref
-    };
-  }
-
-  if (prompt.tone === "caution") {
-    return {
-      tone: "caution",
-      title: prompt.title,
-      detail: prompt.detail,
-      actionLabel: "View plan",
-      actionHref: `/plans/${plan.id}`
-    };
-  }
-
-  return null;
-}
-
-function AttentionCard({ item }: { item: AttentionItem }) {
-  return (
-    <SurfaceCard
-      className={clsx(
-        "border-l-4",
-        item.tone === "caution" && "border-l-warning",
-        item.tone === "ready" && "border-l-success",
-        item.tone === "complete" && "border-l-primary"
-      )}
-    >
-      <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-        <div>
-          <p className="ui-eyebrow">Needs attention</p>
-          <h2 className="mt-2 text-xl font-black leading-tight text-copy">{item.title}</h2>
-          <p className="mt-2 text-sm leading-6 text-muted">{item.detail}</p>
-        </div>
-        <Link href={item.actionHref as Route} className="ui-button-primary inline-flex justify-center">
-          {item.actionLabel}
-        </Link>
-      </div>
-    </SurfaceCard>
   );
 }
 
@@ -251,36 +186,165 @@ function WeekPreview({
   );
 }
 
-function ProgressSummary({
+function CurrentPhaseCard({
   plan,
-  activity,
-  progress
+  progress,
+  prompt
 }: {
   plan: WorkoutPlan;
-  activity: DashboardActivitySummary;
   progress: PhaseProgressSummary | null;
+  prompt: DashboardProgressionPrompt | null;
 }) {
-  const phaseLabel = formatPhaseLabel(plan.currentPhase.phaseNumber);
-  const progressLabel = progress ? `${progress.completionPercent}% phase progress` : "Progress unavailable";
-  const cleanSessionLabel = progress
-    ? `${progress.cleanSessions}/${progress.requiredCleanSessions} clean sessions`
-    : "Keep logging workouts to rebuild this signal.";
+  const percent = Math.min(100, Math.max(0, progress?.completionPercent ?? 0));
+  const cleanSessions = progress?.cleanSessions ?? 0;
+  const requiredSessions = progress?.requiredCleanSessions ?? 0;
+  const status = prompt?.eyebrow ?? progress?.recommendation ?? "Progression";
+  const canProgress = Boolean(progress?.canAdvance && prompt?.actionHref && prompt.actionLabel);
 
   return (
     <SurfaceCard>
-      <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="ui-eyebrow">Progress summary</p>
-          <h2 className="mt-2 text-xl font-black leading-tight text-copy">
-            {activity.streakLabel} this week
+          <p className="ui-eyebrow">Current phase</p>
+          <h2 className="mt-2 text-2xl font-black leading-tight text-copy">
+            {formatPhaseLabel(plan.currentPhase.phaseNumber)}
           </h2>
-          <p className="mt-2 text-sm leading-6 text-muted">
-            {phaseLabel} · {progressLabel} · {cleanSessionLabel}
-          </p>
         </div>
-        <Link href={`/plans/${plan.id}` as Route} className="ui-button-secondary inline-flex justify-center">
-          Review plan
+        <span className="rounded-full bg-primary/12 px-3 py-1.5 text-xs font-bold text-primary">
+          {percent}%
+        </span>
+      </div>
+      <p className="mt-4 text-sm leading-6 text-muted">{plan.currentPhase.goal}</p>
+      <div className="mt-6">
+        <div className="h-3 overflow-hidden rounded-full bg-shell-elevated">
+          <div className="h-full rounded-full bg-primary" style={{ width: `${percent}%` }} />
+        </div>
+        <div className="mt-3 flex flex-col gap-2 text-sm sm:flex-row sm:items-center sm:justify-between">
+          <span className="font-semibold text-copy">
+            {cleanSessions} / {requiredSessions} clean sessions
+          </span>
+          <span className="font-semibold text-muted">{status}</span>
+        </div>
+      </div>
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+        {canProgress ? (
+          <Link href={prompt!.actionHref as Route} className="ui-button-primary inline-flex justify-center">
+            {prompt!.actionLabel}
+          </Link>
+        ) : null}
+        <Link
+          href={`/plans/${plan.id}` as Route}
+          className={clsx(
+            "inline-flex justify-center",
+            canProgress ? "ui-button-secondary" : "ui-button-primary"
+          )}
+        >
+          {canProgress ? "Review plan" : "Review plan progress"}
         </Link>
+      </div>
+    </SurfaceCard>
+  );
+}
+
+function ActivityCard({
+  activity,
+  painTrend,
+  recentSessions
+}: {
+  activity: DashboardActivitySummary;
+  painTrend: DashboardPainTrend | null;
+  recentSessions: WorkoutSession[];
+}) {
+  return (
+    <SurfaceCard>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="ui-eyebrow">Recent activity</p>
+          <h2 className="mt-2 text-2xl font-black leading-tight text-copy">
+            {activity.streakLabel}
+          </h2>
+        </div>
+        {painTrend ? (
+          <span
+            className={clsx(
+              "rounded-full px-3 py-1.5 text-xs font-bold",
+              painTrend.tone === "caution"
+                ? "bg-warning/15 text-warning"
+                : "bg-success/15 text-success"
+            )}
+          >
+            {painTrend.label}
+          </span>
+        ) : null}
+      </div>
+      <div className="mt-6 grid min-w-0 grid-cols-7 gap-2">
+        {activity.days.map((day) => (
+          <div key={day.key} className="min-w-0 text-center">
+            <div
+              title={`${day.weekdayLabel}: ${
+                day.completed ? "workout logged" : "no workout logged"
+              }${day.painFlagged ? ", pain flagged" : ""}`}
+              className={clsx(
+                "mx-auto flex h-10 w-full max-w-10 items-center justify-center rounded-2xl border",
+                day.painFlagged
+                  ? "border-warning bg-warning/18"
+                  : day.completed
+                    ? "border-success bg-success/20"
+                    : day.isToday
+                      ? "border-primary bg-primary/12"
+                      : "border-border bg-surface-soft"
+              )}
+            >
+              <span className="sr-only">
+                {day.completed ? "Workout logged" : "No workout logged"}
+                {day.painFlagged ? ", pain flagged" : ""}
+              </span>
+              <span
+                className={clsx(
+                  "h-2.5 w-2.5 rounded-full",
+                  day.painFlagged
+                    ? "bg-warning"
+                    : day.completed
+                      ? "bg-success"
+                      : day.isToday
+                        ? "bg-primary"
+                        : "bg-border"
+                )}
+                aria-hidden="true"
+              />
+            </div>
+            <p className="mt-2 truncate text-[11px] font-bold uppercase tracking-[0.08em] text-muted">
+              {day.weekdayLabel}
+            </p>
+          </div>
+        ))}
+      </div>
+      <p className="mt-5 text-sm leading-6 text-muted">
+        {painTrend?.detail ?? "No recent pain flags."}
+      </p>
+      <div className="mt-6 grid gap-3">
+        {recentSessions.length > 0 ? (
+          recentSessions.slice(0, 3).map((session) => (
+            <div key={session.id} className="rounded-[20px] border border-border bg-surface-soft p-3 text-sm">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate font-black text-copy">{session.workoutNameSnapshot}</p>
+                  <p className="mt-1 font-semibold text-muted">{formatDisplayDate(session.completedOn)}</p>
+                </div>
+                <span className="shrink-0 rounded-full bg-surface px-2.5 py-1 text-xs font-bold text-muted">
+                  {session.status ?? (session.completed ? "Completed" : "Partial")}
+                </span>
+              </div>
+              <p className="mt-2 font-semibold leading-6 text-muted">
+                {session.metrics?.summary ?? session.recommendation}
+              </p>
+            </div>
+          ))
+        ) : (
+          <p className="rounded-[20px] border border-dashed border-border bg-surface-soft p-3 text-sm font-semibold text-muted">
+            Complete your first workout to see training history here.
+          </p>
+        )}
       </div>
     </SurfaceCard>
   );
