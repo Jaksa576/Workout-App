@@ -325,3 +325,37 @@ Validation focus: mobile/desktop dashboard order, no standalone Needs Attention 
 The active-plan/no-workout dashboard empty state now keeps a single plan-review action to the specific active plan route (`/plans/{planId}`) and no longer renders the secondary Choose workout link to `/workout`. This avoids the current `/workout` behavior where missing or invalid `workoutId` can redirect to `/plans/new`. The no-active-plan empty state continues to route Create a plan to `/plans/new`.
 
 Validation focus: no-plan destination remains `/plans/new`; active-plan/no-workout destination is the plan review route; active-plan/no-workout renders no `/workout` link and exposes no path that falls through to `/plans/new`; the final dashboard order and workout-specific Monitor/Review readiness messaging remain unchanged.
+
+## PR Follow-up — Issue #34 Workout Page Cleanup
+
+Implemented the Issue #34 `/workout` cleanup as a selection/details-only surface on top of the existing Issue #11 active-draft lifecycle and Issue #12 `/workout/active` execution boundary. The selection route now uses a compact heading, one visible active-phase workout selector with the recommended workout badged in-place, canonical `workoutId` fallback/redirect behavior, selected-workout readiness/history context, an ordered exercise preview, and a single selected-workout Start/Resume/Clear action surface.
+
+This patch intentionally does not change progression logic, workout execution on `/workout/active`, final-save behavior, database schema, migrations, RLS, or API contracts. Dashboard-style recent logs, phase progress/exit criteria, workout rhythm, and latest-suggestion reporting were removed only from `/workout`; the underlying shared data and destination behavior remain available elsewhere.
+
+Validation focus: valid explicit `workoutId`, missing/invalid ID fallback to recommended or first active-phase workout, alternate selection URL synchronization, refresh preservation via canonical URL, Start using the selected workout, active-draft owner badging and Resume behavior, explicit Resume/Discard when another workout owns the draft, absence of duplicated dashboard/reporting sections, and no regression to `/workout/active` lifecycle behavior.
+
+## PR #58 Follow-up — Calendar-oriented `/workout` direct-start surface
+
+Implementing the PR #58 review follow-up for GitHub Issue #34 on top of the compact `/workout` selection cleanup. The `/workout` phase list is now the primary direct-start surface: cards are ordered by deterministic upcoming schedule metadata, the current intended workout is emphasized with `TODAY'S WORKOUT`, and each card owns its exact Start or Resume action so users no longer select a workout and then scroll to a separate downstream Start button.
+
+Repository inspection for this patch found that active-phase workout scheduling is loaded from `workout_templates.scheduled_days` into `WorkoutTemplate.scheduledDays`, plans retain `WorkoutPlan.weeklySchedule`, and database `day_order` is loaded as `WorkoutTemplate.dayOrder` for fallback ordering. Starter-plan, AI import, and plan-editor save paths populate scheduled days, but empty scheduled-day arrays remain valid for flexible/manual records, so labels are only shown from available schedule metadata and unscheduled workouts fall back to `day_order`/source order. Multiple workouts may share a weekday, and one workout may be assigned to multiple weekdays; ordering uses each workout's next occurrence relative to the user-local date. Dashboard week preview already uses user-local date keys, supports multiple scheduled workouts by summarizing names, falls back to plan weekly schedule only when workout-level schedules are absent, and rolls through upcoming days; this patch extracted a focused helper for the `/workout` card ordering rather than changing dashboard behavior.
+
+No schema, migration, progression, recommendation, active execution, plan-editor, dashboard, or session persistence behavior changed. The Issue #11 active-draft guard remains in force: the draft-owning card shows Resume, and starting another card routes through the existing explicit resume/discard protection instead of creating a second draft or silently replacing the current draft.
+
+Validation focus: today-first ordering, tomorrow/weekday labels, week rollover, multi-day workouts, unscheduled fallback ordering, direct card Start/Resume exact workout IDs, active-draft guard preservation, valid `workoutId` deep-link context, no Recommended/Selected badges, no standalone downstream Start button, and compact mobile card density above the authenticated bottom navigation.
+
+## PR #58 follow-up — self-contained `/workout` cards
+
+Implementing the requested Issue #34 PR #58 cleanup that removes the obsolete standalone workout-details card below the phase workout list. The `/workout` page now treats each scheduled workout card as the self-contained context for when the workout occurs, what it is, the concise exercise prescription list, and the exact Start/Resume action for that card.
+
+This patch preserves the prior calendar ordering helper, Today’s Workout treatment, direct per-card Start/Resume behavior, active-draft guard, and `?workoutId=` context. Deep-link context is now used only to keep the corresponding card accessible rather than restoring a selected-details UI. Exercise lists render all items up to five exercises, then deterministically show the first five plus `+N more`; no accordion, schema, progression, or `/workout/active` behavior changes are introduced.
+
+Validation focus: standalone details section remains absent, every workout card shows exercise names and concise prescriptions, generic exercise-count copy is not duplicated when names are visible, Start/Resume stays in the right-side action column, draft ownership is still the only Resume state, starting a different workout still invokes the existing active-draft protection, and Today/Tomorrow/weekday ordering remains unchanged.
+
+### PR #58 follow-up — heading removal and spacing cleanup
+
+Implemented the requested PR #58 cleanup that removes the remaining presentational section headings from `/workout` without replacing them with new copy. The top card now starts directly with `Choose today’s workout` and the phase summary, while the workout-list card starts directly with the draft notice when present or the first workout card when no notice is needed.
+
+This patch preserves Today’s Workout labeling, calendar ordering, self-contained workout summaries and exercise lists, per-card Start/Resume actions, active-draft protection, deep-link context, and bottom-navigation clearance. The parent card padding and internal list spacing were tightened so no empty heading whitespace remains and the first workout card sits near the top of the rounded list container. No schema, data, progression, recommendation, or execution-route behavior changed.
+
+Validation focus: absence of `WORKOUT`, `PHASE WORKOUTS`, and `Start from the list`; balanced top padding after heading removal; first workout card placement; unchanged direct Start/Resume and active-draft guard behavior; and unchanged calendar labels/order.

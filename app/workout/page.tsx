@@ -15,6 +15,12 @@ export default async function WorkoutPage({
     redirect("/plans/new" as Route);
   }
 
+  if (workoutId !== data.selectedWorkout.id) {
+    redirect(
+      `/workout?workoutId=${encodeURIComponent(data.selectedWorkout.id)}` as Route,
+    );
+  }
+
   return (
     <WorkoutFlow
       mode="selection"
@@ -28,6 +34,7 @@ export default async function WorkoutPage({
       phaseProgress={data.phaseProgress}
       userId={data.userId}
       defaultRestSeconds={data.defaultRestSeconds}
+      timeZone={data.timeZone}
     />
   );
 }

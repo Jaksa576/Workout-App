@@ -246,6 +246,7 @@ function mapWorkout(
     focus: workout.focus,
     summary: workout.summary,
     readiness: deriveReadiness(latestSession),
+    dayOrder: workout.day_order,
     scheduledDays: workout.scheduled_days ?? [],
     exercises: exercises
       .filter((exercise) => exercise.workout_template_id === workout.id)
@@ -805,6 +806,7 @@ export async function getWorkoutPageData(
       phaseProgress: null,
       userId: null,
       defaultRestSeconds: restTimerDefaultSeconds,
+      timeZone,
     };
   }
 
@@ -841,7 +843,9 @@ export async function getWorkoutPageData(
   );
   const selectedWorkout =
     activePhaseWorkouts.find((workout) => workout.id === selectedWorkoutId) ??
-    recommendedWorkout;
+    recommendedWorkout ??
+    activePhaseWorkouts[0] ??
+    null;
   const recentSessions = bundle.sessions.map(mapSession);
   const phaseProgress: PhaseProgressSummary | null = activePlan
     ? calculatePhaseProgress({
@@ -870,7 +874,9 @@ export async function getWorkoutPageData(
     ),
     phaseProgress,
     userId: user.id,
-    defaultRestSeconds: profileResult.data?.default_rest_seconds ?? restTimerDefaultSeconds,
+    defaultRestSeconds:
+      profileResult.data?.default_rest_seconds ?? restTimerDefaultSeconds,
+    timeZone,
   };
 }
 

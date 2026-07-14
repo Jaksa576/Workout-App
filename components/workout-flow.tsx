@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
-import { PhaseProgressPanel } from "@/components/phase-progress-panel";
 import { shouldPersistActiveWorkoutDraft } from "@/lib/active-workout-lifecycle";
 import { activeWorkoutAutoStartRestDefault } from "@/lib/active-workout-rest";
 import {
@@ -43,9 +42,10 @@ import {
   writeActiveWorkoutDraft,
   type ActiveWorkoutDraft,
 } from "@/lib/active-workout-draft";
-import { formatPhaseLabel } from "@/lib/plan-labels";
 import { generateRecommendation } from "@/lib/recommendation";
+import { formatExercisePrescription } from "@/lib/exercise-prescription";
 import { detectBrowserTimeZone } from "@/lib/time-zone";
+import { orderWorkoutsForUpcomingSchedule } from "@/lib/workout-schedule";
 import { getTodayDateString } from "@/lib/validation";
 import type {
   SavedWorkoutSession,
@@ -73,6 +73,7 @@ type WorkoutFlowProps = {
   phaseProgress: PhaseProgressSummary | null;
   userId: string | null;
   defaultRestSeconds: number;
+  timeZone?: string;
 };
 
 type SessionSaveResult = {
@@ -138,11 +139,19 @@ function mergeSessions(
   return sortSessionsByLatest(Array.from(sessionsById.values()));
 }
 
-type TimerAudioContext = AudioContext & { close: () => Promise<void>; resume: () => Promise<void> };
+type TimerAudioContext = AudioContext & {
+  close: () => Promise<void>;
+  resume: () => Promise<void>;
+};
 
 function getAudioContextCtor() {
   if (typeof window === "undefined") return null;
-  return window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext || null;
+  return (
+    window.AudioContext ||
+    (window as typeof window & { webkitAudioContext?: typeof AudioContext })
+      .webkitAudioContext ||
+    null
+  );
 }
 
 function useTimerCompletionAudio() {
@@ -177,7 +186,10 @@ function useTimerCompletionAudio() {
       oscillator.frequency.value = 880;
       gain.gain.setValueAtTime(0.0001, context.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.15, context.currentTime + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.28);
+      gain.gain.exponentialRampToValueAtTime(
+        0.0001,
+        context.currentTime + 0.28,
+      );
       oscillator.connect(gain);
       gain.connect(context.destination);
       oscillator.start();
@@ -270,7 +282,10 @@ function WorkoutSettingsDialog({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end bg-ink/30 p-3 sm:items-center sm:justify-center" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+    <div
+      className="fixed inset-0 z-50 flex items-end bg-ink/30 p-3 sm:items-center sm:justify-center"
+      onMouseDown={(event) => event.target === event.currentTarget && onClose()}
+    >
       <div
         ref={dialogRef}
         className="w-full max-w-md rounded-[28px] border border-border bg-surface p-5 shadow-2xl"
@@ -282,40 +297,97 @@ function WorkoutSettingsDialog({
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="ui-eyebrow">Workout settings</p>
-            <h2 id="workout-settings-title" className="mt-2 text-xl font-black text-copy">Timer preferences</h2>
+            <h2
+              id="workout-settings-title"
+              className="mt-2 text-xl font-black text-copy"
+            >
+              Timer preferences
+            </h2>
           </div>
-          <button ref={closeButtonRef} type="button" className="ui-button-ghost min-h-11 px-3 py-2" onClick={onClose} aria-label="Close workout settings">×</button>
+          <button
+            ref={closeButtonRef}
+            type="button"
+            className="ui-button-ghost min-h-11 px-3 py-2"
+            onClick={onClose}
+            aria-label="Close workout settings"
+          >
+            ×
+          </button>
         </div>
         <div className="mt-5 space-y-4">
           <label className="flex min-h-11 items-center justify-between gap-4 text-sm font-semibold text-copy">
             <span>Auto-start rest timer</span>
-            <input type="checkbox" className="h-5 w-5 accent-[rgb(var(--color-primary))]" checked={autoStartRest} onChange={(event) => onAutoStartChange(event.target.checked)} />
+            <input
+              type="checkbox"
+              className="h-5 w-5 accent-[rgb(var(--color-primary))]"
+              checked={autoStartRest}
+              onChange={(event) => onAutoStartChange(event.target.checked)}
+            />
           </label>
           <label className="flex min-h-11 items-center justify-between gap-4 text-sm font-semibold text-copy">
             <span>Timer-complete sound</span>
-            <input type="checkbox" className="h-5 w-5 accent-[rgb(var(--color-primary))]" checked={timerSoundEnabled} onChange={(event) => onSoundChange(event.target.checked)} />
+            <input
+              type="checkbox"
+              className="h-5 w-5 accent-[rgb(var(--color-primary))]"
+              checked={timerSoundEnabled}
+              onChange={(event) => onSoundChange(event.target.checked)}
+            />
           </label>
           <div className="space-y-3">
             <label className="flex min-h-11 items-center justify-between gap-4 text-sm font-semibold text-copy">
               <span>Override rest for this workout</span>
-              <input type="checkbox" className="h-5 w-5 accent-[rgb(var(--color-primary))]" checked={workoutRestOverrideEnabled} onChange={(event) => onOverrideEnabledChange(event.target.checked)} />
+              <input
+                type="checkbox"
+                className="h-5 w-5 accent-[rgb(var(--color-primary))]"
+                checked={workoutRestOverrideEnabled}
+                onChange={(event) =>
+                  onOverrideEnabledChange(event.target.checked)
+                }
+              />
             </label>
             {workoutRestOverrideEnabled ? (
               <label className="block text-sm font-semibold text-copy">
                 <span>Rest duration</span>
-                <select className="ui-input mt-2" value={workoutDefaultRestSeconds} onChange={(event) => onDefaultRestChange(Number(event.target.value))}>
-                  {restDurationOptionsSeconds.map((seconds) => <option key={seconds} value={seconds}>{formatRestDurationLabel(seconds)}</option>)}
+                <select
+                  className="ui-input mt-2"
+                  value={workoutDefaultRestSeconds}
+                  onChange={(event) =>
+                    onDefaultRestChange(Number(event.target.value))
+                  }
+                >
+                  {restDurationOptionsSeconds.map((seconds) => (
+                    <option key={seconds} value={seconds}>
+                      {formatRestDurationLabel(seconds)}
+                    </option>
+                  ))}
                 </select>
-                <span className="mt-1 block text-xs font-medium leading-5 text-muted">Uses this rest duration for every exercise in this workout.</span>
+                <span className="mt-1 block text-xs font-medium leading-5 text-muted">
+                  Uses this rest duration for every exercise in this workout.
+                </span>
               </label>
             ) : (
-              <p className="text-xs font-medium leading-5 text-muted">Uses exercise rest, then your global default ({formatRestDurationLabel(globalDefaultRestSeconds)}).</p>
+              <p className="text-xs font-medium leading-5 text-muted">
+                Uses exercise rest, then your global default (
+                {formatRestDurationLabel(globalDefaultRestSeconds)}).
+              </p>
             )}
           </div>
         </div>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-between">
-          <button type="button" className="ui-button-ghost min-h-11" onClick={onReset}>Reset to defaults</button>
-          <button type="button" className="ui-button-primary min-h-11" onClick={onClose}>Done</button>
+          <button
+            type="button"
+            className="ui-button-ghost min-h-11"
+            onClick={onReset}
+          >
+            Reset to defaults
+          </button>
+          <button
+            type="button"
+            className="ui-button-primary min-h-11"
+            onClick={onClose}
+          >
+            Done
+          </button>
         </div>
       </div>
     </div>
@@ -371,24 +443,49 @@ function RestTimerDock({
         </div>
         <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
           {timer.status === "paused" ? (
-            <button type="button" className="ui-button-secondary min-h-12 px-4 py-3" onClick={onResume} aria-label="Resume rest timer">
+            <button
+              type="button"
+              className="ui-button-secondary min-h-12 px-4 py-3"
+              onClick={onResume}
+              aria-label="Resume rest timer"
+            >
               Resume
             </button>
           ) : timer.status === "expired" ? (
-            <button type="button" className="ui-button-secondary col-span-2 min-h-12 px-4 py-3" onClick={onCancel} aria-label="Dismiss completed rest timer">
+            <button
+              type="button"
+              className="ui-button-secondary col-span-2 min-h-12 px-4 py-3"
+              onClick={onCancel}
+              aria-label="Dismiss completed rest timer"
+            >
               Dismiss
             </button>
           ) : (
-            <button type="button" className="ui-button-ghost min-h-12 px-4 py-3" onClick={onPause} aria-label="Pause rest timer">
+            <button
+              type="button"
+              className="ui-button-ghost min-h-12 px-4 py-3"
+              onClick={onPause}
+              aria-label="Pause rest timer"
+            >
               Pause
             </button>
           )}
           {timer.status !== "expired" ? (
             <>
-              <button type="button" className="ui-button-secondary min-h-12 px-4 py-3" onClick={onAdd} aria-label="Add 15 seconds to rest timer">
+              <button
+                type="button"
+                className="ui-button-secondary min-h-12 px-4 py-3"
+                onClick={onAdd}
+                aria-label="Add 15 seconds to rest timer"
+              >
                 +15 sec
               </button>
-              <button type="button" className="ui-button-primary col-span-2 min-h-12 px-4 py-3 sm:col-span-1" onClick={onCancel} aria-label="Skip rest timer">
+              <button
+                type="button"
+                className="ui-button-primary col-span-2 min-h-12 px-4 py-3 sm:col-span-1"
+                onClick={onCancel}
+                aria-label="Skip rest timer"
+              >
                 Skip
               </button>
             </>
@@ -407,13 +504,19 @@ function formatRecapDuration(seconds: number) {
   return formatDurationInput(seconds) || "0:00";
 }
 
-function getCompletedSetRows(exerciseId: string, setResults: WorkoutSetInput[]) {
+function getCompletedSetRows(
+  exerciseId: string,
+  setResults: WorkoutSetInput[],
+) {
   return setResults.filter(
     (row) => row.exerciseEntryId === exerciseId && row.status === "completed",
   );
 }
 
-function getSetScalar(row: WorkoutSetInput, scalar: "load" | "reps" | "duration" | "distance") {
+function getSetScalar(
+  row: WorkoutSetInput,
+  scalar: "load" | "reps" | "duration" | "distance",
+) {
   const direct =
     scalar === "load"
       ? row.actualLoad
@@ -449,7 +552,10 @@ function getRecapVolumeMultiplier(unilateralMode = "bilateral") {
   return unilateralMode === "same_each_side" ? 2 : 1;
 }
 
-export function getSetLoadVolume(row: WorkoutSetInput, unilateralMode = "bilateral") {
+export function getSetLoadVolume(
+  row: WorkoutSetInput,
+  unilateralMode = "bilateral",
+) {
   if (unilateralMode === "independent_sides") {
     const leftVolume =
       row.actualLeftLoad != null && row.actualLeftReps != null
@@ -469,11 +575,25 @@ export function getSetLoadVolume(row: WorkoutSetInput, unilateralMode = "bilater
     : 0;
 }
 
-export function buildWorkoutRecap(workout: WorkoutTemplate, setResults: WorkoutSetInput[], checkedExerciseIds: string[], elapsedSeconds: number) {
-  const progress = calculateSetProgress({ exercises: workout.exercises, setResults, checkedExerciseIds });
+export function buildWorkoutRecap(
+  workout: WorkoutTemplate,
+  setResults: WorkoutSetInput[],
+  checkedExerciseIds: string[],
+  elapsedSeconds: number,
+) {
+  const progress = calculateSetProgress({
+    exercises: workout.exercises,
+    setResults,
+    checkedExerciseIds,
+  });
   const completedExercises = workout.exercises.filter((exercise) => {
-    const rows = setResults.filter((row) => row.exerciseEntryId === exercise.id);
-    return rows.some((row) => row.status === "completed") || checkedExerciseIds.includes(exercise.id);
+    const rows = setResults.filter(
+      (row) => row.exerciseEntryId === exercise.id,
+    );
+    return (
+      rows.some((row) => row.status === "completed") ||
+      checkedExerciseIds.includes(exercise.id)
+    );
   });
   let volume = 0;
   let reps = 0;
@@ -487,33 +607,75 @@ export function buildWorkoutRecap(workout: WorkoutTemplate, setResults: WorkoutS
       const rowDuration = getSetScalar(row, "duration");
       const rowDistance = getSetScalar(row, "distance");
       volume += getSetLoadVolume(row, exercise.unilateralMode);
-      if (rowReps != null) reps += rowReps * getRecapVolumeMultiplier(exercise.unilateralMode);
-      if (rowDuration != null) duration += rowDuration * getRecapVolumeMultiplier(exercise.unilateralMode);
-      if (rowDistance != null) distance += rowDistance * getRecapVolumeMultiplier(exercise.unilateralMode);
+      if (rowReps != null)
+        reps += rowReps * getRecapVolumeMultiplier(exercise.unilateralMode);
+      if (rowDuration != null)
+        duration +=
+          rowDuration * getRecapVolumeMultiplier(exercise.unilateralMode);
+      if (rowDistance != null)
+        distance +=
+          rowDistance * getRecapVolumeMultiplier(exercise.unilateralMode);
     }
 
     const completed = rows.length;
-    const total = exercise.sets + setResults.filter((row) => row.exerciseEntryId === exercise.id && row.setKind === "added").length;
+    const total =
+      exercise.sets +
+      setResults.filter(
+        (row) => row.exerciseEntryId === exercise.id && row.setKind === "added",
+      ).length;
     const side = exercise.unilateralMode === "same_each_side" ? "/side" : "";
     const parts = [`${completed}/${total} sets`];
     if (exercise.trackingType === "weight_reps") {
-      const exerciseVolume = rows.reduce((sum, row) => sum + getSetLoadVolume(row, exercise.unilateralMode), 0);
+      const exerciseVolume = rows.reduce(
+        (sum, row) => sum + getSetLoadVolume(row, exercise.unilateralMode),
+        0,
+      );
       const best = rows.reduce<string | null>((current, row) => {
         const load = getSetScalar(row, "load");
         const rowReps = getSetScalar(row, "reps");
-        return load != null && rowReps != null && (!current || load > Number(current.split(" ")[0])) ? `${formatWorkoutMetricNumber(load)} × ${formatWorkoutMetricNumber(rowReps)}${side}` : current;
+        return load != null &&
+          rowReps != null &&
+          (!current || load > Number(current.split(" ")[0]))
+          ? `${formatWorkoutMetricNumber(load)} × ${formatWorkoutMetricNumber(rowReps)}${side}`
+          : current;
       }, null);
-      if (exerciseVolume > 0) parts.push(`${formatWorkoutMetricNumber(exerciseVolume)} ${exercise.loadUnit ?? "lb"} volume`);
+      if (exerciseVolume > 0)
+        parts.push(
+          `${formatWorkoutMetricNumber(exerciseVolume)} ${exercise.loadUnit ?? "lb"} volume`,
+        );
       if (best) parts.push(`Best ${best}`);
     } else if (exercise.trackingType === "duration") {
-      const exerciseDuration = rows.reduce((sum, row) => sum + (getSetScalar(row, "duration") ?? 0) * getRecapVolumeMultiplier(exercise.unilateralMode), 0);
-      if (exerciseDuration > 0) parts.push(`${formatRecapDuration(exerciseDuration)} total`);
-    } else if (exercise.trackingType === "distance" || exercise.trackingType === "distance_duration") {
-      const exerciseDistance = rows.reduce((sum, row) => sum + (getSetScalar(row, "distance") ?? 0) * getRecapVolumeMultiplier(exercise.unilateralMode), 0);
-      if (exerciseDistance > 0) parts.push(`${formatWorkoutMetricNumber(exerciseDistance)} ${exercise.distanceUnit ?? "mi"}`);
+      const exerciseDuration = rows.reduce(
+        (sum, row) =>
+          sum +
+          (getSetScalar(row, "duration") ?? 0) *
+            getRecapVolumeMultiplier(exercise.unilateralMode),
+        0,
+      );
+      if (exerciseDuration > 0)
+        parts.push(`${formatRecapDuration(exerciseDuration)} total`);
+    } else if (
+      exercise.trackingType === "distance" ||
+      exercise.trackingType === "distance_duration"
+    ) {
+      const exerciseDistance = rows.reduce(
+        (sum, row) =>
+          sum +
+          (getSetScalar(row, "distance") ?? 0) *
+            getRecapVolumeMultiplier(exercise.unilateralMode),
+        0,
+      );
+      if (exerciseDistance > 0)
+        parts.push(
+          `${formatWorkoutMetricNumber(exerciseDistance)} ${exercise.distanceUnit ?? "mi"}`,
+        );
     } else if (exercise.trackingType === "reps_only") {
-      const perSideReps = rows.reduce((sum, row) => sum + (getSetScalar(row, "reps") ?? 0), 0);
-      const exerciseReps = perSideReps * getRecapVolumeMultiplier(exercise.unilateralMode);
+      const perSideReps = rows.reduce(
+        (sum, row) => sum + (getSetScalar(row, "reps") ?? 0),
+        0,
+      );
+      const exerciseReps =
+        perSideReps * getRecapVolumeMultiplier(exercise.unilateralMode);
       if (exerciseReps > 0) {
         parts.push(
           exercise.unilateralMode === "same_each_side"
@@ -527,9 +689,15 @@ export function buildWorkoutRecap(workout: WorkoutTemplate, setResults: WorkoutS
 
   const workload =
     volume > 0
-      ? { label: "Load volume", value: `${formatWorkoutMetricNumber(volume)} ${workout.exercises.find((exercise) => exercise.trackingType === "weight_reps")?.loadUnit ?? "lb"}` }
+      ? {
+          label: "Load volume",
+          value: `${formatWorkoutMetricNumber(volume)} ${workout.exercises.find((exercise) => exercise.trackingType === "weight_reps")?.loadUnit ?? "lb"}`,
+        }
       : distance > 0
-        ? { label: "Distance", value: `${formatWorkoutMetricNumber(distance)} ${workout.exercises.find((exercise) => exercise.trackingType === "distance" || exercise.trackingType === "distance_duration")?.distanceUnit ?? "mi"}` }
+        ? {
+            label: "Distance",
+            value: `${formatWorkoutMetricNumber(distance)} ${workout.exercises.find((exercise) => exercise.trackingType === "distance" || exercise.trackingType === "distance_duration")?.distanceUnit ?? "mi"}`,
+          }
         : duration > 0
           ? { label: "Work duration", value: formatRecapDuration(duration) }
           : reps > 0
@@ -539,108 +707,20 @@ export function buildWorkoutRecap(workout: WorkoutTemplate, setResults: WorkoutS
   const metrics = [
     { label: "Elapsed", value: formatElapsed(elapsedSeconds) },
     { label: "Sets", value: `${progress.completed}/${progress.total}` },
-    { label: "Exercises logged", value: `${completedExercises.length}/${workout.exercises.length}` },
-    workload ?? { label: progress.completed === progress.total ? "Status" : "Status", value: progress.completed === progress.total ? "Completed" : "Partial" },
+    {
+      label: "Exercises logged",
+      value: `${completedExercises.length}/${workout.exercises.length}`,
+    },
+    workload ?? {
+      label: progress.completed === progress.total ? "Status" : "Status",
+      value: progress.completed === progress.total ? "Completed" : "Partial",
+    },
   ];
 
   return {
     metrics,
     exerciseSummaries,
   };
-}
-
-
-function ProgressBars({ summary }: { summary: WorkoutProgressSummary }) {
-  const maxCompleted = Math.max(
-    summary.weeklyTarget,
-    ...summary.weeklyBars.map((bar) => bar.completed),
-    1,
-  );
-
-  return (
-    <div className="space-y-3">
-      {summary.weeklyBars.map((bar) => (
-        <div
-          key={bar.label}
-          className="grid grid-cols-[4.5rem_1fr_2rem] items-center gap-3"
-        >
-          <p className="text-xs font-bold uppercase tracking-[0.12em] text-muted">
-            {bar.label}
-          </p>
-          <div className="h-3 overflow-hidden rounded-full bg-shell-elevated">
-            <div
-              className="h-full rounded-full bg-primary"
-              style={{
-                width: `${Math.max(8, (bar.completed / maxCompleted) * 100)}%`,
-              }}
-            />
-          </div>
-          <p className="text-right text-sm font-semibold text-copy">
-            {bar.completed}
-          </p>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function ProgressSummary({ summary }: { summary: WorkoutProgressSummary }) {
-  return (
-    <section id="progress" className="surface-card p-5 sm:p-6">
-      <p className="ui-eyebrow">Progress</p>
-      <h2 className="mt-2 text-2xl font-black leading-tight text-copy">
-        Workout rhythm
-      </h2>
-      <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">
-        Recent workouts against the plan rhythm.
-      </p>
-
-      <div className="mt-6 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="rounded-[24px] border border-border bg-surface-soft p-4">
-          <p className="mb-4 text-sm font-semibold text-copy">
-            Completed workouts
-          </p>
-          <ProgressBars summary={summary} />
-        </div>
-
-        <div className="grid gap-3">
-          <div className="rounded-[22px] border border-border bg-surface-soft p-4">
-            <p className="text-xs font-bold uppercase tracking-[0.12em] text-muted">
-              This week
-            </p>
-            <p className="mt-2 text-xl font-black text-copy">
-              {summary.completedThisWeek} of {summary.weeklyTarget}
-            </p>
-          </div>
-          <div className="rounded-[22px] border border-border bg-surface-soft p-4">
-            <p className="text-xs font-bold uppercase tracking-[0.12em] text-muted">
-              Clean sessions
-            </p>
-            <p className="mt-2 text-xl font-black text-copy">
-              {summary.cleanSessions}
-            </p>
-          </div>
-          <div className="rounded-[22px] border border-border bg-surface-soft p-4">
-            <p className="text-xs font-bold uppercase tracking-[0.12em] text-muted">
-              Pain flags
-            </p>
-            <p className="mt-2 text-xl font-black text-copy">
-              {summary.painFlags}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-4 rounded-[24px] border border-primary/20 bg-primary/10 p-4">
-        <p className="text-xs font-bold uppercase tracking-[0.12em] text-primary">
-          Latest suggestion
-        </p>
-        <p className="mt-2 text-sm leading-6 text-copy">
-          {summary.latestRecommendation}
-        </p>
-      </div>
-    </section>
-  );
 }
 
 export function WorkoutFlow({
@@ -655,6 +735,7 @@ export function WorkoutFlow({
   phaseProgress,
   userId,
   defaultRestSeconds,
+  timeZone,
 }: WorkoutFlowProps) {
   const router = useRouter();
   const isActiveMode = mode === "active";
@@ -687,13 +768,19 @@ export function WorkoutFlow({
     activeWorkoutAutoStartRestDefault,
   );
   const [timerSoundEnabled, setTimerSoundEnabled] = useState(true);
-  const [workoutRestOverrideEnabled, setWorkoutRestOverrideEnabled] = useState(false);
-  const [workoutDefaultRestSeconds, setWorkoutDefaultRestSeconds] = useState(90);
+  const [workoutRestOverrideEnabled, setWorkoutRestOverrideEnabled] =
+    useState(false);
+  const [workoutDefaultRestSeconds, setWorkoutDefaultRestSeconds] =
+    useState(90);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const settingsTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const workoutCardRefs = useRef<Record<string, HTMLElement | null>>({});
   const completedFeedbackEvents = useRef(new Set<string>());
-  const { unlockAudio, playCompletionCue, closeAudio } = useTimerCompletionAudio();
-  const [currentRestExerciseId, setCurrentRestExerciseId] = useState<string | null>(null);
+  const { unlockAudio, playCompletionCue, closeAudio } =
+    useTimerCompletionAudio();
+  const [currentRestExerciseId, setCurrentRestExerciseId] = useState<
+    string | null
+  >(null);
   const [completed, setCompleted] = useState(true);
   const [pain, setPain] = useState(false);
   const [effort, setEffort] =
@@ -709,9 +796,9 @@ export function WorkoutFlow({
   );
   const [status, setStatus] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [finishElapsedSnapshot, setFinishElapsedSnapshot] = useState<number | null>(
-    null,
-  );
+  const [finishElapsedSnapshot, setFinishElapsedSnapshot] = useState<
+    number | null
+  >(null);
 
   useEffect(() => {
     setSessionHistory((currentSessions) =>
@@ -734,23 +821,6 @@ export function WorkoutFlow({
     [selectedWorkout, selectedWorkoutId, workouts],
   );
   const recommendation = generateRecommendation({ completed, pain, effort });
-  const latestSession = useMemo(
-    () =>
-      sessionHistory.find(
-        (session) => session.workoutTemplateId === workout.id,
-      ) ?? null,
-    [sessionHistory, workout.id],
-  );
-  const liveProgressSummary = useMemo(
-    () => ({
-      ...progressSummary,
-      latestRecommendation:
-        sessionHistory[0]?.recommendation ??
-        progressSummary.latestRecommendation,
-    }),
-    [progressSummary, sessionHistory],
-  );
-
   useEffect(() => {
     if (!userId) {
       return;
@@ -789,8 +859,12 @@ export function WorkoutFlow({
         result.draft.autoStartRest ?? activeWorkoutAutoStartRestDefault,
       );
       setTimerSoundEnabled(result.draft.timerSoundEnabled ?? true);
-      setWorkoutRestOverrideEnabled(result.draft.workoutRestOverrideEnabled ?? false);
-      setWorkoutDefaultRestSeconds(result.draft.workoutDefaultRestSeconds ?? 90);
+      setWorkoutRestOverrideEnabled(
+        result.draft.workoutRestOverrideEnabled ?? false,
+      );
+      setWorkoutDefaultRestSeconds(
+        result.draft.workoutDefaultRestSeconds ?? 90,
+      );
       setCurrentRestExerciseId(result.draft.restTimer?.exerciseEntryId ?? null);
       setCompleted(result.draft.checkIn.completed);
       setPain(result.draft.checkIn.painOccurred);
@@ -829,6 +903,19 @@ export function WorkoutFlow({
       setStep("idle");
     }
   }, [mode, userId, workouts]);
+
+  useEffect(() => {
+    if (isActiveMode) {
+      return;
+    }
+
+    const card = workoutCardRefs.current[selectedWorkoutId];
+    if (!card) {
+      return;
+    }
+
+    card.scrollIntoView({ block: "nearest" });
+  }, [isActiveMode, selectedWorkoutId]);
 
   useEffect(() => {
     if (
@@ -953,7 +1040,11 @@ export function WorkoutFlow({
   }) {
     unlockAudio();
     if (!autoStartRest) return;
-    if (restTimer?.status === "running" && restTimer.lastCompletedSetId === input.setId) return;
+    if (
+      restTimer?.status === "running" &&
+      restTimer.lastCompletedSetId === input.setId
+    )
+      return;
     setCurrentRestExerciseId(input.exercise.id);
     const durationSeconds = resolveRestDurationSeconds({
       workoutOverrideEnabled: workoutRestOverrideEnabled,
@@ -973,19 +1064,21 @@ export function WorkoutFlow({
     setDraftMessage(`Rest timer restarted for ${input.exercise.name}.`);
   }
 
-
   function handleSelectWorkout(id: string) {
     if (activeDraft && activeDraft.workoutTemplateId !== id) {
       setDraftMessage(
         `Resume or discard ${activeDraft.workoutNameSnapshot} before starting another workout.`,
       );
-      return;
+    } else {
+      setDraftMessage(null);
     }
 
     setSelectedWorkoutId(id);
-    setCheckedExerciseIds([]);
-    setSetResults([]);
-    setExerciseNotes({});
+    if (!activeDraft) {
+      setCheckedExerciseIds([]);
+      setSetResults([]);
+      setExerciseNotes({});
+    }
     setStep(isActiveMode ? "workout" : "idle");
     setFinishElapsedSnapshot(null);
     setSavedSession(null);
@@ -995,15 +1088,24 @@ export function WorkoutFlow({
     );
   }
 
-  function handleStartWorkout() {
-    if (!userId || activeDraft) {
+  function handleStartWorkout(workoutToStart = workout) {
+    if (!userId) {
+      return;
+    }
+
+    if (activeDraft) {
+      if (activeDraft.workoutTemplateId === workoutToStart.id) {
+        handleResumeDraft();
+      } else {
+        handleSelectWorkout(workoutToStart.id);
+      }
       return;
     }
 
     try {
       const draft = buildActiveWorkoutDraft({
         userId,
-        workout,
+        workout: workoutToStart,
         plan: activePlan,
       });
       const storedDraft = writeActiveWorkoutDraft(window.localStorage, draft);
@@ -1017,10 +1119,10 @@ export function WorkoutFlow({
       setInvalidRecoveryKey(null);
       setAwaitingStaleRecoveryDecision(false);
       setDraftMessage(
-        `Started ${workout.name}. Your draft is saved on this device.`,
+        `Started ${workoutToStart.name}. Your draft is saved on this device.`,
       );
       setStep(isActiveMode ? "workout" : "idle");
-      router.push(`/workout/active?workoutId=${workout.id}` as Route);
+      router.push(`/workout/active?workoutId=${workoutToStart.id}` as Route);
     } catch {
       setStorageAvailable(false);
       setStatus(
@@ -1250,7 +1352,13 @@ export function WorkoutFlow({
       ? finishElapsedSnapshot
       : liveElapsedSeconds;
   const finishRecap = useMemo(
-    () => buildWorkoutRecap(workout, setResults, checkedExerciseIds, elapsedSeconds),
+    () =>
+      buildWorkoutRecap(
+        workout,
+        setResults,
+        checkedExerciseIds,
+        elapsedSeconds,
+      ),
     [checkedExerciseIds, elapsedSeconds, setResults, workout],
   );
   const finishEnabled = canFinishActiveWorkout({
@@ -1262,77 +1370,80 @@ export function WorkoutFlow({
     saving,
   });
 
-  const workoutSettingsDialog = settingsOpen && activeDraft ? (
-    <WorkoutSettingsDialog
-      autoStartRest={autoStartRest}
-      timerSoundEnabled={timerSoundEnabled}
-      workoutRestOverrideEnabled={workoutRestOverrideEnabled}
-      workoutDefaultRestSeconds={workoutDefaultRestSeconds}
-      globalDefaultRestSeconds={defaultRestSeconds}
-      onAutoStartChange={setAutoStartRest}
-      onSoundChange={updateTimerSoundEnabled}
-      onOverrideEnabledChange={setWorkoutRestOverrideEnabled}
-      onDefaultRestChange={setWorkoutDefaultRestSeconds}
-      onReset={() => {
-        setAutoStartRest(activeWorkoutAutoStartRestDefault);
-        updateTimerSoundEnabled(true);
-        setWorkoutRestOverrideEnabled(false);
-        setWorkoutDefaultRestSeconds(90);
-      }}
-      onClose={closeWorkoutSettings}
-    />
-  ) : null;
+  const workoutSettingsDialog =
+    settingsOpen && activeDraft ? (
+      <WorkoutSettingsDialog
+        autoStartRest={autoStartRest}
+        timerSoundEnabled={timerSoundEnabled}
+        workoutRestOverrideEnabled={workoutRestOverrideEnabled}
+        workoutDefaultRestSeconds={workoutDefaultRestSeconds}
+        globalDefaultRestSeconds={defaultRestSeconds}
+        onAutoStartChange={setAutoStartRest}
+        onSoundChange={updateTimerSoundEnabled}
+        onOverrideEnabledChange={setWorkoutRestOverrideEnabled}
+        onDefaultRestChange={setWorkoutDefaultRestSeconds}
+        onReset={() => {
+          setAutoStartRest(activeWorkoutAutoStartRestDefault);
+          updateTimerSoundEnabled(true);
+          setWorkoutRestOverrideEnabled(false);
+          setWorkoutDefaultRestSeconds(90);
+        }}
+        onClose={closeWorkoutSettings}
+      />
+    ) : null;
 
   if (isActiveMode) {
     return (
-      <div className={`mx-auto max-w-3xl ${liveRestTimer.status === "idle" || step === "check-in" ? "pb-[max(2rem,env(safe-area-inset-bottom))]" : "pb-[max(12rem,calc(env(safe-area-inset-bottom)+10rem))]"}`}>
+      <div
+        className={`mx-auto max-w-3xl ${liveRestTimer.status === "idle" || step === "check-in" ? "pb-[max(2rem,env(safe-area-inset-bottom))]" : "pb-[max(12rem,calc(env(safe-area-inset-bottom)+10rem))]"}`}
+      >
         {workoutSettingsDialog}
         {step !== "check-in" ? (
-        <div className="sticky top-0 z-30 -mx-3 border-b border-border/80 bg-shell/95 px-3 py-3 backdrop-blur sm:top-2 sm:mx-0 sm:rounded-[28px] sm:border sm:shadow-soft">
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="truncate text-sm font-black text-copy">
-                {workout.name}
-              </p>
-              <p className="mt-1 text-xs font-semibold text-muted">
-                {formatElapsed(elapsedSeconds)} · {progress.completed}/
-                {progress.total} sets
-                {liveRestTimer.status === "idle"
-                  ? ""
-                  : ` · Rest ${formatRestTimer(liveRestTimer.remainingSeconds)}`}
-              </p>
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <button
-                type="button"
-                onClick={handleFinishWorkout}
-                className="ui-button-primary px-4 py-2"
-                disabled={!finishEnabled}
-              >
-                Finish
-              </button>
-              <button
-                type="button"
-                onClick={handleDiscardDraft}
-                className="ui-button-ghost px-3 py-2"
-                disabled={!activeDraft}
-                aria-label="Discard active workout"
-              >
-                Discard
-              </button>
-              <button
-                type="button"
-                ref={settingsTriggerRef}
-                onClick={() => setSettingsOpen(true)}
-                className="ui-button-secondary min-h-11 px-3 py-2"
-                disabled={!activeDraft}
-                aria-label="Workout settings"
-              >
-                ⋯
-              </button>
+          <div className="sticky top-0 z-30 -mx-3 border-b border-border/80 bg-shell/95 px-3 py-3 backdrop-blur sm:top-2 sm:mx-0 sm:rounded-[28px] sm:border sm:shadow-soft">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-black text-copy">
+                  {workout.name}
+                </p>
+                <p className="mt-1 text-xs font-semibold text-muted">
+                  {formatElapsed(elapsedSeconds)} · {progress.completed}/
+                  {progress.total} sets
+                  {liveRestTimer.status === "idle"
+                    ? ""
+                    : ` · Rest ${formatRestTimer(liveRestTimer.remainingSeconds)}`}
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleFinishWorkout}
+                  className="ui-button-primary px-4 py-2"
+                  disabled={!finishEnabled}
+                >
+                  Finish
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDiscardDraft}
+                  className="ui-button-ghost px-3 py-2"
+                  disabled={!activeDraft}
+                  aria-label="Discard active workout"
+                >
+                  Discard
+                </button>
+                <button
+                  type="button"
+                  ref={settingsTriggerRef}
+                  onClick={() => setSettingsOpen(true)}
+                  className="ui-button-secondary min-h-11 px-3 py-2"
+                  disabled={!activeDraft}
+                  aria-label="Workout settings"
+                >
+                  ⋯
+                </button>
+              </div>
             </div>
           </div>
-        </div>
         ) : null}
 
         <div className="mt-4 space-y-4">
@@ -1451,9 +1562,7 @@ export function WorkoutFlow({
                 ))}
               </div>
               <div className="mt-5 rounded-[24px] border border-border bg-surface-soft p-4">
-                <p className="text-sm font-black text-copy">
-                  Completed work
-                </p>
+                <p className="text-sm font-black text-copy">Completed work</p>
                 <div className="mt-3 space-y-3">
                   {finishRecap.exerciseSummaries.map((exercise) => (
                     <div key={exercise.id}>
@@ -1586,416 +1695,129 @@ export function WorkoutFlow({
     );
   }
 
+  const orderedWorkouts = useMemo(
+    () =>
+      orderWorkoutsForUpcomingSchedule({
+        workouts,
+        recommendedWorkoutId: recommendedWorkout?.id,
+        timeZone,
+      }),
+    [recommendedWorkout?.id, timeZone, workouts],
+  );
   return (
     <div className="space-y-5 sm:space-y-6">
       {workoutSettingsDialog}
-      <section className="overflow-hidden rounded-[30px] bg-hero p-5 text-white shadow-premium sm:rounded-[36px] sm:p-7">
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/58">
-              Workout
-            </p>
-            <h1 className="mt-4 max-w-3xl text-3xl font-black leading-tight text-balance sm:text-4xl">
-              Execute today&apos;s session.
-            </h1>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-white/72 sm:text-base">
-              Move through the list, check in honestly, and save the session.
-            </p>
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            <HeroStat
-              label="Phase"
-              value={formatPhaseLabel(activePlan.currentPhase.phaseNumber)}
-            />
-            <HeroStat
-              label="Exercises"
-              value={String(workout.exercises.length)}
-            />
-            <HeroStat
-              label="Logged"
-              value={String(progressSummary.completedThisWeek)}
-            />
-          </div>
-        </div>
+      <section className="surface-card px-5 py-4 sm:px-6 sm:py-5">
+        <h1 className="text-3xl font-black leading-tight text-copy sm:text-4xl">
+          Choose today&apos;s workout
+        </h1>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
+          {activePlan.currentPhase.goal}
+        </p>
       </section>
 
-      <section className="surface-card p-5 sm:p-6">
-        <p className="ui-eyebrow">Recommended today</p>
-        <div className="mt-3 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <h2 className="text-3xl font-black leading-tight text-copy">
-              {recommendedWorkout?.name ?? workout.name}
-            </h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
-              {(recommendedWorkout ?? workout).summary}
-            </p>
+      <section className="surface-card px-5 py-4 sm:px-6 sm:py-5">
+        {draftMessage ? (
+          <div className="mb-3 rounded-[24px] border border-primary/20 bg-primary/10 px-4 py-3 text-sm leading-6 text-copy">
+            {draftMessage}
           </div>
-          {recommendedWorkout && recommendedWorkout.id !== workout.id ? (
-            <button
-              type="button"
-              onClick={() => handleSelectWorkout(recommendedWorkout.id)}
-              className="ui-button-secondary"
-            >
-              View recommended workout
-            </button>
-          ) : null}
-        </div>
-
-        {workouts.length > 1 ? (
-          <label className="mt-5 block">
-            <span className="text-sm font-semibold text-copy">
-              Other workouts in this phase
-            </span>
-            <select
-              value={workout.id}
-              onChange={(event) => handleSelectWorkout(event.target.value)}
-              className="ui-input mt-3"
-            >
-              {workouts.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
-          </label>
         ) : null}
-      </section>
+        <div className="grid gap-3">
+          {orderedWorkouts.map(
+            ({ workout: item, scheduleLabel, isTodayWorkout }) => {
+              const ownsDraft = activeDraft?.workoutTemplateId === item.id;
+              const isSelected = item.id === workout.id;
+              const visibleExercises = item.exercises.slice(0, 5);
+              const remainingExerciseCount = Math.max(
+                item.exercises.length - visibleExercises.length,
+                0,
+              );
 
-      <section>
-        <div className="surface-card p-5 sm:p-6">
-          <p className="ui-eyebrow">
-            {step === "saved"
-              ? "Workout saved"
-              : step === "check-in"
-                ? "Check-in"
-                : "Exercises"}
-          </p>
-          <h2 className="mt-2 text-2xl font-black leading-tight text-copy">
-            {workout.name}
-          </h2>
-          <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">
-            {workout.summary}
-          </p>
-
-          {draftMessage ? (
-            <div className="mt-4 rounded-[24px] border border-primary/20 bg-primary/10 px-4 py-3 text-sm leading-6 text-copy">
-              {draftMessage}
-            </div>
-          ) : null}
-          {!storageAvailable ? (
-            <div className="mt-4 rounded-[24px] border border-danger/20 bg-danger/10 px-4 py-3 text-sm leading-6 text-copy">
-              Browser storage is unavailable, so refresh recovery may not work
-              until storage is enabled.
-            </div>
-          ) : null}
-
-          {latestSession ? (
-            <div className="mt-4 rounded-[24px] border border-success/20 bg-success/10 px-4 py-3 text-sm leading-6 text-copy">
-              <p>
-                Last logged on {formatDisplayDate(latestSession.completedOn)}:{" "}
-                {latestSession.recommendation}
-              </p>
-              {latestSession.progressionReason ? (
-                <p className="mt-2 text-muted">
-                  {latestSession.progressionReason}
-                </p>
-              ) : null}
-              {getSessionNotes(latestSession) ? (
-                <p className="mt-2 text-muted">
-                  Notes: {getSessionNotes(latestSession)}
-                </p>
-              ) : null}
-            </div>
-          ) : null}
-
-          <div className="mt-5">
-            {step === "idle" ? (
-              <div className="rounded-[24px] border border-border bg-surface-soft p-5">
-                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                  {activeDraft ? (
-                    <button
-                      type="button"
-                      onClick={handleResumeDraft}
-                      className="ui-button-primary"
-                    >
-                      Resume workout
-                    </button>
-                  ) : invalidRecoveryKey ? (
-                    <button
-                      type="button"
-                      onClick={handleClearRecoveryData}
-                      className="ui-button-primary"
-                    >
-                      Clear recovery data
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={handleStartWorkout}
-                      className="ui-button-primary"
-                      disabled={!userId}
-                    >
-                      Start workout
-                    </button>
-                  )}
-                </div>
-              </div>
-            ) : null}
-
-            {step === "workout" ? (
-              <div className="space-y-5">
-                <WorkoutChecklist
-                  workout={workout}
-                  checkedExerciseIds={checkedExerciseIds}
-                  onCheckedExerciseIdsChange={setCheckedExerciseIds}
-                />
-                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                  <button
-                    type="button"
-                    onClick={handleFinishWorkout}
-                    className="ui-button-primary w-full sm:w-auto"
-                    disabled={!activeDraft}
-                  >
-                    Finish workout
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleDiscardDraft}
-                    className="ui-button-ghost w-full sm:w-auto"
-                  >
-                    Discard workout
-                  </button>
-                </div>
-              </div>
-            ) : null}
-
-            {step === "check-in" ? (
-              <form className="space-y-5" onSubmit={handleSubmit}>
-                <div className="rounded-[24px] border border-border bg-surface-soft p-4 text-sm text-muted">
-                  <p className="font-semibold text-copy">{workout.name}</p>
-                  <p className="mt-2 leading-6">
-                    {checkedExerciseIds.length} of {workout.exercises.length}{" "}
-                    exercises checked.
-                  </p>
-                </div>
-
-                <label className="block rounded-[24px] border border-border bg-surface-soft p-4">
-                  <span className="text-sm font-semibold text-copy">
-                    Workout date
-                  </span>
-                  <input
-                    type="date"
-                    value={completedOn}
-                    max={todayDate}
-                    onChange={(event) => setCompletedOn(event.target.value)}
-                    className="ui-input mt-3"
-                  />
-                </label>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <fieldset className="rounded-[24px] border border-border bg-surface-soft p-4">
-                    <legend className="text-sm font-semibold text-copy">
-                      Did anything hurt?
-                    </legend>
-                    <div className="mt-4 flex gap-3">
-                      {[
-                        { label: "No pain", value: false },
-                        { label: "Yes", value: true },
-                      ].map((option) => (
-                        <button
-                          key={option.label}
-                          type="button"
-                          onClick={() => setPain(option.value)}
-                          className={`rounded-full px-4 py-2 text-sm font-semibold ${
-                            pain === option.value
-                              ? "bg-hero text-white"
-                              : "bg-surface text-muted"
-                          }`}
-                        >
-                          {option.label}
-                        </button>
-                      ))}
-                    </div>
-                  </fieldset>
-                </div>
-
-                <fieldset className="rounded-[24px] border border-border bg-surface-soft p-4">
-                  <legend className="text-sm font-semibold text-copy">
-                    Session difficulty
-                  </legend>
-                  <div className="mt-4 flex flex-wrap gap-3">
-                    {effortOptions.map((option) => (
-                      <button
-                        key={option}
-                        type="button"
-                        onClick={() => setEffort(option)}
-                        className={`rounded-full px-4 py-2 text-sm font-semibold ${
-                          effort === option
-                            ? "bg-primary text-white"
-                            : "bg-surface text-muted"
-                        }`}
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
-                </fieldset>
-
-                <label className="block rounded-[24px] border border-border bg-surface-soft p-4">
-                  <span className="text-sm font-semibold text-copy">Notes</span>
-                  <textarea
-                    value={notes}
-                    onChange={(event) => setNotes(event.target.value)}
-                    rows={5}
-                    placeholder="Anything worth remembering for the next session?"
-                    className="ui-input mt-3"
-                  />
-                </label>
-
-                <div className="rounded-[24px] border border-primary/20 bg-primary/10 p-5">
-                  <p className="text-xs font-bold uppercase tracking-[0.12em] text-primary">
-                    Suggested next step
-                  </p>
-                  <p className="mt-3 text-lg font-black text-copy">
-                    {recommendation.title}
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-muted">
-                    {recommendation.description}
-                  </p>
-                </div>
-
-                {status ? (
-                  <p className="text-sm leading-6 text-muted">{status}</p>
-                ) : null}
-
-                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                  <button
-                    className="ui-button-primary"
-                    disabled={saving || isPending}
-                  >
-                    {saving
-                      ? "Saving..."
-                      : status
-                        ? "Retry save"
-                        : "Save workout"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setStep("workout")}
-                    className="ui-button-secondary"
-                  >
-                    Back to workout
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleDiscardDraft}
-                    className="ui-button-ghost"
-                  >
-                    Discard workout
-                  </button>
-                </div>
-              </form>
-            ) : null}
-
-            {step === "saved" && savedSession ? (
-              <div className="space-y-5">
-                <div className="rounded-[28px] border border-success/20 bg-success/10 p-5">
-                  <p className="text-xs font-bold uppercase tracking-[0.12em] text-success">
-                    Saved
-                  </p>
-                  <p className="mt-3 text-xl font-black text-copy">
-                    {savedSession.workoutName} on{" "}
-                    {formatDisplayDate(savedSession.completedOn)}
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-muted">
-                    {savedSession.completedExerciseCount} exercises checked.{" "}
-                    {savedSession.recommendation}
-                  </p>
-                  {savedSession.progressionReason ? (
-                    <p className="mt-2 text-sm leading-6 text-muted">
-                      {savedSession.progressionReason}
-                    </p>
-                  ) : null}
-                  {savedSession.progressionDecision === "advance" ? (
-                    <div className="mt-4 rounded-[24px] border border-primary/20 bg-primary/10 p-4">
-                      <p className="text-sm font-semibold text-copy">
-                        You may be ready for the next phase.
-                      </p>
-                      <p className="mt-2 text-sm leading-6 text-muted">
-                        Review the plan before moving forward.
-                      </p>
-                    </div>
-                  ) : null}
-                </div>
-                <button
-                  type="button"
-                  onClick={handleStartAnotherWorkout}
-                  className="ui-button-primary"
+              return (
+                <article
+                  key={item.id}
+                  id={`workout-card-${item.id}`}
+                  ref={(node) => {
+                    workoutCardRefs.current[item.id] = node;
+                  }}
+                  className={`rounded-[22px] border px-4 py-3 transition sm:px-5 ${
+                    isTodayWorkout
+                      ? "border-primary bg-primary/10 shadow-soft"
+                      : ownsDraft
+                        ? "border-success/40 bg-success/10"
+                        : isSelected
+                          ? "border-primary/40 bg-surface-soft"
+                          : "border-border bg-surface-soft"
+                  }`}
                 >
-                  Back to workout details
-                </button>
-              </div>
-            ) : null}
-          </div>
+                  <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:gap-4">
+                    <button
+                      type="button"
+                      onClick={() => handleSelectWorkout(item.id)}
+                      className="min-w-0 text-left"
+                      aria-label={`View details for ${item.name}`}
+                    >
+                      {scheduleLabel ? (
+                        <p
+                          className={`text-[0.68rem] font-black uppercase tracking-[0.14em] ${isTodayWorkout ? "text-primary" : "text-muted"}`}
+                        >
+                          {scheduleLabel}
+                        </p>
+                      ) : null}
+                      <p className="mt-0.5 break-words text-base font-black leading-snug text-copy">
+                        {item.name}
+                      </p>
+                      <p className="mt-1 line-clamp-2 text-sm leading-5 text-muted">
+                        {item.focus || item.summary}
+                      </p>
+                      {ownsDraft ? (
+                        <p className="mt-1 text-xs font-bold uppercase tracking-[0.12em] text-success">
+                          Active workout
+                        </p>
+                      ) : null}
+                      <ul className="mt-2 space-y-1 text-sm leading-5 text-copy">
+                        {visibleExercises.map((exercise) => (
+                          <li key={exercise.id} className="flex gap-2">
+                            <span className="text-muted" aria-hidden="true">
+                              •
+                            </span>
+                            <span className="min-w-0 break-words">
+                              <span className="font-semibold">
+                                {exercise.name}
+                              </span>
+                              <span className="text-muted">
+                                {` · ${formatExercisePrescription(exercise)}`}
+                              </span>
+                            </span>
+                          </li>
+                        ))}
+                        {remainingExerciseCount > 0 ? (
+                          <li className="flex gap-2 text-muted">
+                            <span aria-hidden="true">•</span>
+                            <span>+{remainingExerciseCount} more</span>
+                          </li>
+                        ) : null}
+                      </ul>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        ownsDraft
+                          ? handleResumeDraft()
+                          : handleStartWorkout(item)
+                      }
+                      className="ui-button-primary min-h-12 shrink-0 rounded-2xl px-5 py-3 text-sm sm:px-6"
+                      aria-label={`${ownsDraft ? "Resume" : "Start"} ${item.name}`}
+                    >
+                      {ownsDraft ? "Resume" : "Start"}
+                    </button>
+                  </div>
+                </article>
+              );
+            },
+          )}
         </div>
       </section>
-
-      {sessionHistory.length > 0 ? (
-        <section className="surface-card p-5 sm:p-6">
-          <p className="ui-eyebrow">Recent logs</p>
-          <h2 className="mt-2 text-2xl font-black leading-tight text-copy">
-            Recent workouts
-          </h2>
-          <div className="mt-5 grid gap-3">
-            {sessionHistory.slice(0, 4).map((session) => (
-              <div
-                key={session.id}
-                className="rounded-[24px] border border-border bg-surface-soft p-4 text-sm"
-              >
-                <p className="font-semibold text-copy">
-                  {formatDisplayDate(session.completedOn)}
-                </p>
-                <p className="mt-2 leading-6 text-muted">
-                  {session.recommendation}
-                </p>
-                {session.progressionReason ? (
-                  <p className="mt-2 leading-6 text-muted">
-                    {session.progressionReason}
-                  </p>
-                ) : null}
-                {getSessionNotes(session) ? (
-                  <p className="mt-2 leading-6 text-muted">
-                    Notes: {getSessionNotes(session)}
-                  </p>
-                ) : null}
-              </div>
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      <ProgressSummary summary={liveProgressSummary} />
-
-      {phaseProgress ? (
-        <PhaseProgressPanel
-          plan={activePlan}
-          progress={phaseProgress}
-          mode="workout"
-        />
-      ) : null}
-    </div>
-  );
-}
-
-function HeroStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-[22px] border border-white/10 bg-white/[0.06] p-3">
-      <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/45">
-        {label}
-      </p>
-      <p className="mt-2 text-lg font-black leading-tight text-white">
-        {value}
-      </p>
     </div>
   );
 }
