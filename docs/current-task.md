@@ -73,6 +73,14 @@ Implementing the PR follow-up request to treat dashboard/history/progression com
 
 The dashboard now reads the shared saved-session metrics for compact recent activity rows instead of asking users to infer raw set data. Progression policy is unchanged: existing `completed`, pain, perceived-difficulty, phase, and recommendation fields remain the deterministic progression inputs, while richer set metrics are informational and prepared for #36. No schema, RLS, final-save, active-draft, or hosted Supabase behavior changed in this follow-up.
 
+
+
+## PR Follow-up — Canonical Exercise Identity
+
+Implementing the PR follow-up request for Issue #40 by adding the smallest additive canonical exercise identity and reviewed alias foundation. The current reusable exercise catalog remains the static TypeScript catalog, `source_exercise_id` remains the compatibility text key, and the new migration adds canonical identity/alias tables plus nullable canonical snapshots without destructive historical rewrites or forced custom-exercise merging. Runtime resolution is deterministic: exact canonical ID, exact reviewed alias/name, otherwise unresolved.
+
+Validation focus: exact canonical lookup, reviewed alias lookup, punctuation/case normalization, approved abbreviations, material variant separation, unresolved custom names, additive/idempotent migration SQL, readonly audit coverage, and preservation of historical display snapshots. Hosted Supabase migrations have not been applied by Codex.
+
 ## Workflow Source Of Truth
 
 Active work is issue-driven:

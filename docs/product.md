@@ -164,3 +164,8 @@ The product is successful when users can:
 - supersets and circuits
 - wearable integrations
 - AI-assisted phase alternatives only after direct plan drafting and the deterministic recording/progression contract are proven safe
+## Exercise Identity Principles
+
+Exercise identity distinguishes stable exercise concepts from harmless naming variants. Reviewed aliases such as punctuation/capitalization differences may resolve to one canonical exercise, but equipment, stance, laterality, range of motion, loading pattern, movement intent, and rehab/return-to-sport context must remain separate when they change exercise meaning.
+
+Users can keep or create custom exercises when no canonical match fits. Custom exercises must not be silently converted later, and historical plan/session display names remain readable snapshots even when canonical identity metadata changes.
