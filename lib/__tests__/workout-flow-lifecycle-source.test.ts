@@ -47,7 +47,9 @@ describe("workout flow lifecycle source guards", () => {
 
   it("renders the workout list as the direct start surface without selected/recommended badges", () => {
     expect(source).toContain("Choose today&apos;s workout");
-    expect(source).toContain("Start from the list");
+    expect(source).not.toContain(">Workout</p>");
+    expect(source).not.toContain("Phase workouts");
+    expect(source).not.toContain("Start from the list");
     expect(source).toContain("scheduleLabel");
     expect(source).toContain("handleStartWorkout(item)");
     expect(source).not.toContain(">Recommended<");

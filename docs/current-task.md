@@ -351,3 +351,11 @@ Implementing the requested Issue #34 PR #58 cleanup that removes the obsolete st
 This patch preserves the prior calendar ordering helper, Today’s Workout treatment, direct per-card Start/Resume behavior, active-draft guard, and `?workoutId=` context. Deep-link context is now used only to keep the corresponding card accessible rather than restoring a selected-details UI. Exercise lists render all items up to five exercises, then deterministically show the first five plus `+N more`; no accordion, schema, progression, or `/workout/active` behavior changes are introduced.
 
 Validation focus: standalone details section remains absent, every workout card shows exercise names and concise prescriptions, generic exercise-count copy is not duplicated when names are visible, Start/Resume stays in the right-side action column, draft ownership is still the only Resume state, starting a different workout still invokes the existing active-draft protection, and Today/Tomorrow/weekday ordering remains unchanged.
+
+### PR #58 follow-up — heading removal and spacing cleanup
+
+Implemented the requested PR #58 cleanup that removes the remaining presentational section headings from `/workout` without replacing them with new copy. The top card now starts directly with `Choose today’s workout` and the phase summary, while the workout-list card starts directly with the draft notice when present or the first workout card when no notice is needed.
+
+This patch preserves Today’s Workout labeling, calendar ordering, self-contained workout summaries and exercise lists, per-card Start/Resume actions, active-draft protection, deep-link context, and bottom-navigation clearance. The parent card padding and internal list spacing were tightened so no empty heading whitespace remains and the first workout card sits near the top of the rounded list container. No schema, data, progression, recommendation, or execution-route behavior changed.
+
+Validation focus: absence of `WORKOUT`, `PHASE WORKOUTS`, and `Start from the list`; balanced top padding after heading removal; first workout card placement; unchanged direct Start/Resume and active-draft guard behavior; and unchanged calendar labels/order.

@@ -1707,31 +1707,22 @@ export function WorkoutFlow({
   return (
     <div className="space-y-5 sm:space-y-6">
       {workoutSettingsDialog}
-      <section className="surface-card p-5 sm:p-6">
-        <p className="ui-eyebrow">Workout</p>
-        <h1 className="mt-2 text-3xl font-black leading-tight text-copy sm:text-4xl">
+      <section className="surface-card px-5 py-4 sm:px-6 sm:py-5">
+        <h1 className="text-3xl font-black leading-tight text-copy sm:text-4xl">
           Choose today&apos;s workout
         </h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
           {activePlan.currentPhase.goal}
         </p>
       </section>
 
-      <section className="surface-card p-5 sm:p-6">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="ui-eyebrow">Phase workouts</p>
-            <h2 className="mt-2 text-2xl font-black leading-tight text-copy">
-              Start from the list
-            </h2>
-          </div>
-        </div>
+      <section className="surface-card px-5 py-4 sm:px-6 sm:py-5">
         {draftMessage ? (
-          <div className="mt-4 rounded-[24px] border border-primary/20 bg-primary/10 px-4 py-3 text-sm leading-6 text-copy">
+          <div className="mb-3 rounded-[24px] border border-primary/20 bg-primary/10 px-4 py-3 text-sm leading-6 text-copy">
             {draftMessage}
           </div>
         ) : null}
-        <div className="mt-4 grid gap-3">
+        <div className="grid gap-3">
           {orderedWorkouts.map(
             ({ workout: item, scheduleLabel, isTodayWorkout }) => {
               const ownsDraft = activeDraft?.workoutTemplateId === item.id;
