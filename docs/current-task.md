@@ -83,6 +83,15 @@ Validation focus: exact canonical lookup, reviewed alias lookup, punctuation/cas
 
 Patch update: PR #61 review hardening now seeds all 35 current TypeScript catalog exercises into `exercise_identities`, preserves the catalog ID as canonical identity, enables RLS with no client policies on the identity/alias tables, and extends `finalize_workout_session` so saved `exercise_results` snapshot `canonical_exercise_id` from the source `exercise_entries` row while leaving unresolved/custom exercises null. The migration remains in-repo only and was not applied to hosted Supabase by Codex. Added parity tests guard catalog seed drift, reviewed alias target validity, canonical name resolution, finalization SQL behavior, and read-only verification coverage.
 
+
+## PR Follow-up — Issue #42A Exercise Library Deduplication Audit
+
+Implementing the PR follow-up request for Issue #42 Slice 42A as a read-only audit and classification step. The committed artifact is `docs/exercise-library-dedup-audit.md`; it now records the corrected hosted read-only execution against `Workout-app-dev` as complete and identifies 17 unresolved normalized-name groups / 72 active exercise entries approved by the product owner for future identity-reference repair.
+
+This slice intentionally includes no consolidation writes, no reference repointing, no identity retirement, no alias mutation, no tracking-metadata cleanup, no application behavior change, and no historical snapshot or metric rewrite. PR #67 remains a read-only audit PR: the approval scope is limited to future `exercise_entries.canonical_exercise_id` linking for the 17 documented mappings, while historical display snapshots, prescriptions, ordering, guidance, ownership, tracking metadata, and set/result metrics remain untouched.
+
+The next implementation must be a separate Slice 42B PR for the approved identity-reference migration plus a focused Slice 42C PR for duplicate-prevention/search-selection behavior. Hosted migration application requires separate authorization and must not be inferred from the 42A audit approval.
+
 ## Workflow Source Of Truth
 
 Active work is issue-driven:
