@@ -81,6 +81,8 @@ Implementing the PR follow-up request for Issue #40 by adding the smallest addit
 
 Validation focus: exact canonical lookup, reviewed alias lookup, punctuation/case normalization, approved abbreviations, material variant separation, unresolved custom names, additive/idempotent migration SQL, readonly audit coverage, and preservation of historical display snapshots. Hosted Supabase migrations have not been applied by Codex.
 
+Patch update: PR #61 review hardening now seeds all 35 current TypeScript catalog exercises into `exercise_identities`, preserves the catalog ID as canonical identity, enables RLS with no client policies on the identity/alias tables, and extends `finalize_workout_session` so saved `exercise_results` snapshot `canonical_exercise_id` from the source `exercise_entries` row while leaving unresolved/custom exercises null. The migration remains in-repo only and was not applied to hosted Supabase by Codex. Added parity tests guard catalog seed drift, reviewed alias target validity, canonical name resolution, finalization SQL behavior, and read-only verification coverage.
+
 ## Workflow Source Of Truth
 
 Active work is issue-driven:

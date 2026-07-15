@@ -889,8 +889,8 @@ begin
   values ((p_session->>'id')::uuid, actor, selected_workout_template_id, authoritative_workout.plan_id, authoritative_workout.phase_id, (p_session->>'completed_on')::date, (p_session->>'completed')::boolean, (p_session->>'pain_occurred')::boolean, p_session->>'perceived_difficulty', coalesce(p_session->>'notes',''), p_session->>'recommendation', authoritative_workout.phase_id, coalesce('Phase ' || authoritative_workout.phase_number::text || ': ' || authoritative_workout.goal, authoritative_workout.goal), authoritative_workout.workout_name, (p_session->>'started_at')::timestamptz, (p_session->>'finished_at')::timestamptz, coalesce((p_session->>'elapsed_seconds')::integer,0), coalesce(p_session->>'elapsed_source','server_timestamp'))
   returning * into saved;
 
-  insert into public.exercise_results (id, workout_session_id, source_workout_template_id, exercise_entry_id, source_exercise_id, exercise_name_snapshot, exercise_order, tracking_type, unilateral_mode, load_unit, distance_unit, primary_value_label, secondary_value_label, prescribed_target_text, completion_status)
-  select (r.value->>'id')::uuid, saved.id, selected_workout_template_id, ee.id, ee.source_exercise_id, ee.name, ee.sort_order, ee.tracking_type, ee.unilateral_mode, ee.load_unit, ee.distance_unit, ee.primary_value_label, ee.secondary_value_label, (ee.sets::text || ' sets × ' || ee.reps), coalesce(r.value->>'completion_status','incomplete')
+  insert into public.exercise_results (id, workout_session_id, source_workout_template_id, exercise_entry_id, source_exercise_id, canonical_exercise_id, exercise_name_snapshot, exercise_order, tracking_type, unilateral_mode, load_unit, distance_unit, primary_value_label, secondary_value_label, prescribed_target_text, completion_status)
+  select (r.value->>'id')::uuid, saved.id, selected_workout_template_id, ee.id, ee.source_exercise_id, ee.canonical_exercise_id, ee.name, ee.sort_order, ee.tracking_type, ee.unilateral_mode, ee.load_unit, ee.distance_unit, ee.primary_value_label, ee.secondary_value_label, (ee.sets::text || ' sets × ' || ee.reps), coalesce(r.value->>'completion_status','incomplete')
   from jsonb_array_elements(p_exercise_results) as r(value)
   join public.exercise_entries ee on ee.id = (r.value->>'exercise_entry_id')::uuid and ee.workout_template_id = selected_workout_template_id;
 
@@ -946,3 +946,6 @@ create unique index if not exists exercise_aliases_system_reviewed_unique on pub
 create index if not exists exercise_aliases_user_reviewed_idx on public.exercise_aliases(owner_user_id, normalized_lookup_key) where owner_scope = 'user' and reviewed;
 create index if not exists exercise_entries_canonical_exercise_id_idx on public.exercise_entries(canonical_exercise_id) where canonical_exercise_id is not null;
 create index if not exists exercise_results_canonical_exercise_id_idx on public.exercise_results(canonical_exercise_id) where canonical_exercise_id is not null;
+
+alter table public.exercise_identities enable row level security;
+alter table public.exercise_aliases enable row level security;
