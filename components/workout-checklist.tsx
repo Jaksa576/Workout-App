@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import {
   formatHistoryDate,
@@ -19,6 +19,20 @@ import {
   supportsAddedSets,
 } from "@/lib/set-logging";
 import type { WorkoutSetInput, WorkoutTemplate } from "@/lib/types";
+
+function getSetGridClass(exercise: WorkoutTemplate["exercises"][number]) {
+  if (exercise.unilateralMode === "independent_sides")
+    return "grid-cols-[3.25rem_minmax(5rem,1fr)_minmax(4.5rem,5.5rem)_minmax(4.5rem,5.5rem)_4.25rem]";
+  if (exercise.trackingType === "completion")
+    return "grid-cols-[3.25rem_minmax(0,1fr)_4.25rem]";
+  if (exercise.trackingType === "weight_reps")
+    return "grid-cols-[3.25rem_minmax(4rem,1fr)_4.75rem_4rem_4.25rem]";
+  if (exercise.trackingType === "distance_duration")
+    return "grid-cols-[3.25rem_minmax(4rem,1fr)_4.25rem_4.75rem_4.25rem]";
+  if (exercise.trackingType === "distance")
+    return "grid-cols-[3.25rem_minmax(4rem,1fr)_4.75rem_4.25rem]";
+  return "grid-cols-[3.25rem_minmax(4rem,1fr)_4.25rem_4.25rem]";
+}
 
 type WorkoutChecklistProps = {
   workout: WorkoutTemplate;
@@ -309,58 +323,10 @@ export function WorkoutChecklist({
   }, [checked, storageKey]);
 
   const canLogSets = Boolean(onSetResultsChange);
-  const loggableExercises = workout.exercises.filter(
-    (exercise) =>
-      canLogSets &&
-      (isSupportedMetricTrackingType(exercise.trackingType) ||
-        exercise.trackingType === "completion"),
-  );
-  const completedSetCount = loggableExercises.reduce(
-    (sum, exercise) =>
-      sum +
-      getExerciseRows(exercise).filter((row) => row.status === "completed")
-        .length,
-    0,
-  );
-  const totalLoggableSets = loggableExercises.reduce(
-    (sum, exercise) => sum + getExerciseRows(exercise).length,
-    0,
-  );
-  const completion = useMemo(() => {
-    const denominator = totalLoggableSets || workout.exercises.length;
-    if (denominator === 0) {
-      return 0;
-    }
-
-    return Math.round(
-      ((totalLoggableSets ? completedSetCount : checked.length) / denominator) *
-        100,
-    );
-  }, [
-    checked.length,
-    completedSetCount,
-    totalLoggableSets,
-    workout.exercises.length,
-  ]);
 
   return (
     <div className={compactExecution ? "space-y-3" : "space-y-5"}>
-      <div className="rounded-[24px] border border-border bg-surface-soft p-4">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-sm font-semibold text-copy">Completion</p>
-            <p className="mt-1 text-sm text-muted">
-              {totalLoggableSets
-                ? `${completedSetCount} of ${totalLoggableSets} sets complete`
-                : `${checked.length} of ${workout.exercises.length} exercises checked`}
-            </p>
-          </div>
-          <div className="rounded-full bg-hero px-4 py-2 text-sm font-semibold text-white">
-            {completion}%
-          </div>
-        </div>
-      </div>
-      <div className={compactExecution ? "space-y-2" : "space-y-3"}>
+      <div className={compactExecution ? "space-y-3" : "space-y-3"}>
         {workout.exercises.map((exercise, index) => {
           const rows = getExerciseRows(exercise);
           const supportsSetLogging =
@@ -376,11 +342,11 @@ export function WorkoutChecklist({
             <article
               key={exercise.id}
               className={`rounded-[20px] border border-border/70 bg-surface transition hover:border-primary/40 ${
-                compactExecution ? "p-3" : "p-4"
+                compactExecution ? "p-4" : "p-4"
               }`}
             >
               <div className="flex items-start gap-3">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-surface-soft text-sm font-black text-copy">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-surface-soft text-sm font-black text-copy">
                   {index + 1}
                 </span>
                 <div className="min-w-0 flex-1">
@@ -389,35 +355,39 @@ export function WorkoutChecklist({
                       detailsButtonRefs.current[exercise.id] = node;
                     }}
                     type="button"
-                    className="flex min-h-11 w-full items-start justify-between gap-3 rounded-2xl px-1 py-1 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                    className="flex min-h-11 w-full items-start justify-between gap-3 rounded-xl px-1 py-0 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                     aria-label={`View details for ${exercise.name}`}
                     onClick={() => openExerciseDetails(exercise.id)}
                   >
-                    <span className="text-lg font-black leading-tight text-copy">
+                    <span className="text-base font-black leading-tight text-copy">
                       {exercise.name}
                     </span>
-                    <span className="shrink-0 rounded-full border border-border bg-surface-soft px-3 py-2 text-xs font-black text-muted">
+                    <span className="flex min-h-11 shrink-0 items-center rounded-full border border-border bg-surface-soft px-3 text-xs font-black text-muted">
                       Details
                     </span>
                   </button>
-                  <div className="mt-1 flex flex-wrap gap-2 text-xs uppercase tracking-[0.16em] text-muted">
-                    <span className="rounded-full bg-shell-elevated px-3 py-2">
-                      Rest {exercise.rest}
-                    </span>
+                  <div className="mt-0.5 flex flex-wrap gap-2 text-xs font-semibold text-muted">
+                    <span className="px-1">Rest {exercise.rest}</span>
                   </div>
                 </div>
               </div>
               {supportsSetLogging ? (
-                <div className="mt-2 overflow-hidden rounded-[18px] border border-border bg-surface-soft">
+                <div className="mt-3 overflow-hidden rounded-[16px] border border-border bg-surface-soft">
                   <div
-                    className={`grid gap-2 px-2 py-1.5 text-[0.65rem] font-black uppercase tracking-[0.12em] text-muted ${exercise.trackingType === "completion" ? "grid-cols-[2.1rem_1fr_3rem]" : exercise.trackingType === "weight_reps" ? "grid-cols-[2.1rem_1fr_4.7rem_3.8rem_3rem]" : exercise.trackingType === "distance_duration" ? "grid-cols-[2.1rem_1fr_4rem_4.2rem_3rem]" : exercise.trackingType === "distance" ? "grid-cols-[2.1rem_1fr_4.2rem_3rem]" : "grid-cols-[2.1rem_1fr_4rem_3rem]"}`}
+                    className={`grid ${getSetGridClass(exercise)} items-center gap-2 px-3 py-2 text-[0.65rem] font-black uppercase tracking-[0.12em] text-muted`}
                   >
                     <span>Set</span>
                     <span>Previous</span>
-                    {exercise.trackingType === "weight_reps" ? (
+                    {exercise.unilateralMode === "independent_sides" ? (
+                      <>
+                        <span>Left</span>
+                        <span>Right</span>
+                      </>
+                    ) : exercise.trackingType === "weight_reps" ? (
                       <span>Weight</span>
                     ) : null}
-                    {exercise.trackingType !== "completion" ? (
+                    {exercise.trackingType !== "completion" &&
+                    exercise.unilateralMode !== "independent_sides" ? (
                       <span>
                         {exercise.trackingType === "duration"
                           ? exercise.unilateralMode === "same_each_side"
@@ -434,7 +404,8 @@ export function WorkoutChecklist({
                                 : "Reps"}
                       </span>
                     ) : null}
-                    {exercise.trackingType === "distance_duration" ? (
+                    {exercise.trackingType === "distance_duration" &&
+                    exercise.unilateralMode !== "independent_sides" ? (
                       <span>Distance</span>
                     ) : null}
                     <span>✓</span>
@@ -458,7 +429,7 @@ export function WorkoutChecklist({
                           rowError ? `${row.setId}-error` : undefined
                         }
                         inputMode="numeric"
-                        className="min-w-0 rounded-xl border border-border bg-surface px-2 py-2 text-sm font-semibold"
+                        className="min-h-10 min-w-0 rounded-xl border border-border bg-surface px-2 py-1.5 text-sm font-semibold"
                         value={formatDurationInput(
                           row[field] as number | null | undefined,
                         )}
@@ -489,7 +460,7 @@ export function WorkoutChecklist({
                           rowError ? `${row.setId}-error` : undefined
                         }
                         inputMode={integer ? "numeric" : "decimal"}
-                        className="min-w-0 rounded-xl border border-border bg-surface px-2 py-2 text-sm font-semibold"
+                        className="min-h-10 min-w-0 rounded-xl border border-border bg-surface px-2 py-1.5 text-sm font-semibold"
                         value={(row[field] as number | null | undefined) ?? ""}
                         onChange={(event) => {
                           const value = event.target.value;
@@ -513,7 +484,7 @@ export function WorkoutChecklist({
                     return (
                       <div
                         key={row.setId}
-                        className={`grid items-center gap-2 border-t border-border px-2 py-1.5 ${isCompletionRow ? "grid-cols-[2.1rem_1fr_3rem]" : independent ? "grid-cols-[2.1rem_1fr_minmax(0,1fr)_minmax(0,1fr)_3rem] sm:grid-cols-[2.1rem_1fr_repeat(4,minmax(3.6rem,1fr))_3rem]" : exercise.trackingType === "weight_reps" ? "grid-cols-[2.1rem_1fr_4.7rem_3.8rem_3rem]" : exercise.trackingType === "distance_duration" ? "grid-cols-[2.1rem_1fr_4rem_4.2rem_3rem]" : exercise.trackingType === "distance" ? "grid-cols-[2.1rem_1fr_4.2rem_3rem]" : "grid-cols-[2.1rem_1fr_4rem_3rem]"} ${row.status === "completed" ? "bg-success/5" : ""}`}
+                        className={`grid min-h-[3.25rem] items-center gap-2 border-t border-border px-3 py-1.5 ${getSetGridClass(exercise)} ${row.status === "completed" ? "bg-success/5" : ""}`}
                       >
                         <span className="text-sm font-black text-copy">
                           {rowIndex + 1}
@@ -530,58 +501,66 @@ export function WorkoutChecklist({
                         </span>
                         {isCompletionRow ? null : independent ? (
                           <>
-                            {needsLoad
-                              ? numberInput(
-                                  "actualLeftLoad",
-                                  `Left weight in ${exercise.loadUnit ?? "lb"}`,
-                                )
-                              : null}
-                            {exercise.trackingType === "weight_reps" ||
-                            exercise.trackingType === "reps_only"
-                              ? numberInput("actualLeftReps", "Left reps", true)
-                              : null}
-                            {exercise.trackingType === "duration" ||
-                            exercise.trackingType === "distance_duration"
-                              ? durationInput(
-                                  "actualLeftDurationSeconds",
-                                  "Left duration",
-                                )
-                              : null}
-                            {exercise.trackingType === "distance" ||
-                            exercise.trackingType === "distance_duration"
-                              ? numberInput(
-                                  "actualLeftDistance",
-                                  `Left distance in ${exercise.distanceUnit ?? "mi"}`,
-                                )
-                              : null}
-                            {needsLoad
-                              ? numberInput(
-                                  "actualRightLoad",
-                                  `Right weight in ${exercise.loadUnit ?? "lb"}`,
-                                )
-                              : null}
-                            {exercise.trackingType === "weight_reps" ||
-                            exercise.trackingType === "reps_only"
-                              ? numberInput(
-                                  "actualRightReps",
-                                  "Right reps",
-                                  true,
-                                )
-                              : null}
-                            {exercise.trackingType === "duration" ||
-                            exercise.trackingType === "distance_duration"
-                              ? durationInput(
-                                  "actualRightDurationSeconds",
-                                  "Right duration",
-                                )
-                              : null}
-                            {exercise.trackingType === "distance" ||
-                            exercise.trackingType === "distance_duration"
-                              ? numberInput(
-                                  "actualRightDistance",
-                                  `Right distance in ${exercise.distanceUnit ?? "mi"}`,
-                                )
-                              : null}
+                            <div className="grid gap-1">
+                              {needsLoad
+                                ? numberInput(
+                                    "actualLeftLoad",
+                                    `Left weight in ${exercise.loadUnit ?? "lb"}`,
+                                  )
+                                : null}
+                              {exercise.trackingType === "weight_reps" ||
+                              exercise.trackingType === "reps_only"
+                                ? numberInput(
+                                    "actualLeftReps",
+                                    "Left reps",
+                                    true,
+                                  )
+                                : null}
+                              {exercise.trackingType === "duration" ||
+                              exercise.trackingType === "distance_duration"
+                                ? durationInput(
+                                    "actualLeftDurationSeconds",
+                                    "Left duration",
+                                  )
+                                : null}
+                              {exercise.trackingType === "distance" ||
+                              exercise.trackingType === "distance_duration"
+                                ? numberInput(
+                                    "actualLeftDistance",
+                                    `Left distance in ${exercise.distanceUnit ?? "mi"}`,
+                                  )
+                                : null}
+                            </div>
+                            <div className="grid gap-1">
+                              {needsLoad
+                                ? numberInput(
+                                    "actualRightLoad",
+                                    `Right weight in ${exercise.loadUnit ?? "lb"}`,
+                                  )
+                                : null}
+                              {exercise.trackingType === "weight_reps" ||
+                              exercise.trackingType === "reps_only"
+                                ? numberInput(
+                                    "actualRightReps",
+                                    "Right reps",
+                                    true,
+                                  )
+                                : null}
+                              {exercise.trackingType === "duration" ||
+                              exercise.trackingType === "distance_duration"
+                                ? durationInput(
+                                    "actualRightDurationSeconds",
+                                    "Right duration",
+                                  )
+                                : null}
+                              {exercise.trackingType === "distance" ||
+                              exercise.trackingType === "distance_duration"
+                                ? numberInput(
+                                    "actualRightDistance",
+                                    `Right distance in ${exercise.distanceUnit ?? "mi"}`,
+                                  )
+                                : null}
+                            </div>
                           </>
                         ) : (
                           <>
@@ -625,7 +604,7 @@ export function WorkoutChecklist({
                           type="button"
                           aria-label={`${row.status === "completed" ? "Uncomplete" : "Complete"} set ${rowIndex + 1} of ${exercise.name}`}
                           aria-pressed={row.status === "completed"}
-                          className={`min-h-11 rounded-xl border text-sm font-black ${row.status === "completed" ? "border-success bg-success text-white" : "border-border bg-surface text-copy"}`}
+                          className={`min-h-10 rounded-xl border text-sm font-black ${row.status === "completed" ? "border-success bg-success text-white" : "border-border bg-surface text-copy"}`}
                           onClick={() => completeSet(row, exercise)}
                         >
                           ✓
@@ -651,15 +630,14 @@ export function WorkoutChecklist({
                     );
                   })}
                   {supportsAddedSets(exercise.trackingType) ? (
-                    <div className="border-t border-border p-1.5">
-                      <button
-                        type="button"
-                        className="ui-button-ghost px-3 py-2 text-xs"
-                        onClick={() => addSet(exercise)}
-                      >
-                        Add set
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      className="flex min-h-12 w-full items-center justify-center gap-2 border-t border-border px-3 py-2 text-sm font-black text-primary transition hover:bg-primary/10 active:bg-primary/15 disabled:cursor-not-allowed disabled:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
+                      onClick={() => addSet(exercise)}
+                    >
+                      <span aria-hidden="true">＋</span>
+                      <span>Add set</span>
+                    </button>
                   ) : null}
                 </div>
               ) : (
