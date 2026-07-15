@@ -889,8 +889,8 @@ begin
   values ((p_session->>'id')::uuid, actor, selected_workout_template_id, authoritative_workout.plan_id, authoritative_workout.phase_id, (p_session->>'completed_on')::date, (p_session->>'completed')::boolean, (p_session->>'pain_occurred')::boolean, p_session->>'perceived_difficulty', coalesce(p_session->>'notes',''), p_session->>'recommendation', authoritative_workout.phase_id, coalesce('Phase ' || authoritative_workout.phase_number::text || ': ' || authoritative_workout.goal, authoritative_workout.goal), authoritative_workout.workout_name, (p_session->>'started_at')::timestamptz, (p_session->>'finished_at')::timestamptz, coalesce((p_session->>'elapsed_seconds')::integer,0), coalesce(p_session->>'elapsed_source','server_timestamp'))
   returning * into saved;
 
-  insert into public.exercise_results (id, workout_session_id, source_workout_template_id, exercise_entry_id, source_exercise_id, exercise_name_snapshot, exercise_order, tracking_type, unilateral_mode, load_unit, distance_unit, primary_value_label, secondary_value_label, prescribed_target_text, completion_status)
-  select (r.value->>'id')::uuid, saved.id, selected_workout_template_id, ee.id, ee.source_exercise_id, ee.name, ee.sort_order, ee.tracking_type, ee.unilateral_mode, ee.load_unit, ee.distance_unit, ee.primary_value_label, ee.secondary_value_label, (ee.sets::text || ' sets × ' || ee.reps), coalesce(r.value->>'completion_status','incomplete')
+  insert into public.exercise_results (id, workout_session_id, source_workout_template_id, exercise_entry_id, source_exercise_id, canonical_exercise_id, exercise_name_snapshot, exercise_order, tracking_type, unilateral_mode, load_unit, distance_unit, primary_value_label, secondary_value_label, prescribed_target_text, completion_status)
+  select (r.value->>'id')::uuid, saved.id, selected_workout_template_id, ee.id, ee.source_exercise_id, ee.canonical_exercise_id, ee.name, ee.sort_order, ee.tracking_type, ee.unilateral_mode, ee.load_unit, ee.distance_unit, ee.primary_value_label, ee.secondary_value_label, (ee.sets::text || ' sets × ' || ee.reps), coalesce(r.value->>'completion_status','incomplete')
   from jsonb_array_elements(p_exercise_results) as r(value)
   join public.exercise_entries ee on ee.id = (r.value->>'exercise_entry_id')::uuid and ee.workout_template_id = selected_workout_template_id;
 
@@ -904,3 +904,48 @@ $$;
 
 revoke all on function public.finalize_workout_session(jsonb,jsonb,jsonb) from public;
 grant execute on function public.finalize_workout_session(jsonb,jsonb,jsonb) to authenticated;
+
+-- Issue #40 canonical exercise identity additive foundation.
+create table if not exists public.exercise_identities (
+  id text primary key,
+  display_name text not null,
+  normalized_lookup_key text not null,
+  owner_scope text not null default 'system' check (owner_scope in ('system','user')),
+  owner_user_id uuid references auth.users(id) on delete cascade,
+  equipment_tags text[] not null default '{}',
+  movement_pattern text,
+  qualifier_text text,
+  metadata jsonb not null default '{}'::jsonb,
+  active boolean not null default true,
+  superseded_by text references public.exercise_identities(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  check ((owner_scope = 'system' and owner_user_id is null) or (owner_scope = 'user' and owner_user_id is not null)),
+  check (superseded_by is null or superseded_by <> id)
+);
+
+create table if not exists public.exercise_aliases (
+  id uuid primary key default gen_random_uuid(),
+  exercise_identity_id text not null references public.exercise_identities(id) on delete cascade,
+  alias text not null,
+  normalized_lookup_key text not null,
+  owner_scope text not null default 'system' check (owner_scope in ('system','user')),
+  owner_user_id uuid references auth.users(id) on delete cascade,
+  reviewed boolean not null default true,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  check ((owner_scope = 'system' and owner_user_id is null) or (owner_scope = 'user' and owner_user_id is not null))
+);
+
+alter table public.exercise_entries add column if not exists canonical_exercise_id text references public.exercise_identities(id) on delete set null;
+alter table public.exercise_results add column if not exists canonical_exercise_id text references public.exercise_identities(id) on delete set null;
+create unique index if not exists exercise_identities_system_lookup_unique on public.exercise_identities(normalized_lookup_key) where owner_scope = 'system' and active;
+create index if not exists exercise_identities_user_lookup_idx on public.exercise_identities(owner_user_id, normalized_lookup_key) where owner_scope = 'user' and active;
+create unique index if not exists exercise_aliases_system_reviewed_unique on public.exercise_aliases(normalized_lookup_key) where owner_scope = 'system' and reviewed;
+create index if not exists exercise_aliases_user_reviewed_idx on public.exercise_aliases(owner_user_id, normalized_lookup_key) where owner_scope = 'user' and reviewed;
+create index if not exists exercise_entries_canonical_exercise_id_idx on public.exercise_entries(canonical_exercise_id) where canonical_exercise_id is not null;
+create index if not exists exercise_results_canonical_exercise_id_idx on public.exercise_results(canonical_exercise_id) where canonical_exercise_id is not null;
+
+alter table public.exercise_identities enable row level security;
+alter table public.exercise_aliases enable row level security;

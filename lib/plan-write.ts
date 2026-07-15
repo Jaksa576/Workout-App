@@ -12,6 +12,7 @@ import type {
 } from "@/lib/types";
 import { normalizeExerciseVideoUrl } from "@/lib/validation";
 import { buildEffectiveTrackingMetadata } from "@/lib/execution-results";
+import { resolveSystemExerciseIdentity } from "@/lib/exercise-identity";
 
 type SupabaseServerClient = Awaited<ReturnType<typeof getSupabaseServerClient>>;
 
@@ -89,7 +90,12 @@ function validateExercise(exercise: StructuredExerciseInput) {
     throw new Error("Exercise sets must be a whole number greater than zero.");
   }
 
-  const sourceExerciseId = exercise.sourceExerciseId?.trim() || null;
+  const requestedSourceExerciseId = exercise.sourceExerciseId?.trim() || null;
+  const identityResolution = resolveSystemExerciseIdentity({
+    canonicalId: requestedSourceExerciseId,
+    displayName: exercise.name
+  });
+  const sourceExerciseId = identityResolution.status === "resolved" ? identityResolution.candidate.canonicalId : requestedSourceExerciseId;
   const metadata = buildEffectiveTrackingMetadata({
     sourceExerciseId,
     trackingType: exercise.trackingType,
@@ -111,6 +117,7 @@ function validateExercise(exercise: StructuredExerciseInput) {
     }),
     videoUrl,
     sourceExerciseId,
+    canonicalExerciseId: identityResolution.status === "resolved" ? identityResolution.candidate.canonicalId : null,
     trackingType: metadata.trackingType,
     unilateralMode: metadata.unilateralMode,
     loadUnit: metadata.loadUnit,
@@ -229,6 +236,7 @@ async function insertPlanStructure({
           coaching_note: exercise.coachingNote,
           video_url: exercise.videoUrl || null,
           source_exercise_id: exercise.sourceExerciseId,
+          canonical_exercise_id: exercise.canonicalExerciseId,
           tracking_type: exercise.trackingType,
           unilateral_mode: exercise.unilateralMode,
           load_unit: exercise.loadUnit,

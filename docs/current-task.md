@@ -73,6 +73,16 @@ Implementing the PR follow-up request to treat dashboard/history/progression com
 
 The dashboard now reads the shared saved-session metrics for compact recent activity rows instead of asking users to infer raw set data. Progression policy is unchanged: existing `completed`, pain, perceived-difficulty, phase, and recommendation fields remain the deterministic progression inputs, while richer set metrics are informational and prepared for #36. No schema, RLS, final-save, active-draft, or hosted Supabase behavior changed in this follow-up.
 
+
+
+## PR Follow-up — Canonical Exercise Identity
+
+Implementing the PR follow-up request for Issue #40 by adding the smallest additive canonical exercise identity and reviewed alias foundation. The current reusable exercise catalog remains the static TypeScript catalog, `source_exercise_id` remains the compatibility text key, and the new migration adds canonical identity/alias tables plus nullable canonical snapshots without destructive historical rewrites or forced custom-exercise merging. Runtime resolution is deterministic: exact canonical ID, exact reviewed alias/name, otherwise unresolved.
+
+Validation focus: exact canonical lookup, reviewed alias lookup, punctuation/case normalization, approved abbreviations, material variant separation, unresolved custom names, additive/idempotent migration SQL, readonly audit coverage, and preservation of historical display snapshots. Hosted Supabase migrations have not been applied by Codex.
+
+Patch update: PR #61 review hardening now seeds all 35 current TypeScript catalog exercises into `exercise_identities`, preserves the catalog ID as canonical identity, enables RLS with no client policies on the identity/alias tables, and extends `finalize_workout_session` so saved `exercise_results` snapshot `canonical_exercise_id` from the source `exercise_entries` row while leaving unresolved/custom exercises null. The migration remains in-repo only and was not applied to hosted Supabase by Codex. Added parity tests guard catalog seed drift, reviewed alias target validity, canonical name resolution, finalization SQL behavior, and read-only verification coverage.
+
 ## Workflow Source Of Truth
 
 Active work is issue-driven:
