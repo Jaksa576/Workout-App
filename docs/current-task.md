@@ -414,3 +414,11 @@ Implementing the requested active-workout layout tightening patch on top of the 
 This patch removes only the redundant completion summary card beneath the active header, preserves the sticky header elapsed-time and completed-set count, tightens exercise-card spacing, places rest metadata directly under the exercise name, shares explicit grid definitions between set headers and rows, keeps numeric/action columns compact, and changes Add set into a full-width centered footer control. Workout behavior, rest-timer behavior, draft persistence, final-save payloads, progression, details surfaces, and database schema are intentionally unchanged.
 
 Validation focus: bodyweight/reps-only rows, weighted rows, timed/hold rows, previous/no-previous values, long exercise names, complete/uncomplete, full-width Add set, Details, unchanged rest timer behavior, reload persistence, narrow mobile, standard mobile, and desktop widths.
+
+## PR Follow-up — Active Workout Set Layout Alignment
+
+Implementing the requested standalone follow-up on the merged active-workout set-table baseline. This patch is UI-only: it reuses the existing active draft, set-row editing, completion, add-set, and final-save behavior while tightening the set-list presentation inside each exercise card.
+
+The set header and rows continue to use the same metadata-driven grid definition for completion-only, reps-only, weighted, duration, distance, distance-duration, same-each-side, and independent-side variants. The visual patch centers header labels and row values in those shared columns, keeps the completion checkmark centered over the set completion buttons, reduces simple row/header/footer vertical padding, and removes the nested rounded set-table card so the set area reads as a flat segmented list within the existing rounded exercise card.
+
+Validation focus: narrow mobile alignment for completion-only, reps-only, weighted, timed/duration, distance-duration, same-each-side, and independent-side rows; previous-value text with and without history; Add set full-width click target; and unchanged complete/uncomplete/edit/add/reload persistence behavior.
