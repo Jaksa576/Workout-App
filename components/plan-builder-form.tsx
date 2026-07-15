@@ -171,14 +171,16 @@ export function PlanBuilderForm({
     const normalizedSearch = normalizeExerciseLookupKey(librarySearchByWorkout[workoutKey] ?? "");
     const category = libraryCategoryByWorkout[workoutKey] ?? "all";
 
+    const exactResolution = normalizedSearch ? resolveExerciseIdentityByReviewedName(normalizedSearch) : null;
+
     return exerciseCatalog.filter((exercise) => {
       const matchesCategory = category === "all" || exercise.category === category;
       const searchKeys = getExerciseSearchKeys(exercise);
-      const exactResolution = normalizedSearch ? resolveExerciseIdentityByReviewedName(normalizedSearch) : null;
-      const matchesSearch =
-        !normalizedSearch ||
-        (exactResolution?.status === "resolved" && exactResolution.candidate.canonicalId === exercise.id) ||
-        searchKeys.some((key) => key.includes(normalizedSearch));
+      const matchesSearch = !normalizedSearch
+        ? true
+        : exactResolution?.status === "resolved"
+          ? exactResolution.candidate.canonicalId === exercise.id
+          : searchKeys.some((key) => key.includes(normalizedSearch));
 
       return matchesCategory && matchesSearch;
     });

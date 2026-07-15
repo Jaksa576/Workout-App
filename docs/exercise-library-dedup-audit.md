@@ -98,3 +98,11 @@ Focused 42C prevention is implemented through the shared deterministic TypeScrip
 A future Slice 42B migration may consume only the 17 approved mappings in this document, must be additive and idempotent, must include exact expected counts, must stop if counts differ from **17 groups / 72 entries**, and must preserve display names, historical snapshots, metrics, prescriptions, ordering, guidance, ownership, tracking metadata, and explicit custom records.
 
 Issue #40 tracking cleanup and Slice 42C duplicate-prevention/search-selection behavior are separate focused implementation work. 42C may use the identity-resolution boundary established by 42B, but this read-only audit does not authorize app behavior changes or database writes.
+
+## PR #68 Follow-up Notes
+
+The approved 42A audit invariant is unchanged: 17 normalized exercise-name groups and 72 unresolved active `exercise_entries` rows are approved for canonical reference repair only. PR #68 does not add canonical identities, merge materially distinct variants, rewrite display names, rewrite historical snapshots, update set metrics, or apply the hosted migration.
+
+The 42B migration now limits historical result canonical backfill to the exact `exercise_entries` rows captured by the migration's `UPDATE ... RETURNING` repair step. Existing result rows that were already canonical before the migration are outside the approved repair scope and are reported separately by verification.
+
+The SQL contract now mirrors the TypeScript lookup contract from `normalizeExerciseLookupKey`: trim, lowercase, remove straight/curly apostrophes, replace non-alphanumeric runs with spaces, collapse repeated whitespace, and trim again. Approved targets are validated against a combined canonical-name/reviewed-alias namespace so cross-table ambiguity blocks the migration instead of silently selecting a target.
