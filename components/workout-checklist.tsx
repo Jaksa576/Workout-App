@@ -372,9 +372,9 @@ export function WorkoutChecklist({
                 </div>
               </div>
               {supportsSetLogging ? (
-                <div className="mt-3 overflow-hidden rounded-[16px] border border-border bg-surface-soft">
+                <div className="mt-3 overflow-hidden">
                   <div
-                    className={`grid ${getSetGridClass(exercise)} items-center gap-2 px-3 py-2 text-[0.65rem] font-black uppercase tracking-[0.12em] text-muted`}
+                    className={`grid min-h-9 ${getSetGridClass(exercise)} items-center gap-2 border-b border-border px-2 text-center text-[0.65rem] font-black uppercase tracking-[0.12em] text-muted`}
                   >
                     <span>Set</span>
                     <span>Previous</span>
@@ -429,7 +429,7 @@ export function WorkoutChecklist({
                           rowError ? `${row.setId}-error` : undefined
                         }
                         inputMode="numeric"
-                        className="min-h-10 min-w-0 rounded-xl border border-border bg-surface px-2 py-1.5 text-sm font-semibold"
+                        className="min-h-10 min-w-0 rounded-xl border border-border bg-surface px-2 py-1 text-center text-sm font-semibold"
                         value={formatDurationInput(
                           row[field] as number | null | undefined,
                         )}
@@ -460,7 +460,7 @@ export function WorkoutChecklist({
                           rowError ? `${row.setId}-error` : undefined
                         }
                         inputMode={integer ? "numeric" : "decimal"}
-                        className="min-h-10 min-w-0 rounded-xl border border-border bg-surface px-2 py-1.5 text-sm font-semibold"
+                        className="min-h-10 min-w-0 rounded-xl border border-border bg-surface px-2 py-1 text-center text-sm font-semibold"
                         value={(row[field] as number | null | undefined) ?? ""}
                         onChange={(event) => {
                           const value = event.target.value;
@@ -484,13 +484,13 @@ export function WorkoutChecklist({
                     return (
                       <div
                         key={row.setId}
-                        className={`grid min-h-[3.25rem] items-center gap-2 border-t border-border px-3 py-1.5 ${getSetGridClass(exercise)} ${row.status === "completed" ? "bg-success/5" : ""}`}
+                        className={`grid min-h-12 items-center gap-2 border-b border-border px-2 py-1 ${getSetGridClass(exercise)} ${row.status === "completed" ? "bg-success/5" : ""}`}
                       >
-                        <span className="text-sm font-black text-copy">
+                        <span className="text-center text-sm font-black text-copy">
                           {rowIndex + 1}
                           {row.setKind === "added" ? "+" : ""}
                         </span>
-                        <span className="text-xs font-semibold text-muted">
+                        <span className="min-w-0 text-center text-xs font-semibold leading-snug text-muted">
                           {exercise.previousSetSummaries?.[rowIndex] ??
                             formatPreviousSet(
                               exercise.previousSetDefaults?.[rowIndex],
@@ -501,7 +501,7 @@ export function WorkoutChecklist({
                         </span>
                         {isCompletionRow ? null : independent ? (
                           <>
-                            <div className="grid gap-1">
+                            <div className="grid gap-1 text-center">
                               {needsLoad
                                 ? numberInput(
                                     "actualLeftLoad",
@@ -531,7 +531,7 @@ export function WorkoutChecklist({
                                   )
                                 : null}
                             </div>
-                            <div className="grid gap-1">
+                            <div className="grid gap-1 text-center">
                               {needsLoad
                                 ? numberInput(
                                     "actualRightLoad",
@@ -604,7 +604,7 @@ export function WorkoutChecklist({
                           type="button"
                           aria-label={`${row.status === "completed" ? "Uncomplete" : "Complete"} set ${rowIndex + 1} of ${exercise.name}`}
                           aria-pressed={row.status === "completed"}
-                          className={`min-h-10 rounded-xl border text-sm font-black ${row.status === "completed" ? "border-success bg-success text-white" : "border-border bg-surface text-copy"}`}
+                          className={`mx-auto min-h-10 w-10 rounded-xl border text-sm font-black ${row.status === "completed" ? "border-success bg-success text-white" : "border-border bg-surface text-copy"}`}
                           onClick={() => completeSet(row, exercise)}
                         >
                           ✓
@@ -632,7 +632,7 @@ export function WorkoutChecklist({
                   {supportsAddedSets(exercise.trackingType) ? (
                     <button
                       type="button"
-                      className="flex min-h-12 w-full items-center justify-center gap-2 border-t border-border px-3 py-2 text-sm font-black text-primary transition hover:bg-primary/10 active:bg-primary/15 disabled:cursor-not-allowed disabled:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
+                      className="flex min-h-12 w-full items-center justify-center gap-2 border-t border-border px-3 py-1 text-sm font-black text-primary transition hover:bg-primary/10 active:bg-primary/15 disabled:cursor-not-allowed disabled:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
                       onClick={() => addSet(exercise)}
                     >
                       <span aria-hidden="true">＋</span>
