@@ -56,6 +56,22 @@ Compatibility names such as `plan_phases` remain intentionally unchanged unless 
 - Session history should remain readable after plan edits through workout/exercise snapshots.
 - Issue #6 owns migration-safe extension of the workout/session/result model for set-level recording; the approved Issue #9 discovery contract below governs the initial child implementation issues.
 
+## Canonical Exercise Identity Resolution
+
+Exercise identity resolution is deterministic and shared across plan write paths, tests, and exercise library search. The application boundary is `lib/exercise-identity.ts`, whose normalization trims text, lowercases with the `en-US` locale, removes apostrophes, replaces non-alphanumeric runs with spaces, collapses whitespace, and compares exact normalized keys only.
+
+Resolution order is:
+
+1. exact canonical catalog ID;
+2. exact normalized active system canonical name;
+3. exact normalized reviewed system alias;
+4. unresolved when no exact match exists;
+5. explicit ambiguity if a normalized key has more than one valid canonical target.
+
+Plan creation, plan editing, regenerated setup drafts, starter/template plans, and AI-imported drafts all converge through the structured plan save validation in `lib/plan-write.ts`. That boundary attaches `canonical_exercise_id` before persistence for exact canonical names and reviewed aliases while preserving the entered exercise display name and allowing intentional unknown custom exercises to remain unresolved. It does not use fuzzy matching, LLM inference, or runtime name inference for tracking metadata.
+
+Exercise search/selection surfaces should use the same normalization and reviewed alias keys. Aliases are search terms for the canonical row, not separate selectable canonical rows. Materially distinct variants remain distinct catalog entries unless a future issue approves a specific deterministic mapping.
+
 ## Workout Execution Domain Contract (Issue #9 Discovery)
 
 Issue #9 selects the initial workout execution contract for Issue #6 follow-up work. This contract is documentation-only and does not change production behavior until the child implementation issues add committed migrations, generated types, routes, UI, and tests.

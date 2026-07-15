@@ -18,7 +18,7 @@ export type ExerciseIdentityResolution =
   | { status: "ambiguous"; normalizedKey: string; candidates: ExerciseIdentityCandidate[] }
   | { status: "unresolved"; normalizedKey: string };
 
-const reviewedSystemAliases: Record<string, string[]> = {
+export const reviewedSystemAliases: Record<string, string[]> = {
   "push-up": ["push up", "pushup"],
   "romanian-deadlift": ["rdl", "romanian dead lift"],
   "bodyweight-squat": ["bodyweight squat", "air squat"],
@@ -91,4 +91,17 @@ export function resolveSystemExerciseIdentity(input: { canonicalId?: string | nu
   const byId = resolveExerciseIdentityByCanonicalId(input.canonicalId);
   if (byId.status === "resolved") return byId;
   return resolveExerciseIdentityByReviewedName(input.displayName);
+}
+
+export function getReviewedAliasesForExercise(canonicalId: string) {
+  return reviewedSystemAliases[canonicalId] ?? [];
+}
+
+export function getExerciseSearchKeys(exercise: Pick<ExerciseCatalogItem, "id" | "name" | "equipmentTags">) {
+  return [
+    exercise.name,
+    exercise.id.replace(/-/g, " "),
+    ...exercise.equipmentTags,
+    ...getReviewedAliasesForExercise(exercise.id)
+  ].map(normalizeExerciseLookupKey);
 }

@@ -81,6 +81,18 @@ Historical display snapshots and set/result metrics remain unchanged. Any future
 
 `supabase/verification/issue-42-exercise-dedup-audit-readonly.sql` remains the read-only verification script for this audit. It uses matched row IDs instead of `count(*)`, pre-aggregates entry and result references before joining, separates active plan/template references from historical results, enumerates normalized `exercise_entries.name` groups, and exposes unresolved groups for classification without performing writes.
 
+## Slice 42B / focused 42C implementation status
+
+Status: **implemented in repository; hosted migration not applied by Codex**.
+
+The approved mapping table above remains unchanged: **17 groups / 72 expected `exercise_entries` repairs**. The implementation adds `supabase/migrations/20260715120000_issue42b_approved_exercise_entry_identity_repair.sql`, which consumes only those approved mappings and updates only `exercise_entries.canonical_exercise_id` for unresolved rows whose current normalized display name matches an approved normalized name. It preserves `exercise_entries.id`, `name`, `source_exercise_id`, prescriptions, ordering, guidance, ownership, tracking metadata, and other entry data.
+
+The migration is intentionally guarded and idempotent. First application requires exactly 72 unresolved approved candidates with each per-group count matching this audit; a successful rerun requires zero unresolved approved candidates and 72 rows already linked to the approved targets. It also stops if target identities are missing, inactive, superseded, user-owned, ambiguous by normalized name, or if approved rows include explicit user-owned canonical identities.
+
+Historical display snapshots remain untouched. `exercise_results.canonical_exercise_id` is backfilled only when the result still references a repaired durable `exercise_entries.id` and has no existing canonical ID; result names, completion data, set metrics, prescriptions, notes, progression signals, and recommendations are not rewritten.
+
+Focused 42C prevention is implemented through the shared deterministic TypeScript resolver: exact canonical IDs, exact normalized canonical names, and reviewed aliases resolve before plan persistence, while unknown or materially distinct custom names remain usable and unresolved. Existing plan-builder search now uses the same normalization and reviewed alias keys so reviewed aliases find one canonical catalog row without creating separate alias rows.
+
 ## Proposed Slice 42B / 42C boundary
 
 A future Slice 42B migration may consume only the 17 approved mappings in this document, must be additive and idempotent, must include exact expected counts, must stop if counts differ from **17 groups / 72 entries**, and must preserve display names, historical snapshots, metrics, prescriptions, ordering, guidance, ownership, tracking metadata, and explicit custom records.
