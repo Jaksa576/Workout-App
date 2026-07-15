@@ -56,6 +56,22 @@ Compatibility names such as `plan_phases` remain intentionally unchanged unless 
 - Session history should remain readable after plan edits through workout/exercise snapshots.
 - Issue #6 owns migration-safe extension of the workout/session/result model for set-level recording; the approved Issue #9 discovery contract below governs the initial child implementation issues.
 
+## Canonical Exercise Identity Resolution
+
+Exercise identity resolution is deterministic and shared across plan write paths, tests, and exercise library search. The application boundary is `lib/exercise-identity.ts`, whose normalization trims text, lowercases with the `en-US` locale, removes apostrophes, replaces non-alphanumeric runs with spaces, collapses whitespace, and compares exact normalized keys only.
+
+Resolution order is:
+
+1. exact canonical catalog ID;
+2. exact normalized active system canonical name;
+3. exact normalized reviewed system alias;
+4. unresolved when no exact match exists;
+5. explicit ambiguity if a normalized key has more than one valid canonical target.
+
+Plan creation, plan editing, regenerated setup drafts, starter/template plans, and AI-imported drafts all converge through the structured plan save validation in `lib/plan-write.ts`. That boundary attaches `canonical_exercise_id` before persistence for exact canonical names and reviewed aliases while preserving the entered exercise display name and allowing intentional unknown custom exercises to remain unresolved. It does not use fuzzy matching, LLM inference, or runtime name inference for tracking metadata.
+
+Exercise search/selection surfaces should use the same normalization and reviewed alias keys. Aliases are search terms for the canonical row, not separate selectable canonical rows. Materially distinct variants remain distinct catalog entries unless a future issue approves a specific deterministic mapping.
+
 ## Workout Execution Domain Contract (Issue #9 Discovery)
 
 Issue #9 selects the initial workout execution contract for Issue #6 follow-up work. This contract is documentation-only and does not change production behavior until the child implementation issues add committed migrations, generated types, routes, UI, and tests.
@@ -449,3 +465,11 @@ Saved plans and history continue to preserve display-name snapshots. New plan sa
 Read-only audit SQL for this foundation lives in `supabase/verification/issue-40-exercise-identity-readonly.sql` and reports duplicate canonical lookup keys, aliases that map to multiple identities, canonical records without aliases, unresolved active exercise entries, custom names that resemble canonical names, and ownership-scope conflicts.
 
 The database identity seed is intentionally kept in parity with the static TypeScript `exerciseCatalog`: every current catalog exercise has a system-owned `exercise_identities` row using the catalog ID as the canonical ID. The identity and alias tables have RLS enabled and no client read/write policies in this foundation slice; migrations and service-role maintenance can manage rows, while app writes only snapshot nullable `canonical_exercise_id` values through plan save and the finalized workout RPC. Custom or unresolved exercises remain valid with `canonical_exercise_id = null`, and historical display-name snapshots are preserved.
+
+### Issue #42B/42C approved exercise identity repair contract
+
+The Issue #42B migration `supabase/migrations/20260715120000_issue42b_approved_exercise_entry_identity_repair.sql` is a guarded, hosted-unapplied repair for only the 17 approved mappings / 72 active `exercise_entries` rows identified by the merged 42A audit. It updates only `exercise_entries.canonical_exercise_id` and backfills `exercise_results.canonical_exercise_id` only by joining through the temporary repaired-entry ID set captured from `UPDATE ... RETURNING`; it must not rewrite entry display names, prescriptions, ordering, guidance, tracking metadata, historical result snapshots, set-result rows, metrics, notes, completion state, or progression attribution.
+
+SQL lookup normalization for this repair matches the TypeScript resolver: trim, lowercase, remove straight and curly apostrophes, replace non-alphanumeric runs with spaces, collapse repeated whitespace, and trim again. The database preconditions validate a combined active system namespace made from canonical identity normalized names and reviewed aliases. An approved key is valid only when that combined namespace resolves to exactly one active, non-superseded system canonical identity matching the approved target and has no inactive, superseded, user-owned, or cross-table ambiguity.
+
+The focused 42C app integration continues to use the shared plan write boundary. Manual plan creation, plan editing/setup regeneration, and reviewed AI draft saves flow through `createStructuredPlanForUser` or `updateStructuredPlanForUser` in `lib/plan-write.ts`, which resolves exact canonical IDs/names and reviewed aliases deterministically while preserving the entered display name. Unknown custom names and materially distinct variants remain unresolved. No independent supported import, clone, or runtime template-creation write path is introduced by this slice; any future surface must route through the same resolver boundary rather than adding fuzzy matching or a parallel persistence path.

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import type { ReactNode } from "react";
 import { exerciseCatalog, exerciseCategories, toPlanExercise } from "@/lib/exercise-library";
+import { getExerciseSearchKeys, normalizeExerciseLookupKey, resolveExerciseIdentityByReviewedName } from "@/lib/exercise-identity";
 import { hasExerciseGuidance } from "@/lib/exercise-guidance";
 import { formatPhaseLabel } from "@/lib/plan-labels";
 import type {
@@ -167,15 +168,19 @@ export function PlanBuilderForm({
         : null;
 
   function getFilteredExercises(workoutKey: string) {
-    const normalizedSearch = (librarySearchByWorkout[workoutKey] ?? "").trim().toLowerCase();
+    const normalizedSearch = normalizeExerciseLookupKey(librarySearchByWorkout[workoutKey] ?? "");
     const category = libraryCategoryByWorkout[workoutKey] ?? "all";
+
+    const exactResolution = normalizedSearch ? resolveExerciseIdentityByReviewedName(normalizedSearch) : null;
 
     return exerciseCatalog.filter((exercise) => {
       const matchesCategory = category === "all" || exercise.category === category;
-      const matchesSearch =
-        !normalizedSearch ||
-        exercise.name.toLowerCase().includes(normalizedSearch) ||
-        exercise.equipmentTags.some((tag) => tag.toLowerCase().includes(normalizedSearch));
+      const searchKeys = getExerciseSearchKeys(exercise);
+      const matchesSearch = !normalizedSearch
+        ? true
+        : exactResolution?.status === "resolved"
+          ? exactResolution.candidate.canonicalId === exercise.id
+          : searchKeys.some((key) => key.includes(normalizedSearch));
 
       return matchesCategory && matchesSearch;
     });
