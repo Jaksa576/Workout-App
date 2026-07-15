@@ -83,6 +83,13 @@ Validation focus: exact canonical lookup, reviewed alias lookup, punctuation/cas
 
 Patch update: PR #61 review hardening now seeds all 35 current TypeScript catalog exercises into `exercise_identities`, preserves the catalog ID as canonical identity, enables RLS with no client policies on the identity/alias tables, and extends `finalize_workout_session` so saved `exercise_results` snapshot `canonical_exercise_id` from the source `exercise_entries` row while leaving unresolved/custom exercises null. The migration remains in-repo only and was not applied to hosted Supabase by Codex. Added parity tests guard catalog seed drift, reviewed alias target validity, canonical name resolution, finalization SQL behavior, and read-only verification coverage.
 
+
+## PR Follow-up — Issue #42A Exercise Library Deduplication Audit
+
+Implementing the PR follow-up request for Issue #42 Slice 42A as a read-only audit and classification step. The committed artifact is `docs/exercise-library-dedup-audit.md`; it classifies the reviewed repository candidate groups, records zero approved groups, proposes only alias-only groups for product-owner review, rejects materially distinct variants, and leaves one lower-leg naming area as `needs_product_review`.
+
+This slice intentionally includes no consolidation writes, no reference repointing, no identity retirement, no alias mutation, and no historical snapshot rewrite. Hosted reference counts are enumerated by the read-only SQL in `supabase/verification/issue-42-exercise-dedup-audit-readonly.sql` and must be run against the authorized target before any Slice 42B migration is authored. Slice 42B remains blocked until the product owner explicitly marks individual groups `approved`.
+
 ## Workflow Source Of Truth
 
 Active work is issue-driven:
