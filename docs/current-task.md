@@ -86,9 +86,11 @@ Patch update: PR #61 review hardening now seeds all 35 current TypeScript catalo
 
 ## PR Follow-up — Issue #42A Exercise Library Deduplication Audit
 
-Implementing the PR follow-up request for Issue #42 Slice 42A as a read-only audit and classification step. The committed artifact is `docs/exercise-library-dedup-audit.md`; it classifies the reviewed repository candidate groups, records zero approved groups, proposes only alias-only groups for product-owner review, rejects materially distinct variants, and leaves one lower-leg naming area as `needs_product_review`.
+Implementing the PR follow-up request for Issue #42 Slice 42A as a read-only audit and classification step. The committed artifact is `docs/exercise-library-dedup-audit.md`; it now records the corrected hosted read-only execution against `Workout-app-dev` as complete and identifies 17 unresolved normalized-name groups / 72 active exercise entries approved by the product owner for future identity-reference repair.
 
-This slice intentionally includes no consolidation writes, no reference repointing, no identity retirement, no alias mutation, and no historical snapshot rewrite. PR #67 follow-up corrected the read-only audit SQL so it now uses matched-ID counts instead of `count(*)`, avoids OR-join count multiplication through pre-aggregated reference classes, separates active plan/template references from historical results, and enumerates every normalized exercise-entry group, unresolved group, reviewed alias, alias conflict, and inactive/superseded referenced identity. Hosted reference counts still must be run against the authorized `Workout-app-dev` target and pasted into `docs/exercise-library-dedup-audit.md` before any Slice 42B migration is authored. Slice 42B remains blocked until hosted results are available and the product owner explicitly marks deterministic groups `approved`.
+This slice intentionally includes no consolidation writes, no reference repointing, no identity retirement, no alias mutation, no tracking-metadata cleanup, no application behavior change, and no historical snapshot or metric rewrite. PR #67 remains a read-only audit PR: the approval scope is limited to future `exercise_entries.canonical_exercise_id` linking for the 17 documented mappings, while historical display snapshots, prescriptions, ordering, guidance, ownership, tracking metadata, and set/result metrics remain untouched.
+
+The next implementation must be a separate Slice 42B PR for the approved identity-reference migration plus a focused Slice 42C PR for duplicate-prevention/search-selection behavior. Hosted migration application requires separate authorization and must not be inferred from the 42A audit approval.
 
 ## Workflow Source Of Truth
 

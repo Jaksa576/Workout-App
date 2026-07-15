@@ -1,258 +1,88 @@
-# Issue #42A — Exercise Library Deduplication Audit
+# Issue #42A Exercise Library Deduplication Audit
 
-Status: **blocked pending hosted exhaustive audit execution**
-Scope: **read-only audit and classification only**
-Generated: 2026-07-15
-Updated: 2026-07-15 PR #67 follow-up
+Status: **hosted read-only execution complete for PR #67 / Issue #42A**.
 
-## Guardrails
+Audited target: **Workout-app-dev**.
 
-- No consolidation writes are included in this slice.
-- No identity, alias, active reference, session, result, or historical snapshot rows are changed by this artifact.
-- No group is marked `approved`; only the product owner may move a group to `approved`.
-- The migration/write slice must consume only groups that the product owner explicitly marks `approved` after reviewing this artifact.
-- Historical `exercise_results` display snapshots remain intentionally untouched for all groups.
-- Custom/user-owned exercises remain excluded unless a future product-approved flow captures explicit user consent.
+This document is the authoritative read-only Slice 42A audit artifact for Issue #42. It records the corrected hosted audit findings that were run against `Workout-app-dev`; it does not introduce migrations, application behavior, canonical data changes, alias data changes, hosted writes, or historical rewrites.
 
-## Readiness checklist
+## Scope and approval boundary
 
-| Gate | Audit finding | Status |
-| --- | --- | --- |
-| Canonical identity and aliases are stable | Issue #41 added `exercise_identities`, `exercise_aliases`, and nullable canonical snapshots while preserving `source_exercise_id`. | Ready |
-| Issue #41 migration present | `supabase/migrations/20260714120000_exercise_identity_aliases.sql` is committed and seeds 35 static catalog identities plus reviewed aliases. Hosted application was reported applied and verified in Issue #42 input. | Ready |
-| Active reference paths are enumerable | Read-only SQL in `supabase/verification/issue-42-exercise-dedup-audit-readonly.sql` enumerates identities, aliases, plan entries, templates/seeds through entries, active workout/session rows, historical results, and unresolved/custom rows. | Ready |
-| Historical snapshots independent | Saved result display fields are snapshots; Slice 42A proposes no updates to `exercise_results.exercise_name_snapshot` or set rows. | Ready |
-| Custom/user-owned distinction | Owner scope and nullable canonical IDs distinguish system identities from unresolved/custom plan entries; user-owned identities remain excluded from system consolidation. | Ready |
-| Audit before writes | This artifact and its SQL are read-only and contain proposed actions only. | Ready |
-| Alias ambiguity blocked | Existing unique reviewed system alias index and the audit SQL check aliases resolving to multiple active canonical identities. | Ready |
+- The approved Slice 42A result is **17 unresolved normalized-name groups / 72 active exercise-entry repairs** for future canonical identity-reference repair in Slice 42B.
+- Approval is limited to setting `exercise_entries.canonical_exercise_id` to the listed existing active system canonical identity for the approved groups below.
+- Future repair must preserve existing `exercise_entries.id` values, entry display names, prescriptions, ordering, guidance, ownership, and tracking metadata.
+- Related `exercise_results.canonical_exercise_id` may be backfilled only where the source entry and exact identity mapping make the result deterministic and safe.
+- Historical display snapshots, result names, set/result metrics, progression attribution, and user-visible historical names remain untouched.
+- Identity linking is separate from tracking-metadata cleanup. Issue #40 tracking-type/unit/laterality/set/rep/prescription cleanup is not authorized by this audit.
+- Approval does **not** permit tracking-type changes, unit changes, laterality changes, set/rep/prescription changes, historical-name rewrites, materially different variant merges, new canonical identities, explicit user-owned custom identity changes, or hosted migration application.
+- Slice 42B may consume **only** the 17 approved mappings below unless product-owner approval is explicitly expanded in a future issue/PR.
 
-
-## PR #67 follow-up audit correction
-
-The original 42A artifact was not sufficient to authorize consolidation. The read-only audit SQL has been corrected to:
-
-- count matched row IDs instead of `count(*)`, so aliases and groups with no hosted matches report zero rather than a synthetic left-join row;
-- pre-aggregate entry and result references before joining to identities, preventing OR-join multiplication of reference counts;
-- keep historical `exercise_results` counts separate from active plan-entry/template counts;
-- enumerate every active system identity, reviewed alias, normalized `exercise_entries.name`, unresolved entry group, repeated unresolved name, alias conflict, and inactive/superseded referenced identity;
-- include tracking metadata and prescription variants for normalized entry groups so product review can distinguish deterministic legacy repair from custom or materially distinct variants;
-- classify unresolved normalized groups as possible exact/alias legacy repair, ambiguous review, possible new canonical/custom review, or no action required.
-
-No consolidation migration is authorized by this document until the corrected SQL is run against the authorized hosted `Workout-app-dev` target and the resulting groups are pasted into this audit without user IDs, private plan names, notes, or other personal data.
-
-## Summary totals
-
-These totals classify the current repository-owned system catalog and reviewed alias model. Hosted reference counts must be filled from the read-only SQL before any Slice 42B migration is authored. This follow-up corrects the read-only SQL so hosted execution can produce exhaustive, zero-safe counts; Codex could not run against Workout-app-dev from this container because no Supabase target credentials are present.
+## Hosted summary totals
 
 | Metric | Count |
 | --- | ---: |
-| System canonical identities in reviewed catalog | 35 |
-| Reviewed alias rows expected from Issue #41 seed | 6 |
-| Candidate groups reviewed below | 11 |
-| Exact duplicate groups | 0 |
-| Alias-only presentation variant groups | 4 |
-| Confirmed distinct variant groups | 6 |
-| Ambiguous review-required groups | 1 |
-| Groups proposed for future approval | 4 |
-| Groups rejected as distinct/no-merge | 6 |
-| Groups needing product review | 1 |
-| Approved groups | 0 |
-| Active references proposed to move in Slice 42A | 0 |
-| Historical snapshots intentionally untouched in Slice 42A | All |
-| Custom/user-owned records intentionally excluded | All |
+| Hosted unresolved normalized-name groups approved for future identity-reference repair | 17 |
+| Hosted active exercise entries approved for future identity-reference repair | 72 |
+| Existing active system canonical identities targeted by approved mappings | 17 |
+| New canonical identities approved by this audit | 0 |
+| Tracking-metadata repairs approved by this audit | 0 |
+| Database/application writes introduced by PR #67 / Slice 42A | 0 |
 
-## Candidate groups
+## Approved hosted mappings for future Slice 42B identity repair
 
-Reference count fields are separated by class and must be populated from `issue-42-exercise-dedup-audit-readonly.sql` against the authorized target before Slice 42B. `repo_static_catalog_identity_count` is known from the repository catalog; hosted counts are deliberately not invented.
+These mappings were produced by the corrected read-only audit logic against `Workout-app-dev`. Each normalized name resolved deterministically to exactly one existing active system canonical identity and is approved for future identity-reference repair only.
 
-### 42A-001 — Push-up punctuation aliases
+| Normalized name | Canonical ID | Approved entry count | Classification | Approval scope |
+| --- | --- | ---: | --- | --- |
+| `dead bug` | `dead-bug` | 10 | exact legacy reference repair | Set `exercise_entries.canonical_exercise_id` only. |
+| `step up` | `step-up` | 8 | exact legacy reference repair | Set `exercise_entries.canonical_exercise_id` only. |
+| `farmer carry` | `farmer-carry` | 7 | exact legacy reference repair | Set `exercise_entries.canonical_exercise_id` only. |
+| `side plank` | `side-plank` | 7 | exact legacy reference repair | Set `exercise_entries.canonical_exercise_id` only. |
+| `dumbbell row` | `dumbbell-row` | 5 | reviewed alias legacy reference repair | Set `exercise_entries.canonical_exercise_id` only. |
+| `lateral shuffle` | `lateral-shuffle` | 5 | exact legacy reference repair | Set `exercise_entries.canonical_exercise_id` only. |
+| `push up` | `push-up` | 5 | reviewed alias legacy reference repair | Set `exercise_entries.canonical_exercise_id` only. |
+| `calf raise` | `calf-raise` | 4 | exact legacy reference repair | Set `exercise_entries.canonical_exercise_id` only. |
+| `easy run` | `easy-run` | 4 | exact legacy reference repair | Set `exercise_entries.canonical_exercise_id` only. |
+| `walking lunge` | `walking-lunge` | 4 | exact legacy reference repair | Set `exercise_entries.canonical_exercise_id` only. |
+| `bird dog` | `bird-dog` | 3 | exact legacy reference repair | Set `exercise_entries.canonical_exercise_id` only. |
+| `glute bridge` | `glute-bridge` | 3 | exact legacy reference repair | Set `exercise_entries.canonical_exercise_id` only. |
+| `reverse lunge` | `reverse-lunge` | 3 | exact legacy reference repair | Set `exercise_entries.canonical_exercise_id` only. |
+| `band row` | `band-row` | 1 | exact legacy reference repair | Set `exercise_entries.canonical_exercise_id` only. |
+| `bodyweight squat` | `bodyweight-squat` | 1 | reviewed alias legacy reference repair | Set `exercise_entries.canonical_exercise_id` only. |
+| `box squat` | `box-squat` | 1 | exact legacy reference repair | Set `exercise_entries.canonical_exercise_id` only. |
+| `lateral lunge` | `lateral-lunge` | 1 | exact legacy reference repair | Set `exercise_entries.canonical_exercise_id` only. |
+| **Total** |  | **72** |  |  |
 
-| Field | Value |
-| --- | --- |
-| Record IDs / stable keys | `push-up` plus reviewed aliases `push up`, `pushup` |
-| Current names and aliases | Canonical `Push-up`; aliases `push up`, `pushup` |
-| Ownership scope | system |
-| Reference counts | `repo_static_catalog_identity_count=1`; hosted reusable identities / active plan entries / templates-seeds / active workout-session records / historical snapshots / custom records: run read-only SQL |
-| Equipment / movement qualifiers | Bodyweight; bilateral; push |
-| Proposed canonical survivor | `push-up` |
-| Category | Alias-only presentation variant |
-| Rationale | Case/punctuation/spacing variants describe the same bodyweight push-up identity and are already reviewed aliases. |
-| Proposed reference updates | If future approved, resolve active entries using these aliases to `canonical_exercise_id='push-up'`; do not rewrite display snapshots. |
-| Historical impact statement | Historical result names stay unchanged; future result rows snapshot `canonical_exercise_id` from active entries. |
-| Approval status | proposed |
+## Deferred unmatched and excluded groups
 
-### 42A-002 — Romanian deadlift abbreviation aliases
+The groups below remain visible for review but are not approved for Slice 42B identity repair. They are classified so a future product-owner decision can expand scope without treating them as already approved.
 
-| Field | Value |
-| --- | --- |
-| Record IDs / stable keys | `romanian-deadlift` plus reviewed aliases `rdl`, `romanian dead lift` |
-| Current names and aliases | Canonical `Romanian deadlift`; aliases `rdl`, `romanian dead lift` |
-| Ownership scope | system |
-| Reference counts | `repo_static_catalog_identity_count=1`; hosted counts pending read-only SQL |
-| Equipment / movement qualifiers | Dumbbells/Barbell; bilateral; hinge |
-| Proposed canonical survivor | `romanian-deadlift` |
-| Category | Alias-only presentation variant |
-| Rationale | Abbreviation and spacing variant are harmless reviewed aliases for the same loaded hinge identity. |
-| Proposed reference updates | If future approved, resolve alias-backed active entries to `canonical_exercise_id='romanian-deadlift'`; do not alter custom entries automatically. |
-| Historical impact statement | Historical result snapshots remain unchanged. |
-| Approval status | proposed |
+| Group | Classification | Current decision |
+| --- | --- | --- |
+| Romanian deadlift naming and abbreviation variants beyond deterministic hosted matches | ambiguous review | No action in 42B unless product approval expands the mapping set after confirming metadata compatibility and material exercise meaning. |
+| Bodyweight squat / box squat / goblet squat / barbell back squat | confirmed distinct | Keep separate; do not merge loaded, box-supported, or bodyweight squat variants. |
+| Romanian deadlift / hip hinge drill / glute bridge | confirmed distinct | Keep separate; do not merge loaded hinge, technique drill, and bridge patterns. |
+| Reverse lunge / walking lunge / lateral lunge / step-up variants outside the approved exact mappings | confirmed distinct | Keep separate unless an individual unresolved exact-name row is in the approved table above. |
+| Incline push-up / push-up / dumbbell floor press / dumbbell shoulder press | confirmed distinct | Keep separate; angle, loading, and equipment differ materially. |
+| Band row / dumbbell row variants outside the approved exact mappings | confirmed distinct | Keep separate; equipment and loading differ materially. |
+| Brisk walk / easy run / run-walk intervals / stride drills / lateral shuffle / skater hop / low-impact cardio march | confirmed distinct | Keep separate; modality, intensity, impact, and progression purpose differ materially. |
+| Calf raise / tibialis raise / generic lower-leg names outside the approved exact `calf raise` mapping | ambiguous review | No action until product review distinguishes posterior calf plantarflexion from anterior tibialis dorsiflexion or other lower-leg movements. |
+| Explicit user-owned custom identities and custom entries | intentional custom | Excluded from automated repair; future custom handling requires explicit user/product-approved behavior. |
+| Names with no existing active system canonical identity and no approved deterministic target | proposed new canonical | Do not attach to a similar exercise; review as possible future catalog expansion. |
+| Names with zero active unresolved references after corrected hosted execution | no action | No Slice 42B repair needed. |
 
-### 42A-003 — Bodyweight squat aliases
+## Historical-impact and privacy statement
 
-| Field | Value |
-| --- | --- |
-| Record IDs / stable keys | `bodyweight-squat` plus reviewed aliases `bodyweight squat`, `air squat` |
-| Current names and aliases | Canonical `Bodyweight squat`; aliases `bodyweight squat`, `air squat` |
-| Ownership scope | system |
-| Reference counts | `repo_static_catalog_identity_count=1`; hosted counts pending read-only SQL |
-| Equipment / movement qualifiers | Bodyweight; bilateral; squat |
-| Proposed canonical survivor | `bodyweight-squat` |
-| Category | Alias-only presentation variant |
-| Rationale | The aliases are reviewed naming variants for the same unloaded squat identity. |
-| Proposed reference updates | If future approved, resolve alias-backed active entries to `canonical_exercise_id='bodyweight-squat'`; do not merge box or loaded squat variants. |
-| Historical impact statement | Historical result snapshots remain unchanged. |
-| Approval status | proposed |
+The audit committed only normalized names, canonical IDs, aggregate counts, and classification decisions. It intentionally excludes user IDs, plan names, notes, emails, raw personal records, and other sensitive hosted data. Future Slice 42B work must continue to avoid sensitive hosted data in committed artifacts.
 
-### 42A-004 — Dumbbell row abbreviation aliases
+Historical display snapshots and set/result metrics remain unchanged. Any future deterministic result canonical backfill must be limited to safe identity references and must not rewrite `exercise_results.exercise_name_snapshot`, set metrics, prescriptions, notes, progression signals, or user-visible history.
 
-| Field | Value |
-| --- | --- |
-| Record IDs / stable keys | `dumbbell-row` plus reviewed aliases `db row`, `dumbbell row` |
-| Current names and aliases | Canonical `Dumbbell row`; aliases `db row`, `dumbbell row` |
-| Ownership scope | system |
-| Reference counts | `repo_static_catalog_identity_count=1`; hosted counts pending read-only SQL |
-| Equipment / movement qualifiers | Dumbbells; same-each-side; pull |
-| Proposed canonical survivor | `dumbbell-row` |
-| Category | Alias-only presentation variant |
-| Rationale | Abbreviation and punctuation/spacing variants are reviewed aliases for the same dumbbell row identity. |
-| Proposed reference updates | If future approved, resolve alias-backed active entries to `canonical_exercise_id='dumbbell-row'`; do not merge band row. |
-| Historical impact statement | Historical result snapshots remain unchanged. |
-| Approval status | proposed |
+## Corrected read-only SQL coverage
 
-### 42A-005 — Bodyweight squat / box squat / goblet squat / barbell back squat
+`supabase/verification/issue-42-exercise-dedup-audit-readonly.sql` remains the read-only verification script for this audit. It uses matched row IDs instead of `count(*)`, pre-aggregates entry and result references before joining, separates active plan/template references from historical results, enumerates normalized `exercise_entries.name` groups, and exposes unresolved groups for classification without performing writes.
 
-| Field | Value |
-| --- | --- |
-| Record IDs / stable keys | `bodyweight-squat`, `box-squat`, `goblet-squat`, `barbell-back-squat` |
-| Current names and aliases | Four separate squat identities |
-| Ownership scope | system |
-| Reference counts | `repo_static_catalog_identity_count=4`; hosted counts pending read-only SQL |
-| Equipment / movement qualifiers | Bodyweight vs bench-supported vs dumbbell/kettlebell loaded vs barbell loaded spine |
-| Proposed canonical survivor | None; keep separate |
-| Category | Confirmed distinct variant |
-| Rationale | Loading, equipment, range/context, and training intent differ materially. |
-| Proposed reference updates | None. |
-| Historical impact statement | No historical impact. |
-| Approval status | rejected |
+## Proposed Slice 42B / 42C boundary
 
-### 42A-006 — Romanian deadlift / hip hinge drill / glute bridge
+A future Slice 42B migration may consume only the 17 approved mappings in this document, must be additive and idempotent, must include exact expected counts, must stop if counts differ from **17 groups / 72 entries**, and must preserve display names, historical snapshots, metrics, prescriptions, ordering, guidance, ownership, tracking metadata, and explicit custom records.
 
-| Field | Value |
-| --- | --- |
-| Record IDs / stable keys | `romanian-deadlift`, `hip-hinge-drill`, `glute-bridge` |
-| Current names and aliases | Three hinge/posterior-chain identities |
-| Ownership scope | system |
-| Reference counts | `repo_static_catalog_identity_count=3`; hosted counts pending read-only SQL |
-| Equipment / movement qualifiers | Loaded dumbbell/barbell hinge vs bodyweight technique drill vs bodyweight/band bridge |
-| Proposed canonical survivor | None; keep separate |
-| Category | Confirmed distinct variant |
-| Rationale | Equipment, movement execution, and rehab/technique context differ materially. |
-| Proposed reference updates | None. |
-| Historical impact statement | No historical impact. |
-| Approval status | rejected |
-
-### 42A-007 — Reverse lunge / walking lunge / lateral lunge / step-up
-
-| Field | Value |
-| --- | --- |
-| Record IDs / stable keys | `reverse-lunge`, `walking-lunge`, `lateral-lunge`, `step-up` |
-| Current names and aliases | Four unilateral lower-body identities |
-| Ownership scope | system |
-| Reference counts | `repo_static_catalog_identity_count=4`; hosted counts pending read-only SQL |
-| Equipment / movement qualifiers | Sagittal stationary lunge vs traveling lunge vs frontal-plane lunge vs step-height pattern |
-| Proposed canonical survivor | None; keep separate |
-| Category | Confirmed distinct variant |
-| Rationale | Stance, direction, range, and movement intent differ materially. |
-| Proposed reference updates | None. |
-| Historical impact statement | No historical impact. |
-| Approval status | rejected |
-
-### 42A-008 — Incline push-up / push-up / dumbbell floor press / dumbbell shoulder press
-
-| Field | Value |
-| --- | --- |
-| Record IDs / stable keys | `incline-push-up`, `push-up`, `dumbbell-floor-press`, `dumbbell-shoulder-press` |
-| Current names and aliases | Four pressing identities |
-| Ownership scope | system |
-| Reference counts | `repo_static_catalog_identity_count=4`; hosted counts pending read-only SQL |
-| Equipment / movement qualifiers | Incline bodyweight push, floor horizontal dumbbell press, overhead dumbbell press |
-| Proposed canonical survivor | None; keep separate |
-| Category | Confirmed distinct variant |
-| Rationale | Angle, equipment, loading, and intent differ materially. |
-| Proposed reference updates | None. |
-| Historical impact statement | No historical impact. |
-| Approval status | rejected |
-
-### 42A-009 — Band row / dumbbell row
-
-| Field | Value |
-| --- | --- |
-| Record IDs / stable keys | `band-row`, `dumbbell-row` |
-| Current names and aliases | Two row identities |
-| Ownership scope | system |
-| Reference counts | `repo_static_catalog_identity_count=2`; hosted counts pending read-only SQL |
-| Equipment / movement qualifiers | Bands vs dumbbells; different loading and setup |
-| Proposed canonical survivor | None; keep separate |
-| Category | Confirmed distinct variant |
-| Rationale | Similar movement pattern but materially different equipment and loading behavior. |
-| Proposed reference updates | None. |
-| Historical impact statement | No historical impact. |
-| Approval status | rejected |
-
-### 42A-010 — Brisk walk / easy run / run-walk intervals / stride drills / lateral shuffle / skater hop / low-impact cardio march
-
-| Field | Value |
-| --- | --- |
-| Record IDs / stable keys | `brisk-walk`, `easy-run`, `run-walk-intervals`, `stride-drills`, `lateral-shuffle`, `skater-hop`, `low-impact-cardio-march` |
-| Current names and aliases | Seven locomotion/conditioning identities |
-| Ownership scope | system |
-| Reference counts | `repo_static_catalog_identity_count=7`; hosted counts pending read-only SQL |
-| Equipment / movement qualifiers | Walking, running, intervals, drills, lateral agility, hops, low-impact marching |
-| Proposed canonical survivor | None; keep separate |
-| Category | Confirmed distinct variant |
-| Rationale | Modality, intensity, laterality, impact, and progression purpose differ materially. |
-| Proposed reference updates | None. |
-| Historical impact statement | No historical impact. |
-| Approval status | rejected |
-
-### 42A-011 — Calf raise / tibialis raise
-
-| Field | Value |
-| --- | --- |
-| Record IDs / stable keys | `calf-raise`, `tibialis-raise` |
-| Current names and aliases | Two lower-leg identities |
-| Ownership scope | system |
-| Reference counts | `repo_static_catalog_identity_count=2`; hosted counts pending read-only SQL |
-| Equipment / movement qualifiers | Posterior calf plantarflexion vs anterior tibialis dorsiflexion |
-| Proposed canonical survivor | None until product review confirms no hosted duplicate naming exists |
-| Category | Ambiguous review required |
-| Rationale | The repository catalog records distinct anatomical intent, but hosted custom/unresolved names such as generic "lower leg raise" could require product review rather than automated merge. |
-| Proposed reference updates | None in Slice 42A. |
-| Historical impact statement | No historical impact. |
-| Approval status | needs_product_review |
-
-## Hosted read-only count procedure
-
-Run `supabase/verification/issue-42-exercise-dedup-audit-readonly.sql` against the authorized target and paste the result tables into the PR or issue before approving any Slice 42B group. The script returns:
-
-1. summary counts for system identities, reviewed aliases, exercise entries, historical results, user-owned identities, and ambiguous aliases;
-2. per-identity reference counts with entry/result classes pre-aggregated to avoid multiplied counts;
-3. every reviewed alias with zero-safe matching entry and historical-result name counts;
-4. every normalized exercise-entry group with presentation variants, tracking metadata, prescription variants, candidate counts, unresolved counts, and audit classification;
-5. unresolved exact canonical-name or reviewed-alias repair candidates requiring metadata compatibility and product-owner approval;
-6. repeated unresolved names without reviewed candidates for possible new canonical identity, confirmed distinct variant, or intentional-custom review;
-7. alias conflicts and inactive/superseded identities still referenced as blockers.
-
-## Proposed Slice 42B boundary if approved later
-
-A future write migration may only consume groups whose `approval_status` has been changed to `approved` by the product owner. For this audit, those groups are currently limited to alias-only candidates 42A-001 through 42A-004, and even those remain unapproved until product-owner action. The migration must be idempotent, report expected vs actual update counts by reference class, preserve historical snapshots, and stop on unexpected ambiguous aliases or custom/user-owned records.
+Issue #40 tracking cleanup and Slice 42C duplicate-prevention/search-selection behavior are separate focused implementation work. 42C may use the identity-resolution boundary established by 42B, but this read-only audit does not authorize app behavior changes or database writes.
