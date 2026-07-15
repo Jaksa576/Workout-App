@@ -1,162 +1,258 @@
--- Issue #42A exercise library deduplication audit.
+-- Issue #42 exercise library deduplication audit.
 -- Read-only: this file contains SELECT statements only and must not be used for consolidation writes.
+-- Keep normalization aligned with lib/exercise-identity.ts normalizeExerciseLookupKey:
+-- trim -> lower en-US equivalent -> remove apostrophes -> replace non-alphanumerics with spaces -> collapse spaces -> trim.
 
-with candidate_groups(group_id, status, category, proposed_survivor, member_ids) as (
-  values
-    ('42A-001','proposed','alias-only presentation variant','push-up', array['push-up']::text[]),
-    ('42A-002','proposed','alias-only presentation variant','romanian-deadlift', array['romanian-deadlift']::text[]),
-    ('42A-003','proposed','alias-only presentation variant','bodyweight-squat', array['bodyweight-squat']::text[]),
-    ('42A-004','proposed','alias-only presentation variant','dumbbell-row', array['dumbbell-row']::text[]),
-    ('42A-005','rejected','confirmed distinct variant',null, array['bodyweight-squat','box-squat','goblet-squat','barbell-back-squat']::text[]),
-    ('42A-006','rejected','confirmed distinct variant',null, array['romanian-deadlift','hip-hinge-drill','glute-bridge']::text[]),
-    ('42A-007','rejected','confirmed distinct variant',null, array['reverse-lunge','walking-lunge','lateral-lunge','step-up']::text[]),
-    ('42A-008','rejected','confirmed distinct variant',null, array['incline-push-up','push-up','dumbbell-floor-press','dumbbell-shoulder-press']::text[]),
-    ('42A-009','rejected','confirmed distinct variant',null, array['band-row','dumbbell-row']::text[]),
-    ('42A-010','rejected','confirmed distinct variant',null, array['brisk-walk','easy-run','run-walk-intervals','stride-drills','lateral-shuffle','skater-hop','low-impact-cardio-march']::text[]),
-    ('42A-011','needs_product_review','ambiguous review required',null, array['calf-raise','tibialis-raise']::text[])
-), alias_candidates(group_id, canonical_id, normalized_lookup_key) as (
-  values
-    ('42A-001','push-up','push up'),
-    ('42A-002','romanian-deadlift','rdl'),
-    ('42A-002','romanian-deadlift','romanian dead lift'),
-    ('42A-003','bodyweight-squat','bodyweight squat'),
-    ('42A-003','bodyweight-squat','air squat'),
-    ('42A-004','dumbbell-row','db row'),
-    ('42A-004','dumbbell-row','dumbbell row')
-), normalized_entries as (
-  select
-    ee.id,
-    ee.workout_template_id,
-    ee.name,
-    lower(trim(regexp_replace(regexp_replace(ee.name, '[''’]', '', 'g'), '[^a-zA-Z0-9]+', ' ', 'g'))) as normalized_lookup_key,
-    nullif(ee.source_exercise_id, '') as source_exercise_id,
-    ee.canonical_exercise_id
-  from public.exercise_entries ee
-), result_counts as (
-  select
-    er.canonical_exercise_id,
-    er.source_exercise_id,
-    count(*) as historical_result_snapshot_count,
-    count(distinct er.workout_session_id) as active_workout_session_record_count
-  from public.exercise_results er
-  group by er.canonical_exercise_id, er.source_exercise_id
-)
+-- 1) Hosted summary totals. Historical result rows are intentionally reported as historical results,
+-- not active workout-session records.
 select
   'summary' as result_set,
-  (select count(*) from public.exercise_identities where owner_scope = 'system') as system_identity_count,
-  (select count(*) from public.exercise_aliases where owner_scope = 'system' and reviewed) as reviewed_system_alias_count,
-  (select count(*) from public.exercise_entries) as active_plan_entry_count,
-  (select count(*) from public.workout_templates) as template_seed_count,
-  (select count(*) from public.workout_sessions) as active_workout_session_count,
-  (select count(*) from public.exercise_results) as historical_result_snapshot_count,
-  (select count(*) from public.exercise_entries where canonical_exercise_id is null) as custom_or_unresolved_entry_count,
-  (select count(*) from public.exercise_identities where owner_scope = 'user') as user_owned_identity_count,
-  (select count(*) from (
-    select normalized_lookup_key
-    from public.exercise_aliases
-    where reviewed and owner_scope = 'system'
-    group by normalized_lookup_key
-    having count(distinct exercise_identity_id) > 1
+  (select count(i.id) from public.exercise_identities i where i.owner_scope = 'system') as system_identity_count,
+  (select count(a.id) from public.exercise_aliases a where a.owner_scope = 'system' and a.reviewed) as reviewed_system_alias_count,
+  (select count(ee.id) from public.exercise_entries ee) as exercise_entry_count,
+  (select count(ee.id) from public.exercise_entries ee where ee.canonical_exercise_id is null) as unresolved_or_custom_entry_count,
+  (select count(distinct ee.workout_template_id) from public.exercise_entries ee) as workout_templates_with_entries_count,
+  (select count(er.id) from public.exercise_results er) as historical_result_count,
+  (select count(distinct er.workout_session_id) from public.exercise_results er) as historical_sessions_with_results_count,
+  (select count(i.id) from public.exercise_identities i where i.owner_scope = 'user') as user_owned_identity_count,
+  (select count(ambiguous_aliases.normalized_lookup_key) from (
+    select a.normalized_lookup_key
+    from public.exercise_aliases a
+    where a.reviewed and a.owner_scope = 'system'
+    group by a.normalized_lookup_key
+    having count(distinct a.exercise_identity_id) > 1
   ) ambiguous_aliases) as ambiguous_reviewed_alias_count;
 
-with candidate_groups(group_id, status, category, proposed_survivor, member_ids) as (
-  values
-    ('42A-001','proposed','alias-only presentation variant','push-up', array['push-up']::text[]),
-    ('42A-002','proposed','alias-only presentation variant','romanian-deadlift', array['romanian-deadlift']::text[]),
-    ('42A-003','proposed','alias-only presentation variant','bodyweight-squat', array['bodyweight-squat']::text[]),
-    ('42A-004','proposed','alias-only presentation variant','dumbbell-row', array['dumbbell-row']::text[]),
-    ('42A-005','rejected','confirmed distinct variant',null, array['bodyweight-squat','box-squat','goblet-squat','barbell-back-squat']::text[]),
-    ('42A-006','rejected','confirmed distinct variant',null, array['romanian-deadlift','hip-hinge-drill','glute-bridge']::text[]),
-    ('42A-007','rejected','confirmed distinct variant',null, array['reverse-lunge','walking-lunge','lateral-lunge','step-up']::text[]),
-    ('42A-008','rejected','confirmed distinct variant',null, array['incline-push-up','push-up','dumbbell-floor-press','dumbbell-shoulder-press']::text[]),
-    ('42A-009','rejected','confirmed distinct variant',null, array['band-row','dumbbell-row']::text[]),
-    ('42A-010','rejected','confirmed distinct variant',null, array['brisk-walk','easy-run','run-walk-intervals','stride-drills','lateral-shuffle','skater-hop','low-impact-cardio-march']::text[]),
-    ('42A-011','needs_product_review','ambiguous review required',null, array['calf-raise','tibialis-raise']::text[])
+-- 2) Every active system identity and distinct reference counts by class. References are pre-aggregated
+-- before joining to avoid OR-join multiplication and false one-row counts.
+with entry_refs as (
+  select
+    coalesce(ee.canonical_exercise_id, nullif(ee.source_exercise_id, '')) as identity_id,
+    count(distinct ee.id) as exercise_entry_count,
+    count(distinct ee.workout_template_id) as workout_template_count
+  from public.exercise_entries ee
+  where coalesce(ee.canonical_exercise_id, nullif(ee.source_exercise_id, '')) is not null
+  group by coalesce(ee.canonical_exercise_id, nullif(ee.source_exercise_id, ''))
+), result_refs as (
+  select
+    coalesce(er.canonical_exercise_id, nullif(er.source_exercise_id, '')) as identity_id,
+    count(distinct er.id) as historical_result_count,
+    count(distinct er.workout_session_id) as historical_session_count
+  from public.exercise_results er
+  where coalesce(er.canonical_exercise_id, nullif(er.source_exercise_id, '')) is not null
+  group by coalesce(er.canonical_exercise_id, nullif(er.source_exercise_id, ''))
+), alias_refs as (
+  select a.exercise_identity_id as identity_id, count(distinct a.id) as reviewed_alias_count
+  from public.exercise_aliases a
+  where a.owner_scope = 'system' and a.reviewed
+  group by a.exercise_identity_id
 )
 select
-  'candidate_group_reference_counts' as result_set,
-  cg.group_id,
-  cg.status as approval_status,
-  cg.category,
-  cg.proposed_survivor,
-  cg.member_ids,
-  count(distinct i.id) as reusable_identity_count,
-  count(distinct ee.id) as active_plan_entry_count,
-  count(distinct ee.workout_template_id) as template_seed_count,
-  count(distinct er.workout_session_id) as active_workout_session_record_count,
-  count(distinct er.id) as historical_result_snapshot_count,
-  count(distinct custom_ee.id) as custom_or_unresolved_same_name_entry_count,
-  count(distinct ui.id) as user_owned_identity_count
-from candidate_groups cg
-left join public.exercise_identities i on i.id = any(cg.member_ids) and i.owner_scope = 'system'
-left join public.exercise_entries ee on ee.canonical_exercise_id = any(cg.member_ids) or nullif(ee.source_exercise_id, '') = any(cg.member_ids)
-left join public.exercise_results er on er.canonical_exercise_id = any(cg.member_ids) or nullif(er.source_exercise_id, '') = any(cg.member_ids)
-left join public.exercise_entries custom_ee on custom_ee.canonical_exercise_id is null and lower(custom_ee.name) in (select lower(display_name) from public.exercise_identities where id = any(cg.member_ids))
-left join public.exercise_identities ui on ui.owner_scope = 'user' and ui.normalized_lookup_key in (select normalized_lookup_key from public.exercise_identities where id = any(cg.member_ids))
-group by cg.group_id, cg.status, cg.category, cg.proposed_survivor, cg.member_ids
-order by cg.group_id;
+  'system_identity_reference_counts' as result_set,
+  i.id as exercise_identity_id,
+  i.display_name,
+  i.normalized_lookup_key,
+  i.owner_scope,
+  i.active,
+  i.superseded_by,
+  coalesce(ar.reviewed_alias_count, 0) as reviewed_alias_count,
+  coalesce(er.exercise_entry_count, 0) as exercise_entry_count,
+  coalesce(er.workout_template_count, 0) as workout_template_count,
+  coalesce(rr.historical_result_count, 0) as historical_result_count,
+  coalesce(rr.historical_session_count, 0) as historical_session_count
+from public.exercise_identities i
+left join alias_refs ar on ar.identity_id = i.id
+left join entry_refs er on er.identity_id = i.id
+left join result_refs rr on rr.identity_id = i.id
+where i.owner_scope = 'system'
+order by i.display_name, i.id;
 
-with alias_candidates(group_id, canonical_id, normalized_lookup_key) as (
-  values
-    ('42A-001','push-up','push up'),
-    ('42A-002','romanian-deadlift','rdl'),
-    ('42A-002','romanian-deadlift','romanian dead lift'),
-    ('42A-003','bodyweight-squat','bodyweight squat'),
-    ('42A-003','bodyweight-squat','air squat'),
-    ('42A-004','dumbbell-row','db row'),
-    ('42A-004','dumbbell-row','dumbbell row')
-), normalized_entries as (
+-- 3) Every reviewed alias, including zero-match entry/result counts.
+with normalized_entries as (
+  select
+    ee.id,
+    lower(trim(regexp_replace(regexp_replace(regexp_replace(ee.name, '[''’]', '', 'g'), '[^a-zA-Z0-9]+', ' ', 'g'), '\s+', ' ', 'g'))) as normalized_lookup_key
+  from public.exercise_entries ee
+), normalized_results as (
+  select
+    er.id,
+    lower(trim(regexp_replace(regexp_replace(regexp_replace(er.exercise_name_snapshot, '[''’]', '', 'g'), '[^a-zA-Z0-9]+', ' ', 'g'), '\s+', ' ', 'g'))) as normalized_lookup_key
+  from public.exercise_results er
+)
+select
+  'reviewed_alias_match_counts' as result_set,
+  a.exercise_identity_id,
+  i.display_name as canonical_display_name,
+  a.alias,
+  a.normalized_lookup_key,
+  count(distinct ne.id) as matching_exercise_entry_count,
+  count(distinct nr.id) as matching_historical_result_name_count
+from public.exercise_aliases a
+join public.exercise_identities i on i.id = a.exercise_identity_id
+left join normalized_entries ne on ne.normalized_lookup_key = a.normalized_lookup_key
+left join normalized_results nr on nr.normalized_lookup_key = a.normalized_lookup_key
+where a.owner_scope = 'system' and a.reviewed
+group by a.exercise_identity_id, i.display_name, a.alias, a.normalized_lookup_key
+order by i.display_name, a.alias;
+
+-- 4) Exhaustive normalized exercise-entry groups with metadata variants and owner/source signals.
+with normalized_entries as (
   select
     ee.id,
     ee.workout_template_id,
     ee.name,
-    lower(trim(regexp_replace(regexp_replace(ee.name, '[''’]', '', 'g'), '[^a-zA-Z0-9]+', ' ', 'g'))) as normalized_lookup_key,
+    lower(trim(regexp_replace(regexp_replace(regexp_replace(ee.name, '[''’]', '', 'g'), '[^a-zA-Z0-9]+', ' ', 'g'), '\s+', ' ', 'g'))) as normalized_lookup_key,
     nullif(ee.source_exercise_id, '') as source_exercise_id,
-    ee.canonical_exercise_id
+    ee.canonical_exercise_id,
+    ee.tracking_type,
+    ee.unilateral_mode,
+    ee.load_unit,
+    ee.distance_unit,
+    ee.primary_value_label,
+    ee.secondary_value_label,
+    ee.reps
   from public.exercise_entries ee
+), candidate_names as (
+  select normalized_lookup_key, id as candidate_id, display_name as candidate_name, 'canonical_name' as match_kind
+  from public.exercise_identities
+  where owner_scope = 'system'
+  union all
+  select normalized_lookup_key, exercise_identity_id as candidate_id, alias as candidate_name, 'reviewed_alias' as match_kind
+  from public.exercise_aliases
+  where owner_scope = 'system' and reviewed
 )
 select
-  'proposed_alias_active_entries_to_review' as result_set,
-  ac.group_id,
-  ac.canonical_id as proposed_survivor,
-  ac.normalized_lookup_key,
+  'normalized_entry_groups' as result_set,
+  ne.normalized_lookup_key,
+  count(distinct ne.id) as exercise_entry_count,
+  count(distinct ne.workout_template_id) as workout_template_count,
+  count(distinct ne.name) as presentation_variant_count,
+  array_agg(distinct ne.name order by ne.name) as presentation_variants,
+  array_agg(distinct concat_ws('|', ne.tracking_type, ne.unilateral_mode, coalesce(ne.load_unit, ''), coalesce(ne.distance_unit, ''), coalesce(ne.primary_value_label, ''), coalesce(ne.secondary_value_label, ''), coalesce(ne.reps, '')) order by concat_ws('|', ne.tracking_type, ne.unilateral_mode, coalesce(ne.load_unit, ''), coalesce(ne.distance_unit, ''), coalesce(ne.primary_value_label, ''), coalesce(ne.secondary_value_label, ''), coalesce(ne.reps, ''))) as metadata_prescription_variants,
+  count(distinct cn.candidate_id) as reviewed_candidate_count,
+  array_agg(distinct cn.candidate_id order by cn.candidate_id) filter (where cn.candidate_id is not null) as reviewed_candidate_ids,
+  count(distinct ne.id) filter (where ne.canonical_exercise_id is null) as unresolved_entry_count,
+  count(distinct ne.id) filter (where ne.canonical_exercise_id is null and ne.source_exercise_id is null) as null_source_unresolved_entry_count,
+  count(distinct ne.id) filter (where ne.canonical_exercise_id is null and ne.source_exercise_id is not null) as legacy_source_unresolved_entry_count,
+  case
+    when count(distinct cn.candidate_id) > 1 then 'ambiguous_review_required'
+    when count(distinct cn.candidate_id) = 1 and count(distinct ne.id) filter (where ne.canonical_exercise_id is null) > 0 then 'possible_legacy_reference_repair'
+    when count(distinct cn.candidate_id) = 0 and count(distinct ne.id) > 1 then 'possible_new_canonical_or_intentional_custom_review'
+    else 'no_action_required'
+  end as audit_classification
+from normalized_entries ne
+left join candidate_names cn on cn.normalized_lookup_key = ne.normalized_lookup_key
+group by ne.normalized_lookup_key
+order by unresolved_entry_count desc, exercise_entry_count desc, ne.normalized_lookup_key;
+
+-- 5) Exact unresolved canonical-name or reviewed-alias entries that are candidates for deterministic repair,
+-- pending metadata compatibility and product-owner approval.
+with normalized_entries as (
+  select
+    ee.*,
+    lower(trim(regexp_replace(regexp_replace(regexp_replace(ee.name, '[''’]', '', 'g'), '[^a-zA-Z0-9]+', ' ', 'g'), '\s+', ' ', 'g'))) as normalized_lookup_key
+  from public.exercise_entries ee
+), candidate_names as (
+  select normalized_lookup_key, id as candidate_id, display_name as reviewed_name, 'exact canonical name' as match_kind
+  from public.exercise_identities
+  where owner_scope = 'system' and active
+  union all
+  select normalized_lookup_key, exercise_identity_id as candidate_id, alias as reviewed_name, 'reviewed alias' as match_kind
+  from public.exercise_aliases
+  where owner_scope = 'system' and reviewed
+), unique_candidates as (
+  select normalized_lookup_key, min(candidate_id) as candidate_id, count(distinct candidate_id) as candidate_count
+  from candidate_names
+  group by normalized_lookup_key
+)
+select
+  'unresolved_exact_or_alias_repair_candidates' as result_set,
   ne.id as exercise_entry_id,
   ne.workout_template_id,
   ne.name,
+  ne.normalized_lookup_key,
   ne.source_exercise_id,
   ne.canonical_exercise_id,
-  case
-    when ne.canonical_exercise_id = ac.canonical_id then 'already_canonical'
-    when ne.canonical_exercise_id is null and ne.source_exercise_id is null then 'custom_or_unresolved_review_required'
-    else 'would_move_if_product_approved'
-  end as proposed_action
-from alias_candidates ac
-join normalized_entries ne on ne.normalized_lookup_key = ac.normalized_lookup_key
-order by ac.group_id, ne.name, ne.id;
+  ne.tracking_type,
+  ne.unilateral_mode,
+  ne.load_unit,
+  ne.distance_unit,
+  ne.reps,
+  uc.candidate_id as proposed_canonical_id,
+  uc.candidate_count,
+  case when uc.candidate_count = 1 then 'product_review_required_before_repair' else 'ambiguous_review_required' end as proposed_action
+from normalized_entries ne
+join unique_candidates uc on uc.normalized_lookup_key = ne.normalized_lookup_key
+where ne.canonical_exercise_id is null
+order by ne.normalized_lookup_key, ne.name, ne.id;
 
+-- 6) Unresolved names that appear repeatedly and have no reviewed candidate: possible new canonical identities,
+-- confirmed distinct variants, or intentional custom groups for product review.
+with normalized_entries as (
+  select
+    ee.id,
+    ee.name,
+    lower(trim(regexp_replace(regexp_replace(regexp_replace(ee.name, '[''’]', '', 'g'), '[^a-zA-Z0-9]+', ' ', 'g'), '\s+', ' ', 'g'))) as normalized_lookup_key,
+    ee.tracking_type,
+    ee.unilateral_mode,
+    ee.load_unit,
+    ee.distance_unit,
+    ee.reps,
+    ee.canonical_exercise_id
+  from public.exercise_entries ee
+), candidate_names as (
+  select normalized_lookup_key from public.exercise_identities where owner_scope = 'system'
+  union
+  select normalized_lookup_key from public.exercise_aliases where owner_scope = 'system' and reviewed
+)
+select
+  'repeated_unresolved_names_without_reviewed_candidate' as result_set,
+  ne.normalized_lookup_key,
+  count(distinct ne.id) as unresolved_entry_count,
+  array_agg(distinct ne.name order by ne.name) as presentation_variants,
+  array_agg(distinct concat_ws('|', ne.tracking_type, ne.unilateral_mode, coalesce(ne.load_unit, ''), coalesce(ne.distance_unit, ''), coalesce(ne.reps, '')) order by concat_ws('|', ne.tracking_type, ne.unilateral_mode, coalesce(ne.load_unit, ''), coalesce(ne.distance_unit, ''), coalesce(ne.reps, ''))) as metadata_prescription_variants,
+  'review_required_proposed_new_canonical_or_intentional_custom' as proposed_action
+from normalized_entries ne
+left join candidate_names cn on cn.normalized_lookup_key = ne.normalized_lookup_key
+where ne.canonical_exercise_id is null and cn.normalized_lookup_key is null
+group by ne.normalized_lookup_key
+having count(distinct ne.id) > 1
+order by unresolved_entry_count desc, ne.normalized_lookup_key;
+
+-- 7) Alias conflicts and inactive/superseded references that block automatic migration.
 select
   'ambiguous_reviewed_aliases_blocker' as result_set,
-  normalized_lookup_key,
-  count(distinct exercise_identity_id) as identity_count,
-  array_agg(distinct exercise_identity_id order by exercise_identity_id) as identity_ids
-from public.exercise_aliases
-where reviewed and owner_scope = 'system'
-group by normalized_lookup_key
-having count(distinct exercise_identity_id) > 1
-order by normalized_lookup_key;
+  a.normalized_lookup_key,
+  count(distinct a.exercise_identity_id) as identity_count,
+  array_agg(distinct a.exercise_identity_id order by a.exercise_identity_id) as identity_ids
+from public.exercise_aliases a
+where a.reviewed and a.owner_scope = 'system'
+group by a.normalized_lookup_key
+having count(distinct a.exercise_identity_id) > 1
+order by a.normalized_lookup_key;
 
+with entry_refs as (
+  select ee.canonical_exercise_id as identity_id, count(distinct ee.id) as exercise_entry_count
+  from public.exercise_entries ee
+  where ee.canonical_exercise_id is not null
+  group by ee.canonical_exercise_id
+), result_refs as (
+  select er.canonical_exercise_id as identity_id, count(distinct er.id) as historical_result_count
+  from public.exercise_results er
+  where er.canonical_exercise_id is not null
+  group by er.canonical_exercise_id
+)
 select
   'inactive_or_superseded_still_referenced' as result_set,
   i.id as exercise_identity_id,
   i.display_name,
   i.active,
   i.superseded_by,
-  count(distinct ee.id) as active_plan_entry_count,
-  count(distinct er.id) as historical_result_snapshot_count
+  coalesce(er.exercise_entry_count, 0) as exercise_entry_count,
+  coalesce(rr.historical_result_count, 0) as historical_result_count
 from public.exercise_identities i
-left join public.exercise_entries ee on ee.canonical_exercise_id = i.id
-left join public.exercise_results er on er.canonical_exercise_id = i.id
+left join entry_refs er on er.identity_id = i.id
+left join result_refs rr on rr.identity_id = i.id
 where (not i.active or i.superseded_by is not null)
-group by i.id, i.display_name, i.active, i.superseded_by
-having count(distinct ee.id) > 0 or count(distinct er.id) > 0
+  and (coalesce(er.exercise_entry_count, 0) > 0 or coalesce(rr.historical_result_count, 0) > 0)
 order by i.display_name;

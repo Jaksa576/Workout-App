@@ -1,8 +1,9 @@
 # Issue #42A — Exercise Library Deduplication Audit
 
-Status: **ready for product-owner review**  
-Scope: **read-only audit and classification only**  
+Status: **blocked pending hosted exhaustive audit execution**
+Scope: **read-only audit and classification only**
 Generated: 2026-07-15
+Updated: 2026-07-15 PR #67 follow-up
 
 ## Guardrails
 
@@ -25,9 +26,23 @@ Generated: 2026-07-15
 | Audit before writes | This artifact and its SQL are read-only and contain proposed actions only. | Ready |
 | Alias ambiguity blocked | Existing unique reviewed system alias index and the audit SQL check aliases resolving to multiple active canonical identities. | Ready |
 
+
+## PR #67 follow-up audit correction
+
+The original 42A artifact was not sufficient to authorize consolidation. The read-only audit SQL has been corrected to:
+
+- count matched row IDs instead of `count(*)`, so aliases and groups with no hosted matches report zero rather than a synthetic left-join row;
+- pre-aggregate entry and result references before joining to identities, preventing OR-join multiplication of reference counts;
+- keep historical `exercise_results` counts separate from active plan-entry/template counts;
+- enumerate every active system identity, reviewed alias, normalized `exercise_entries.name`, unresolved entry group, repeated unresolved name, alias conflict, and inactive/superseded referenced identity;
+- include tracking metadata and prescription variants for normalized entry groups so product review can distinguish deterministic legacy repair from custom or materially distinct variants;
+- classify unresolved normalized groups as possible exact/alias legacy repair, ambiguous review, possible new canonical/custom review, or no action required.
+
+No consolidation migration is authorized by this document until the corrected SQL is run against the authorized hosted `Workout-app-dev` target and the resulting groups are pasted into this audit without user IDs, private plan names, notes, or other personal data.
+
 ## Summary totals
 
-These totals classify the current repository-owned system catalog and reviewed alias model. Hosted reference counts must be filled from the read-only SQL before any Slice 42B migration is authored.
+These totals classify the current repository-owned system catalog and reviewed alias model. Hosted reference counts must be filled from the read-only SQL before any Slice 42B migration is authored. This follow-up corrects the read-only SQL so hosted execution can produce exhaustive, zero-safe counts; Codex could not run against Workout-app-dev from this container because no Supabase target credentials are present.
 
 | Metric | Count |
 | --- | ---: |
@@ -230,11 +245,13 @@ Reference count fields are separated by class and must be populated from `issue-
 
 Run `supabase/verification/issue-42-exercise-dedup-audit-readonly.sql` against the authorized target and paste the result tables into the PR or issue before approving any Slice 42B group. The script returns:
 
-1. summary counts for system identities, reviewed aliases, active plan entries, historical snapshots, custom/unresolved rows, and ambiguous aliases;
-2. per-identity active reference counts;
-3. per-candidate-group counts split by reusable identities, active plan entries, templates/seeds, active workout/session records, historical result snapshots, and custom/user-owned rows;
-4. proposed alias-only groups with exact active entries that would move if later approved;
-5. distinct/ambiguous groups that must not be moved automatically.
+1. summary counts for system identities, reviewed aliases, exercise entries, historical results, user-owned identities, and ambiguous aliases;
+2. per-identity reference counts with entry/result classes pre-aggregated to avoid multiplied counts;
+3. every reviewed alias with zero-safe matching entry and historical-result name counts;
+4. every normalized exercise-entry group with presentation variants, tracking metadata, prescription variants, candidate counts, unresolved counts, and audit classification;
+5. unresolved exact canonical-name or reviewed-alias repair candidates requiring metadata compatibility and product-owner approval;
+6. repeated unresolved names without reviewed candidates for possible new canonical identity, confirmed distinct variant, or intentional-custom review;
+7. alias conflicts and inactive/superseded identities still referenced as blockers.
 
 ## Proposed Slice 42B boundary if approved later
 
