@@ -107,6 +107,69 @@ describe("generated plan draft matching", () => {
     }
   });
 
+  it("does not throw on malformed provider-controlled coaching and optional strings", () => {
+    const malformedCoachingCases = [
+      { label: "undefined", coachingNote: undefined as never },
+      { label: "null", coachingNote: null as never },
+      { label: "number", coachingNote: 123 as never },
+      { label: "whitespace", coachingNote: "   " }
+    ];
+
+    for (const { coachingNote } of malformedCoachingCases) {
+      const customCandidate = base({ coachingNote, guidance: undefined });
+      expect(() => resolveGeneratedExercise(customCandidate)).not.toThrow();
+      expect(resolveGeneratedExercise(customCandidate)).toMatchObject({
+        status: "needs_review",
+        issues: expect.arrayContaining([expect.objectContaining({ code: "invalid_custom_candidate", field: "coachingNote" })])
+      });
+      expect(() => normalizeGeneratedPlanDraft(draft(customCandidate))).not.toThrow();
+      const normalizedCustom = normalizeGeneratedPlanDraft(draft(customCandidate));
+      expect("fatalErrors" in normalizedCustom).toBe(false);
+      if (!("fatalErrors" in normalizedCustom)) {
+        expect(canSaveNormalizedGeneratedDraft(normalizedCustom)).toBe(false);
+        expect(normalizedCustom.reviewBlockingIssues).toEqual(expect.arrayContaining([expect.objectContaining({ field: "coachingNote" })]));
+      }
+
+      const matchedCandidate = base({ name: "RDL", coachingNote, prescription: { sets: 3, reps: "30 sec", rest: "60 sec", tempo: undefined as never }, safetyNotes: 123 as never, videoSearchQuery: null as never });
+      expect(() => resolveGeneratedExercise(matchedCandidate)).not.toThrow();
+      const matched = resolveGeneratedExercise(matchedCandidate);
+      expect(matched).toMatchObject({ status: "matched" });
+      if (matched.status === "matched") {
+        expect(matched.exercise.coachingNote).toBe("");
+        expect(matched.planSpecificCoaching).toBe("");
+        expect(matched.safetyNotes).toBeNull();
+        expect(matched.videoSearchQuery).toBeNull();
+        expect(matched.exercise.videoUrl).toBe("https://www.youtube.com/watch?v=JCXUYuzwNrM");
+      }
+      expect(() => normalizeGeneratedPlanDraft(draft(matchedCandidate))).not.toThrow();
+    }
+  });
+
+  it("accepts valid structured guidance for custom exercises when coaching text is absent", () => {
+    const custom = resolveGeneratedExercise(base({ coachingNote: undefined as never, guidance: { setup: "Brace tall before marching." } }));
+    expect(custom).toMatchObject({ status: "custom" });
+    if (custom.status === "custom") {
+      expect(custom.exercise.coachingNote).toBe("");
+      expect(custom.exercise.guidance).toEqual({ setup: "Brace tall before marching." });
+    }
+  });
+
+  it("returns typed issues instead of throwing for malformed custom optional strings", () => {
+    const custom = base({
+      coachingNote: "Use a controlled pace.",
+      prescription: { sets: 3, reps: "30 sec", rest: "60 sec", tempo: 123 as never },
+      safetyNotes: 123 as never,
+      videoSearchQuery: 123 as never
+    });
+
+    expect(() => resolveGeneratedExercise(custom)).not.toThrow();
+    expect(resolveGeneratedExercise(custom)).toMatchObject({
+      status: "needs_review",
+      issues: expect.arrayContaining([expect.objectContaining({ code: "invalid_custom_candidate", field: "videoSearchQuery" })])
+    });
+    expect(() => normalizeGeneratedPlanDraft(draft(custom))).not.toThrow();
+  });
+
   it("validates one canonical-name and alias namespace", () => {
     validateReviewedAliasIntegrity();
     expect(() => validateReviewedAliasIntegrity({ "push-up": ["press"], "dumbbell-shoulder-press": ["press"] })).toThrow(/collision/);
