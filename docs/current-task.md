@@ -2,7 +2,13 @@
 
 ## Current Priority
 
-GitHub Issue #6 — **Umbrella: Overhaul workout execution and exercise recording** — remains the top product and development priority.
+GitHub Issue #62 — **Define AI plan-draft contract and generation boundary** — is the active implementation target. Issue #6's exercise-recording contract is stable enough for this work because supported tracking types, unilateral modes, units, labels, exercise result snapshots, and final save behavior have landed in the app/domain code.
+
+Implementation state for #62: provider-neutral generated draft types, deterministic catalog matching, reviewed alias integrity validation, matched/custom/needs-review outcomes, provenance, catalog/generated metadata precedence, fatal vs review-blocking issues, and in-memory conversion into the existing structured review shape are in place. No provider call, generation endpoint, quota/event persistence, production resolution UI, migration, or plan-write path change is in scope.
+
+Next work after #62: #63 maps Gemini-specific responses into `GeneratedPlanDraft`; #65 adds production UI for resolving `needs_review` exercises before save; #69 expands reviewed catalog exercises and aliases without changing deterministic matching.
+
+GitHub Issue #6 — **Umbrella: Overhaul workout execution and exercise recording** — supplied the now-stable exercise-recording foundation used by Issue #62. Any remaining #6 follow-ups are separately tracked and are not the current implementation priority while #62 is active.
 
 Issue #9 — **Discovery: Define workout execution and set-result domain contract** — has produced the docs-first domain contract in `docs/architecture.md`. No production workout behavior, schema, or API behavior changed in that discovery step.
 
@@ -25,7 +31,7 @@ For that reason, Issue #6 should establish the durable workout/exercise recordin
 
 ## Immediate Next Action
 
-Implement the next child issue under #6:
+After the Issue #62 PR lands, resume separately tracked #6 follow-up work as appropriate; the previously documented next child issue was:
 
 **Issue #10 — Set-result data foundation and execution/history reset**
 

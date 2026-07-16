@@ -20,7 +20,7 @@ export type ExerciseIdentityResolution =
 
 export const reviewedSystemAliases: Record<string, string[]> = {
   "push-up": ["push up", "pushup"],
-  "romanian-deadlift": ["rdl", "romanian dead lift"],
+  "romanian-deadlift": ["rdl", "romanian dead lift", "romanian deadlifts"],
   "bodyweight-squat": ["bodyweight squat", "air squat"],
   "dumbbell-row": ["db row", "dumbbell row"]
 };
@@ -60,7 +60,7 @@ for (const exercise of exerciseCatalog) {
   for (const name of names) {
     const key = normalizeExerciseLookupKey(name);
     if (!key) continue;
-    reviewedLookup.set(key, [...(reviewedLookup.get(key) ?? []), { candidate, alias: name === exercise.name ? null : name }]);
+    reviewedLookup.set(key, [...(reviewedLookup.get(key) ?? []), { candidate, alias: key === normalizeExerciseLookupKey(exercise.name) ? null : name }]);
   }
 }
 

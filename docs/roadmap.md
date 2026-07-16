@@ -149,3 +149,7 @@ LLMs must remain optional and must not replace deterministic progression, valida
 - Update `docs/product.md` only for durable product truth changes.
 - Do not create or update campaign documents.
 - Codex final reports must include the issue number, branch, commit SHA, pushed remote branch, validation results, documentation delta, compact state packet, and branch-push verification result.
+
+### AI generated draft boundary
+
+Issue #62 is now the active bridge between the completed exercise-recording contract and future live provider integration. The generated draft contract, deterministic matcher, reviewed aliases, and review-before-save boundary land before Gemini adapter work (#63), ambiguity-resolution UI (#65), and broader catalog expansion (#69).
