@@ -8,7 +8,7 @@ Implementation state for #62: provider-neutral generated draft types, determinis
 
 Next work after #62: #63 maps Gemini-specific responses into `GeneratedPlanDraft`; #65 adds production UI for resolving `needs_review` exercises before save; #69 expands reviewed catalog exercises and aliases without changing deterministic matching.
 
-GitHub Issue #6 — **Umbrella: Overhaul workout execution and exercise recording** — remains the top product and development priority.
+GitHub Issue #6 — **Umbrella: Overhaul workout execution and exercise recording** — supplied the now-stable exercise-recording foundation used by Issue #62. Any remaining #6 follow-ups are separately tracked and are not the current implementation priority while #62 is active.
 
 Issue #9 — **Discovery: Define workout execution and set-result domain contract** — has produced the docs-first domain contract in `docs/architecture.md`. No production workout behavior, schema, or API behavior changed in that discovery step.
 
@@ -31,7 +31,7 @@ For that reason, Issue #6 should establish the durable workout/exercise recordin
 
 ## Immediate Next Action
 
-Implement the next child issue under #6:
+After the Issue #62 PR lands, resume separately tracked #6 follow-up work as appropriate; the previously documented next child issue was:
 
 **Issue #10 — Set-result data foundation and execution/history reset**
 
