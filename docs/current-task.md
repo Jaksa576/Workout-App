@@ -444,3 +444,13 @@ Implementing the requested standalone follow-up on the merged active-workout set
 The set header and rows continue to use the same metadata-driven grid definition for completion-only, reps-only, weighted, duration, distance, distance-duration, same-each-side, and independent-side variants. The visual patch centers header labels and row values in those shared columns, keeps the completion checkmark centered over the set completion buttons, reduces simple row/header/footer vertical padding, and removes the nested rounded set-table card so the set area reads as a flat segmented list within the existing rounded exercise card.
 
 Validation focus: narrow mobile alignment for completion-only, reps-only, weighted, timed/duration, distance-duration, same-each-side, and independent-side rows; previous-value text with and without history; Add set full-width click target; and unchanged complete/uncomplete/edit/add/reload persistence behavior.
+
+## PR #76 Follow-up — Issue #69 migration correctness
+
+Implementing the PR #76 review follow-up for GitHub Issue #69. The historical canonical identity migration `supabase/migrations/20260714120000_exercise_identity_aliases.sql` has been restored to its pre-PR #76 contents because that committed migration may already have been applied in local or hosted environments and must be treated as immutable.
+
+A new additive Issue #69 migration now owns the expanded catalog identity seed and reviewed alias seed. It updates only system-owned identity/alias rows for catalog parity, leaves user-owned identities untouched, does not rewrite historical exercise-entry or exercise-result display snapshots, and remains an in-repo artifact only. Hosted Supabase migration application remains pending explicit approval through the normal migration flow.
+
+Validation focus: historical migration immutability, TypeScript catalog-to-SQL identity metadata parity, reviewed alias target/collision coverage, read-only verification coverage, existing generated-plan resolver behavior, catalog reporting, and `npm run check`.
+
+Next action: finish PR review for #76, then follow with the separate catalog-domain quality review and YouTube review. Do not broaden this patch into exercise-domain review, YouTube URL research, matcher redesign, generated-plan resolver changes, user-owned identity consolidation, or hosted Supabase application.

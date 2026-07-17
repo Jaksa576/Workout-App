@@ -35,3 +35,9 @@ npm test -- --run lib/__tests__/exercise-catalog-report.test.ts
 ```
 
 The report builder in `lib/exercise-catalog-report.ts` returns catalog totals, alias integrity, coverage counts, metadata/video gaps, fixture-based unmatched and `needs_review` names, material coverage gaps, and human-review queue items. Report output is intentionally read-only: do not automatically create aliases or exercises from it.
+
+## Keep database identity seed parity
+
+`exerciseCatalog` remains the authoritative metadata source for system catalog identities. When catalog-backed exercises are added, do not edit an already-committed historical migration. Add a new additive timestamped migration that seeds only system-owned identity/alias rows and maps the database identity model subset exactly: canonical ID, display name, normalized lookup key, equipment tags, movement pattern, qualifier text, category, difficulty tier, caution tags, trait tags, and preference tags.
+
+Catalog expansion migrations must be idempotent, must not modify user-owned identities, and must not rewrite historical exercise-entry or exercise-result display snapshots. Add or update parity tests so drift between the TypeScript catalog and SQL seed fails in CI, and include a read-only verification SQL artifact for applying the migration through the approved Supabase flow.
