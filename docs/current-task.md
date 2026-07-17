@@ -454,3 +454,9 @@ A new additive Issue #69 migration now owns the expanded catalog identity seed a
 Validation focus: historical migration immutability, TypeScript catalog-to-SQL identity metadata parity, reviewed alias target/collision coverage, read-only verification coverage, existing generated-plan resolver behavior, catalog reporting, and `npm run check`.
 
 Next action: finish PR review for #76, then follow with the separate catalog-domain quality review and YouTube review. Do not broaden this patch into exercise-domain review, YouTube URL research, matcher redesign, generated-plan resolver changes, user-owned identity consolidation, or hosted Supabase application.
+
+## PR #76 Follow-up — Issue #69 full migration verification coverage
+
+Patch update: the Issue #69 additive catalog migration now has test coverage for the full write scope rather than only the 36 newly introduced identities. The SQL identity seed is parsed and compared against every current `exerciseCatalog` row, and the SQL reviewed-alias seed is checked as an exact set against the authoritative `reviewedSystemAliases` source using the app normalization contract.
+
+The Issue #69 read-only verification SQL now carries the complete seeded identity and reviewed-alias fixtures so an approved migration run can surface missing, duplicate, wrong-metadata, wrong-target, ownership, active/superseded, namespace-collision, and rerun-blocker findings across the full seed set. Historical snapshot protection is enforced through migration-content tests that prohibit writes to snapshot, plan, workout, and user-owned data; the verification SQL only reports accurately named preexisting snapshot anomalies because standalone post-migration SQL cannot prove non-modification without a baseline. Hosted Supabase migration application remains pending explicit approval.
