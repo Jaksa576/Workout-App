@@ -19,6 +19,15 @@ Implementing the narrow PR #73 review follow-up for GitHub Issue #62. The patch 
 
 Custom exercise candidates now treat missing, null, numeric, object, or otherwise non-string `coachingNote` values as review-blocking `invalid_custom_candidate` guidance issues unless the existing structured guidance contract supplies valid guidance. Catalog-matched exercises keep catalog identity, reviewed video, reusable guidance, safety metadata, tracking metadata, and deterministic precedence unchanged while malformed provider plan-specific coaching falls back to a safe empty string rather than entering `StructuredExerciseInput` or invalidating the match. This follow-up intentionally does not start Issue #69 catalog expansion and does not change matcher order, persistence, provider adapters, UI, schema, Supabase migrations, or generation endpoints.
 
+
+## Current Implementation — Issue #69 catalog readiness
+
+Implementing GitHub Issue #69 as one comprehensive catalog-readiness PR on top of merged PR #75. Readiness inspection confirmed PR #75 is present in history, Issue #62 remains the generated-exercise matcher/resolver boundary, resolution order remains exact valid catalog ID, exact normalized canonical name, then exact reviewed alias, outcomes remain `matched`, `custom`, and `needs_review`, unknown valid generated exercises remain custom candidates, and ambiguous names remain review-blocking.
+
+Baseline inventory before this PR: 35 active code-owned catalog exercises and 9 reviewed aliases. This PR expands the static TypeScript catalog and reviewed aliases only; it does not add a second alias registry, matcher, fuzzy matching, semantic matching, runtime metadata inference, schema change, Supabase migration, provider adapter, generation endpoint, or save-boundary change.
+
+Validation focus: catalog/alias integrity, ambiguous generic generated names, exact ID precedence, custom fallback, metadata combinations, video URL formats, deterministic inventory reporting, `npm run check`, branch push, and branch verification.
+
 ## Why This Was Reprioritized
 
 The previous direct AI-guided plan creation work completed only its docs/planning step. Provider-backed implementation has not started.
@@ -435,3 +444,19 @@ Implementing the requested standalone follow-up on the merged active-workout set
 The set header and rows continue to use the same metadata-driven grid definition for completion-only, reps-only, weighted, duration, distance, distance-duration, same-each-side, and independent-side variants. The visual patch centers header labels and row values in those shared columns, keeps the completion checkmark centered over the set completion buttons, reduces simple row/header/footer vertical padding, and removes the nested rounded set-table card so the set area reads as a flat segmented list within the existing rounded exercise card.
 
 Validation focus: narrow mobile alignment for completion-only, reps-only, weighted, timed/duration, distance-duration, same-each-side, and independent-side rows; previous-value text with and without history; Add set full-width click target; and unchanged complete/uncomplete/edit/add/reload persistence behavior.
+
+## PR #76 Follow-up — Issue #69 migration correctness
+
+Implementing the PR #76 review follow-up for GitHub Issue #69. The historical canonical identity migration `supabase/migrations/20260714120000_exercise_identity_aliases.sql` has been restored to its pre-PR #76 contents because that committed migration may already have been applied in local or hosted environments and must be treated as immutable.
+
+A new additive Issue #69 migration now owns the expanded catalog identity seed and reviewed alias seed. It updates only system-owned identity/alias rows for catalog parity, leaves user-owned identities untouched, does not rewrite historical exercise-entry or exercise-result display snapshots, and remains an in-repo artifact only. Hosted Supabase migration application remains pending explicit approval through the normal migration flow.
+
+Validation focus: historical migration immutability, TypeScript catalog-to-SQL identity metadata parity, reviewed alias target/collision coverage, read-only verification coverage, existing generated-plan resolver behavior, catalog reporting, and `npm run check`.
+
+Next action: finish PR review for #76, then follow with the separate catalog-domain quality review and YouTube review. Do not broaden this patch into exercise-domain review, YouTube URL research, matcher redesign, generated-plan resolver changes, user-owned identity consolidation, or hosted Supabase application.
+
+## PR #76 Follow-up — Issue #69 full migration verification coverage
+
+Patch update: the Issue #69 additive catalog migration now has test coverage for the full write scope rather than only the 36 newly introduced identities. The SQL identity seed is parsed and compared against every current `exerciseCatalog` row, and the SQL reviewed-alias seed is checked as an exact set against the authoritative `reviewedSystemAliases` source using the app normalization contract.
+
+The Issue #69 read-only verification SQL now carries the complete seeded identity and reviewed-alias fixtures so an approved migration run can surface missing, duplicate, wrong-metadata, wrong-target, ownership, active/superseded, namespace-collision, and rerun-blocker findings across the full seed set. Historical snapshot protection is enforced through migration-content tests that prohibit writes to snapshot, plan, workout, and user-owned data; the verification SQL only reports accurately named preexisting snapshot anomalies because standalone post-migration SQL cannot prove non-modification without a baseline. Hosted Supabase migration application remains pending explicit approval.

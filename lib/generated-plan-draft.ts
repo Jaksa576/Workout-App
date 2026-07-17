@@ -63,7 +63,7 @@ export type FatalGeneratedDraftError = { code: "invalid_plan_hierarchy" | "inval
 
 export type NormalizedGeneratedPlanDraft = { plan: StructuredPlanInput; exercises: NormalizedGeneratedExercise[]; reviewBlockingIssues: ExerciseResolutionIssue[] };
 
-const GENERIC_AMBIGUOUS_NAMES = new Set(["row", "press", "curl", "lunge"]);
+export const GENERIC_AMBIGUOUS_NAMES = new Set(["row", "press", "shoulder press", "curl", "lunge", "leg curl", "squat", "deadlift"]);
 const trackingTypes = new Set<ExerciseTrackingType>(["weight_reps", "reps_only", "duration", "distance", "distance_duration", "completion"]);
 const unilateralModes = new Set<UnilateralMode>(["bilateral", "same_each_side", "independent_sides"]);
 

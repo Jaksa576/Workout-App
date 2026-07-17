@@ -152,4 +152,4 @@ LLMs must remain optional and must not replace deterministic progression, valida
 
 ### AI generated draft boundary
 
-Issue #62 is now the active bridge between the completed exercise-recording contract and future live provider integration. The generated draft contract, deterministic matcher, reviewed aliases, and review-before-save boundary land before Gemini adapter work (#63), ambiguity-resolution UI (#65), and broader catalog expansion (#69).
+Issue #62 is now the active bridge between the completed exercise-recording contract and future live provider integration. The generated draft contract, deterministic matcher, reviewed aliases, and review-before-save boundary land before Gemini adapter work (#63), ambiguity-resolution UI (#65), and broader catalog expansion (#69). Issue #69 materially expands catalog breadth and reviewed aliases without changing the matcher, so Issue #63 can proceed without waiting for exhaustive catalog coverage.
