@@ -12,6 +12,13 @@ GitHub Issue #6 — **Umbrella: Overhaul workout execution and exercise recordin
 
 Issue #9 — **Discovery: Define workout execution and set-result domain contract** — has produced the docs-first domain contract in `docs/architecture.md`. No production workout behavior, schema, or API behavior changed in that discovery step.
 
+
+## PR Follow-up — Issue #62 generated-plan normalization hardening
+
+Implementing the narrow PR #73 review follow-up for GitHub Issue #62. The patch keeps the generated-plan boundary provider-neutral and deterministic while hardening runtime normalization against malformed provider-controlled prescription and coaching values. Non-string required `prescription.reps` and `prescription.rest` now produce the existing typed fatal prescription error instead of escaping as exceptions; optional `prescription.tempo` accepts absent/null values, trims valid strings, normalizes blank strings to null, and rejects non-string values without throwing.
+
+Custom exercise candidates now treat missing, null, numeric, object, or otherwise non-string `coachingNote` values as review-blocking `invalid_custom_candidate` guidance issues unless the existing structured guidance contract supplies valid guidance. Catalog-matched exercises keep catalog identity, reviewed video, reusable guidance, safety metadata, tracking metadata, and deterministic precedence unchanged while malformed provider plan-specific coaching falls back to a safe empty string rather than entering `StructuredExerciseInput` or invalidating the match. This follow-up intentionally does not start Issue #69 catalog expansion and does not change matcher order, persistence, provider adapters, UI, schema, Supabase migrations, or generation endpoints.
+
 ## Why This Was Reprioritized
 
 The previous direct AI-guided plan creation work completed only its docs/planning step. Provider-backed implementation has not started.

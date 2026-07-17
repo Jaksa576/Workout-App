@@ -68,7 +68,7 @@ describe("generated plan draft matching", () => {
   });
 
   it("returns stable fatal errors for missing and malformed prescriptions without resolving", () => {
-    const malformed: GeneratedPlanDraft = { ...draft(base()), phases: [{ goal: "Build", workouts: [{ name: "Day", focus: "", summary: "", scheduledDays: ["mon"], exercises: [base({ prescription: undefined }), base({ prescription: { sets: 1.5, reps: "8", rest: "60 sec" } }), base({ prescription: { sets: 0, reps: "8", rest: "60 sec" } }), base({ prescription: { sets: 3, reps: "", rest: "60 sec" } }), base({ prescription: { sets: 3, reps: "8", rest: "" } })] }] }] };
+    const malformed: GeneratedPlanDraft = { ...draft(base()), phases: [{ goal: "Build", workouts: [{ name: "Day", focus: "", summary: "", scheduledDays: ["mon"], exercises: [base({ prescription: undefined }), base({ prescription: { sets: 1.5, reps: "8", rest: "60 sec" } }), base({ prescription: { sets: 0, reps: "8", rest: "60 sec" } }), base({ prescription: { sets: 3, reps: "", rest: "60 sec" } }), base({ prescription: { sets: 3, reps: "8", rest: "" } }), base({ prescription: { sets: 3, reps: 8 as never, rest: "60 sec" } }), base({ prescription: { sets: 3, reps: "8", rest: 60 as never } })] }] }] };
     expect(() => normalizeGeneratedPlanDraft(malformed)).not.toThrow();
     const result = normalizeGeneratedPlanDraft(malformed);
     expect(result).toMatchObject({ fatalErrors: expect.any(Array) });
@@ -77,7 +77,9 @@ describe("generated plan draft matching", () => {
       "phases.0.workouts.0.exercises.1.prescription",
       "phases.0.workouts.0.exercises.2.prescription",
       "phases.0.workouts.0.exercises.3.prescription",
-      "phases.0.workouts.0.exercises.4.prescription"
+      "phases.0.workouts.0.exercises.4.prescription",
+      "phases.0.workouts.0.exercises.5.prescription",
+      "phases.0.workouts.0.exercises.6.prescription"
     ]);
   });
 
