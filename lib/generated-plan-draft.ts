@@ -1,6 +1,6 @@
 import { exerciseCatalog, getCatalogExercise, type ExerciseCatalogItem, type ExerciseTrackingMetadata } from "@/lib/exercise-library";
 import { normalizeExerciseLookupKey, resolveExerciseIdentityByCanonicalId, resolveExerciseIdentityByReviewedName, reviewedSystemAliases } from "@/lib/exercise-identity";
-import type { ExerciseGuidance } from "@/lib/exercise-guidance";
+import { hasExerciseGuidance, normalizeExerciseGuidance, type ExerciseGuidance } from "@/lib/exercise-guidance";
 import { isStructuredPlanInput, isWeekday, normalizeExerciseVideoUrl } from "@/lib/validation";
 import type { ExerciseTrackingType, StructuredExerciseInput, StructuredPlanInput, UnilateralMode, Weekday } from "@/lib/types";
 
@@ -74,10 +74,21 @@ const appOwnedGeneratedPhaseProgression = {
   deloadSettings: { painFlags: 2, days: 7 }
 };
 
+function normalizeOptionalString(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function normalizeOptionalNullableString(value: unknown) {
+  const normalized = normalizeOptionalString(value);
+  return normalized || null;
+}
+
 function normalizePrescription(candidate: ProviderExerciseCandidate) {
   const p = candidate.prescription;
-  if (!p || !Number.isInteger(p.sets) || p.sets <= 0 || !p.reps?.trim() || !p.rest?.trim()) return null;
-  return { ...p, reps: p.reps.trim(), rest: p.rest.trim(), tempo: p.tempo?.trim() || null };
+  const reps = normalizeOptionalString(p?.reps);
+  const rest = normalizeOptionalString(p?.rest);
+  if (!p || !Number.isInteger(p.sets) || p.sets <= 0 || !reps || !rest) return null;
+  return { ...p, reps, rest, tempo: normalizeOptionalNullableString(p.tempo) };
 }
 
 function hasIncompatibleUnits(candidate: ProviderExerciseCandidate) {
@@ -120,64 +131,66 @@ function metadataFromCatalog(item: ExerciseCatalogItem) {
 }
 
 function toMatchedExercise(item: ExerciseCatalogItem, candidate: ProviderExerciseCandidate, prescription: NonNullable<ProviderExerciseCandidate["prescription"]>): StructuredExerciseInput {
-  return { sourceExerciseId: item.id, name: item.name, sets: prescription.sets, reps: prescription.reps, rest: prescription.rest, coachingNote: candidate.coachingNote, guidance: item.guidance, videoUrl: item.videoUrl, ...metadataFromCatalog(item) };
+  return { sourceExerciseId: item.id, name: item.name, sets: prescription.sets, reps: prescription.reps, rest: prescription.rest, coachingNote: normalizeOptionalString(candidate.coachingNote), guidance: item.guidance, videoUrl: item.videoUrl, ...metadataFromCatalog(item) };
 }
 
 function validateCustom(candidate: ProviderExerciseCandidate): ExerciseResolutionIssue[] {
   const issues: ExerciseResolutionIssue[] = [];
-  const normalizedVideoUrl = candidate.videoUrl ? normalizeExerciseVideoUrl(candidate.videoUrl) : null;
-  if (!candidate.name.trim()) issues.push({ code: "invalid_custom_candidate", message: "Custom exercise name is required.", field: "name" });
-  if (!candidate.coachingNote.trim() && !candidate.guidance) issues.push({ code: "invalid_custom_candidate", message: "Custom exercise guidance is required.", field: "coachingNote" });
-  if (!candidate.videoSearchQuery?.trim()) issues.push({ code: "invalid_custom_candidate", message: "Custom exercise video search query is required.", field: "videoSearchQuery" });
+  const normalizedVideoUrl = typeof candidate.videoUrl === "string" ? normalizeExerciseVideoUrl(candidate.videoUrl) : null;
+  const guidance = normalizeExerciseGuidance(candidate.guidance);
+  if (!normalizeOptionalString(candidate.name)) issues.push({ code: "invalid_custom_candidate", message: "Custom exercise name is required.", field: "name" });
+  if (!normalizeOptionalString(candidate.coachingNote) && !hasExerciseGuidance(guidance)) issues.push({ code: "invalid_custom_candidate", message: "Custom exercise guidance is required.", field: "coachingNote" });
+  if (!normalizeOptionalString(candidate.videoSearchQuery)) issues.push({ code: "invalid_custom_candidate", message: "Custom exercise video search query is required.", field: "videoSearchQuery" });
   if (!normalizedVideoUrl) issues.push({ code: "invalid_custom_candidate", message: "Custom exercise requires a supported YouTube video URL.", field: "videoUrl" });
   if (!candidate.trackingType || !trackingTypes.has(candidate.trackingType)) issues.push({ code: "invalid_custom_candidate", message: "Supported tracking type is required.", field: "trackingType" });
   if (!candidate.unilateralMode || !unilateralModes.has(candidate.unilateralMode)) issues.push({ code: "invalid_custom_candidate", message: "Supported unilateral mode is required.", field: "unilateralMode" });
   if (hasIncompatibleUnits(candidate)) issues.push({ code: "invalid_custom_candidate", message: "Tracking units must match the tracking type.", field: "units" });
-  if (!candidate.primaryValueLabel?.trim()) issues.push({ code: "invalid_custom_candidate", message: "Primary display label is required.", field: "primaryValueLabel" });
-  if (requiresSecondaryLabel(candidate.trackingType) && !candidate.secondaryValueLabel?.trim()) issues.push({ code: "invalid_custom_candidate", message: "Secondary display label is required.", field: "secondaryValueLabel" });
+  if (!normalizeOptionalString(candidate.primaryValueLabel)) issues.push({ code: "invalid_custom_candidate", message: "Primary display label is required.", field: "primaryValueLabel" });
+  if (requiresSecondaryLabel(candidate.trackingType) && !normalizeOptionalString(candidate.secondaryValueLabel)) issues.push({ code: "invalid_custom_candidate", message: "Secondary display label is required.", field: "secondaryValueLabel" });
   return issues;
 }
 
 export function resolveGeneratedExercise(candidate: ProviderExerciseCandidate): NormalizedGeneratedExercise {
   const prescription = normalizePrescription(candidate);
   if (!prescription) throw new Error("resolveGeneratedExercise requires a valid prescription; call normalizeGeneratedPlanDraft for typed fatal errors.");
-  const key = normalizeExerciseLookupKey(candidate.name);
-  const byId = candidate.proposedCatalogId ? resolveExerciseIdentityByCanonicalId(candidate.proposedCatalogId) : null;
-  const byName = resolveExerciseIdentityByReviewedName(candidate.name);
+  const candidateName = normalizeOptionalString(candidate.name);
+  const key = normalizeExerciseLookupKey(candidateName);
+  const byId = typeof candidate.proposedCatalogId === "string" && candidate.proposedCatalogId ? resolveExerciseIdentityByCanonicalId(candidate.proposedCatalogId) : null;
+  const byName = resolveExerciseIdentityByReviewedName(candidateName);
   if (byId?.status === "resolved") {
     if (byName.status === "resolved" && byName.candidate.canonicalId !== byId.candidate.canonicalId) {
-      return { status: "needs_review", displayName: candidate.name, prescription, issues: [{ code: "supplied_id_name_conflict", message: "Supplied catalog ID conflicts with exercise name.", suppliedCatalogId: byId.candidate.canonicalId, resolvedNameCatalogId: byName.candidate.canonicalId }], provenance: { kind: "id_name_conflict", suppliedCatalogId: byId.candidate.canonicalId, suppliedName: candidate.name, resolvedNameCatalogId: byName.candidate.canonicalId }, proposedCatalogExercises: [byId.candidate, byName.candidate].map((c) => ({ catalogId: c.canonicalId, name: c.displayName })), candidate };
+      return { status: "needs_review", displayName: candidateName, prescription, issues: [{ code: "supplied_id_name_conflict", message: "Supplied catalog ID conflicts with exercise name.", suppliedCatalogId: byId.candidate.canonicalId, resolvedNameCatalogId: byName.candidate.canonicalId }], provenance: { kind: "id_name_conflict", suppliedCatalogId: byId.candidate.canonicalId, suppliedName: candidateName, resolvedNameCatalogId: byName.candidate.canonicalId }, proposedCatalogExercises: [byId.candidate, byName.candidate].map((c) => ({ catalogId: c.canonicalId, name: c.displayName })), candidate };
     }
-    return { status: "matched", exercise: toMatchedExercise(getCatalogExercise(byId.candidate.canonicalId)!, candidate, prescription), provenance: { kind: "catalog_id", catalogId: byId.candidate.canonicalId }, planSpecificCoaching: candidate.coachingNote, tempo: prescription.tempo, safetyNotes: candidate.safetyNotes ?? null, videoSearchQuery: candidate.videoSearchQuery ?? null };
+    return { status: "matched", exercise: toMatchedExercise(getCatalogExercise(byId.candidate.canonicalId)!, candidate, prescription), provenance: { kind: "catalog_id", catalogId: byId.candidate.canonicalId }, planSpecificCoaching: normalizeOptionalString(candidate.coachingNote), tempo: prescription.tempo, safetyNotes: normalizeOptionalNullableString(candidate.safetyNotes), videoSearchQuery: normalizeOptionalNullableString(candidate.videoSearchQuery) };
   }
-  if (byName.status === "ambiguous") return { status: "needs_review", displayName: candidate.name, prescription, issues: [{ code: "ambiguous_catalog_identity", message: "Multiple catalog exercises match.", candidates: byName.candidates.map((c) => ({ catalogId: c.canonicalId, name: c.displayName })) }], provenance: { kind: "ambiguous", normalizedKey: key, catalogIds: byName.candidates.map((c) => c.canonicalId) }, proposedCatalogExercises: byName.candidates.map((c) => ({ catalogId: c.canonicalId, name: c.displayName })), candidate };
+  if (byName.status === "ambiguous") return { status: "needs_review", displayName: candidateName, prescription, issues: [{ code: "ambiguous_catalog_identity", message: "Multiple catalog exercises match.", candidates: byName.candidates.map((c) => ({ catalogId: c.canonicalId, name: c.displayName })) }], provenance: { kind: "ambiguous", normalizedKey: key, catalogIds: byName.candidates.map((c) => c.canonicalId) }, proposedCatalogExercises: byName.candidates.map((c) => ({ catalogId: c.canonicalId, name: c.displayName })), candidate };
   if (byName.status === "resolved") {
     const item = getCatalogExercise(byName.candidate.canonicalId)!;
     const via = byName.reviewedAlias ? "reviewed_alias" : "canonical_name";
     const provenance: MatchProvenance = candidate.proposedCatalogId ? { kind: "invalid_id_name_match", invalidCatalogId: candidate.proposedCatalogId, catalogId: item.id, via } : via === "reviewed_alias" ? { kind: "reviewed_alias", catalogId: item.id, alias: byName.reviewedAlias!, normalizedKey: key } : { kind: "canonical_name", catalogId: item.id, normalizedKey: key };
-    return { status: "matched", exercise: toMatchedExercise(item, candidate, prescription), provenance, planSpecificCoaching: candidate.coachingNote, tempo: prescription.tempo, safetyNotes: candidate.safetyNotes ?? null, videoSearchQuery: candidate.videoSearchQuery ?? null };
+    return { status: "matched", exercise: toMatchedExercise(item, candidate, prescription), provenance, planSpecificCoaching: normalizeOptionalString(candidate.coachingNote), tempo: prescription.tempo, safetyNotes: normalizeOptionalNullableString(candidate.safetyNotes), videoSearchQuery: normalizeOptionalNullableString(candidate.videoSearchQuery) };
   }
   if (GENERIC_AMBIGUOUS_NAMES.has(key)) {
     const proposed = exerciseCatalog.filter((e) => normalizeExerciseLookupKey(e.name).includes(key)).map((e) => ({ catalogId: e.id, name: e.name }));
-    return { status: "needs_review", displayName: candidate.name, prescription, issues: [{ code: "ambiguous_catalog_identity", message: "Generic exercise name needs review.", candidates: proposed }], provenance: { kind: "ambiguous", normalizedKey: key, catalogIds: proposed.map((p) => p.catalogId) }, proposedCatalogExercises: proposed, candidate };
+    return { status: "needs_review", displayName: candidateName, prescription, issues: [{ code: "ambiguous_catalog_identity", message: "Generic exercise name needs review.", candidates: proposed }], provenance: { kind: "ambiguous", normalizedKey: key, catalogIds: proposed.map((p) => p.catalogId) }, proposedCatalogExercises: proposed, candidate };
   }
   const customIssues = validateCustom(candidate);
-  if (customIssues.length) return { status: "needs_review", displayName: candidate.name, prescription, issues: customIssues, provenance: { kind: "custom_candidate", normalizedKey: key }, proposedCatalogExercises: [], candidate };
-  const normalizedVideoUrl = normalizeExerciseVideoUrl(candidate.videoUrl!);
-  return { status: "custom", provenance: { kind: "custom_candidate", normalizedKey: key }, tempo: prescription.tempo, safetyNotes: candidate.safetyNotes ?? null, videoSearchQuery: candidate.videoSearchQuery ?? null, exercise: { name: candidate.name.trim(), sets: prescription.sets, reps: prescription.reps, rest: prescription.rest, coachingNote: candidate.coachingNote, guidance: candidate.guidance, videoUrl: normalizedVideoUrl!, trackingType: candidate.trackingType, unilateralMode: candidate.unilateralMode, loadUnit: candidate.loadUnit ?? null, distanceUnit: candidate.distanceUnit ?? null, primaryValueLabel: candidate.primaryValueLabel, secondaryValueLabel: candidate.secondaryValueLabel } };
+  if (customIssues.length) return { status: "needs_review", displayName: candidateName, prescription, issues: customIssues, provenance: { kind: "custom_candidate", normalizedKey: key }, proposedCatalogExercises: [], candidate };
+  const normalizedVideoUrl = typeof candidate.videoUrl === "string" ? normalizeExerciseVideoUrl(candidate.videoUrl) : null;
+  return { status: "custom", provenance: { kind: "custom_candidate", normalizedKey: key }, tempo: prescription.tempo, safetyNotes: normalizeOptionalNullableString(candidate.safetyNotes), videoSearchQuery: normalizeOptionalNullableString(candidate.videoSearchQuery), exercise: { name: candidateName, sets: prescription.sets, reps: prescription.reps, rest: prescription.rest, coachingNote: normalizeOptionalString(candidate.coachingNote), guidance: normalizeExerciseGuidance(candidate.guidance), videoUrl: normalizedVideoUrl!, trackingType: candidate.trackingType, unilateralMode: candidate.unilateralMode, loadUnit: candidate.loadUnit ?? null, distanceUnit: candidate.distanceUnit ?? null, primaryValueLabel: normalizeOptionalString(candidate.primaryValueLabel), secondaryValueLabel: normalizeOptionalNullableString(candidate.secondaryValueLabel) } };
 }
 
 function validateDraftStructure(draft: GeneratedPlanDraft) {
   const fatalErrors: FatalGeneratedDraftError[] = [];
   if (draft.version !== "generated-plan-draft-v1") fatalErrors.push({ code: "invalid_plan_hierarchy", message: "Unsupported draft version.", path: "version" });
-  if (!draft.name?.trim()) fatalErrors.push({ code: "invalid_plan_hierarchy", message: "Plan name is required.", path: "name" });
+  if (!normalizeOptionalString(draft.name)) fatalErrors.push({ code: "invalid_plan_hierarchy", message: "Plan name is required.", path: "name" });
   if (!Array.isArray(draft.weeklySchedule) || draft.weeklySchedule.length === 0 || !draft.weeklySchedule.every(isWeekday)) fatalErrors.push({ code: "invalid_plan_hierarchy", message: "Draft needs a valid weekly schedule.", path: "weeklySchedule" });
   if (!Array.isArray(draft.phases) || draft.phases.length === 0) fatalErrors.push({ code: "invalid_plan_hierarchy", message: "Draft needs at least one phase.", path: "phases" });
   (draft.phases ?? []).forEach((phase, pi) => {
-    if (!phase?.goal?.trim()) fatalErrors.push({ code: "invalid_plan_hierarchy", message: "Phase goal is required.", path: `phases.${pi}.goal` });
+    if (!normalizeOptionalString(phase?.goal)) fatalErrors.push({ code: "invalid_plan_hierarchy", message: "Phase goal is required.", path: `phases.${pi}.goal` });
     if (!Array.isArray(phase.workouts) || phase.workouts.length === 0) fatalErrors.push({ code: "invalid_plan_hierarchy", message: "Phase needs at least one workout.", path: `phases.${pi}.workouts` });
     (phase.workouts ?? []).forEach((workout, wi) => {
-      if (!workout?.name?.trim()) fatalErrors.push({ code: "invalid_plan_hierarchy", message: "Workout name is required.", path: `phases.${pi}.workouts.${wi}.name` });
+      if (!normalizeOptionalString(workout?.name)) fatalErrors.push({ code: "invalid_plan_hierarchy", message: "Workout name is required.", path: `phases.${pi}.workouts.${wi}.name` });
       if (!Array.isArray(workout.scheduledDays) || workout.scheduledDays.length === 0 || !workout.scheduledDays.every(isWeekday)) fatalErrors.push({ code: "invalid_plan_hierarchy", message: "Workout scheduled days are required.", path: `phases.${pi}.workouts.${wi}.scheduledDays` });
       if (!Array.isArray(workout.exercises) || workout.exercises.length === 0) fatalErrors.push({ code: "invalid_plan_hierarchy", message: "Workout needs at least one exercise.", path: `phases.${pi}.workouts.${wi}.exercises` });
       (workout.exercises ?? []).forEach((exercise, ei) => {
