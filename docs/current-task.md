@@ -19,6 +19,15 @@ Implementing the narrow PR #73 review follow-up for GitHub Issue #62. The patch 
 
 Custom exercise candidates now treat missing, null, numeric, object, or otherwise non-string `coachingNote` values as review-blocking `invalid_custom_candidate` guidance issues unless the existing structured guidance contract supplies valid guidance. Catalog-matched exercises keep catalog identity, reviewed video, reusable guidance, safety metadata, tracking metadata, and deterministic precedence unchanged while malformed provider plan-specific coaching falls back to a safe empty string rather than entering `StructuredExerciseInput` or invalidating the match. This follow-up intentionally does not start Issue #69 catalog expansion and does not change matcher order, persistence, provider adapters, UI, schema, Supabase migrations, or generation endpoints.
 
+
+## Current Implementation — Issue #69 catalog readiness
+
+Implementing GitHub Issue #69 as one comprehensive catalog-readiness PR on top of merged PR #75. Readiness inspection confirmed PR #75 is present in history, Issue #62 remains the generated-exercise matcher/resolver boundary, resolution order remains exact valid catalog ID, exact normalized canonical name, then exact reviewed alias, outcomes remain `matched`, `custom`, and `needs_review`, unknown valid generated exercises remain custom candidates, and ambiguous names remain review-blocking.
+
+Baseline inventory before this PR: 35 active code-owned catalog exercises and 9 reviewed aliases. This PR expands the static TypeScript catalog and reviewed aliases only; it does not add a second alias registry, matcher, fuzzy matching, semantic matching, runtime metadata inference, schema change, Supabase migration, provider adapter, generation endpoint, or save-boundary change.
+
+Validation focus: catalog/alias integrity, ambiguous generic generated names, exact ID precedence, custom fallback, metadata combinations, video URL formats, deterministic inventory reporting, `npm run check`, branch push, and branch verification.
+
 ## Why This Was Reprioritized
 
 The previous direct AI-guided plan creation work completed only its docs/planning step. Provider-backed implementation has not started.

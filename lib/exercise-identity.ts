@@ -19,10 +19,32 @@ export type ExerciseIdentityResolution =
   | { status: "unresolved"; normalizedKey: string };
 
 export const reviewedSystemAliases: Record<string, string[]> = {
-  "push-up": ["push up", "pushup"],
+  "push-up": ["push up", "pushup", "press up", "push ups"],
   "romanian-deadlift": ["rdl", "romanian dead lift", "romanian deadlifts"],
-  "bodyweight-squat": ["bodyweight squat", "air squat"],
-  "dumbbell-row": ["db row", "dumbbell row"]
+  "bodyweight-squat": ["bodyweight squat", "air squat", "bodyweight squats"],
+  "goblet-squat": ["goblet squats", "kb goblet squat", "db goblet squat"],
+  "dumbbell-row": ["db row", "dumbbell row", "one arm dumbbell row", "single arm dumbbell row"],
+  "dumbbell-bench-press": ["db bench press", "dumbbell bench", "db bench", "dumbbell chest press"],
+  "barbell-bench-press": ["bb bench press", "bench press", "barbell bench"],
+  "dumbbell-romanian-deadlift": ["db rdl", "dumbbell rdl", "dumbbell romanian deadlifts"],
+  "barbell-overhead-press": ["bb overhead press", "barbell shoulder press", "overhead press", "ohp"],
+  "dumbbell-shoulder-press": ["db shoulder press", "dumbbell overhead press", "db overhead press"],
+  "seated-cable-row": ["cable row", "seated row"],
+  "lat-pulldown": ["lat pull down", "pulldown", "lat pulldowns"],
+  "triceps-pushdown": ["tricep pushdown", "cable triceps pushdown", "triceps pressdown"],
+  "calf-raise": ["calf raises", "standing calf raise"],
+  "plank": ["front plank"],
+  "side-plank": ["side plank hold"],
+  "pallof-press": ["pallof presses"],
+  "farmer-carry": ["farmer walk"],
+  "suitcase-carry": ["suitcase walk"],
+  "leg-extension": ["leg extensions"],
+  "seated-leg-curl": ["seated hamstring curl", "hamstring curl machine"],
+  "split-squat": ["split squats"],
+  "bulgarian-split-squat": ["rear foot elevated split squat", "rfess"],
+  "forward-lunge": ["forward lunges"],
+  "reverse-lunge": ["reverse lunges"],
+  "walking-lunge": ["walking lunges"]
 };
 
 export function normalizeExerciseLookupKey(value: string) {
