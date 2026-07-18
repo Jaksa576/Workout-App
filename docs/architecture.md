@@ -306,6 +306,34 @@ Later Supabase-affecting PRs under Issue #6 should include a copyable handoff se
 - AI-assisted active-plan mutation, phase alternatives, and automatic next-phase replacement remain deferred.
 - Issue #8 must be reconciled with the exercise tracking and prescription contract approved through Issue #6 before implementation resumes.
 
+### Server-only Gemini generated-plan adapter (Issue #63)
+
+Issue #63 adds a dormant server-only Gemini REST adapter under
+`lib/ai-generation/`. It is intentionally not imported by UI components, public
+generation routes, or persistence code. `getAiGenerationConfiguration` is the
+single configuration boundary: generation is disabled unless the explicit
+enabled flag, `gemini` provider, bounded model/time/input/output settings, and
+server-only API key are all valid. Secrets must never use `NEXT_PUBLIC_` names.
+
+The adapter sends only a bounded, validated subset of `PlanSetupInput`, requests
+JSON with Gemini structured-output configuration, and never logs prompts,
+responses, API keys, or provider error details. It maps configuration, timeout,
+rate-limit, provider, unsafe-input, malformed-output, and canonical-validation
+failures to stable provider-neutral errors. Parsed output always flows through
+`normalizeGeneratedPlanDraft`, the existing deterministic catalog resolver, and
+strict structured-plan validation before it can be returned as an in-memory
+review draft. Catalog metadata and reviewed video precedence therefore remain
+unchanged; unmatched exercises must satisfy the complete custom-candidate
+contract, including a valid direct YouTube URL.
+
+The selected request target is `gemini-2.5-flash`, with a conservative 12-second
+timeout, 4,000-character input cap, and 4,096-output-token cap by default. The
+adapter is deliberately replaceable and uses no Gemini types in core draft,
+review, UI, or persistence contracts. Enable it only after reviewing the current
+Google Gemini API data-use, retention, pricing, and rate-limit documentation for
+the selected account/tier; free/no-billing availability must not override the
+application's input-privacy posture.
+
 ## UI And Theme Architecture
 
 - Theme styling should prefer semantic tokens and shared primitives over hardcoded page-specific colors.

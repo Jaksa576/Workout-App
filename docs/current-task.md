@@ -2,47 +2,23 @@
 
 ## Current Priority
 
-GitHub Issue #62 — **Define AI plan-draft contract and generation boundary** — is the active implementation target. Issue #6's exercise-recording contract is stable enough for this work because supported tracking types, unilateral modes, units, labels, exercise result snapshots, and final save behavior have landed in the app/domain code.
+GitHub Issue #63 — **Server-only Gemini plan generation** — is the active implementation target.
 
-Implementation state for #62: provider-neutral generated draft types, deterministic catalog matching, reviewed alias integrity validation, matched/custom/needs-review outcomes, provenance, catalog/generated metadata precedence, fatal vs review-blocking issues, and in-memory conversion into the existing structured review shape are in place. No provider call, generation endpoint, quota/event persistence, production resolution UI, migration, or plan-write path change is in scope.
+Readiness confirmed: Issue #62's provider-neutral `GeneratedPlanDraft`, typed normalization errors, deterministic catalog-resolution boundary, provenance, matched/custom/needs-review outcomes, and in-memory structured review conversion are present. The post-#69 catalog remains code-owned and uses that same matcher; no second matching path exists.
 
-Next work after #62: #63 maps Gemini-specific responses into `GeneratedPlanDraft`; #65 adds production UI for resolving `needs_review` exercises before save; #69 expands reviewed catalog exercises and aliases without changing deterministic matching.
+Issue #63 adds a disabled-by-default, server-only Gemini adapter only. It accepts bounded validated plan-setup context, requests structured JSON, maps failures to provider-neutral client-safe errors, and passes all output through the existing normalizer and catalog resolver. It does not add UI, a public route/server action, persistence, migrations, quota accounting, a provider chooser, or changes to non-AI creation/progression.
 
-GitHub Issue #6 — **Umbrella: Overhaul workout execution and exercise recording** — supplied the now-stable exercise-recording foundation used by Issue #62. Any remaining #6 follow-ups are separately tracked and are not the current implementation priority while #62 is active.
+## Immediate Next Action
 
-Issue #9 — **Discovery: Define workout execution and set-result domain contract** — has produced the docs-first domain contract in `docs/architecture.md`. No production workout behavior, schema, or API behavior changed in that discovery step.
+Finish review of the Issue #63 adapter PR. The next implementation issue is #65: add a production review UI for `needs_review` generated exercises before any generated plan can be saved. Keep live generation wiring, authenticated endpoints, persistence, quota/event storage, and final manual/preview QA in separately scoped work.
 
+## Documentation And Validation
 
-## PR Follow-up — Issue #62 generated-plan normalization hardening
+Issue #63 updates the server-only configuration and data-flow boundary in `docs/architecture.md` and documents local/Vercel variables in `.env.example` and `README.md`. Validation requires focused mocked adapter tests plus `npm run check`; no live Gemini key, network call, or production route is used by tests.
 
-Implementing the narrow PR #73 review follow-up for GitHub Issue #62. The patch keeps the generated-plan boundary provider-neutral and deterministic while hardening runtime normalization against malformed provider-controlled prescription and coaching values. Non-string required `prescription.reps` and `prescription.rest` now produce the existing typed fatal prescription error instead of escaping as exceptions; optional `prescription.tempo` accepts absent/null values, trims valid strings, normalizes blank strings to null, and rejects non-string values without throwing.
+## Historical Rationale
 
-Custom exercise candidates now treat missing, null, numeric, object, or otherwise non-string `coachingNote` values as review-blocking `invalid_custom_candidate` guidance issues unless the existing structured guidance contract supplies valid guidance. Catalog-matched exercises keep catalog identity, reviewed video, reusable guidance, safety metadata, tracking metadata, and deterministic precedence unchanged while malformed provider plan-specific coaching falls back to a safe empty string rather than entering `StructuredExerciseInput` or invalidating the match. This follow-up intentionally does not start Issue #69 catalog expansion and does not change matcher order, persistence, provider adapters, UI, schema, Supabase migrations, or generation endpoints.
-
-
-## Current Implementation — Issue #69 catalog readiness
-
-Implementing GitHub Issue #69 as one comprehensive catalog-readiness PR on top of merged PR #75. Readiness inspection confirmed PR #75 is present in history, Issue #62 remains the generated-exercise matcher/resolver boundary, resolution order remains exact valid catalog ID, exact normalized canonical name, then exact reviewed alias, outcomes remain `matched`, `custom`, and `needs_review`, unknown valid generated exercises remain custom candidates, and ambiguous names remain review-blocking.
-
-Baseline inventory before this PR: 35 active code-owned catalog exercises and 9 reviewed aliases. This PR expands the static TypeScript catalog and reviewed aliases only; it does not add a second alias registry, matcher, fuzzy matching, semantic matching, runtime metadata inference, schema change, Supabase migration, provider adapter, generation endpoint, or save-boundary change.
-
-Validation focus: catalog/alias integrity, ambiguous generic generated names, exact ID precedence, custom fallback, metadata combinations, video URL formats, deterministic inventory reporting, `npm run check`, branch push, and branch verification.
-
-
-
-## Current Implementation — Post-Issue #69 exercise catalog domain cleanup
-
-Implemented on branch `chatgpt/exercise-catalog-domain-video-cleanup` as the post-Issue #69 domain-review patch. The static catalog remains the authoritative source of canonical exercise metadata, reviewed aliases remain in `reviewedSystemAliases`, and deterministic generated-plan resolution still uses exact catalog ID, exact canonical name, exact reviewed alias, then explicit custom or `needs_review` outcomes. No fuzzy, semantic, embedding, LLM, provider, generated-plan save-boundary, plan/workout table, hosted Supabase, or historical snapshot behavior was intentionally changed.
-
-Catalog state after this patch: 81 active code-owned catalog exercises. The patch clarifies `romanian-deadlift` as the barbell variation, keeps `dumbbell-romanian-deadlift` separate, replaces the unclear hip-flexor rockback runtime catalog identity with `half-kneeling-hip-flexor-stretch`, clarifies A-march/open-book thoracic rotation/knee-to-wall ankle mobilization names, fixes carry load-plus-steps labels through the existing `weight_reps` contract, changes stride drills/lateral shuffle/brisk walk to duration tracking, removes mismatched reviewed videos, and adds ten focused machine/cable/accessory exercises.
-
-Database work is in-repo only: `supabase/migrations/20260718120000_exercise_catalog_domain_video_cleanup.sql` and `supabase/verification/exercise-catalog-domain-video-cleanup-readonly.sql`. The migration is additive/idempotent for system-owned catalog identity and reviewed-alias rows, retires ambiguous reviewed system aliases by setting `reviewed = false`, supersedes the old system hip-flexor identity to the new ID, and does not write plan/workout/session/result snapshot tables. Hosted Supabase was not changed by Codex.
-
-PR #77 was merged before its migration-ordering review blocker was patched: the merged `20260718120000` migration set `hip-flexor-rockback.superseded_by` to `half-kneeling-hip-flexor-stretch` before inserting that replacement identity, which can violate the `exercise_identities.superseded_by` foreign key on a clean migration chain. The follow-up patch preserves the merged migration byte-for-byte and adds `supabase/migrations/20260718115900_half_kneeling_hip_flexor_identity_prerequisite.sql`, an earlier idempotent system-owned identity seed for `half-kneeling-hip-flexor-stretch`, so the replacement exists before the merged domain-cleanup migration references it. Hosted Supabase remains unchanged unless separately authorized through the approved migration flow.
-
-## Why This Was Reprioritized
-
-The previous direct AI-guided plan creation work completed only its docs/planning step. Provider-backed implementation has not started.
+The following Issue #6 notes are retained as historical context only. Issue #63 is now the active provider-adapter implementation; do not interpret this section as current scope.
 
 Workout execution and set-result changes may affect:
 

@@ -42,14 +42,14 @@ Issue #10 must land the committed Supabase migration, canonical schema update, g
 
 Status: queued behind the foundational contract from Issue #6.
 
-The docs-only planning step is complete. Provider-backed implementation has not started.
+Issue #62 established the provider-neutral generated-draft contract and Issue #63 adds the first disabled-by-default server-only Gemini adapter. No public generation route, UI, persistence, or quota/event system is implemented yet.
 
 This work remains important, but the generated exercise prescription format must align with the tracking types, units, snapshots, unilateral conventions, and session-result model approved through Issue #6.
 
 When resumed, split it into reviewable child issues for:
 
 - AI-first feature-gated `/plans/new` shell
-- server-only provider adapter and configuration
+- server-only provider adapter and configuration (Issue #63: Gemini adapter)
 - quota/event storage and RLS
 - authenticated generation with strict validation and typed errors
 - review/edit/save integration

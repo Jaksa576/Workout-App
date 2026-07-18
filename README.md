@@ -89,6 +89,26 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 NEXT_PUBLIC_SITE_URL=https://workout-app-seven-delta.vercel.app
 ```
 
+Optional server-only Gemini plan generation (not wired to a public route or UI in
+this slice) additionally uses the following Vercel and local `.env.local`
+variables. Do not expose any of them as `NEXT_PUBLIC_*` values:
+
+```
+AI_GENERATION_ENABLED=false
+AI_GENERATION_PROVIDER=gemini
+GEMINI_MODEL=gemini-2.5-flash
+GEMINI_TIMEOUT_MS=12000
+GEMINI_MAX_INPUT_CHARS=4000
+GEMINI_MAX_OUTPUT_TOKENS=4096
+GEMINI_API_KEY=
+```
+
+Generation is disabled unless `AI_GENERATION_ENABLED=true`, the provider is
+`gemini`, all bounds are valid, and `GEMINI_API_KEY` is set. Configure a
+privacy-reviewed billing posture before enabling it: only minimized validated
+plan-setup context is sent to Gemini, and no prompt, response, key, or provider
+error body is logged or returned by this adapter.
+
 For local development, place them in `.env.local`.
 
 For Vercel, add them in the Vercel project's Environment Variables settings.
