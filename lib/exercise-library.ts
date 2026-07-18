@@ -1,4 +1,9 @@
-import type { ExerciseTrackingType, StructuredExerciseInput, TrainingGoalType, UnilateralMode } from "@/lib/types";
+import type {
+  ExerciseTrackingType,
+  StructuredExerciseInput,
+  TrainingGoalType,
+  UnilateralMode,
+} from "@/lib/types";
 
 export type ExerciseCategory =
   | "mobility"
@@ -47,28 +52,31 @@ export type ExerciseTrackingMetadata = {
   secondaryValueLabel: string | null;
 };
 
-export type ExerciseCatalogItem = StructuredExerciseInput & ExerciseTrackingMetadata & {
-  id: string;
-  category: ExerciseCategory;
-  movementPattern: MovementPattern;
-  equipmentTags: string[];
-  goalTags: TrainingGoalType[];
-  difficultyTier: DifficultyTier;
-  cautionTags: CautionTag[];
-  traitTags: string[];
-  preferenceTags: string[];
-};
+export type ExerciseCatalogItem = StructuredExerciseInput &
+  ExerciseTrackingMetadata & {
+    id: string;
+    category: ExerciseCategory;
+    movementPattern: MovementPattern;
+    equipmentTags: string[];
+    goalTags: TrainingGoalType[];
+    difficultyTier: DifficultyTier;
+    cautionTags: CautionTag[];
+    traitTags: string[];
+    preferenceTags: string[];
+  };
 
-export const exerciseCategories: Array<{ value: ExerciseCategory; label: string }> = [
+export const exerciseCategories: Array<{
+  value: ExerciseCategory;
+  label: string;
+}> = [
   { value: "mobility", label: "Mobility" },
   { value: "strength", label: "Strength" },
   { value: "cardio", label: "Cardio" },
   { value: "core", label: "Core" },
   { value: "running_prep", label: "Running prep" },
   { value: "recovery", label: "Recovery" },
-  { value: "athletic", label: "Athletic" }
+  { value: "athletic", label: "Athletic" },
 ];
-
 
 const completionMetadata: ExerciseTrackingMetadata = {
   trackingType: "completion",
@@ -78,10 +86,12 @@ const completionMetadata: ExerciseTrackingMetadata = {
   distanceUnit: null,
   supportedDistanceUnits: [],
   primaryValueLabel: "Completion",
-  secondaryValueLabel: null
+  secondaryValueLabel: null,
 };
 
-const repsMetadata = (unilateralMode: UnilateralMode = "bilateral"): ExerciseTrackingMetadata => ({
+const repsMetadata = (
+  unilateralMode: UnilateralMode = "bilateral",
+): ExerciseTrackingMetadata => ({
   trackingType: "reps_only",
   unilateralMode,
   loadUnit: null,
@@ -89,21 +99,26 @@ const repsMetadata = (unilateralMode: UnilateralMode = "bilateral"): ExerciseTra
   distanceUnit: null,
   supportedDistanceUnits: [],
   primaryValueLabel: "Reps",
-  secondaryValueLabel: null
+  secondaryValueLabel: null,
 });
 
-const weightRepsMetadata = (unilateralMode: UnilateralMode = "bilateral"): ExerciseTrackingMetadata => ({
+const weightRepsMetadata = (
+  unilateralMode: UnilateralMode = "bilateral",
+  labels: { primaryValueLabel?: string; secondaryValueLabel?: string } = {},
+): ExerciseTrackingMetadata => ({
   trackingType: "weight_reps",
   unilateralMode,
   loadUnit: "lb",
   supportedLoadUnits: ["lb", "kg"],
   distanceUnit: null,
   supportedDistanceUnits: [],
-  primaryValueLabel: "Load",
-  secondaryValueLabel: "Reps"
+  primaryValueLabel: labels.primaryValueLabel ?? "Load",
+  secondaryValueLabel: labels.secondaryValueLabel ?? "Reps",
 });
 
-const durationMetadata = (unilateralMode: UnilateralMode = "bilateral"): ExerciseTrackingMetadata => ({
+const durationMetadata = (
+  unilateralMode: UnilateralMode = "bilateral",
+): ExerciseTrackingMetadata => ({
   trackingType: "duration",
   unilateralMode,
   loadUnit: null,
@@ -111,10 +126,13 @@ const durationMetadata = (unilateralMode: UnilateralMode = "bilateral"): Exercis
   distanceUnit: null,
   supportedDistanceUnits: [],
   primaryValueLabel: "Duration",
-  secondaryValueLabel: null
+  secondaryValueLabel: null,
 });
 
-const distanceMetadata = (unilateralMode: UnilateralMode = "bilateral", unit: "mi" | "km" | "m" = "m"): ExerciseTrackingMetadata => ({
+const distanceMetadata = (
+  unilateralMode: UnilateralMode = "bilateral",
+  unit: "mi" | "km" | "m" = "m",
+): ExerciseTrackingMetadata => ({
   trackingType: "distance",
   unilateralMode,
   loadUnit: null,
@@ -122,7 +140,7 @@ const distanceMetadata = (unilateralMode: UnilateralMode = "bilateral", unit: "m
   distanceUnit: unit,
   supportedDistanceUnits: ["m", "km", "mi"],
   primaryValueLabel: "Distance",
-  secondaryValueLabel: null
+  secondaryValueLabel: null,
 });
 
 const distanceDurationMetadata: ExerciseTrackingMetadata = {
@@ -133,17 +151,21 @@ const distanceDurationMetadata: ExerciseTrackingMetadata = {
   distanceUnit: "mi",
   supportedDistanceUnits: ["mi", "km", "m"],
   primaryValueLabel: "Distance",
-  secondaryValueLabel: "Duration"
+  secondaryValueLabel: "Duration",
 };
 
 const allStrengthGoals: TrainingGoalType[] = [
   "general_fitness",
   "strength",
   "hypertrophy",
-  "sport_performance"
+  "sport_performance",
 ];
 
-const simpleGoals: TrainingGoalType[] = ["recovery", "consistency", "general_fitness"];
+const simpleGoals: TrainingGoalType[] = [
+  "recovery",
+  "consistency",
+  "general_fitness",
+];
 
 const exerciseCatalogBase = [
   {
@@ -160,8 +182,9 @@ const exerciseCatalogBase = [
     sets: 3,
     reps: "8-10",
     rest: "60 sec",
-    coachingNote: "Keep your ribs stacked and move through a comfortable range.",
-    videoUrl: "https://www.youtube.com/watch?v=aclHkVaku9U"
+    coachingNote:
+      "Keep your ribs stacked and move through a comfortable range.",
+    videoUrl: "https://www.youtube.com/watch?v=aclHkVaku9U",
   },
   {
     id: "box-squat",
@@ -177,7 +200,7 @@ const exerciseCatalogBase = [
     sets: 2,
     reps: "6-8",
     rest: "60 sec",
-    coachingNote: "Sit back to a comfortable height and stand up with control."
+    coachingNote: "Sit back to a comfortable height and stand up with control.",
   },
   {
     id: "goblet-squat",
@@ -193,8 +216,9 @@ const exerciseCatalogBase = [
     sets: 3,
     reps: "8-10",
     rest: "90 sec",
-    coachingNote: "Hold the weight close and keep your knees tracking over your toes.",
-    videoUrl: "https://www.youtube.com/watch?v=MeIiIdhvXT4"
+    coachingNote:
+      "Hold the weight close and keep your knees tracking over your toes.",
+    videoUrl: "https://www.youtube.com/watch?v=MeIiIdhvXT4",
   },
   {
     id: "barbell-back-squat",
@@ -210,24 +234,25 @@ const exerciseCatalogBase = [
     sets: 4,
     reps: "4-6",
     rest: "2-3 min",
-    coachingNote: "Brace before each rep and keep the bar path controlled."
+    coachingNote: "Brace before each rep and keep the bar path controlled.",
   },
   {
     id: "romanian-deadlift",
-    name: "Romanian deadlift",
+    name: "Barbell Romanian deadlift",
     category: "strength",
     movementPattern: "hinge",
-    equipmentTags: ["Dumbbells", "Barbell"],
+    equipmentTags: ["Barbell"],
     goalTags: allStrengthGoals,
     difficultyTier: "foundation",
     cautionTags: ["back", "hamstring"],
     traitTags: ["bilateral", "loaded"],
-    preferenceTags: ["dumbbells", "barbell", "hinge", "posterior chain"],
+    preferenceTags: ["barbell", "hinge", "posterior chain"],
     sets: 3,
     reps: "8",
     rest: "90 sec",
-    coachingNote: "Hinge at the hips and keep the weights close to your legs.",
-    videoUrl: "https://www.youtube.com/watch?v=JCXUYuzwNrM"
+    coachingNote:
+      "Hinge at the hips with a barbell held close to your legs, keeping the bar path controlled throughout each rep.",
+    videoUrl: "https://www.youtube.com/watch?v=JCXUYuzwNrM",
   },
   {
     id: "hip-hinge-drill",
@@ -243,7 +268,8 @@ const exerciseCatalogBase = [
     sets: 2,
     reps: "8",
     rest: "45 sec",
-    coachingNote: "Practice the hinge slowly and stop before your back takes over."
+    coachingNote:
+      "Practice the hinge slowly and stop before your back takes over.",
   },
   {
     id: "glute-bridge",
@@ -251,7 +277,13 @@ const exerciseCatalogBase = [
     category: "recovery",
     movementPattern: "hinge",
     equipmentTags: ["Bodyweight", "Bands"],
-    goalTags: ["recovery", "general_fitness", "running", "hypertrophy", "consistency"],
+    goalTags: [
+      "recovery",
+      "general_fitness",
+      "running",
+      "hypertrophy",
+      "consistency",
+    ],
     difficultyTier: "intro",
     cautionTags: [],
     traitTags: ["low_load", "posterior_chain"],
@@ -260,7 +292,7 @@ const exerciseCatalogBase = [
     reps: "10-12",
     rest: "60 sec",
     coachingNote: "Pause at the top and keep your low back quiet.",
-    videoUrl: "https://www.youtube.com/watch?v=wPM8icPu6H8"
+    videoUrl: "https://www.youtube.com/watch?v=wPM8icPu6H8",
   },
   {
     id: "reverse-lunge",
@@ -268,7 +300,12 @@ const exerciseCatalogBase = [
     category: "strength",
     movementPattern: "lunge",
     equipmentTags: ["Bodyweight", "Dumbbells"],
-    goalTags: ["general_fitness", "strength", "hypertrophy", "sport_performance"],
+    goalTags: [
+      "general_fitness",
+      "strength",
+      "hypertrophy",
+      "sport_performance",
+    ],
     difficultyTier: "foundation",
     cautionTags: ["knee"],
     traitTags: ["unilateral", "lower_body"],
@@ -276,7 +313,7 @@ const exerciseCatalogBase = [
     sets: 3,
     reps: "8 each side",
     rest: "75 sec",
-    coachingNote: "Step back softly and keep the front foot grounded."
+    coachingNote: "Step back softly and keep the front foot grounded.",
   },
   {
     id: "step-up",
@@ -292,7 +329,7 @@ const exerciseCatalogBase = [
     sets: 3,
     reps: "8 each side",
     rest: "75 sec",
-    coachingNote: "Use a low step and control the lowering phase."
+    coachingNote: "Use a low step and control the lowering phase.",
   },
   {
     id: "walking-lunge",
@@ -309,7 +346,7 @@ const exerciseCatalogBase = [
     reps: "8 each side",
     rest: "75 sec",
     coachingNote: "Step smoothly and keep the front foot grounded.",
-    videoUrl: "https://www.youtube.com/watch?v=L8fvypPrzzs"
+    videoUrl: "https://www.youtube.com/watch?v=L8fvypPrzzs",
   },
   {
     id: "incline-push-up",
@@ -317,7 +354,13 @@ const exerciseCatalogBase = [
     category: "strength",
     movementPattern: "push",
     equipmentTags: ["Bodyweight", "Bench"],
-    goalTags: ["recovery", "general_fitness", "strength", "hypertrophy", "consistency"],
+    goalTags: [
+      "recovery",
+      "general_fitness",
+      "strength",
+      "hypertrophy",
+      "consistency",
+    ],
     difficultyTier: "intro",
     cautionTags: ["shoulder"],
     traitTags: ["upper_body", "low_load"],
@@ -326,7 +369,6 @@ const exerciseCatalogBase = [
     reps: "8-12",
     rest: "60 sec",
     coachingNote: "Use a height that lets you control every rep.",
-    videoUrl: "https://www.youtube.com/watch?v=Z0bRiVhnO8Q"
   },
   {
     id: "push-up",
@@ -334,7 +376,12 @@ const exerciseCatalogBase = [
     category: "strength",
     movementPattern: "push",
     equipmentTags: ["Bodyweight"],
-    goalTags: ["general_fitness", "strength", "hypertrophy", "sport_performance"],
+    goalTags: [
+      "general_fitness",
+      "strength",
+      "hypertrophy",
+      "sport_performance",
+    ],
     difficultyTier: "foundation",
     cautionTags: ["shoulder"],
     traitTags: ["upper_body", "low_setup"],
@@ -342,7 +389,7 @@ const exerciseCatalogBase = [
     sets: 3,
     reps: "6-12",
     rest: "90 sec",
-    coachingNote: "Keep a strong plank and leave a rep or two in reserve."
+    coachingNote: "Keep a strong plank and leave a rep or two in reserve.",
   },
   {
     id: "dumbbell-floor-press",
@@ -358,7 +405,8 @@ const exerciseCatalogBase = [
     sets: 3,
     reps: "8-10",
     rest: "90 sec",
-    coachingNote: "Pause the upper arms lightly on the floor and press with control."
+    coachingNote:
+      "Pause the upper arms lightly on the floor and press with control.",
   },
   {
     id: "dumbbell-shoulder-press",
@@ -374,7 +422,8 @@ const exerciseCatalogBase = [
     sets: 3,
     reps: "8-10",
     rest: "90 sec",
-    coachingNote: "Press without shrugging and stop if the shoulder feels irritated."
+    coachingNote:
+      "Press without shrugging and stop if the shoulder feels irritated.",
   },
   {
     id: "band-row",
@@ -382,7 +431,13 @@ const exerciseCatalogBase = [
     category: "strength",
     movementPattern: "pull",
     equipmentTags: ["Bands"],
-    goalTags: ["recovery", "general_fitness", "strength", "hypertrophy", "consistency"],
+    goalTags: [
+      "recovery",
+      "general_fitness",
+      "strength",
+      "hypertrophy",
+      "consistency",
+    ],
     difficultyTier: "intro",
     cautionTags: ["shoulder"],
     traitTags: ["upper_body", "low_load"],
@@ -391,7 +446,6 @@ const exerciseCatalogBase = [
     reps: "10-12",
     rest: "60 sec",
     coachingNote: "Pull your elbows back and keep your shoulders relaxed.",
-    videoUrl: "https://www.youtube.com/watch?v=GZbfZ033f74"
   },
   {
     id: "dumbbell-row",
@@ -399,7 +453,12 @@ const exerciseCatalogBase = [
     category: "strength",
     movementPattern: "pull",
     equipmentTags: ["Dumbbells", "Bench"],
-    goalTags: ["general_fitness", "strength", "hypertrophy", "sport_performance"],
+    goalTags: [
+      "general_fitness",
+      "strength",
+      "hypertrophy",
+      "sport_performance",
+    ],
     difficultyTier: "foundation",
     cautionTags: ["shoulder", "back"],
     traitTags: ["upper_body", "loaded"],
@@ -407,7 +466,7 @@ const exerciseCatalogBase = [
     sets: 3,
     reps: "8-10 each side",
     rest: "90 sec",
-    coachingNote: "Pull the elbow toward your hip and keep the torso steady."
+    coachingNote: "Pull the elbow toward your hip and keep the torso steady.",
   },
   {
     id: "farmer-carry",
@@ -421,9 +480,9 @@ const exerciseCatalogBase = [
     traitTags: ["loaded", "core", "grip"],
     preferenceTags: ["dumbbells", "kettlebell", "carry", "core"],
     sets: 3,
-    reps: "30-40 sec",
+    reps: "20-30 steps",
     rest: "75 sec",
-    coachingNote: "Walk tall and keep the ribs stacked over the pelvis."
+    coachingNote: "Walk tall and keep the ribs stacked over the pelvis.",
   },
   {
     id: "dead-bug",
@@ -431,7 +490,13 @@ const exerciseCatalogBase = [
     category: "core",
     movementPattern: "core",
     equipmentTags: ["Bodyweight"],
-    goalTags: ["recovery", "general_fitness", "running", "sport_performance", "consistency"],
+    goalTags: [
+      "recovery",
+      "general_fitness",
+      "running",
+      "sport_performance",
+      "consistency",
+    ],
     difficultyTier: "intro",
     cautionTags: [],
     traitTags: ["core", "low_load"],
@@ -440,7 +505,7 @@ const exerciseCatalogBase = [
     reps: "6 each side",
     rest: "45 sec",
     coachingNote: "Move slowly and keep your back gently anchored.",
-    videoUrl: "https://www.youtube.com/watch?v=4XLEnwUr1d8"
+    videoUrl: "https://www.youtube.com/watch?v=4XLEnwUr1d8",
   },
   {
     id: "side-plank",
@@ -448,7 +513,12 @@ const exerciseCatalogBase = [
     category: "core",
     movementPattern: "core",
     equipmentTags: ["Bodyweight"],
-    goalTags: ["general_fitness", "running", "sport_performance", "consistency"],
+    goalTags: [
+      "general_fitness",
+      "running",
+      "sport_performance",
+      "consistency",
+    ],
     difficultyTier: "foundation",
     cautionTags: ["shoulder"],
     traitTags: ["core", "lateral"],
@@ -457,7 +527,7 @@ const exerciseCatalogBase = [
     reps: "20-30 sec each side",
     rest: "45 sec",
     coachingNote: "Keep a straight line from shoulder to ankle.",
-    videoUrl: "https://www.youtube.com/watch?v=K2VljzCC16g"
+    videoUrl: "https://www.youtube.com/watch?v=K2VljzCC16g",
   },
   {
     id: "bird-dog",
@@ -473,7 +543,7 @@ const exerciseCatalogBase = [
     sets: 2,
     reps: "6 each side",
     rest: "45 sec",
-    coachingNote: "Reach long without letting the hips rotate."
+    coachingNote: "Reach long without letting the hips rotate.",
   },
   {
     id: "dumbbell-lateral-raise",
@@ -489,7 +559,7 @@ const exerciseCatalogBase = [
     sets: 3,
     reps: "12-15",
     rest: "60 sec",
-    coachingNote: "Lift only to a comfortable height and control the lowering."
+    coachingNote: "Lift only to a comfortable height and control the lowering.",
   },
   {
     id: "dumbbell-curl",
@@ -505,7 +575,7 @@ const exerciseCatalogBase = [
     sets: 3,
     reps: "10-15",
     rest: "60 sec",
-    coachingNote: "Keep the upper arm still and squeeze each rep."
+    coachingNote: "Keep the upper arm still and squeeze each rep.",
   },
   {
     id: "calf-raise",
@@ -522,7 +592,6 @@ const exerciseCatalogBase = [
     reps: "12-15",
     rest: "45 sec",
     coachingNote: "Rise with control and lower slowly.",
-    videoUrl: "https://www.youtube.com/watch?v=YMmgqO8Jo-k"
   },
   {
     id: "tibialis-raise",
@@ -538,32 +607,43 @@ const exerciseCatalogBase = [
     sets: 2,
     reps: "12-15",
     rest: "45 sec",
-    coachingNote: "Lift the toes toward the shins without bouncing."
+    coachingNote: "Lift the toes toward the shins without bouncing.",
   },
   {
-    id: "hip-flexor-rockback",
-    name: "Hip flexor rockback",
+    id: "half-kneeling-hip-flexor-stretch",
+    name: "Half-kneeling hip flexor stretch",
     category: "mobility",
     movementPattern: "mobility",
     equipmentTags: ["Bodyweight"],
-    goalTags: ["recovery", "general_fitness", "running", "sport_performance", "consistency"],
+    goalTags: [
+      "recovery",
+      "general_fitness",
+      "running",
+      "sport_performance",
+      "consistency",
+    ],
     difficultyTier: "intro",
     cautionTags: [],
     traitTags: ["mobility", "low_load"],
     preferenceTags: ["bodyweight", "mobility", "hips"],
     sets: 2,
-    reps: "8 each side",
+    reps: "20-30 sec each side",
     rest: "30 sec",
-    coachingNote: "Move gently and stay out of sharp pain.",
-    videoUrl: "https://www.youtube.com/watch?v=YQmpO9VT2X4"
+    coachingNote:
+      "Use a comfortable range, keep a gentle posterior pelvic position, and stop if you feel sharp pain.",
   },
   {
     id: "thoracic-rotation",
-    name: "Thoracic rotation",
+    name: "Open-book thoracic rotation",
     category: "mobility",
     movementPattern: "mobility",
     equipmentTags: ["Bodyweight"],
-    goalTags: ["recovery", "general_fitness", "sport_performance", "consistency"],
+    goalTags: [
+      "recovery",
+      "general_fitness",
+      "sport_performance",
+      "consistency",
+    ],
     difficultyTier: "intro",
     cautionTags: [],
     traitTags: ["mobility", "upper_body"],
@@ -571,11 +651,12 @@ const exerciseCatalogBase = [
     sets: 2,
     reps: "6 each side",
     rest: "30 sec",
-    coachingNote: "Rotate through the upper back and keep the movement easy."
+    coachingNote:
+      "Lie on your side and rotate the top arm open through a comfortable upper-back range.",
   },
   {
     id: "ankle-rock",
-    name: "Ankle rock",
+    name: "Knee-to-wall ankle mobilization",
     category: "mobility",
     movementPattern: "mobility",
     equipmentTags: ["Bodyweight"],
@@ -587,7 +668,8 @@ const exerciseCatalogBase = [
     sets: 2,
     reps: "8 each side",
     rest: "30 sec",
-    coachingNote: "Move through a comfortable ankle range without forcing it."
+    coachingNote:
+      "Drive the knee toward the wall through a comfortable ankle range without forcing it.",
   },
   {
     id: "brisk-walk",
@@ -603,7 +685,7 @@ const exerciseCatalogBase = [
     sets: 1,
     reps: "10-20 min",
     rest: "As needed",
-    coachingNote: "Keep the pace conversational and stop if symptoms spike."
+    coachingNote: "Keep the pace conversational and stop if symptoms spike.",
   },
   {
     id: "low-impact-cardio-march",
@@ -619,7 +701,7 @@ const exerciseCatalogBase = [
     sets: 3,
     reps: "2 min",
     rest: "60 sec",
-    coachingNote: "March tall and keep the effort easy to moderate."
+    coachingNote: "March tall and keep the effort easy to moderate.",
   },
   {
     id: "run-walk-intervals",
@@ -635,7 +717,7 @@ const exerciseCatalogBase = [
     sets: 6,
     reps: "1 min easy run / 2 min walk",
     rest: "Walk recoveries",
-    coachingNote: "Keep the run portions easy enough to finish with control."
+    coachingNote: "Keep the run portions easy enough to finish with control.",
   },
   {
     id: "easy-run",
@@ -651,7 +733,8 @@ const exerciseCatalogBase = [
     sets: 1,
     reps: "15-25 min easy",
     rest: "As needed",
-    coachingNote: "Stay at a conversational pace and finish feeling like you could do more."
+    coachingNote:
+      "Stay at a conversational pace and finish feeling like you could do more.",
   },
   {
     id: "stride-drills",
@@ -667,7 +750,7 @@ const exerciseCatalogBase = [
     sets: 4,
     reps: "15 sec relaxed stride",
     rest: "60-90 sec walk",
-    coachingNote: "Keep these smooth, relaxed, and well below sprint effort."
+    coachingNote: "Keep these smooth, relaxed, and well below sprint effort.",
   },
   {
     id: "lateral-lunge",
@@ -683,7 +766,7 @@ const exerciseCatalogBase = [
     sets: 3,
     reps: "8 each side",
     rest: "75 sec",
-    coachingNote: "Shift side to side without letting the knee cave inward."
+    coachingNote: "Shift side to side without letting the knee cave inward.",
   },
   {
     id: "lateral-shuffle",
@@ -699,7 +782,7 @@ const exerciseCatalogBase = [
     sets: 4,
     reps: "10-15 sec",
     rest: "45 sec",
-    coachingNote: "Stay low and controlled rather than chasing speed."
+    coachingNote: "Stay low and controlled rather than chasing speed.",
   },
   {
     id: "skater-hop",
@@ -715,116 +798,781 @@ const exerciseCatalogBase = [
     sets: 3,
     reps: "5 each side",
     rest: "75 sec",
-    coachingNote: "Land softly and keep every rep crisp."
+    coachingNote: "Land softly and keep every rep crisp.",
   },
   {
-    id: "front-squat", name: "Front squat", category: "strength", movementPattern: "squat", equipmentTags: ["Barbell"], goalTags: allStrengthGoals, difficultyTier: "intermediate", cautionTags: ["knee", "back", "loaded_spine"], traitTags: ["bilateral", "loaded"], preferenceTags: ["barbell", "lower body", "squat"], sets: 4, reps: "4-6", rest: "2-3 min", coachingNote: "Keep the elbows high enough to support the bar and brace before each rep."
+    id: "front-squat",
+    name: "Front squat",
+    category: "strength",
+    movementPattern: "squat",
+    equipmentTags: ["Barbell"],
+    goalTags: allStrengthGoals,
+    difficultyTier: "intermediate",
+    cautionTags: ["knee", "back", "loaded_spine"],
+    traitTags: ["bilateral", "loaded"],
+    preferenceTags: ["barbell", "lower body", "squat"],
+    sets: 4,
+    reps: "4-6",
+    rest: "2-3 min",
+    coachingNote:
+      "Keep the elbows high enough to support the bar and brace before each rep.",
   },
   {
-    id: "dumbbell-squat", name: "Dumbbell squat", category: "strength", movementPattern: "squat", equipmentTags: ["Dumbbells"], goalTags: allStrengthGoals, difficultyTier: "foundation", cautionTags: ["knee", "back"], traitTags: ["bilateral", "loaded"], preferenceTags: ["dumbbells", "lower body", "squat"], sets: 3, reps: "8-12", rest: "90 sec", coachingNote: "Hold the dumbbells steady and use a comfortable squat depth."
+    id: "dumbbell-squat",
+    name: "Dumbbell squat",
+    category: "strength",
+    movementPattern: "squat",
+    equipmentTags: ["Dumbbells"],
+    goalTags: allStrengthGoals,
+    difficultyTier: "foundation",
+    cautionTags: ["knee", "back"],
+    traitTags: ["bilateral", "loaded"],
+    preferenceTags: ["dumbbells", "lower body", "squat"],
+    sets: 3,
+    reps: "8-12",
+    rest: "90 sec",
+    coachingNote:
+      "Hold one dumbbell in each hand at your sides and use a comfortable squat depth.",
   },
   {
-    id: "leg-press", name: "Leg press", category: "strength", movementPattern: "squat", equipmentTags: ["Machine"], goalTags: ["strength", "hypertrophy", "general_fitness"], difficultyTier: "foundation", cautionTags: ["knee", "back"], traitTags: ["bilateral", "machine"], preferenceTags: ["machine", "lower body", "squat"], sets: 3, reps: "10-12", rest: "90 sec", coachingNote: "Keep your hips down on the pad and use a range you can control."
+    id: "leg-press",
+    name: "Leg press",
+    category: "strength",
+    movementPattern: "squat",
+    equipmentTags: ["Machine"],
+    goalTags: ["strength", "hypertrophy", "general_fitness"],
+    difficultyTier: "foundation",
+    cautionTags: ["knee", "back"],
+    traitTags: ["bilateral", "machine"],
+    preferenceTags: ["machine", "lower body", "squat"],
+    sets: 3,
+    reps: "10-12",
+    rest: "90 sec",
+    coachingNote:
+      "Keep your hips down on the pad and use a range you can control.",
   },
   {
-    id: "leg-extension", name: "Leg extension", category: "strength", movementPattern: "squat", equipmentTags: ["Machine"], goalTags: ["hypertrophy", "general_fitness"], difficultyTier: "foundation", cautionTags: ["knee"], traitTags: ["machine", "accessory"], preferenceTags: ["machine", "quads", "hypertrophy"], sets: 3, reps: "10-15", rest: "60 sec", coachingNote: "Lift smoothly and avoid forcing the knee into painful ranges."
+    id: "leg-extension",
+    name: "Leg extension",
+    category: "strength",
+    movementPattern: "squat",
+    equipmentTags: ["Machine"],
+    goalTags: ["hypertrophy", "general_fitness"],
+    difficultyTier: "foundation",
+    cautionTags: ["knee"],
+    traitTags: ["machine", "accessory"],
+    preferenceTags: ["machine", "quads", "hypertrophy"],
+    sets: 3,
+    reps: "10-15",
+    rest: "60 sec",
+    coachingNote:
+      "Lift smoothly and avoid forcing the knee into painful ranges.",
   },
   {
-    id: "split-squat", name: "Split squat", category: "strength", movementPattern: "lunge", equipmentTags: ["Bodyweight", "Dumbbells"], goalTags: allStrengthGoals, difficultyTier: "foundation", cautionTags: ["knee"], traitTags: ["unilateral", "lower_body"], preferenceTags: ["bodyweight", "dumbbells", "lower body", "lunge"], sets: 3, reps: "8 each side", rest: "75 sec", coachingNote: "Keep the stance steady and lower with control."
+    id: "split-squat",
+    name: "Split squat",
+    category: "strength",
+    movementPattern: "lunge",
+    equipmentTags: ["Bodyweight", "Dumbbells"],
+    goalTags: allStrengthGoals,
+    difficultyTier: "foundation",
+    cautionTags: ["knee"],
+    traitTags: ["unilateral", "lower_body"],
+    preferenceTags: ["bodyweight", "dumbbells", "lower body", "lunge"],
+    sets: 3,
+    reps: "8 each side",
+    rest: "75 sec",
+    coachingNote: "Keep the stance steady and lower with control.",
   },
   {
-    id: "bulgarian-split-squat", name: "Bulgarian split squat", category: "strength", movementPattern: "lunge", equipmentTags: ["Bodyweight", "Dumbbells", "Bench"], goalTags: ["strength", "hypertrophy", "sport_performance"], difficultyTier: "intermediate", cautionTags: ["knee"], traitTags: ["unilateral", "lower_body"], preferenceTags: ["dumbbells", "lower body", "lunge"], sets: 3, reps: "6-10 each side", rest: "90 sec", coachingNote: "Use a stable rear-foot support and keep the front foot grounded."
+    id: "bulgarian-split-squat",
+    name: "Bulgarian split squat",
+    category: "strength",
+    movementPattern: "lunge",
+    equipmentTags: ["Bodyweight", "Dumbbells", "Bench"],
+    goalTags: ["strength", "hypertrophy", "sport_performance"],
+    difficultyTier: "intermediate",
+    cautionTags: ["knee"],
+    traitTags: ["unilateral", "lower_body"],
+    preferenceTags: ["dumbbells", "lower body", "lunge"],
+    sets: 3,
+    reps: "6-10 each side",
+    rest: "90 sec",
+    coachingNote:
+      "Use a stable rear-foot support and keep the front foot grounded.",
   },
   {
-    id: "forward-lunge", name: "Forward lunge", category: "strength", movementPattern: "lunge", equipmentTags: ["Bodyweight", "Dumbbells"], goalTags: ["general_fitness", "strength", "sport_performance"], difficultyTier: "foundation", cautionTags: ["knee"], traitTags: ["unilateral", "lower_body"], preferenceTags: ["bodyweight", "dumbbells", "lower body", "lunge"], sets: 3, reps: "8 each side", rest: "75 sec", coachingNote: "Step forward under control and push back from the front foot."
+    id: "forward-lunge",
+    name: "Forward lunge",
+    category: "strength",
+    movementPattern: "lunge",
+    equipmentTags: ["Bodyweight", "Dumbbells"],
+    goalTags: ["general_fitness", "strength", "sport_performance"],
+    difficultyTier: "foundation",
+    cautionTags: ["knee"],
+    traitTags: ["unilateral", "lower_body"],
+    preferenceTags: ["bodyweight", "dumbbells", "lower body", "lunge"],
+    sets: 3,
+    reps: "8 each side",
+    rest: "75 sec",
+    coachingNote:
+      "Step forward under control and push back from the front foot.",
   },
   {
-    id: "conventional-deadlift", name: "Conventional deadlift", category: "strength", movementPattern: "hinge", equipmentTags: ["Barbell"], goalTags: ["strength", "sport_performance"], difficultyTier: "intermediate", cautionTags: ["back", "hamstring", "loaded_spine"], traitTags: ["bilateral", "higher_load"], preferenceTags: ["barbell", "hinge", "posterior chain"], sets: 3, reps: "3-5", rest: "2-3 min", coachingNote: "Brace hard, keep the bar close, and stop if position breaks down."
+    id: "conventional-deadlift",
+    name: "Conventional deadlift",
+    category: "strength",
+    movementPattern: "hinge",
+    equipmentTags: ["Barbell"],
+    goalTags: ["strength", "sport_performance"],
+    difficultyTier: "intermediate",
+    cautionTags: ["back", "hamstring", "loaded_spine"],
+    traitTags: ["bilateral", "higher_load"],
+    preferenceTags: ["barbell", "hinge", "posterior chain"],
+    sets: 3,
+    reps: "3-5",
+    rest: "2-3 min",
+    coachingNote:
+      "Brace hard, keep the bar close, and stop if position breaks down.",
   },
   {
-    id: "trap-bar-deadlift", name: "Trap-bar deadlift", category: "strength", movementPattern: "hinge", equipmentTags: ["Trap bar"], goalTags: ["strength", "sport_performance", "general_fitness"], difficultyTier: "foundation", cautionTags: ["back", "loaded_spine"], traitTags: ["bilateral", "loaded"], preferenceTags: ["trap bar", "hinge", "lower body"], sets: 3, reps: "5-8", rest: "2 min", coachingNote: "Stand tall through the handles and keep the torso controlled."
+    id: "trap-bar-deadlift",
+    name: "Trap-bar deadlift",
+    category: "strength",
+    movementPattern: "hinge",
+    equipmentTags: ["Trap bar"],
+    goalTags: ["strength", "sport_performance", "general_fitness"],
+    difficultyTier: "foundation",
+    cautionTags: ["back", "loaded_spine"],
+    traitTags: ["bilateral", "loaded"],
+    preferenceTags: ["trap bar", "hinge", "lower body"],
+    sets: 3,
+    reps: "5-8",
+    rest: "2 min",
+    coachingNote:
+      "Stand tall through the handles and keep the torso controlled.",
   },
   {
-    id: "dumbbell-romanian-deadlift", name: "Dumbbell Romanian deadlift", category: "strength", movementPattern: "hinge", equipmentTags: ["Dumbbells"], goalTags: allStrengthGoals, difficultyTier: "foundation", cautionTags: ["back", "hamstring"], traitTags: ["bilateral", "loaded"], preferenceTags: ["dumbbells", "hinge", "posterior chain"], sets: 3, reps: "8-10", rest: "90 sec", coachingNote: "Hinge from the hips while the dumbbells travel close to your legs."
+    id: "dumbbell-romanian-deadlift",
+    name: "Dumbbell Romanian deadlift",
+    category: "strength",
+    movementPattern: "hinge",
+    equipmentTags: ["Dumbbells"],
+    goalTags: allStrengthGoals,
+    difficultyTier: "foundation",
+    cautionTags: ["back", "hamstring"],
+    traitTags: ["bilateral", "loaded"],
+    preferenceTags: ["dumbbells", "hinge", "posterior chain"],
+    sets: 3,
+    reps: "8-10",
+    rest: "90 sec",
+    coachingNote:
+      "Hinge from the hips while the dumbbells travel close to your legs.",
   },
   {
-    id: "hip-thrust", name: "Hip thrust", category: "strength", movementPattern: "hinge", equipmentTags: ["Barbell", "Bench"], goalTags: ["strength", "hypertrophy", "general_fitness"], difficultyTier: "foundation", cautionTags: ["back"], traitTags: ["bilateral", "loaded"], preferenceTags: ["barbell", "glutes", "posterior chain"], sets: 3, reps: "8-12", rest: "90 sec", coachingNote: "Keep the ribs down and pause briefly at the top."
+    id: "hip-thrust",
+    name: "Hip thrust",
+    category: "strength",
+    movementPattern: "hinge",
+    equipmentTags: ["Barbell", "Bench"],
+    goalTags: ["strength", "hypertrophy", "general_fitness"],
+    difficultyTier: "foundation",
+    cautionTags: ["back"],
+    traitTags: ["bilateral", "loaded"],
+    preferenceTags: ["barbell", "glutes", "posterior chain"],
+    sets: 3,
+    reps: "8-12",
+    rest: "90 sec",
+    coachingNote: "Keep the ribs down and pause briefly at the top.",
   },
   {
-    id: "back-extension", name: "Back extension", category: "strength", movementPattern: "hinge", equipmentTags: ["Machine"], goalTags: ["general_fitness", "strength", "hypertrophy"], difficultyTier: "foundation", cautionTags: ["back", "hamstring"], traitTags: ["posterior_chain", "machine"], preferenceTags: ["posterior chain", "back", "glutes"], sets: 3, reps: "10-12", rest: "60 sec", coachingNote: "Move through the hips and avoid overextending at the top."
+    id: "back-extension",
+    name: "Back extension",
+    category: "strength",
+    movementPattern: "hinge",
+    equipmentTags: ["Machine"],
+    goalTags: ["general_fitness", "strength", "hypertrophy"],
+    difficultyTier: "foundation",
+    cautionTags: ["back", "hamstring"],
+    traitTags: ["posterior_chain", "machine"],
+    preferenceTags: ["posterior chain", "back", "glutes"],
+    sets: 3,
+    reps: "10-12",
+    rest: "60 sec",
+    coachingNote: "Move through the hips and avoid overextending at the top.",
   },
   {
-    id: "seated-leg-curl", name: "Seated leg curl", category: "strength", movementPattern: "hinge", equipmentTags: ["Machine"], goalTags: ["hypertrophy", "general_fitness", "running"], difficultyTier: "foundation", cautionTags: ["hamstring", "knee"], traitTags: ["machine", "accessory"], preferenceTags: ["machine", "hamstrings", "hypertrophy"], sets: 3, reps: "10-15", rest: "60 sec", coachingNote: "Curl smoothly and control the return."
+    id: "seated-leg-curl",
+    name: "Seated leg curl",
+    category: "strength",
+    movementPattern: "hinge",
+    equipmentTags: ["Machine"],
+    goalTags: ["hypertrophy", "general_fitness", "running"],
+    difficultyTier: "foundation",
+    cautionTags: ["hamstring", "knee"],
+    traitTags: ["machine", "accessory"],
+    preferenceTags: ["machine", "hamstrings", "hypertrophy"],
+    sets: 3,
+    reps: "10-15",
+    rest: "60 sec",
+    coachingNote: "Curl smoothly and control the return.",
   },
   {
-    id: "barbell-bench-press", name: "Barbell bench press", category: "strength", movementPattern: "push", equipmentTags: ["Barbell", "Bench"], goalTags: ["strength", "hypertrophy"], difficultyTier: "intermediate", cautionTags: ["shoulder"], traitTags: ["upper_body", "higher_load"], preferenceTags: ["barbell", "chest", "push"], sets: 4, reps: "4-6", rest: "2-3 min", coachingNote: "Set the shoulders, touch under control, and press evenly."
+    id: "barbell-bench-press",
+    name: "Barbell bench press",
+    category: "strength",
+    movementPattern: "push",
+    equipmentTags: ["Barbell", "Bench"],
+    goalTags: ["strength", "hypertrophy"],
+    difficultyTier: "intermediate",
+    cautionTags: ["shoulder"],
+    traitTags: ["upper_body", "higher_load"],
+    preferenceTags: ["barbell", "chest", "push"],
+    sets: 4,
+    reps: "4-6",
+    rest: "2-3 min",
+    coachingNote: "Set the shoulders, touch under control, and press evenly.",
   },
   {
-    id: "dumbbell-bench-press", name: "Dumbbell bench press", category: "strength", movementPattern: "push", equipmentTags: ["Dumbbells", "Bench"], goalTags: ["strength", "hypertrophy", "general_fitness"], difficultyTier: "foundation", cautionTags: ["shoulder"], traitTags: ["upper_body", "loaded"], preferenceTags: ["dumbbells", "chest", "push"], sets: 3, reps: "8-10", rest: "90 sec", coachingNote: "Lower with control and press without letting the shoulders pinch."
+    id: "dumbbell-bench-press",
+    name: "Dumbbell bench press",
+    category: "strength",
+    movementPattern: "push",
+    equipmentTags: ["Dumbbells", "Bench"],
+    goalTags: ["strength", "hypertrophy", "general_fitness"],
+    difficultyTier: "foundation",
+    cautionTags: ["shoulder"],
+    traitTags: ["upper_body", "loaded"],
+    preferenceTags: ["dumbbells", "chest", "push"],
+    sets: 3,
+    reps: "8-10",
+    rest: "90 sec",
+    coachingNote:
+      "Lower with control and press without letting the shoulders pinch.",
   },
   {
-    id: "incline-dumbbell-press", name: "Incline dumbbell press", category: "strength", movementPattern: "push", equipmentTags: ["Dumbbells", "Bench"], goalTags: ["hypertrophy", "strength", "general_fitness"], difficultyTier: "foundation", cautionTags: ["shoulder"], traitTags: ["upper_body", "loaded"], preferenceTags: ["dumbbells", "chest", "push", "incline"], sets: 3, reps: "8-12", rest: "90 sec", coachingNote: "Use a moderate incline and press through a comfortable path."
+    id: "incline-dumbbell-press",
+    name: "Incline dumbbell press",
+    category: "strength",
+    movementPattern: "push",
+    equipmentTags: ["Dumbbells", "Bench"],
+    goalTags: ["hypertrophy", "strength", "general_fitness"],
+    difficultyTier: "foundation",
+    cautionTags: ["shoulder"],
+    traitTags: ["upper_body", "loaded"],
+    preferenceTags: ["dumbbells", "chest", "push", "incline"],
+    sets: 3,
+    reps: "8-12",
+    rest: "90 sec",
+    coachingNote:
+      "Use a moderate incline and press through a comfortable path.",
   },
   {
-    id: "machine-chest-press", name: "Machine chest press", category: "strength", movementPattern: "push", equipmentTags: ["Machine"], goalTags: ["hypertrophy", "general_fitness", "strength"], difficultyTier: "foundation", cautionTags: ["shoulder"], traitTags: ["upper_body", "machine"], preferenceTags: ["machine", "chest", "push"], sets: 3, reps: "8-12", rest: "90 sec", coachingNote: "Set the seat so the handles meet your mid-chest and press smoothly."
+    id: "machine-chest-press",
+    name: "Machine chest press",
+    category: "strength",
+    movementPattern: "push",
+    equipmentTags: ["Machine"],
+    goalTags: ["hypertrophy", "general_fitness", "strength"],
+    difficultyTier: "foundation",
+    cautionTags: ["shoulder"],
+    traitTags: ["upper_body", "machine"],
+    preferenceTags: ["machine", "chest", "push"],
+    sets: 3,
+    reps: "8-12",
+    rest: "90 sec",
+    coachingNote:
+      "Set the seat so the handles meet your mid-chest and press smoothly.",
   },
   {
-    id: "barbell-overhead-press", name: "Barbell overhead press", category: "strength", movementPattern: "push", equipmentTags: ["Barbell"], goalTags: ["strength", "sport_performance"], difficultyTier: "intermediate", cautionTags: ["shoulder", "overhead", "back"], traitTags: ["upper_body", "loaded"], preferenceTags: ["barbell", "shoulders", "overhead"], sets: 3, reps: "5-8", rest: "2 min", coachingNote: "Brace before pressing and keep the bar path close."
+    id: "barbell-overhead-press",
+    name: "Barbell overhead press",
+    category: "strength",
+    movementPattern: "push",
+    equipmentTags: ["Barbell"],
+    goalTags: ["strength", "sport_performance"],
+    difficultyTier: "intermediate",
+    cautionTags: ["shoulder", "overhead", "back"],
+    traitTags: ["upper_body", "loaded"],
+    preferenceTags: ["barbell", "shoulders", "overhead"],
+    sets: 3,
+    reps: "5-8",
+    rest: "2 min",
+    coachingNote: "Brace before pressing and keep the bar path close.",
   },
   {
-    id: "triceps-pushdown", name: "Triceps pushdown", category: "strength", movementPattern: "push", equipmentTags: ["Cable"], goalTags: ["hypertrophy", "general_fitness"], difficultyTier: "intro", cautionTags: ["shoulder"], traitTags: ["upper_body", "accessory"], preferenceTags: ["cable", "arms", "triceps"], sets: 3, reps: "10-15", rest: "60 sec", coachingNote: "Keep the elbows near your sides and move with control."
+    id: "triceps-pushdown",
+    name: "Triceps pushdown",
+    category: "strength",
+    movementPattern: "push",
+    equipmentTags: ["Cable"],
+    goalTags: ["hypertrophy", "general_fitness"],
+    difficultyTier: "intro",
+    cautionTags: ["shoulder"],
+    traitTags: ["upper_body", "accessory"],
+    preferenceTags: ["cable", "arms", "triceps"],
+    sets: 3,
+    reps: "10-15",
+    rest: "60 sec",
+    coachingNote: "Keep the elbows near your sides and move with control.",
   },
   {
-    id: "seated-cable-row", name: "Seated cable row", category: "strength", movementPattern: "pull", equipmentTags: ["Cable"], goalTags: ["strength", "hypertrophy", "general_fitness"], difficultyTier: "foundation", cautionTags: ["shoulder", "back"], traitTags: ["upper_body", "loaded"], preferenceTags: ["cable", "back", "pull"], sets: 3, reps: "8-12", rest: "90 sec", coachingNote: "Sit tall, pull to the torso, and avoid leaning back to finish reps."
+    id: "seated-cable-row",
+    name: "Seated cable row",
+    category: "strength",
+    movementPattern: "pull",
+    equipmentTags: ["Cable"],
+    goalTags: ["strength", "hypertrophy", "general_fitness"],
+    difficultyTier: "foundation",
+    cautionTags: ["shoulder", "back"],
+    traitTags: ["upper_body", "loaded"],
+    preferenceTags: ["cable", "back", "pull"],
+    sets: 3,
+    reps: "8-12",
+    rest: "90 sec",
+    coachingNote:
+      "Sit tall, pull to the torso, and avoid leaning back to finish reps.",
   },
   {
-    id: "chest-supported-row", name: "Chest-supported row", category: "strength", movementPattern: "pull", equipmentTags: ["Dumbbells", "Bench"], goalTags: ["strength", "hypertrophy", "general_fitness"], difficultyTier: "foundation", cautionTags: ["shoulder"], traitTags: ["upper_body", "supported"], preferenceTags: ["dumbbells", "back", "pull"], sets: 3, reps: "8-12", rest: "90 sec", coachingNote: "Keep the chest supported and pull the elbows back without shrugging."
+    id: "chest-supported-row",
+    name: "Chest-supported row",
+    category: "strength",
+    movementPattern: "pull",
+    equipmentTags: ["Dumbbells", "Bench"],
+    goalTags: ["strength", "hypertrophy", "general_fitness"],
+    difficultyTier: "foundation",
+    cautionTags: ["shoulder"],
+    traitTags: ["upper_body", "supported"],
+    preferenceTags: ["dumbbells", "back", "pull"],
+    sets: 3,
+    reps: "8-12",
+    rest: "90 sec",
+    coachingNote:
+      "Keep the chest supported and pull the elbows back without shrugging.",
   },
   {
-    id: "barbell-row", name: "Barbell row", category: "strength", movementPattern: "pull", equipmentTags: ["Barbell"], goalTags: ["strength", "hypertrophy"], difficultyTier: "intermediate", cautionTags: ["back", "shoulder"], traitTags: ["upper_body", "loaded"], preferenceTags: ["barbell", "back", "pull"], sets: 3, reps: "6-10", rest: "2 min", coachingNote: "Hold a stable hinge and row without jerking the torso."
+    id: "barbell-row",
+    name: "Barbell row",
+    category: "strength",
+    movementPattern: "pull",
+    equipmentTags: ["Barbell"],
+    goalTags: ["strength", "hypertrophy"],
+    difficultyTier: "intermediate",
+    cautionTags: ["back", "shoulder"],
+    traitTags: ["upper_body", "loaded"],
+    preferenceTags: ["barbell", "back", "pull"],
+    sets: 3,
+    reps: "6-10",
+    rest: "2 min",
+    coachingNote: "Hold a stable hinge and row without jerking the torso.",
   },
   {
-    id: "lat-pulldown", name: "Lat pulldown", category: "strength", movementPattern: "pull", equipmentTags: ["Cable", "Machine"], goalTags: ["strength", "hypertrophy", "general_fitness"], difficultyTier: "foundation", cautionTags: ["shoulder"], traitTags: ["upper_body", "machine"], preferenceTags: ["cable", "machine", "back", "pull"], sets: 3, reps: "8-12", rest: "90 sec", coachingNote: "Pull the bar toward the upper chest and keep the neck relaxed."
+    id: "lat-pulldown",
+    name: "Lat pulldown",
+    category: "strength",
+    movementPattern: "pull",
+    equipmentTags: ["Cable", "Machine"],
+    goalTags: ["strength", "hypertrophy", "general_fitness"],
+    difficultyTier: "foundation",
+    cautionTags: ["shoulder"],
+    traitTags: ["upper_body", "machine"],
+    preferenceTags: ["cable", "machine", "back", "pull"],
+    sets: 3,
+    reps: "8-12",
+    rest: "90 sec",
+    coachingNote:
+      "Pull the bar toward the upper chest and keep the neck relaxed.",
   },
   {
-    id: "pull-up", name: "Pull-up", category: "strength", movementPattern: "pull", equipmentTags: ["Pull-up bar"], goalTags: ["strength", "sport_performance", "hypertrophy"], difficultyTier: "intermediate", cautionTags: ["shoulder"], traitTags: ["upper_body", "bodyweight"], preferenceTags: ["bodyweight", "back", "pull"], sets: 3, reps: "3-8", rest: "2 min", coachingNote: "Start from a controlled hang and stop before form breaks down."
+    id: "pull-up",
+    name: "Pull-up",
+    category: "strength",
+    movementPattern: "pull",
+    equipmentTags: ["Pull-up bar"],
+    goalTags: ["strength", "sport_performance", "hypertrophy"],
+    difficultyTier: "intermediate",
+    cautionTags: ["shoulder"],
+    traitTags: ["upper_body", "bodyweight"],
+    preferenceTags: ["bodyweight", "back", "pull"],
+    sets: 3,
+    reps: "3-8",
+    rest: "2 min",
+    coachingNote:
+      "Start from a controlled hang and stop before form breaks down.",
   },
   {
-    id: "assisted-pull-up", name: "Assisted pull-up", category: "strength", movementPattern: "pull", equipmentTags: ["Machine", "Bands", "Pull-up bar"], goalTags: ["strength", "hypertrophy", "general_fitness"], difficultyTier: "foundation", cautionTags: ["shoulder"], traitTags: ["upper_body", "assisted"], preferenceTags: ["bodyweight", "back", "pull"], sets: 3, reps: "5-8", rest: "90 sec", coachingNote: "Use enough assistance to control the full rep."
+    id: "assisted-pull-up",
+    name: "Assisted pull-up",
+    category: "strength",
+    movementPattern: "pull",
+    equipmentTags: ["Machine", "Bands", "Pull-up bar"],
+    goalTags: ["strength", "hypertrophy", "general_fitness"],
+    difficultyTier: "foundation",
+    cautionTags: ["shoulder"],
+    traitTags: ["upper_body", "assisted"],
+    preferenceTags: ["bodyweight", "back", "pull"],
+    sets: 3,
+    reps: "5-8",
+    rest: "90 sec",
+    coachingNote: "Use enough assistance to control the full rep.",
   },
   {
-    id: "face-pull", name: "Face pull", category: "strength", movementPattern: "pull", equipmentTags: ["Cable", "Bands"], goalTags: ["general_fitness", "hypertrophy", "sport_performance"], difficultyTier: "intro", cautionTags: ["shoulder"], traitTags: ["upper_body", "accessory"], preferenceTags: ["cable", "bands", "shoulders", "pull"], sets: 3, reps: "12-15", rest: "60 sec", coachingNote: "Pull toward the face with relaxed shoulders and controlled elbows."
+    id: "face-pull",
+    name: "Face pull",
+    category: "strength",
+    movementPattern: "pull",
+    equipmentTags: ["Cable", "Bands"],
+    goalTags: ["general_fitness", "hypertrophy", "sport_performance"],
+    difficultyTier: "intro",
+    cautionTags: ["shoulder"],
+    traitTags: ["upper_body", "accessory"],
+    preferenceTags: ["cable", "bands", "shoulders", "pull"],
+    sets: 3,
+    reps: "12-15",
+    rest: "60 sec",
+    coachingNote:
+      "Pull toward the face with relaxed shoulders and controlled elbows.",
   },
   {
-    id: "reverse-fly", name: "Reverse fly", category: "strength", movementPattern: "pull", equipmentTags: ["Dumbbells"], goalTags: ["hypertrophy", "general_fitness"], difficultyTier: "intro", cautionTags: ["shoulder"], traitTags: ["upper_body", "accessory"], preferenceTags: ["dumbbells", "rear delts", "pull"], sets: 3, reps: "12-15", rest: "60 sec", coachingNote: "Use light weights and move through a comfortable shoulder range."
+    id: "reverse-fly",
+    name: "Reverse fly",
+    category: "strength",
+    movementPattern: "pull",
+    equipmentTags: ["Dumbbells"],
+    goalTags: ["hypertrophy", "general_fitness"],
+    difficultyTier: "intro",
+    cautionTags: ["shoulder"],
+    traitTags: ["upper_body", "accessory"],
+    preferenceTags: ["dumbbells", "rear delts", "pull"],
+    sets: 3,
+    reps: "12-15",
+    rest: "60 sec",
+    coachingNote:
+      "Use light weights and move through a comfortable shoulder range.",
+  },
+
+  {
+    id: "hack-squat",
+    name: "Hack squat",
+    category: "strength",
+    movementPattern: "squat",
+    equipmentTags: ["Machine"],
+    goalTags: ["strength", "hypertrophy", "general_fitness"],
+    difficultyTier: "foundation",
+    cautionTags: ["knee", "back"],
+    traitTags: ["bilateral", "machine"],
+    preferenceTags: ["machine", "lower body", "squat", "quads"],
+    sets: 3,
+    reps: "8-12",
+    rest: "90-120 sec",
+    coachingNote:
+      "Set your feet securely, lower through a controlled range, and keep your hips and back supported.",
   },
   {
-    id: "suitcase-carry", name: "Suitcase carry", category: "strength", movementPattern: "carry", equipmentTags: ["Dumbbells", "Kettlebell"], goalTags: ["strength", "sport_performance", "general_fitness"], difficultyTier: "foundation", cautionTags: ["back"], traitTags: ["loaded", "core", "grip", "unilateral_load"], preferenceTags: ["dumbbells", "kettlebell", "carry", "core"], sets: 3, reps: "30 sec each side", rest: "75 sec", coachingNote: "Walk tall and resist leaning toward the weight."
+    id: "lying-leg-curl",
+    name: "Lying leg curl",
+    category: "strength",
+    movementPattern: "hinge",
+    equipmentTags: ["Machine"],
+    goalTags: ["hypertrophy", "general_fitness", "running"],
+    difficultyTier: "foundation",
+    cautionTags: ["hamstring", "knee"],
+    traitTags: ["machine", "accessory"],
+    preferenceTags: ["machine", "hamstrings", "hypertrophy"],
+    sets: 3,
+    reps: "10-15",
+    rest: "60-90 sec",
+    coachingNote:
+      "Keep the hips down on the pad and curl smoothly without swinging.",
   },
   {
-    id: "plank", name: "Plank", category: "core", movementPattern: "core", equipmentTags: ["Bodyweight"], goalTags: ["general_fitness", "running", "sport_performance", "consistency"], difficultyTier: "intro", cautionTags: ["shoulder", "back"], traitTags: ["core", "anti_extension"], preferenceTags: ["bodyweight", "core"], sets: 3, reps: "20-40 sec", rest: "45 sec", coachingNote: "Brace gently and keep a straight line from shoulders to ankles."
+    id: "seated-calf-raise",
+    name: "Seated calf raise",
+    category: "strength",
+    movementPattern: "calf",
+    equipmentTags: ["Machine"],
+    goalTags: ["hypertrophy", "general_fitness", "running"],
+    difficultyTier: "intro",
+    cautionTags: ["ankle"],
+    traitTags: ["machine", "accessory", "lower_body"],
+    preferenceTags: ["machine", "calves", "hypertrophy"],
+    sets: 3,
+    reps: "10-15",
+    rest: "60-90 sec",
+    coachingNote:
+      "Press through the balls of the feet and control the lowering phase.",
   },
   {
-    id: "pallof-press", name: "Pallof press", category: "core", movementPattern: "core", equipmentTags: ["Cable", "Bands"], goalTags: ["general_fitness", "running", "sport_performance"], difficultyTier: "foundation", cautionTags: [], traitTags: ["core", "anti_rotation"], preferenceTags: ["cable", "bands", "core"], sets: 3, reps: "8 each side", rest: "45 sec", coachingNote: "Press straight out and resist rotating toward the anchor."
+    id: "cable-fly",
+    name: "Cable fly",
+    category: "strength",
+    movementPattern: "push",
+    equipmentTags: ["Cable"],
+    goalTags: ["hypertrophy", "general_fitness"],
+    difficultyTier: "foundation",
+    cautionTags: ["shoulder"],
+    traitTags: ["upper_body", "accessory"],
+    preferenceTags: ["cable", "chest", "hypertrophy"],
+    sets: 3,
+    reps: "10-15",
+    rest: "60-90 sec",
+    coachingNote:
+      "Use a controlled arc and stop at a comfortable shoulder range.",
   },
   {
-    id: "inverted-row", name: "Inverted row", category: "strength", movementPattern: "pull", equipmentTags: ["Bar", "Bodyweight"], goalTags: ["general_fitness", "strength", "hypertrophy"], difficultyTier: "foundation", cautionTags: ["shoulder"], traitTags: ["upper_body", "bodyweight"], preferenceTags: ["bodyweight", "back", "pull"], sets: 3, reps: "6-12", rest: "90 sec", coachingNote: "Keep the body straight and pull the chest toward the bar."
+    id: "pec-deck",
+    name: "Pec deck",
+    category: "strength",
+    movementPattern: "push",
+    equipmentTags: ["Machine"],
+    goalTags: ["hypertrophy", "general_fitness"],
+    difficultyTier: "intro",
+    cautionTags: ["shoulder"],
+    traitTags: ["upper_body", "machine", "accessory"],
+    preferenceTags: ["machine", "chest", "hypertrophy"],
+    sets: 3,
+    reps: "10-15",
+    rest: "60-90 sec",
+    coachingNote:
+      "Set the seat for a comfortable chest-level path and bring the handles together smoothly.",
   },
   {
-    id: "wall-sit", name: "Wall sit", category: "strength", movementPattern: "squat", equipmentTags: ["Bodyweight"], goalTags: ["general_fitness", "running", "consistency"], difficultyTier: "intro", cautionTags: ["knee"], traitTags: ["lower_body", "isometric"], preferenceTags: ["bodyweight", "quads", "lower body"], sets: 3, reps: "20-40 sec", rest: "60 sec", coachingNote: "Hold a comfortable depth and keep the back against the wall."
+    id: "cable-lateral-raise",
+    name: "Cable lateral raise",
+    category: "strength",
+    movementPattern: "push",
+    equipmentTags: ["Cable"],
+    goalTags: ["hypertrophy"],
+    difficultyTier: "foundation",
+    cautionTags: ["shoulder"],
+    traitTags: ["upper_body", "accessory"],
+    preferenceTags: ["cable", "shoulders", "hypertrophy"],
+    sets: 3,
+    reps: "10-15",
+    rest: "60-90 sec",
+    coachingNote:
+      "Raise the cable through a comfortable side arc and control the return.",
   },
   {
-    id: "calf-stretch", name: "Calf stretch", category: "mobility", movementPattern: "mobility", equipmentTags: ["Bodyweight", "Wall"], goalTags: ["recovery", "running", "general_fitness"], difficultyTier: "intro", cautionTags: ["ankle"], traitTags: ["mobility", "low_load"], preferenceTags: ["mobility", "calves", "running prep"], sets: 2, reps: "30 sec each side", rest: "15 sec", coachingNote: "Ease into the stretch and avoid bouncing."
+    id: "hammer-curl",
+    name: "Hammer curl",
+    category: "strength",
+    movementPattern: "pull",
+    equipmentTags: ["Dumbbells"],
+    goalTags: ["hypertrophy", "general_fitness"],
+    difficultyTier: "intro",
+    cautionTags: [],
+    traitTags: ["upper_body", "accessory"],
+    preferenceTags: ["dumbbells", "arms", "hypertrophy"],
+    sets: 3,
+    reps: "10-15",
+    rest: "60-90 sec",
+    coachingNote:
+      "Keep a neutral grip and curl without swinging the upper arms.",
   },
   {
-    id: "shoulder-wall-slide", name: "Shoulder wall slide", category: "mobility", movementPattern: "mobility", equipmentTags: ["Bodyweight", "Wall"], goalTags: ["recovery", "general_fitness", "sport_performance"], difficultyTier: "intro", cautionTags: ["shoulder"], traitTags: ["mobility", "upper_body"], preferenceTags: ["mobility", "shoulders"], sets: 2, reps: "8", rest: "30 sec", coachingNote: "Slide only through a comfortable shoulder range."
+    id: "cable-overhead-triceps-extension",
+    name: "Cable overhead triceps extension",
+    category: "strength",
+    movementPattern: "push",
+    equipmentTags: ["Cable"],
+    goalTags: ["hypertrophy", "general_fitness"],
+    difficultyTier: "foundation",
+    cautionTags: ["shoulder", "overhead"],
+    traitTags: ["upper_body", "accessory"],
+    preferenceTags: ["cable", "arms", "triceps"],
+    sets: 3,
+    reps: "10-15",
+    rest: "60-90 sec",
+    coachingNote:
+      "Keep the ribs controlled and extend the elbows through a comfortable overhead range.",
   },
   {
-    id: "marching-drill", name: "Marching drill", category: "running_prep", movementPattern: "run", equipmentTags: ["Bodyweight"], goalTags: ["running", "sport_performance", "general_fitness"], difficultyTier: "intro", cautionTags: [], traitTags: ["running_support", "low_impact"], preferenceTags: ["running prep", "bodyweight"], sets: 3, reps: "20 sec", rest: "40 sec", coachingNote: "March tall with relaxed arms and quiet foot contacts."
+    id: "hip-abduction-machine",
+    name: "Hip abduction machine",
+    category: "strength",
+    movementPattern: "lateral",
+    equipmentTags: ["Machine"],
+    goalTags: ["hypertrophy", "general_fitness"],
+    difficultyTier: "intro",
+    cautionTags: [],
+    traitTags: ["machine", "accessory", "lower_body"],
+    preferenceTags: ["machine", "hips", "glutes", "hypertrophy"],
+    sets: 3,
+    reps: "10-15",
+    rest: "60-90 sec",
+    coachingNote:
+      "Sit tall and move the legs outward with control instead of momentum.",
   },
   {
-    id: "pogo-hop", name: "Pogo hop", category: "running_prep", movementPattern: "power", equipmentTags: ["Bodyweight"], goalTags: ["running", "sport_performance"], difficultyTier: "foundation", cautionTags: ["impact", "ankle", "knee"], traitTags: ["running_support", "power"], preferenceTags: ["running prep", "plyometric"], sets: 3, reps: "10-15 sec", rest: "60 sec", coachingNote: "Keep hops small and springy; stop if landings get loud or painful."
-  }
+    id: "hip-adduction-machine",
+    name: "Hip adduction machine",
+    category: "strength",
+    movementPattern: "lateral",
+    equipmentTags: ["Machine"],
+    goalTags: ["hypertrophy", "general_fitness"],
+    difficultyTier: "intro",
+    cautionTags: [],
+    traitTags: ["machine", "accessory", "lower_body"],
+    preferenceTags: ["machine", "hips", "adductors", "hypertrophy"],
+    sets: 3,
+    reps: "10-15",
+    rest: "60-90 sec",
+    coachingNote:
+      "Sit tall and bring the legs inward with controlled pressure.",
+  },
+  {
+    id: "suitcase-carry",
+    name: "Suitcase carry",
+    category: "strength",
+    movementPattern: "carry",
+    equipmentTags: ["Dumbbells", "Kettlebell"],
+    goalTags: ["strength", "sport_performance", "general_fitness"],
+    difficultyTier: "foundation",
+    cautionTags: ["back"],
+    traitTags: ["loaded", "core", "grip", "unilateral_load"],
+    preferenceTags: ["dumbbells", "kettlebell", "carry", "core"],
+    sets: 3,
+    reps: "20-30 steps each side",
+    rest: "75 sec",
+    coachingNote: "Walk tall and resist leaning toward the weight.",
+  },
+  {
+    id: "plank",
+    name: "Plank",
+    category: "core",
+    movementPattern: "core",
+    equipmentTags: ["Bodyweight"],
+    goalTags: [
+      "general_fitness",
+      "running",
+      "sport_performance",
+      "consistency",
+    ],
+    difficultyTier: "intro",
+    cautionTags: ["shoulder", "back"],
+    traitTags: ["core", "anti_extension"],
+    preferenceTags: ["bodyweight", "core"],
+    sets: 3,
+    reps: "20-40 sec",
+    rest: "45 sec",
+    coachingNote:
+      "Brace gently and keep a straight line from shoulders to ankles.",
+  },
+  {
+    id: "pallof-press",
+    name: "Pallof press",
+    category: "core",
+    movementPattern: "core",
+    equipmentTags: ["Cable", "Bands"],
+    goalTags: ["general_fitness", "running", "sport_performance"],
+    difficultyTier: "foundation",
+    cautionTags: [],
+    traitTags: ["core", "anti_rotation"],
+    preferenceTags: ["cable", "bands", "core"],
+    sets: 3,
+    reps: "8 each side",
+    rest: "45 sec",
+    coachingNote: "Press straight out and resist rotating toward the anchor.",
+  },
+  {
+    id: "inverted-row",
+    name: "Inverted row",
+    category: "strength",
+    movementPattern: "pull",
+    equipmentTags: ["Bar", "Bodyweight"],
+    goalTags: ["general_fitness", "strength", "hypertrophy"],
+    difficultyTier: "foundation",
+    cautionTags: ["shoulder"],
+    traitTags: ["upper_body", "bodyweight"],
+    preferenceTags: ["bodyweight", "back", "pull"],
+    sets: 3,
+    reps: "6-12",
+    rest: "90 sec",
+    coachingNote: "Keep the body straight and pull the chest toward the bar.",
+  },
+  {
+    id: "wall-sit",
+    name: "Wall sit",
+    category: "strength",
+    movementPattern: "squat",
+    equipmentTags: ["Bodyweight"],
+    goalTags: ["general_fitness", "running", "consistency"],
+    difficultyTier: "intro",
+    cautionTags: ["knee"],
+    traitTags: ["lower_body", "isometric"],
+    preferenceTags: ["bodyweight", "quads", "lower body"],
+    sets: 3,
+    reps: "20-40 sec",
+    rest: "60 sec",
+    coachingNote:
+      "Hold a comfortable depth and keep the back against the wall.",
+  },
+  {
+    id: "calf-stretch",
+    name: "Calf stretch",
+    category: "mobility",
+    movementPattern: "mobility",
+    equipmentTags: ["Bodyweight", "Wall"],
+    goalTags: ["recovery", "running", "general_fitness"],
+    difficultyTier: "intro",
+    cautionTags: ["ankle"],
+    traitTags: ["mobility", "low_load"],
+    preferenceTags: ["mobility", "calves", "running prep"],
+    sets: 2,
+    reps: "30 sec each side",
+    rest: "15 sec",
+    coachingNote: "Ease into the stretch and avoid bouncing.",
+  },
+  {
+    id: "shoulder-wall-slide",
+    name: "Shoulder wall slide",
+    category: "mobility",
+    movementPattern: "mobility",
+    equipmentTags: ["Bodyweight", "Wall"],
+    goalTags: ["recovery", "general_fitness", "sport_performance"],
+    difficultyTier: "intro",
+    cautionTags: ["shoulder"],
+    traitTags: ["mobility", "upper_body"],
+    preferenceTags: ["mobility", "shoulders"],
+    sets: 2,
+    reps: "8",
+    rest: "30 sec",
+    coachingNote: "Slide only through a comfortable shoulder range.",
+  },
+  {
+    id: "marching-drill",
+    name: "A-march",
+    category: "running_prep",
+    movementPattern: "run",
+    equipmentTags: ["Bodyweight"],
+    goalTags: ["running", "sport_performance", "general_fitness"],
+    difficultyTier: "intro",
+    cautionTags: [],
+    traitTags: ["running_support", "low_impact"],
+    preferenceTags: ["running prep", "bodyweight"],
+    sets: 3,
+    reps: "20 sec",
+    rest: "40 sec",
+    coachingNote: "March tall with relaxed arms and quiet foot contacts.",
+  },
+  {
+    id: "pogo-hop",
+    name: "Pogo hop",
+    category: "running_prep",
+    movementPattern: "power",
+    equipmentTags: ["Bodyweight"],
+    goalTags: ["running", "sport_performance"],
+    difficultyTier: "foundation",
+    cautionTags: ["impact", "ankle", "knee"],
+    traitTags: ["running_support", "power"],
+    preferenceTags: ["running prep", "plyometric"],
+    sets: 3,
+    reps: "10-15 sec",
+    rest: "60 sec",
+    coachingNote:
+      "Keep hops small and springy; stop if landings get loud or painful.",
+  },
 ] satisfies Array<Omit<ExerciseCatalogItem, keyof ExerciseTrackingMetadata>>;
 
 const catalogMetadataOverrides: Record<string, ExerciseTrackingMetadata> = {
@@ -837,15 +1585,17 @@ const catalogMetadataOverrides: Record<string, ExerciseTrackingMetadata> = {
   "dumbbell-floor-press": weightRepsMetadata(),
   "dumbbell-shoulder-press": weightRepsMetadata(),
   "dumbbell-row": weightRepsMetadata("same_each_side"),
-  "farmer-carry": weightRepsMetadata(),
+  "farmer-carry": weightRepsMetadata("bilateral", {
+    secondaryValueLabel: "Steps",
+  }),
   "dead-bug": repsMetadata("same_each_side"),
   "side-plank": durationMetadata("same_each_side"),
   "dumbbell-lateral-raise": weightRepsMetadata(),
   "dumbbell-curl": weightRepsMetadata(),
-  "hip-flexor-rockback": repsMetadata("same_each_side"),
+  "half-kneeling-hip-flexor-stretch": durationMetadata("same_each_side"),
   "thoracic-rotation": repsMetadata("same_each_side"),
   "ankle-rock": repsMetadata("same_each_side"),
-  "brisk-walk": distanceDurationMetadata,
+  "brisk-walk": durationMetadata(),
   "low-impact-cardio-march": durationMetadata(),
   "run-walk-intervals": durationMetadata(),
   "easy-run": distanceDurationMetadata,
@@ -878,26 +1628,46 @@ const catalogMetadataOverrides: Record<string, ExerciseTrackingMetadata> = {
   "assisted-pull-up": repsMetadata(),
   "face-pull": weightRepsMetadata(),
   "reverse-fly": weightRepsMetadata(),
-  "suitcase-carry": weightRepsMetadata("same_each_side"),
-  "plank": durationMetadata(),
+  "hack-squat": weightRepsMetadata(),
+  "lying-leg-curl": weightRepsMetadata(),
+  "seated-calf-raise": weightRepsMetadata(),
+  "cable-fly": weightRepsMetadata(),
+  "pec-deck": weightRepsMetadata(),
+  "cable-lateral-raise": weightRepsMetadata(),
+  "hammer-curl": weightRepsMetadata(),
+  "cable-overhead-triceps-extension": weightRepsMetadata(),
+  "hip-abduction-machine": weightRepsMetadata(),
+  "hip-adduction-machine": weightRepsMetadata(),
+  "suitcase-carry": weightRepsMetadata("same_each_side", {
+    secondaryValueLabel: "Steps",
+  }),
+  plank: durationMetadata(),
   "pallof-press": repsMetadata("same_each_side"),
   "inverted-row": repsMetadata(),
   "wall-sit": durationMetadata(),
   "calf-stretch": durationMetadata("same_each_side"),
   "shoulder-wall-slide": repsMetadata(),
+  "stride-drills": durationMetadata(),
+  "lateral-shuffle": durationMetadata(),
   "marching-drill": durationMetadata(),
-  "pogo-hop": durationMetadata()
+  "pogo-hop": durationMetadata(),
 };
 
-export const exerciseCatalog: ExerciseCatalogItem[] = exerciseCatalogBase.map((item) => ({
-  ...repsMetadata(),
-  ...(catalogMetadataOverrides[item.id] ?? {}),
-  ...item
-}));
+export const exerciseCatalog: ExerciseCatalogItem[] = exerciseCatalogBase.map(
+  (item) => ({
+    ...repsMetadata(),
+    ...(catalogMetadataOverrides[item.id] ?? {}),
+    ...item,
+  }),
+);
 
-export function getExerciseTrackingMetadataBySourceId(sourceExerciseId?: string | null): ExerciseTrackingMetadata {
+export function getExerciseTrackingMetadataBySourceId(
+  sourceExerciseId?: string | null,
+): ExerciseTrackingMetadata {
   if (!sourceExerciseId) return completionMetadata;
-  const item = exerciseCatalog.find((exercise) => exercise.id === sourceExerciseId);
+  const item = exerciseCatalog.find(
+    (exercise) => exercise.id === sourceExerciseId,
+  );
   if (!item) return completionMetadata;
   return {
     trackingType: item.trackingType,
@@ -907,7 +1677,7 @@ export function getExerciseTrackingMetadataBySourceId(sourceExerciseId?: string 
     distanceUnit: item.distanceUnit,
     supportedDistanceUnits: item.supportedDistanceUnits,
     primaryValueLabel: item.primaryValueLabel,
-    secondaryValueLabel: item.secondaryValueLabel
+    secondaryValueLabel: item.secondaryValueLabel,
   };
 }
 
@@ -915,7 +1685,9 @@ export function getCatalogExercise(id: string) {
   return exerciseCatalog.find((exercise) => exercise.id === id);
 }
 
-export function toPlanExercise(item: ExerciseCatalogItem): StructuredExerciseInput {
+export function toPlanExercise(
+  item: ExerciseCatalogItem,
+): StructuredExerciseInput {
   return {
     sourceExerciseId: item.id,
     name: item.name,
@@ -923,6 +1695,6 @@ export function toPlanExercise(item: ExerciseCatalogItem): StructuredExerciseInp
     reps: item.reps,
     rest: item.rest,
     coachingNote: item.coachingNote,
-    videoUrl: item.videoUrl
+    videoUrl: item.videoUrl,
   };
 }

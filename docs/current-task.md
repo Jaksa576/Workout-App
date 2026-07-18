@@ -28,6 +28,16 @@ Baseline inventory before this PR: 35 active code-owned catalog exercises and 9 
 
 Validation focus: catalog/alias integrity, ambiguous generic generated names, exact ID precedence, custom fallback, metadata combinations, video URL formats, deterministic inventory reporting, `npm run check`, branch push, and branch verification.
 
+
+
+## Current Implementation — Post-Issue #69 exercise catalog domain cleanup
+
+Implemented on branch `chatgpt/exercise-catalog-domain-video-cleanup` as the post-Issue #69 domain-review patch. The static catalog remains the authoritative source of canonical exercise metadata, reviewed aliases remain in `reviewedSystemAliases`, and deterministic generated-plan resolution still uses exact catalog ID, exact canonical name, exact reviewed alias, then explicit custom or `needs_review` outcomes. No fuzzy, semantic, embedding, LLM, provider, generated-plan save-boundary, plan/workout table, hosted Supabase, or historical snapshot behavior was intentionally changed.
+
+Catalog state after this patch: 81 active code-owned catalog exercises. The patch clarifies `romanian-deadlift` as the barbell variation, keeps `dumbbell-romanian-deadlift` separate, replaces the unclear hip-flexor rockback runtime catalog identity with `half-kneeling-hip-flexor-stretch`, clarifies A-march/open-book thoracic rotation/knee-to-wall ankle mobilization names, fixes carry load-plus-steps labels through the existing `weight_reps` contract, changes stride drills/lateral shuffle/brisk walk to duration tracking, removes mismatched reviewed videos, and adds ten focused machine/cable/accessory exercises.
+
+Database work is in-repo only: `supabase/migrations/20260718120000_exercise_catalog_domain_video_cleanup.sql` and `supabase/verification/exercise-catalog-domain-video-cleanup-readonly.sql`. The migration is additive/idempotent for system-owned catalog identity and reviewed-alias rows, retires ambiguous reviewed system aliases by setting `reviewed = false`, supersedes the old system hip-flexor identity to the new ID, and does not write plan/workout/session/result snapshot tables. Hosted Supabase was not changed by Codex.
+
 ## Why This Was Reprioritized
 
 The previous direct AI-guided plan creation work completed only its docs/planning step. Provider-backed implementation has not started.
