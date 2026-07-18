@@ -12,10 +12,15 @@ const migration = readFileSync(
   "supabase/migrations/20260714120000_exercise_identity_aliases.sql",
   "utf8",
 );
-const issue69Migration = readFileSync(
-  "supabase/migrations/20260718120000_exercise_catalog_domain_video_cleanup.sql",
+const issue69PrerequisiteMigrationPath =
+  "supabase/migrations/20260718115900_half_kneeling_hip_flexor_identity_prerequisite.sql";
+const issue69DomainCleanupMigrationPath =
+  "supabase/migrations/20260718120000_exercise_catalog_domain_video_cleanup.sql";
+const issue69PrerequisiteMigration = readFileSync(
+  issue69PrerequisiteMigrationPath,
   "utf8",
 );
+const issue69Migration = readFileSync(issue69DomainCleanupMigrationPath, "utf8");
 const schema = readFileSync("supabase/schema.sql", "utf8");
 const verification = readFileSync(
   "supabase/verification/issue-40-exercise-identity-readonly.sql",
@@ -35,6 +40,29 @@ const identityRows = Array.from(
   name: match[2],
   normalizedKey: match[3],
   movementPattern: match[4],
+}));
+
+
+const prerequisiteIdentityRows = Array.from(
+  issue69PrerequisiteMigration.matchAll(
+    /\(\s*'([^']+)',\s*'([^']+)',\s*'([^']+)',\s*'system',\s*array\[([^\n]+?)\]::text\[\],\s*'([^']+)',\s*'([^']*)',\s*'(\{.*?\})'::jsonb,\s*true,\s*null\s*\)/g,
+  ),
+).map((match) => ({
+  id: match[1],
+  name: match[2],
+  normalizedKey: match[3],
+  equipmentTags: Array.from(match[4].matchAll(/'([^']+)'/g)).map(
+    (item) => item[1],
+  ),
+  movementPattern: match[5],
+  qualifierText: match[6],
+  metadata: JSON.parse(match[7]) as {
+    category: string;
+    difficultyTier: string;
+    cautionTags: string[];
+    traitTags: string[];
+    preferenceTags: string[];
+  },
 }));
 
 const issue69IdentityRows = Array.from(
@@ -246,6 +274,96 @@ describe("Issue #40 exercise identity SQL", () => {
     expect(verification).not.toMatch(
       /\b(insert|update|delete|alter|create table|drop)\b/i,
     );
+  });
+});
+
+describe("PR #77 half-kneeling hip flexor prerequisite SQL", () => {
+  const prerequisiteFilename = issue69PrerequisiteMigrationPath.split("/").at(-1) ?? "";
+  const domainCleanupFilename = issue69DomainCleanupMigrationPath.split("/").at(-1) ?? "";
+
+  it("sorts before the merged PR #77 domain cleanup migration", () => {
+    expect(prerequisiteFilename.localeCompare(domainCleanupFilename)).toBeLessThan(0);
+  });
+
+  it("seeds only the half-kneeling hip flexor identity in exact catalog parity", () => {
+    const exercise = exerciseCatalog.find(
+      (item) => item.id === "half-kneeling-hip-flexor-stretch",
+    );
+
+    expect(exercise).toBeDefined();
+    expect(prerequisiteIdentityRows).toHaveLength(1);
+    expect(prerequisiteIdentityRows[0]).toEqual({
+      id: "half-kneeling-hip-flexor-stretch",
+      name: exercise?.name,
+      normalizedKey: normalizeExerciseLookupKey(exercise?.name ?? ""),
+      equipmentTags: exercise?.equipmentTags,
+      movementPattern: exercise?.movementPattern,
+      qualifierText: [
+        exercise?.equipmentTags.join("/"),
+        exercise?.unilateralMode.replace(/_/g, " "),
+        exercise?.movementPattern,
+      ]
+        .filter(Boolean)
+        .join(" · "),
+      metadata: {
+        category: exercise?.category,
+        difficultyTier: exercise?.difficultyTier,
+        cautionTags: exercise?.cautionTags,
+        traitTags: exercise?.traitTags,
+        preferenceTags: exercise?.preferenceTags,
+      },
+    });
+  });
+
+  it("updates only system-owned rows and refuses conflicting user-owned identities", () => {
+    expect(issue69PrerequisiteMigration).toContain("owner_scope <> 'system'");
+    expect(issue69PrerequisiteMigration).toContain("raise exception");
+    expect(issue69PrerequisiteMigration).toContain("on conflict (id) do update");
+    expect(issue69PrerequisiteMigration).toContain(
+      "where public.exercise_identities.owner_scope = 'system'",
+    );
+    expect(issue69PrerequisiteMigration).toContain("active = true");
+    expect(issue69PrerequisiteMigration).toContain("superseded_by = null");
+  });
+
+  it("keeps the prerequisite write scope limited to system exercise identities", () => {
+    const writeTargets = extractStatementTargets(issue69PrerequisiteMigration, [
+      "insert",
+      "update",
+      "delete",
+      "merge",
+    ]);
+
+    expect(writeTargets).toEqual([
+      { verb: "insert", table: "exercise_identities" },
+    ]);
+    expect(
+      writeTargets.filter((target) => unsafeWriteTables.includes(target.table)),
+    ).toEqual([]);
+    expect(issue69PrerequisiteMigration).not.toContain("exercise_aliases");
+    expect(issue69PrerequisiteMigration).not.toMatch(
+      /\b(exercise_entries|exercise_results|exercise_set_results|plans|workout_plans|plan_phases|workout_templates|workout_sessions|insert\s+into\s+public\.exercise_aliases|update\s+public\.exercise_aliases|delete\s+from\s+public\.exercise_aliases|merge)\b/i,
+    );
+  });
+
+  it("gives the domain cleanup supersession update a valid earlier identity dependency", () => {
+    expect(issue69Migration).toContain(
+      "superseded_by = 'half-kneeling-hip-flexor-stretch'",
+    );
+    expect(prerequisiteIdentityRows.map((row) => row.id)).toEqual([
+      "half-kneeling-hip-flexor-stretch",
+    ]);
+    expect(prerequisiteFilename.localeCompare(domainCleanupFilename)).toBeLessThan(0);
+  });
+
+  it("leaves the merged PR #77 migration byte-for-byte unchanged", () => {
+    const mergedPr77Migration = execFileSync(
+      "git",
+      ["show", `5c54f78d2391a80f4306be864c70acc1ec674b6e:${issue69DomainCleanupMigrationPath}`],
+      { encoding: "utf8" },
+    );
+
+    expect(issue69Migration).toBe(mergedPr77Migration);
   });
 });
 
