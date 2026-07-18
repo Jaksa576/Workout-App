@@ -38,6 +38,8 @@ Catalog state after this patch: 81 active code-owned catalog exercises. The patc
 
 Database work is in-repo only: `supabase/migrations/20260718120000_exercise_catalog_domain_video_cleanup.sql` and `supabase/verification/exercise-catalog-domain-video-cleanup-readonly.sql`. The migration is additive/idempotent for system-owned catalog identity and reviewed-alias rows, retires ambiguous reviewed system aliases by setting `reviewed = false`, supersedes the old system hip-flexor identity to the new ID, and does not write plan/workout/session/result snapshot tables. Hosted Supabase was not changed by Codex.
 
+PR #77 was merged before its migration-ordering review blocker was patched: the merged `20260718120000` migration set `hip-flexor-rockback.superseded_by` to `half-kneeling-hip-flexor-stretch` before inserting that replacement identity, which can violate the `exercise_identities.superseded_by` foreign key on a clean migration chain. The follow-up patch preserves the merged migration byte-for-byte and adds `supabase/migrations/20260718115900_half_kneeling_hip_flexor_identity_prerequisite.sql`, an earlier idempotent system-owned identity seed for `half-kneeling-hip-flexor-stretch`, so the replacement exists before the merged domain-cleanup migration references it. Hosted Supabase remains unchanged unless separately authorized through the approved migration flow.
+
 ## Why This Was Reprioritized
 
 The previous direct AI-guided plan creation work completed only its docs/planning step. Provider-backed implementation has not started.
