@@ -30,6 +30,15 @@ describe("server-only Gemini plan adapter", () => {
     expect(init.body).toContain("Get stronger");
   });
 
+  it("sends the Gemini key only in the request header", async () => {
+    const request = vi.fn().mockResolvedValue(responseFor(draft()));
+    await generatePlanDraftForServer(input, { env, request });
+    const [url, init] = request.mock.calls[0] as [string, RequestInit];
+    expect(url).not.toContain(env.GEMINI_API_KEY);
+    expect(url).not.toContain("?key=");
+    expect(new Headers(init.headers).get("x-goog-api-key")).toBe(env.GEMINI_API_KEY);
+  });
+
   it("preserves catalog metadata precedence and reviewed alias resolution", async () => {
     const catalog = { ...exercise, name: "Barbell RDL", proposedCatalogId: "romanian-deadlift", videoUrl: "not a url", trackingType: "duration" };
     const result = await generatePlanDraftForServer(input, { env, request: vi.fn().mockResolvedValue(responseFor(draft(catalog))) });
@@ -51,6 +60,24 @@ describe("server-only Gemini plan adapter", () => {
     await expect(generatePlanDraftForServer(input, { env, request: vi.fn().mockResolvedValue(responseFor({ no: "draft" })) })).rejects.toMatchObject({ code: "malformed_provider_output" });
     await expect(generatePlanDraftForServer(input, { env, request: vi.fn().mockResolvedValue(responseFor(draft({ ...exercise, prescription: { sets: 0, reps: "8", rest: "60 sec" } })) ) })).rejects.toMatchObject({ code: "invalid_generated_plan" });
     await expect(generatePlanDraftForServer({ setup: { ...input.setup, objectiveSummary: "x".repeat(241) } }, { env })).rejects.toMatchObject({ code: "unsafe_input" });
+  });
+
+  it("maps malformed exercise metadata to a typed invalid-generated-plan error", async () => {
+    const malformedExercise = {
+      ...exercise,
+      trackingType: "weight_reps",
+      loadUnit: "lb",
+      supportedLoadUnits: {},
+    };
+    const request = vi.fn().mockResolvedValue(responseFor(draft(malformedExercise as unknown as typeof exercise)));
+    try {
+      await generatePlanDraftForServer(input, { env, request });
+      throw new Error("Expected generation to fail");
+    } catch (error) {
+      expect(error).toBeInstanceOf(PlanGenerationError);
+      expect(error).toMatchObject({ code: "invalid_generated_plan" });
+      expect(error).not.toBeInstanceOf(TypeError);
+    }
   });
 
   it("maps timeout and generic provider failures without exposing provider payloads", async () => {

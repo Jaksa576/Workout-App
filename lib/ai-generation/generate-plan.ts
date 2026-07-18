@@ -36,7 +36,13 @@ export async function generatePlanDraftForServer(
   if (configuration.status === "missing_key") throw new PlanGenerationError("missing_api_key");
   if (configuration.status === "invalid") throw new PlanGenerationError("invalid_configuration");
   const draft = await generateGeminiPlanDraft({ configuration, prompt: buildBoundedPrompt(input, configuration.maxInputChars), request: dependencies.request });
-  const normalized = normalizeGeneratedPlanDraft(draft);
+  let normalized: ReturnType<typeof normalizeGeneratedPlanDraft>;
+  try {
+    normalized = normalizeGeneratedPlanDraft(draft);
+  } catch (error) {
+    if (error instanceof PlanGenerationError) throw error;
+    throw new PlanGenerationError("invalid_generated_plan");
+  }
   if ("fatalErrors" in normalized) throw new PlanGenerationError("invalid_generated_plan");
   return normalized;
 }

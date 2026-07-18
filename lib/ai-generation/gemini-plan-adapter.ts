@@ -63,10 +63,13 @@ export async function generateGeminiPlanDraft({
   const timeout = setTimeout(() => controller.abort(), configuration.timeoutMs);
   try {
     const response = await request(
-      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(configuration.model)}:generateContent?key=${encodeURIComponent(configuration.apiKey)}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(configuration.model)}:generateContent`,
       {
         method: "POST", signal: controller.signal,
-        headers: { "content-type": "application/json" },
+        headers: {
+          "content-type": "application/json",
+          "x-goog-api-key": configuration.apiKey,
+        },
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
           contents: [{ role: "user", parts: [{ text: prompt }] }],
