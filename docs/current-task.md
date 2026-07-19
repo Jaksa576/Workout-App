@@ -2,11 +2,11 @@
 
 ## Current Priority
 
-GitHub Issue #65 - **Integrate direct AI generation into plan creation** - is the active implementation target.
+Post-Issue #65 Gemini instruction-contract follow-up is the active implementation target. Issue #65 is closed and its pull request is complete.
 
 Issue #81 and merged PR #82 are complete on `main`. The hosted additive quota migration, read-only verification, Gemini 3.5 Flash configuration, and controlled authenticated smoke test are complete, so the Issue #65 readiness gate is satisfied.
 
-Issue #65 connects `POST /api/ai/plan-drafts` to the existing `/plans/new` structured setup and routes successful canonical drafts into the existing `PlanBuilderForm` review/editor. Generation remains in-memory only. Explicit save continues through `/api/plans` and `createStructuredPlanForUser`; no plan, phase, workout, exercise, session, result, or progression record is written during generation, back, cancel, or navigation before save.
+This focused follow-up replaces the Gemini system instruction with the approved program-design guidance and removes provider-supplied catalog IDs from the Gemini response schema. Gemini-generated exercises continue through the existing application-owned deterministic name matcher and review-before-save flow. Generation remains in-memory only. Explicit save continues through `/api/plans` and `createStructuredPlanForUser`; no plan, phase, workout, exercise, session, result, or progression record is written during generation, back, cancel, or navigation before save.
 
 ## Implemented Scope
 
@@ -19,13 +19,14 @@ Issue #65 connects `POST /api/ai/plan-drafts` to the existing `/plans/new` struc
 - `matched`, `custom`, and `needs_review` exercise outcomes remain visible; unresolved review issues block save until matched, explicitly accepted as a valid reviewed custom exercise, or removed.
 - Explicit save continues through the existing structured persistence path and preserves prescriptions, tracking metadata, and deterministic phase progression.
 - PR #83 increases direct-generation defaults to a 150-second provider timeout and 16,384 output tokens; server configuration fails closed above 240 seconds or 32,768 tokens, and the 300-second route duration requires Vercel Fluid Compute.
+- Gemini now receives the approved concise instruction, cannot return `proposedCatalogId`, must return `videoUrl: null`, and must provide a precise `videoSearchQuery`. The shared normalized draft field remains for compatible non-Gemini import and review flows.
 
 ## Immediate Next Action
 
-1. Review and merge the Issue #65 pull request after checks pass.
+1. Review and merge the focused Gemini instruction-contract follow-up after checks pass.
 2. Complete authenticated mobile and desktop QA with small and large multi-phase drafts, waits beyond 12 and 45 seconds, unload warning, typed timeout, review blocking, and generation-to-save flows. Record duration and approximate response size. The local unauthenticated route/login health check is complete; an authenticated local browser session was unavailable, so the full mocked browser pass remains.
 3. Confirm Fluid Compute is enabled for Preview and Production before enabling the 300-second generation route.
-4. Keep production rollout feature-gated. Enable direct generation only after the Issue #65 pull request is merged and deployment QA passes; disabling it must leave Guided Setup, Manual Builder, and external AI import usable.
+4. Keep production rollout feature-gated. Disabling direct generation must leave Guided Setup, Manual Builder, and external AI import usable.
 
 ## Validation Status
 

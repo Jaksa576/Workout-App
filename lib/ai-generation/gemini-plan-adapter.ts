@@ -25,10 +25,6 @@ const exerciseSchema = {
     "videoSearchQuery",
   ],
   properties: {
-    proposedCatalogId: {
-      type: ["string", "null"],
-      description: "Use only a known exact catalog ID; otherwise null.",
-    },
     name: { type: "string" },
     prescription: {
       type: "object",
@@ -82,8 +78,8 @@ const exerciseSchema = {
     coachingNote: { type: "string" },
     safetyNotes: { type: ["string", "null"] },
     videoUrl: {
-      type: ["string", "null"],
-      description: "Use null. Reviewed catalog metadata or later user review owns direct video URLs.",
+      type: "null",
+      description: "Always null. The application owns reviewed direct video URLs.",
     },
     videoSearchQuery: {
       type: "string",
@@ -138,7 +134,15 @@ const generatedPlanSchema = {
   },
 } as const;
 
-const SYSTEM_INSTRUCTION = `Return JSON only for generated-plan-draft-v1. Build at least one phase, workout, and exercise, with valid weekday values and positive prescription sets. Use non-empty strings for every required textual field. Tracking types, units, display labels, and unilateral modes must be mutually compatible. Do not provide progression presets or settings; the application owns deterministic progression. Use proposedCatalogId only when confident it is an exact known catalog identity; otherwise use null. Catalog-matched exercises receive catalog-owned reviewed metadata and video. Set generated videoUrl to null and provide a precise videoSearchQuery instead; never invent a direct YouTube URL. Custom or unmatched exercises may require user review, and no generated exercise bypasses canonical validation or review-before-save. Use no markdown.`;
+const SYSTEM_INSTRUCTION = `You are an expert evidence-informed training-program designer with deep experience in strength and conditioning, hypertrophy, general fitness, rehabilitation-informed exercise selection, and return-to-sport programming.
+
+Create a coherent, practical, individualized training-plan draft using only the validated user context provided by the application. Use all provided context together, including the goal, objective, schedule, session duration, preferred split, focus areas, and constraints. Avoid a generic plan. Create complete workouts that are realistic within the available session time. Balance useful repetition with purposeful variation.
+
+Determine whether the user’s goal and context are best served by one phase or multiple phases. When multiple phases are warranted, give each phase a distinct, progressive purpose. Do not default to one phase when the objective clearly implies staged development, return to sport, rebuilding capacity, or meaningful progression over time. Do not add phases merely for complexity. Do not provide application progression presets, advancement rules, deload rules, or readiness algorithms. The application owns deterministic progression and readiness-based adaptation.
+
+Select exercises using common names with enough specificity to identify the intended equipment, stance, position, direction, and variation. For every exercise, provide a valid prescription, tracking type, unilateral mode, compatible units, concise coaching guidance, safety notes when useful,  and a precise video search query. Do not provide or invent direct video URLs. Keep all tracking metadata mutually consistent with the prescribed work.
+
+Return JSON only for generated-plan-draft-v1. Include a useful plan name and description, the weekly schedule, one or more meaningful phases, a clear goal for each phase, workouts assigned to valid scheduled days, and complete exercise prescriptions. Do not produce placeholder, minimal, or repetitive content merely to satisfy the schema. Use no markdown or commentary outside the JSON. `;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -154,7 +158,15 @@ export function parseGeminiPlanDraft(value: unknown): GeneratedPlanDraft {
     for (const workout of phase.workouts) {
       if (!isRecord(workout) || !Array.isArray(workout.exercises)) throw new PlanGenerationError("malformed_provider_output");
       for (const exercise of workout.exercises)
-        if (!isRecord(exercise) || typeof exercise.name !== "string" || !isRecord(exercise.prescription))
+        if (
+          !isRecord(exercise) ||
+          "proposedCatalogId" in exercise ||
+          typeof exercise.name !== "string" ||
+          !isRecord(exercise.prescription) ||
+          exercise.videoUrl !== null ||
+          typeof exercise.videoSearchQuery !== "string" ||
+          !exercise.videoSearchQuery.trim()
+        )
           throw new PlanGenerationError("malformed_provider_output");
     }
   }

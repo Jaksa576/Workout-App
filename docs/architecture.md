@@ -322,9 +322,12 @@ rate-limit, provider, unsafe-input, malformed-output, and canonical-validation
 failures to stable provider-neutral errors. Parsed output always flows through
 `normalizeGeneratedPlanDraft`, the existing deterministic catalog resolver, and
 strict structured-plan validation before it can be returned as an in-memory
-review draft. Catalog matches own canonical metadata and reviewed video URLs.
-Gemini supplies `proposedCatalogId` only when confident, may return a null
-`videoUrl`, and must provide a precise `videoSearchQuery`; it is never required
+review draft. Gemini supplies human-readable exercise names and tracking
+metadata only; it has no provider-owned catalog-identity field. The application
+resolves catalog identity deterministically from the normalized candidate name
+and retains the existing matched, custom, and needs-review outcomes. Catalog
+matches own canonical metadata and reviewed video URLs. Gemini returns a null
+`videoUrl` and must provide a precise `videoSearchQuery`; it is never required
 to fabricate a direct URL. Unmatched candidates enter review, and existing URL
 validation remains authoritative before save.
 
