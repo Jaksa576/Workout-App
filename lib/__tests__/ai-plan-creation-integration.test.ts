@@ -17,6 +17,8 @@ describe("Issue #65 plan creation integration", () => {
     const wizard = await source("components/plan-setup-wizard.tsx");
     expect(wizard).toContain("requestAiPlanDraft");
     expect(wizard).toContain("setDraft(applySetupMetadataToAiDraft(result.draft.plan, setup))");
+    expect(wizard).toContain("setDraftSetup(setup)");
+    expect(wizard).toContain("setupContext={draftSetup ?? setup}");
     expect(wizard).toContain("setGeneratedExercises(result.draft.exercises)");
     expect(wizard).toContain("generatedExerciseReview={isDirectAi ? generatedExercises : undefined}");
     expect(wizard).toContain("AI-generated draft");

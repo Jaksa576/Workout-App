@@ -151,6 +151,7 @@ export function PlanSetupWizard({
     () => initialSetup ?? buildDefaultPlanSetup(profile)
   );
   const [draft, setDraft] = useState<StructuredPlanInput | null>(null);
+  const [draftSetup, setDraftSetup] = useState<PlanSetupInput | null>(null);
   const [draftKey, setDraftKey] = useState(0);
   const [generatedExercises, setGeneratedExercises] = useState<NormalizedGeneratedExercise[]>([]);
   const generationGuardRef = useRef<AiGenerationAttemptGuard | null>(null);
@@ -169,6 +170,7 @@ export function PlanSetupWizard({
     }
     if (transition.clearGeneratedDraft) {
       setDraft(null);
+      setDraftSetup(null);
       setStepIndex((current) => Math.min(current, 2));
     }
   }
@@ -229,6 +231,7 @@ export function PlanSetupWizard({
         });
         if (!result) return;
         setDraft(applySetupMetadataToAiDraft(result.draft.plan, setup));
+        setDraftSetup(setup);
         setGeneratedExercises(result.draft.exercises);
       } else {
         const response = await fetch("/api/plan-drafts", {
@@ -245,6 +248,7 @@ export function PlanSetupWizard({
           throw new Error(result.error ?? "Unable to generate plan draft.");
         }
         setDraft(result.draft);
+        setDraftSetup(setup);
         setGeneratedExercises([]);
       }
 
@@ -758,7 +762,7 @@ export function PlanSetupWizard({
               initialPlan={draft}
               generatedExerciseReview={isDirectAi ? generatedExercises : undefined}
               submitLabel={isEditing ? "Save regenerated plan" : "Save Generated Plan"}
-              setupContext={setup}
+              setupContext={draftSetup ?? setup}
               planId={editingPlan?.id}
               flow={isEditing ? "edit-setup" : "create"}
               editingPlanName={editingPlan?.name}
