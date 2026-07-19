@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   AiGenerationAttemptGuard,
+  getPlanCreationModeTransition,
+  isPlanDraftGenerationDisabled,
   mapAiPlanGenerationError,
   requestAiPlanDraft,
   validateAiGenerationSetup
@@ -33,6 +35,30 @@ const normalizedDraft = {
 };
 
 describe("AI generation client", () => {
+  it("clears a terminal AI error and enables guided generation without changing setup", () => {
+    const generationError = mapAiPlanGenerationError("success_quota_reached");
+    expect(isPlanDraftGenerationDisabled({
+      generating: false,
+      isDirectAi: true,
+      generationError
+    })).toBe(true);
+
+    const currentSetup = setup;
+    const transition = getPlanCreationModeTransition("guided");
+    expect(transition).toEqual({
+      mode: "guided",
+      generationError: null,
+      clearGeneratedExerciseReview: true,
+      clearGeneratedDraft: true
+    });
+    expect(currentSetup).toBe(setup);
+    expect(isPlanDraftGenerationDisabled({
+      generating: false,
+      isDirectAi: false,
+      generationError: transition.generationError
+    })).toBe(false);
+  });
+
   it("validates setup before making a request", async () => {
     const fetcher = vi.fn();
     const invalid = { ...setup, weeklySchedule: [] };

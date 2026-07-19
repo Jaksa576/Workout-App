@@ -24,7 +24,9 @@ describe("Issue #65 plan creation integration", () => {
 
   it("keeps loading accessible and every creation fallback visible", async () => {
     const wizard = await source("components/plan-setup-wizard.tsx");
-    expect(wizard).toContain("disabled={generating || generationError?.retryAllowed === false}");
+    expect(wizard).toContain("getPlanCreationModeTransition");
+    expect(wizard).toContain("isPlanDraftGenerationDisabled");
+    expect(wizard).toContain('fetch("/api/plan-drafts"');
     expect(wizard).toContain('role="status" aria-live="polite"');
     expect(wizard).toContain("Guided Setup");
     expect(wizard).toContain("Manual Builder");
@@ -34,7 +36,7 @@ describe("Issue #65 plan creation integration", () => {
 
   it("blocks review issues and saves explicitly through the structured plan endpoint", async () => {
     const builder = await source("components/plan-builder-form.tsx");
-    expect(builder).toContain('outcome.status === "needs_review"');
+    expect(builder).toContain("countGeneratedReviewBlockers");
     expect(builder).toContain("disabled={saving || reviewBlockingCount > 0}");
     expect(builder).toContain("disabled={workoutHasReviewBlock}");
     expect(builder).toMatch(/return;\r?\n\s+}\r?\n\r?\n\s+setSaving\(true\)/);

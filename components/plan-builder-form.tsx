@@ -8,7 +8,19 @@ import { exerciseCatalog, exerciseCategories, toPlanExercise } from "@/lib/exerc
 import { getExerciseSearchKeys, normalizeExerciseLookupKey, resolveExerciseIdentityByReviewedName } from "@/lib/exercise-identity";
 import { hasExerciseGuidance } from "@/lib/exercise-guidance";
 import { formatPhaseLabel } from "@/lib/plan-labels";
-import type { NormalizedGeneratedExercise } from "@/lib/generated-plan-draft";
+import {
+  canReviewGeneratedExerciseAsCustom,
+  reviewGeneratedExerciseAsCustom,
+  reviewGeneratedExerciseWithCatalog,
+  type NormalizedGeneratedExercise
+} from "@/lib/generated-plan-draft";
+import {
+  buildGeneratedExerciseReviewByPath,
+  countGeneratedReviewBlockers,
+  getGeneratedReviewKey,
+  remapGeneratedReviewAfterDelete,
+  setGeneratedReviewOutcome
+} from "@/lib/generated-plan-review-state";
 import type {
   AdvancementPreset,
   DeloadPreset,
@@ -101,51 +113,6 @@ function toggleListValue<T extends string>(values: T[], value: T) {
 function getWorkoutKey(phaseIndex: number, workoutIndex: number) {
   return `${phaseIndex}-${workoutIndex}`;
 }
-type GeneratedExerciseReviewByPath = Record<string, NormalizedGeneratedExercise>;
-
-function getGeneratedReviewKey(phaseIndex: number, workoutIndex: number, exerciseIndex: number) {
-  return `${phaseIndex}-${workoutIndex}-${exerciseIndex}`;
-}
-
-export function buildGeneratedExerciseReviewByPath(
-  plan: StructuredPlanInput | undefined,
-  outcomes: NormalizedGeneratedExercise[] | undefined
-) {
-  const result: GeneratedExerciseReviewByPath = {};
-  let outcomeIndex = 0;
-  plan?.phases.forEach((phase, phaseIndex) => {
-    phase.workouts.forEach((workout, workoutIndex) => {
-      workout.exercises.forEach((_, exerciseIndex) => {
-        const outcome = outcomes?.[outcomeIndex++];
-        if (outcome) result[getGeneratedReviewKey(phaseIndex, workoutIndex, exerciseIndex)] = outcome;
-      });
-    });
-  });
-  return result;
-}
-
-export function remapGeneratedReviewAfterDelete(
-  current: GeneratedExerciseReviewByPath,
-  target: { phaseIndex: number; workoutIndex?: number; exerciseIndex?: number }
-) {
-  const next: GeneratedExerciseReviewByPath = {};
-  for (const [key, outcome] of Object.entries(current)) {
-    let [phaseIndex, workoutIndex, exerciseIndex] = key.split("-").map(Number);
-    if (target.workoutIndex === undefined) {
-      if (phaseIndex === target.phaseIndex) continue;
-      if (phaseIndex > target.phaseIndex) phaseIndex -= 1;
-    } else if (target.exerciseIndex === undefined) {
-      if (phaseIndex === target.phaseIndex && workoutIndex === target.workoutIndex) continue;
-      if (phaseIndex === target.phaseIndex && workoutIndex > target.workoutIndex) workoutIndex -= 1;
-    } else if (phaseIndex === target.phaseIndex && workoutIndex === target.workoutIndex) {
-      if (exerciseIndex === target.exerciseIndex) continue;
-      if (exerciseIndex > target.exerciseIndex) exerciseIndex -= 1;
-    }
-    next[getGeneratedReviewKey(phaseIndex, workoutIndex, exerciseIndex)] = outcome;
-  }
-  return next;
-}
-
 function Field({
   label,
   children
@@ -208,9 +175,7 @@ export function PlanBuilderForm({
   const [status, setStatus] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const currentStep = steps[stepIndex];
-  const reviewBlockingCount = Object.values(generatedReviewByExercise).filter(
-    (outcome) => outcome.status === "needs_review"
-  ).length;
+  const reviewBlockingCount = countGeneratedReviewBlockers(generatedReviewByExercise);
   const planLabel = editingPlanName ?? name;
 
   const reviewNotice =
@@ -336,24 +301,51 @@ export function PlanBuilderForm({
     exerciseIndex: number,
     catalogId: string
   ) {
-    const catalogExercise = exerciseCatalog.find((exercise) => exercise.id === catalogId);
-    if (!catalogExercise) return;
+    const path = { phaseIndex, workoutIndex, exerciseIndex };
+    const generatedReview = generatedReviewByExercise[getGeneratedReviewKey(path)];
+    if (generatedReview?.status !== "needs_review") return;
+
     const current = phases[phaseIndex].workouts[workoutIndex].exercises[exerciseIndex];
-    const catalogPlanExercise = toPlanExercise(catalogExercise);
-    updateExercise(phaseIndex, workoutIndex, exerciseIndex, {
-      ...catalogPlanExercise,
-      sets: current.sets,
-      reps: current.reps,
-      rest: current.rest,
-      coachingNote: current.coachingNote === "Resolve exercise identity before saving."
-        ? catalogPlanExercise.coachingNote
-        : current.coachingNote
-    });
-    setGeneratedReviewByExercise((review) => {
-      const next = { ...review };
-      delete next[getGeneratedReviewKey(phaseIndex, workoutIndex, exerciseIndex)];
-      return next;
-    });
+    const outcome = reviewGeneratedExerciseWithCatalog(
+      generatedReview,
+      catalogId,
+      current
+    );
+    if (!outcome) return;
+
+    updateExercise(phaseIndex, workoutIndex, exerciseIndex, outcome.exercise);
+    setGeneratedReviewByExercise((review) =>
+      setGeneratedReviewOutcome(review, path, outcome)
+    );
+  }
+
+  function resolveGeneratedExerciseAsCustom(
+    phaseIndex: number,
+    workoutIndex: number,
+    exerciseIndex: number
+  ) {
+    const path = { phaseIndex, workoutIndex, exerciseIndex };
+    const generatedReview = generatedReviewByExercise[getGeneratedReviewKey(path)];
+    if (generatedReview?.status !== "needs_review") return;
+
+    const current = phases[phaseIndex].workouts[workoutIndex].exercises[exerciseIndex];
+    const result = reviewGeneratedExerciseAsCustom(generatedReview, current);
+    if (!result.ok) {
+      setGeneratedReviewByExercise((review) =>
+        setGeneratedReviewOutcome(review, path, {
+          ...generatedReview,
+          issues: result.issues
+        })
+      );
+      setStatus(result.issues.map((issue) => issue.message).join(" "));
+      return;
+    }
+
+    updateExercise(phaseIndex, workoutIndex, exerciseIndex, result.outcome.exercise);
+    setGeneratedReviewByExercise((review) =>
+      setGeneratedReviewOutcome(review, path, result.outcome)
+    );
+    setStatus(result.outcome.exercise.name + " is reviewed as a custom exercise.");
   }
 
   function updateExerciseGuidance(
@@ -594,7 +586,7 @@ export function PlanBuilderForm({
                 const workoutHasReviewBlock = workout.exercises.some(
                   (_, exerciseIndex) =>
                     generatedReviewByExercise[
-                      getGeneratedReviewKey(phaseIndex, workoutIndex, exerciseIndex)
+                      getGeneratedReviewKey({ phaseIndex, workoutIndex, exerciseIndex })
                     ]?.status === "needs_review"
                 );
 
@@ -707,8 +699,11 @@ export function PlanBuilderForm({
                   <div className="mt-5 space-y-3">
                     {workout.exercises.map((exercise, exerciseIndex) => {
                       const generatedReview = generatedReviewByExercise[
-                        getGeneratedReviewKey(phaseIndex, workoutIndex, exerciseIndex)
+                        getGeneratedReviewKey({ phaseIndex, workoutIndex, exerciseIndex })
                       ];
+                      const canKeepAsCustom = generatedReview
+                        ? canReviewGeneratedExerciseAsCustom(generatedReview)
+                        : false;
                       return (
                       <details
                         key={exerciseIndex}
@@ -744,25 +739,60 @@ export function PlanBuilderForm({
                             <div role="alert" className="rounded-[18px] border border-warning/30 bg-warning/10 p-4 md:col-span-4">
                               <p className="text-sm font-semibold text-copy">Exercise identity needs review</p>
                               <p className="mt-1 text-sm leading-6 text-muted">
-                                Choose the exact library exercise. Saving stays blocked until every flagged exercise is resolved or removed.
+                                Review the exercise, then match it, explicitly keep a valid custom exercise, or remove it. Saving stays blocked until every flagged exercise is resolved.
                               </p>
-                              <label className="mt-3 block">
-                                <span className="sr-only">Resolve {exercise.name} with a library exercise</span>
-                                <select
-                                  defaultValue=""
-                                  onChange={(event) => {
-                                    if (event.target.value) resolveGeneratedExerciseWithCatalog(
-                                      phaseIndex, workoutIndex, exerciseIndex, event.target.value
-                                    );
-                                  }}
-                                  className="ui-input"
+                              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-muted">
+                                {generatedReview.issues.map((issue) => (
+                                  <li key={issue.code + ("field" in issue ? issue.field : issue.message)}>
+                                    {issue.message}
+                                  </li>
+                                ))}
+                              </ul>
+                              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                                <label className="block">
+                                  <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+                                    Match to library exercise
+                                  </span>
+                                  <select
+                                    defaultValue=""
+                                    onChange={(event) => {
+                                      if (event.target.value) resolveGeneratedExerciseWithCatalog(
+                                        phaseIndex, workoutIndex, exerciseIndex, event.target.value
+                                      );
+                                    }}
+                                    className="ui-input mt-2"
+                                  >
+                                    <option value="" disabled>Choose exact exercise</option>
+                                    {exerciseCatalog.map((catalogExercise) => (
+                                      <option key={catalogExercise.id} value={catalogExercise.id}>{catalogExercise.name}</option>
+                                    ))}
+                                  </select>
+                                </label>
+                                <button
+                                  type="button"
+                                  onClick={() => resolveGeneratedExerciseAsCustom(
+                                    phaseIndex, workoutIndex, exerciseIndex
+                                  )}
+                                  disabled={!canKeepAsCustom}
+                                  aria-describedby={!canKeepAsCustom ? "custom-review-" + phaseIndex + "-" + workoutIndex + "-" + exerciseIndex : undefined}
+                                  className="ui-button-secondary self-end disabled:opacity-45"
                                 >
-                                  <option value="" disabled>Choose exact exercise</option>
-                                  {exerciseCatalog.map((catalogExercise) => (
-                                    <option key={catalogExercise.id} value={catalogExercise.id}>{catalogExercise.name}</option>
-                                  ))}
-                                </select>
-                              </label>
+                                  Keep as custom exercise
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => deleteExercise(phaseIndex, workoutIndex, exerciseIndex)}
+                                  disabled={workout.exercises.length <= 1}
+                                  className="ui-button-ghost self-end px-4 py-2 disabled:opacity-45"
+                                >
+                                  Remove exercise
+                                </button>
+                              </div>
+                              {!canKeepAsCustom ? (
+                                <p id={"custom-review-" + phaseIndex + "-" + workoutIndex + "-" + exerciseIndex} className="mt-3 text-sm leading-6 text-muted">
+                                  This identity conflict cannot safely be accepted as custom. Match it to the correct library exercise or remove it.
+                                </p>
+                              ) : null}
                             </div>
                           ) : null}
                           <label className="block">

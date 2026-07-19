@@ -5,9 +5,12 @@ import { AiPlanDraftWizard } from "@/components/ai-plan-draft-wizard";
 import { PlanBuilderForm } from "@/components/plan-builder-form";
 import {
   AiGenerationAttemptGuard,
+  getPlanCreationModeTransition,
+  isPlanDraftGenerationDisabled,
   requestAiPlanDraft,
   validateAiGenerationSetup,
-  type AiGenerationErrorPresentation
+  type AiGenerationErrorPresentation,
+  type PlanCreationMode
 } from "@/lib/ai-generation/client";
 import type { NormalizedGeneratedExercise } from "@/lib/generated-plan-draft";
 import {
@@ -27,11 +30,9 @@ import type {
 } from "@/lib/types";
 
 type WizardStep = "goal" | "details" | "generate" | "review";
-type PlanMode = "guided" | "manual" | "ai-import" | "direct-ai";
-
 type PlanSetupWizardProps = {
   profile: Profile | null;
-  initialMode?: PlanMode;
+  initialMode?: PlanCreationMode;
   initialSetup?: PlanSetupInput;
   editingPlan?: {
     id: string;
@@ -143,7 +144,7 @@ export function PlanSetupWizard({
   allowManualMode = true,
   aiGenerationOperational = false
 }: PlanSetupWizardProps) {
-  const [mode, setMode] = useState<PlanMode>(initialMode);
+  const [mode, setMode] = useState<PlanCreationMode>(initialMode);
   const [stepIndex, setStepIndex] = useState(0);
   const [setup, setSetup] = useState<PlanSetupInput>(
     () => initialSetup ?? buildDefaultPlanSetup(profile)
@@ -157,6 +158,20 @@ export function PlanSetupWizard({
   const [generationError, setGenerationError] = useState<
     (AiGenerationErrorPresentation & { code?: string }) | null
   >(null);
+
+  function changeMode(nextMode: PlanCreationMode) {
+    const transition = getPlanCreationModeTransition(nextMode);
+    setMode(transition.mode);
+    setGenerationError(transition.generationError);
+    if (transition.clearGeneratedExerciseReview) {
+      setGeneratedExercises([]);
+    }
+    if (transition.clearGeneratedDraft) {
+      setDraft(null);
+      setStepIndex((current) => Math.min(current, 2));
+    }
+  }
+
   const step = steps[stepIndex];
   const effectiveMode = allowManualMode ? mode : "guided";
   const isEditing = Boolean(editingPlan);
@@ -264,7 +279,7 @@ export function PlanSetupWizard({
           <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <button
               type="button"
-              onClick={() => setMode("guided")}
+              onClick={() => changeMode("guided")}
               className="ui-button-secondary"
             >
               Use Guided Setup
@@ -272,7 +287,7 @@ export function PlanSetupWizard({
             {aiGenerationOperational ? (
               <button
                 type="button"
-                onClick={() => setMode("direct-ai")}
+                onClick={() => changeMode("direct-ai")}
                 className="ui-button-secondary"
               >
                 Create with AI
@@ -280,7 +295,7 @@ export function PlanSetupWizard({
             ) : null}
             <button
               type="button"
-              onClick={() => setMode("ai-import")}
+              onClick={() => changeMode("ai-import")}
               className="ui-button-secondary"
             >
               External AI Import
@@ -306,7 +321,7 @@ export function PlanSetupWizard({
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <button
               type="button"
-              onClick={() => setMode("guided")}
+              onClick={() => changeMode("guided")}
               className="ui-button-secondary"
             >
               Guided Setup
@@ -314,7 +329,7 @@ export function PlanSetupWizard({
             {aiGenerationOperational ? (
               <button
                 type="button"
-                onClick={() => setMode("direct-ai")}
+                onClick={() => changeMode("direct-ai")}
                 className="ui-button-secondary"
               >
                 Create with AI
@@ -323,7 +338,7 @@ export function PlanSetupWizard({
             {allowManualMode ? (
               <button
                 type="button"
-                onClick={() => setMode("manual")}
+                onClick={() => changeMode("manual")}
                 className="ui-button-secondary"
               >
                 Manual Builder
@@ -357,19 +372,19 @@ export function PlanSetupWizard({
         </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           {isDirectAi ? (
-            <button type="button" onClick={() => setMode("guided")} className="ui-button-secondary">
+            <button type="button" onClick={() => changeMode("guided")} className="ui-button-secondary">
               Guided Setup
             </button>
           ) : aiGenerationOperational ? (
-            <button type="button" onClick={() => setMode("direct-ai")} className="ui-button-primary">
+            <button type="button" onClick={() => changeMode("direct-ai")} className="ui-button-primary">
               Create with AI
             </button>
           ) : null}
-          <button type="button" onClick={() => setMode("ai-import")} className="ui-button-secondary">
+          <button type="button" onClick={() => changeMode("ai-import")} className="ui-button-secondary">
             External AI Import
           </button>
           {allowManualMode ? (
-            <button type="button" onClick={() => setMode("manual")} className="ui-button-secondary">
+            <button type="button" onClick={() => changeMode("manual")} className="ui-button-secondary">
               Manual Builder
             </button>
           ) : null}
@@ -708,14 +723,14 @@ export function PlanSetupWizard({
                 {generationError.signInRequired ? (
                   <a href="/" className="ui-button-secondary">Sign in again</a>
                 ) : null}
-                <button type="button" onClick={() => setMode("guided")} className="ui-button-secondary">
+                <button type="button" onClick={() => changeMode("guided")} className="ui-button-secondary">
                   Guided Setup
                 </button>
-                <button type="button" onClick={() => setMode("ai-import")} className="ui-button-secondary">
+                <button type="button" onClick={() => changeMode("ai-import")} className="ui-button-secondary">
                   External AI Import
                 </button>
                 {allowManualMode ? (
-                  <button type="button" onClick={() => setMode("manual")} className="ui-button-secondary">
+                  <button type="button" onClick={() => changeMode("manual")} className="ui-button-secondary">
                     Manual Builder
                   </button>
                 ) : null}
@@ -770,12 +785,16 @@ export function PlanSetupWizard({
           <button
             type="button"
             onClick={generateDraft}
-            disabled={generating || generationError?.retryAllowed === false}
+            disabled={isPlanDraftGenerationDisabled({
+              generating,
+              isDirectAi,
+              generationError
+            })}
             className="ui-button-primary disabled:opacity-60"
           >
             {generating
               ? "Generating..."
-              : generationError?.retryAllowed === false
+              : isDirectAi && generationError?.retryAllowed === false
                 ? "Generation unavailable"
                 : isDirectAi
                   ? "Generate AI Draft"

@@ -314,6 +314,13 @@ function toMatchedExercise(
 
 function validateCustom(
   candidate: ProviderExerciseCandidate,
+  {
+    requireVideo = true,
+    requireVideoSearchQuery = true,
+  }: {
+    requireVideo?: boolean;
+    requireVideoSearchQuery?: boolean;
+  } = {},
 ): ExerciseResolutionIssue[] {
   const issues: ExerciseResolutionIssue[] = [];
   const normalizedVideoUrl =
@@ -336,13 +343,16 @@ function validateCustom(
       message: "Custom exercise guidance is required.",
       field: "coachingNote",
     });
-  if (!normalizeOptionalString(candidate.videoSearchQuery))
+  if (requireVideoSearchQuery && !normalizeOptionalString(candidate.videoSearchQuery))
     issues.push({
       code: "invalid_custom_candidate",
       message: "Custom exercise video search query is required.",
       field: "videoSearchQuery",
     });
-  if (!normalizedVideoUrl)
+  if (
+    (requireVideo && !normalizedVideoUrl) ||
+    (normalizeOptionalString(candidate.videoUrl) && normalizedVideoUrl === null)
+  )
     issues.push({
       code: "invalid_custom_candidate",
       message: "Custom exercise requires a supported YouTube video URL.",
@@ -385,6 +395,141 @@ function validateCustom(
       field: "secondaryValueLabel",
     });
   return issues;
+}
+
+export function reviewGeneratedExerciseWithCatalog(
+  outcome: Extract<NormalizedGeneratedExercise, { status: "needs_review" }>,
+  catalogId: string,
+  exercise: StructuredExerciseInput,
+) {
+  const catalogExercise = getCatalogExercise(catalogId);
+  if (!catalogExercise) return null;
+  const resolvedExercise = toMatchedExercise(catalogExercise, outcome.candidate, {
+    sets: exercise.sets,
+    reps: exercise.reps,
+    rest: exercise.rest,
+    tempo: outcome.prescription.tempo,
+  });
+  resolvedExercise.coachingNote =
+    normalizeOptionalString(exercise.coachingNote) ||
+    resolvedExercise.coachingNote;
+  return {
+    status: "matched" as const,
+    exercise: resolvedExercise,
+    provenance: { kind: "catalog_id" as const, catalogId },
+    planSpecificCoaching: normalizeOptionalString(exercise.coachingNote),
+    tempo: outcome.prescription.tempo,
+    safetyNotes: normalizeOptionalNullableString(outcome.candidate.safetyNotes),
+    videoSearchQuery: normalizeOptionalNullableString(
+      outcome.candidate.videoSearchQuery,
+    ),
+  };
+}
+
+export function canReviewGeneratedExerciseAsCustom(
+  outcome: NormalizedGeneratedExercise,
+) {
+  return (
+    outcome.status === "needs_review" &&
+    !outcome.issues.some((issue) => issue.code === "supplied_id_name_conflict")
+  );
+}
+
+export function reviewGeneratedExerciseAsCustom(
+  outcome: Extract<NormalizedGeneratedExercise, { status: "needs_review" }>,
+  exercise: StructuredExerciseInput,
+) {
+  if (!canReviewGeneratedExerciseAsCustom(outcome))
+    return {
+      ok: false as const,
+      issues: outcome.issues,
+      allowedResolution: "catalog_or_remove" as const,
+    };
+
+  const candidate: ProviderExerciseCandidate = {
+    ...outcome.candidate,
+    proposedCatalogId: null,
+    name: exercise.name,
+    prescription: {
+      sets: exercise.sets,
+      reps: exercise.reps,
+      rest: exercise.rest,
+      tempo: outcome.prescription.tempo,
+    },
+    coachingNote: exercise.coachingNote,
+    guidance: exercise.guidance,
+    videoUrl: exercise.videoUrl,
+    trackingType: exercise.trackingType,
+    unilateralMode: exercise.unilateralMode,
+    loadUnit: exercise.loadUnit,
+    distanceUnit: exercise.distanceUnit,
+    primaryValueLabel: exercise.primaryValueLabel,
+    secondaryValueLabel: exercise.secondaryValueLabel,
+  };
+  const prescription = normalizePrescription(candidate);
+  const issues = validateCustom(candidate, {
+    requireVideo: false,
+    requireVideoSearchQuery: false,
+  });
+  const reviewedIdentity = resolveExerciseIdentityByReviewedName(candidate.name);
+  if (reviewedIdentity.status === "resolved")
+    issues.unshift({
+      code: "invalid_custom_candidate",
+      message: "This name identifies a library exercise. Match it to the library or use a distinct custom name.",
+      field: "name",
+    });
+  if (!prescription)
+    issues.unshift({
+      code: "invalid_custom_candidate",
+      message: "Custom exercise prescription is required.",
+      field: "prescription",
+    });
+  if (issues.length || !prescription)
+    return {
+      ok: false as const,
+      issues,
+      allowedResolution: "fix_match_or_remove" as const,
+    };
+
+  const normalizedVideoUrl =
+    typeof candidate.videoUrl === "string"
+      ? normalizeExerciseVideoUrl(candidate.videoUrl)
+      : "";
+  const customExercise: StructuredExerciseInput = {
+    name: normalizeOptionalString(candidate.name),
+    sets: prescription.sets,
+    reps: prescription.reps,
+    rest: prescription.rest,
+    coachingNote: normalizeOptionalString(candidate.coachingNote),
+    guidance: normalizeExerciseGuidance(candidate.guidance),
+    sourceExerciseId: null,
+    trackingType: candidate.trackingType,
+    unilateralMode: candidate.unilateralMode,
+    loadUnit: candidate.loadUnit ?? null,
+    distanceUnit: candidate.distanceUnit ?? null,
+    primaryValueLabel: normalizeOptionalString(candidate.primaryValueLabel),
+    secondaryValueLabel: normalizeOptionalNullableString(
+      candidate.secondaryValueLabel,
+    ),
+    ...(normalizedVideoUrl ? { videoUrl: normalizedVideoUrl } : {}),
+  };
+
+  return {
+    ok: true as const,
+    outcome: {
+      status: "custom" as const,
+      provenance: {
+        kind: "custom_candidate" as const,
+        normalizedKey: normalizeExerciseLookupKey(customExercise.name),
+      },
+      tempo: prescription.tempo,
+      safetyNotes: normalizeOptionalNullableString(candidate.safetyNotes),
+      videoSearchQuery: normalizeOptionalNullableString(
+        candidate.videoSearchQuery,
+      ),
+      exercise: customExercise,
+    },
+  };
 }
 
 export function resolveGeneratedExercise(
@@ -685,6 +830,36 @@ function validateDraftStructure(draft: GeneratedPlanDraft) {
   return fatalErrors;
 }
 
+function toNeedsReviewExercise(
+  outcome: Extract<NormalizedGeneratedExercise, { status: "needs_review" }>,
+): StructuredExerciseInput {
+  const candidate = outcome.candidate;
+  const normalizedVideoUrl =
+    typeof candidate.videoUrl === "string"
+      ? normalizeExerciseVideoUrl(candidate.videoUrl)
+      : "";
+  return {
+    name: outcome.displayName,
+    sets: outcome.prescription.sets,
+    reps: outcome.prescription.reps,
+    rest: outcome.prescription.rest,
+    coachingNote: normalizeOptionalString(candidate.coachingNote),
+    guidance: normalizeExerciseGuidance(candidate.guidance),
+    sourceExerciseId: null,
+    trackingType: candidate.trackingType,
+    unilateralMode: candidate.unilateralMode,
+    loadUnit: candidate.loadUnit ?? null,
+    distanceUnit: candidate.distanceUnit ?? null,
+    primaryValueLabel: normalizeOptionalNullableString(
+      candidate.primaryValueLabel,
+    ),
+    secondaryValueLabel: normalizeOptionalNullableString(
+      candidate.secondaryValueLabel,
+    ),
+    ...(normalizedVideoUrl ? { videoUrl: normalizedVideoUrl } : {}),
+  };
+}
+
 export function normalizeGeneratedPlanDraft(
   draft: GeneratedPlanDraft,
 ): NormalizedGeneratedPlanDraft | { fatalErrors: FatalGeneratedDraftError[] } {
@@ -701,13 +876,7 @@ export function normalizeGeneratedPlanDraft(
         resolved.push(outcome);
         return outcome.status === "matched" || outcome.status === "custom"
           ? outcome.exercise
-          : {
-              name: outcome.displayName,
-              sets: outcome.prescription.sets,
-              reps: outcome.prescription.reps,
-              rest: outcome.prescription.rest,
-              coachingNote: "Resolve exercise identity before saving.",
-            };
+          : toNeedsReviewExercise(outcome);
       }),
     })),
   }));

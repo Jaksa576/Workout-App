@@ -26,6 +26,29 @@ export type AiGenerationErrorPresentation = {
   signInRequired?: boolean;
 };
 
+export type PlanCreationMode = "guided" | "manual" | "ai-import" | "direct-ai";
+
+export function getPlanCreationModeTransition(mode: PlanCreationMode) {
+  return {
+    mode,
+    generationError: null,
+    clearGeneratedExerciseReview: mode !== "direct-ai",
+    clearGeneratedDraft: mode !== "direct-ai"
+  } as const;
+}
+
+export function isPlanDraftGenerationDisabled({
+  generating,
+  isDirectAi,
+  generationError
+}: {
+  generating: boolean;
+  isDirectAi: boolean;
+  generationError: AiGenerationErrorPresentation | null;
+}) {
+  return generating || (isDirectAi && generationError?.retryAllowed === false);
+}
+
 const errorPresentations: Record<ClientPlanGenerationErrorCode, AiGenerationErrorPresentation> = {
   unauthenticated: {
     title: "Sign in again",
