@@ -13,21 +13,23 @@ Issue #65 connects `POST /api/ai/plan-drafts` to the existing `/plans/new` struc
 - Direct **Create with AI** is recommended only when server-side generation configuration is operational.
 - Guided Setup, Manual Builder, and external AI import remain visible and functional, including when direct generation is unavailable.
 - Direct generation reuses the existing structured setup inputs and validates them before calling the endpoint.
-- Every intentional attempt receives one idempotency key; loading blocks duplicate click and keyboard activation.
+- Every intentional attempt receives one idempotency key; a visible elapsed-time generation state blocks duplicate click and keyboard activation, warns before unload while active, and never presents partial plan content.
 - All typed endpoint errors map to concise provider-neutral copy with useful non-AI and external-import fallbacks.
 - Successful drafts enter the existing review/editor labeled as AI-generated drafts, carrying the selected setup goal and its explicit or deterministic default progression mode.
 - `matched`, `custom`, and `needs_review` exercise outcomes remain visible; unresolved review issues block save until matched, explicitly accepted as a valid reviewed custom exercise, or removed.
 - Explicit save continues through the existing structured persistence path and preserves prescriptions, tracking metadata, and deterministic phase progression.
+- PR #83 increases direct-generation defaults to a 150-second provider timeout and 16,384 output tokens; server configuration fails closed above 240 seconds or 32,768 tokens, and the 300-second route duration requires Vercel Fluid Compute.
 
 ## Immediate Next Action
 
 1. Review and merge the Issue #65 pull request after checks pass.
-2. Complete authenticated mobile and desktop QA with mocked enabled, disabled, typed-error, review-blocking, and generation-to-save flows. The local unauthenticated route/login health check is complete; an authenticated local browser session was unavailable, so the full mocked browser pass remains.
-3. Keep production rollout feature-gated. Enable direct generation only after the Issue #65 pull request is merged and deployment QA passes; disabling it must leave Guided Setup, Manual Builder, and external AI import usable.
+2. Complete authenticated mobile and desktop QA with small and large multi-phase drafts, waits beyond 12 and 45 seconds, unload warning, typed timeout, review blocking, and generation-to-save flows. Record duration and approximate response size. The local unauthenticated route/login health check is complete; an authenticated local browser session was unavailable, so the full mocked browser pass remains.
+3. Confirm Fluid Compute is enabled for Preview and Production before enabling the 300-second generation route.
+4. Keep production rollout feature-gated. Enable direct generation only after the Issue #65 pull request is merged and deployment QA passes; disabling it must leave Guided Setup, Manual Builder, and external AI import usable.
 
 ## Validation Status
 
-On 2026-07-18, `.\scripts\validate.ps1` passed TypeScript, all 311 tests across 47 files, and the Next.js production build. Focused automated coverage uses mocked generation and does not call live Gemini.
+On 2026-07-19, `.\scripts\validate.ps1` passed TypeScript, all 316 tests across 48 files, and the Next.js production build. Focused automated coverage uses mocked generation and does not call live Gemini.
 
 Local browser QA confirmed the protected `/plans/new` route redirects unauthenticated users to a healthy login page with no console errors or framework error overlay. Authenticated mobile/desktop, keyboard, basic screen-reader, enabled/disabled, typed-error, review-blocking, no-persistence, and mocked generation-to-save browser QA remains required before rollout.
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AiPlanDraftWizard } from "@/components/ai-plan-draft-wizard";
 import { PlanBuilderForm } from "@/components/plan-builder-form";
 import {
@@ -13,6 +13,10 @@ import {
   type AiGenerationErrorPresentation,
   type PlanCreationMode
 } from "@/lib/ai-generation/client";
+import {
+  attachGenerationNavigationWarning,
+  getGenerationWaitState
+} from "@/lib/ai-generation/generation-wait-state";
 import type { NormalizedGeneratedExercise } from "@/lib/generated-plan-draft";
 import {
   buildDefaultPlanSetup,
@@ -157,11 +161,31 @@ export function PlanSetupWizard({
   const generationGuardRef = useRef<AiGenerationAttemptGuard | null>(null);
   generationGuardRef.current ??= new AiGenerationAttemptGuard();
   const [generating, setGenerating] = useState(false);
+  const [generationElapsedMs, setGenerationElapsedMs] = useState(0);
   const [generationError, setGenerationError] = useState<
     (AiGenerationErrorPresentation & { code?: string }) | null
   >(null);
 
+  useEffect(() => {
+    if (!generating) {
+      setGenerationElapsedMs(0);
+      return;
+    }
+
+    const startedAt = Date.now();
+    const updateElapsed = () => setGenerationElapsedMs(Date.now() - startedAt);
+    updateElapsed();
+    const interval = window.setInterval(updateElapsed, 1_000);
+    return () => window.clearInterval(interval);
+  }, [generating]);
+
+  useEffect(() => {
+    if (!generating) return;
+    return attachGenerationNavigationWarning(window);
+  }, [generating]);
+
   function changeMode(nextMode: PlanCreationMode) {
+    if (generating) return;
     const transition = getPlanCreationModeTransition(nextMode);
     setMode(transition.mode);
     setGenerationError(transition.generationError);
@@ -181,6 +205,7 @@ export function PlanSetupWizard({
 
   const selectedGoal = goalOptions.find((option) => option.value === setup.goalType);
   const isDirectAi = effectiveMode === "direct-ai" && aiGenerationOperational;
+  const generationWaitState = getGenerationWaitState(generationElapsedMs);
   const defaultProgressionMode = useMemo(
     () => selectDefaultProgressionMode(setup.goalType),
     [setup.goalType]
@@ -284,7 +309,7 @@ export function PlanSetupWizard({
           <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <button
               type="button"
-              onClick={() => changeMode("guided")}
+              onClick={() => changeMode("guided")} disabled={generating}
               className="ui-button-secondary"
             >
               Use Guided Setup
@@ -292,7 +317,7 @@ export function PlanSetupWizard({
             {aiGenerationOperational ? (
               <button
                 type="button"
-                onClick={() => changeMode("direct-ai")}
+                onClick={() => changeMode("direct-ai")} disabled={generating}
                 className="ui-button-secondary"
               >
                 Create with AI
@@ -300,7 +325,7 @@ export function PlanSetupWizard({
             ) : null}
             <button
               type="button"
-              onClick={() => changeMode("ai-import")}
+              onClick={() => changeMode("ai-import")} disabled={generating}
               className="ui-button-secondary"
             >
               External AI Import
@@ -326,7 +351,7 @@ export function PlanSetupWizard({
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <button
               type="button"
-              onClick={() => changeMode("guided")}
+              onClick={() => changeMode("guided")} disabled={generating}
               className="ui-button-secondary"
             >
               Guided Setup
@@ -334,7 +359,7 @@ export function PlanSetupWizard({
             {aiGenerationOperational ? (
               <button
                 type="button"
-                onClick={() => changeMode("direct-ai")}
+                onClick={() => changeMode("direct-ai")} disabled={generating}
                 className="ui-button-secondary"
               >
                 Create with AI
@@ -343,7 +368,7 @@ export function PlanSetupWizard({
             {allowManualMode ? (
               <button
                 type="button"
-                onClick={() => changeMode("manual")}
+                onClick={() => changeMode("manual")} disabled={generating}
                 className="ui-button-secondary"
               >
                 Manual Builder
@@ -377,19 +402,19 @@ export function PlanSetupWizard({
         </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           {isDirectAi ? (
-            <button type="button" onClick={() => changeMode("guided")} className="ui-button-secondary">
+            <button type="button" onClick={() => changeMode("guided")} disabled={generating} className="ui-button-secondary">
               Guided Setup
             </button>
           ) : aiGenerationOperational ? (
-            <button type="button" onClick={() => changeMode("direct-ai")} className="ui-button-primary">
+            <button type="button" onClick={() => changeMode("direct-ai")} disabled={generating} className="ui-button-primary">
               Create with AI
             </button>
           ) : null}
-          <button type="button" onClick={() => changeMode("ai-import")} className="ui-button-secondary">
+          <button type="button" onClick={() => changeMode("ai-import")} disabled={generating} className="ui-button-secondary">
             External AI Import
           </button>
           {allowManualMode ? (
-            <button type="button" onClick={() => changeMode("manual")} className="ui-button-secondary">
+            <button type="button" onClick={() => changeMode("manual")} disabled={generating} className="ui-button-secondary">
               Manual Builder
             </button>
           ) : null}
@@ -453,7 +478,8 @@ export function PlanSetupWizard({
         </div>
       ) : null}
 
-      <div className="surface-panel-muted space-y-3 p-3">
+      <fieldset disabled={generating} className="contents">
+    <div className="surface-panel-muted space-y-3 p-3">
         <div className="flex items-center justify-between gap-3">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
             Step {stepIndex + 1} of {steps.length}
@@ -466,7 +492,7 @@ export function PlanSetupWizard({
             key={item.id}
             type="button"
             onClick={() => setStepIndex(index)}
-            disabled={index === 3 && !draft}
+            disabled={generating || (index === 3 && !draft)}
             className={`ui-step-chip ${
               step.id === item.id
                 ? "ui-step-chip-active"
@@ -720,7 +746,21 @@ export function PlanSetupWizard({
               </div>
             ) : null}
 
-          {generationError ? (
+          {generating ? (
+            <div role="status" aria-live="polite" aria-atomic="true" className="rounded-[24px] border border-accent/25 bg-accent/10 p-4 text-sm leading-6 text-muted sm:rounded-[28px]">
+              <div className="flex items-start gap-3">
+                <span aria-hidden="true" className="mt-1 inline-flex h-5 w-5 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+                <div>
+                  <p className="font-semibold text-copy">Creating your draft</p>
+                  <p className="mt-1 text-muted">{generationWaitState.activityMessage}</p>
+                  <p className="mt-2 text-muted">Elapsed: {generationWaitState.elapsedLabel}. Nothing has been saved yet.</p>
+                  {generationWaitState.showLongRunningGuidance ? (
+                    <p className="mt-2 text-muted">Detailed plans can take one or two minutes. Keep this page open while we prepare your draft.</p>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          ) : generationError ? (
             <div role="alert" className="rounded-[24px] border border-accent/25 bg-accent/10 p-4 text-sm leading-6 text-muted sm:rounded-[28px]">
               <p className="font-semibold text-copy">{generationError.title}</p>
               <p className="mt-2">{generationError.message}</p>
@@ -728,14 +768,14 @@ export function PlanSetupWizard({
                 {generationError.signInRequired ? (
                   <a href="/" className="ui-button-secondary">Sign in again</a>
                 ) : null}
-                <button type="button" onClick={() => changeMode("guided")} className="ui-button-secondary">
+                <button type="button" onClick={() => changeMode("guided")} disabled={generating} className="ui-button-secondary">
                   Guided Setup
                 </button>
-                <button type="button" onClick={() => changeMode("ai-import")} className="ui-button-secondary">
+                <button type="button" onClick={() => changeMode("ai-import")} disabled={generating} className="ui-button-secondary">
                   External AI Import
                 </button>
                 {allowManualMode ? (
-                  <button type="button" onClick={() => changeMode("manual")} className="ui-button-secondary">
+                  <button type="button" onClick={() => changeMode("manual")} disabled={generating} className="ui-button-secondary">
                     Manual Builder
                   </button>
                 ) : null}
@@ -780,7 +820,7 @@ export function PlanSetupWizard({
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:flex-wrap">
           <button
             type="button"
-            disabled={stepIndex === 0}
+            disabled={generating || stepIndex === 0}
             onClick={() => setStepIndex((index) => Math.max(0, index - 1))}
             className="ui-button-secondary disabled:opacity-40"
           >
@@ -809,19 +849,17 @@ export function PlanSetupWizard({
           <button
             type="button"
             onClick={() => setStepIndex((index) => Math.min(steps.length - 1, index + 1))}
-            className="ui-button-primary"
+            disabled={generating}
+            className="ui-button-primary disabled:opacity-60"
           >
             Continue
           </button>
         )}
-        {generating ? (
-          <p role="status" aria-live="polite" className="sr-only">
-            Generating your draft. Nothing has been saved.
-          </p>
-        ) : null}
+
         </div>
         </div>
       ) : null}
+    </fieldset>
     </div>
   );
 }

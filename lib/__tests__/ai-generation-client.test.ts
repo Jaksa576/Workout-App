@@ -140,6 +140,10 @@ describe("AI generation client", () => {
       expect(mapped.title).not.toBe("");
       expect(mapped.message).not.toMatch(/gemini|provider body|api key/i);
     }
+    expect(mapAiPlanGenerationError("request_timed_out")).toMatchObject({
+      title: "Generation took longer than expected",
+      message: "No plan was saved. Try again, simplify the plan request, or use another creation method."
+    });
     expect(mapAiPlanGenerationError("secret-provider-failure").code).toBe("unknown");
   });
 });

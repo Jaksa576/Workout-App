@@ -89,9 +89,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 NEXT_PUBLIC_SITE_URL=https://workout-app-seven-delta.vercel.app
 ```
 
-Optional authenticated Gemini plan generation (not wired to the production plan
-creation UI) additionally uses the following Vercel and local `.env.local`
-variables. Do not expose any of them as `NEXT_PUBLIC_*` values:
+Authenticated Gemini plan generation uses the existing plan-creation review-before-save flow when enabled. It additionally uses the following Vercel and local environment variables. Do not expose any of them as NEXT_PUBLIC_* values:
 
 ```
 SUPABASE_SERVICE_ROLE_KEY=
@@ -100,9 +98,9 @@ AI_GENERATION_PROVIDER=gemini
 AI_GENERATION_DAILY_SUCCESS_LIMIT=1
 AI_GENERATION_DAILY_ATTEMPT_LIMIT=3
 GEMINI_MODEL=gemini-3.5-flash
-GEMINI_TIMEOUT_MS=12000
+GEMINI_TIMEOUT_MS=150000
 GEMINI_MAX_INPUT_CHARS=4000
-GEMINI_MAX_OUTPUT_TOKENS=4096
+GEMINI_MAX_OUTPUT_TOKENS=16384
 GEMINI_API_KEY=
 ```
 
@@ -128,7 +126,7 @@ provider error body, diagnostic content, or generated plan is persisted.
 
 For local development, place them in `.env.local`.
 
-For Vercel, add them in the Vercel project's Environment Variables settings.
+For Vercel, add them in the Vercel project's Environment Variables settings. The deployed project must have Fluid Compute enabled for the 300-second AI plan-draft route. GEMINI_TIMEOUT_MS accepts 1 through 240000 milliseconds and GEMINI_MAX_OUTPUT_TOKENS accepts 1 through 32768; keep the provider timeout below the route duration.
 
 In Supabase Auth URL Configuration, set the Site URL and add this redirect URL for email confirmations:
 

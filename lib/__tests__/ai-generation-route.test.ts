@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { getAiGenerationConfiguration } from "@/lib/ai-generation/config";
+import { maxDuration } from "@/app/api/ai/plan-drafts/route";
 
 const mocks = vi.hoisted(() => ({
   user: { id: "user-1", email: null } as { id: string; email: null } | null,
@@ -31,6 +33,20 @@ async function post(body: unknown, headers?: HeadersInit) {
 }
 
 describe("authenticated AI plan draft route", () => {
+  it("keeps the provider timeout below the configured route duration", () => {
+    expect(maxDuration).toBe(300);
+    const configuration = getAiGenerationConfiguration({
+      AI_GENERATION_ENABLED: "true",
+      AI_GENERATION_PROVIDER: "gemini",
+      GEMINI_API_KEY: "test-key",
+      GEMINI_TIMEOUT_MS: "240000"
+    });
+    expect(configuration).toMatchObject({ status: "ready", timeoutMs: 240_000 });
+    if (configuration.status === "ready") {
+      expect(configuration.timeoutMs).toBeLessThan(maxDuration * 1_000);
+    }
+  });
+
   beforeEach(() => {
     mocks.user = { id: "user-1", email: null };
     mocks.orchestrate.mockReset();

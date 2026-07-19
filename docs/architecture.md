@@ -328,14 +328,13 @@ Gemini supplies `proposedCatalogId` only when confident, may return a null
 to fabricate a direct URL. Unmatched candidates enter review, and existing URL
 validation remains authoritative before save.
 
-The selected request target is `gemini-3.5-flash`, with a conservative 12-second
-timeout, 4,000-character input cap, and 4,096-output-token cap by default. Gemini
+The selected request target is `gemini-3.5-flash`, with a 150-second timeout, 4,000-character input cap, and 16,384-output-token cap by default. Server configuration fails closed above 240 seconds or 32,768 output tokens. Gemini
 2.5 Flash is retained only as historical context for the July 2026 model migration. The
 adapter is deliberately replaceable and uses no Gemini types in core draft,
 review, UI, or persistence contracts. Enable it only after reviewing the current
 Google Gemini API data-use, retention, pricing, and rate-limit documentation for
 the selected account/tier; free/no-billing availability must not override the
-application's input-privacy posture.
+application's input-privacy posture. The authenticated plan-draft route runs for 300 seconds, so every accepted provider timeout remains below the route ceiling and retains at least 60 seconds at the configured maximum for abort handling, typed failure mapping, quota completion, and response delivery. The deployed Vercel project must have Fluid Compute enabled to support this duration.
 
 ### Authenticated AI generation quota and orchestration (Issue #64)
 

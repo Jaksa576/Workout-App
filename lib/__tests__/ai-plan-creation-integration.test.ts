@@ -30,6 +30,12 @@ describe("Issue #65 plan creation integration", () => {
     expect(wizard).toContain("isPlanDraftGenerationDisabled");
     expect(wizard).toContain('fetch("/api/plan-drafts"');
     expect(wizard).toContain('role="status" aria-live="polite"');
+    expect(wizard).toContain("getGenerationWaitState");
+    expect(wizard).toContain("window.setInterval(updateElapsed, 1_000)");
+    expect(wizard).toContain('<fieldset disabled={generating} className="contents">');
+    expect(wizard).toContain("attachGenerationNavigationWarning(window)");
+    expect(wizard).toContain("Nothing has been saved yet.");
+    expect(wizard).toContain("Detailed plans can take one or two minutes.");
     expect(wizard).toContain("Guided Setup");
     expect(wizard).toContain("Manual Builder");
     expect(wizard).toContain("External AI Import");

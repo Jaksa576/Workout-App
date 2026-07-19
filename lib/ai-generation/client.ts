@@ -105,8 +105,8 @@ const errorPresentations: Record<ClientPlanGenerationErrorCode, AiGenerationErro
     retryAllowed: false
   },
   request_timed_out: {
-    title: "Generation timed out",
-    message: "No plan was saved. You can try a new attempt or use another creation method.",
+    title: "Generation took longer than expected",
+    message: "No plan was saved. Try again, simplify the plan request, or use another creation method.",
     retryAllowed: true
   },
   rate_limited: {
