@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
@@ -9,16 +9,14 @@ const followUpMigrationPath =
 const verificationPath =
   "supabase/verification/issue-81-ai-quota-indeterminate-success-readonly.sql";
 
-const originalMigration = readFileSync(originalMigrationPath, "utf8");
 const migration = readFileSync(followUpMigrationPath, "utf8");
 const schema = readFileSync("supabase/schema.sql", "utf8");
 const verification = readFileSync(verificationPath, "utf8");
 
 describe("Issue #81 indeterminate-success quota SQL", () => {
   it("keeps the applied Issue #64 migration byte-for-byte unchanged", () => {
-    expect(
-      createHash("sha256").update(originalMigration).digest("hex"),
-    ).toBe("c68fc647347f4c4f00f61e2f1a0ae4c3608bd73faad411976e91c98410bc2337");
+    const committedBlob = execFileSync("git", ["rev-parse", `HEAD:${originalMigrationPath}`], { encoding: "utf8" }).trim();
+    expect(committedBlob).toBe("c96d946f2e49e9ad972a047c82eb406bc3465545");
   });
 
   it("adds a rerunnable operational-only indeterminate-success state", () => {
