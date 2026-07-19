@@ -1,4 +1,6 @@
 export const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash";
+export const DEFAULT_DAILY_SUCCESS_LIMIT = 1;
+export const DEFAULT_DAILY_ATTEMPT_LIMIT = 3;
 
 export type AiGenerationConfiguration =
   | { status: "disabled" }
@@ -12,6 +14,8 @@ export type AiGenerationConfiguration =
       timeoutMs: number;
       maxInputChars: number;
       maxOutputTokens: number;
+      dailySuccessLimit: number;
+      dailyAttemptLimit: number;
     };
 
 export type EnvironmentValues = Readonly<Record<string, string | undefined>>;
@@ -37,10 +41,39 @@ export function getAiGenerationConfiguration(
   const timeoutMs = boundedPositiveInteger(env.GEMINI_TIMEOUT_MS, 12_000, 60_000);
   const maxInputChars = boundedPositiveInteger(env.GEMINI_MAX_INPUT_CHARS, 4_000, 12_000);
   const maxOutputTokens = boundedPositiveInteger(env.GEMINI_MAX_OUTPUT_TOKENS, 4_096, 8_192);
-  if (!model || !timeoutMs || !maxInputChars || !maxOutputTokens)
+  const dailySuccessLimit = boundedPositiveInteger(
+    env.AI_GENERATION_DAILY_SUCCESS_LIMIT,
+    DEFAULT_DAILY_SUCCESS_LIMIT,
+    10,
+  );
+  const dailyAttemptLimit = boundedPositiveInteger(
+    env.AI_GENERATION_DAILY_ATTEMPT_LIMIT,
+    DEFAULT_DAILY_ATTEMPT_LIMIT,
+    100,
+  );
+  if (
+    !model ||
+    !timeoutMs ||
+    !maxInputChars ||
+    !maxOutputTokens ||
+    !dailySuccessLimit ||
+    !dailyAttemptLimit ||
+    dailySuccessLimit > dailyAttemptLimit
+  ) {
     return { status: "invalid" };
+  }
 
   const apiKey = env.GEMINI_API_KEY?.trim();
   if (!apiKey) return { status: "missing_key" };
-  return { status: "ready", provider: "gemini", model, apiKey, timeoutMs, maxInputChars, maxOutputTokens };
+  return {
+    status: "ready",
+    provider: "gemini",
+    model,
+    apiKey,
+    timeoutMs,
+    maxInputChars,
+    maxOutputTokens,
+    dailySuccessLimit,
+    dailyAttemptLimit,
+  };
 }
