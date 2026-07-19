@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import { AiPlanDraftWizard } from "@/components/ai-plan-draft-wizard";
 import { PlanBuilderForm } from "@/components/plan-builder-form";
 import {
+  applySetupMetadataToAiDraft,
   AiGenerationAttemptGuard,
   getPlanCreationModeTransition,
   isPlanDraftGenerationDisabled,
@@ -227,7 +228,7 @@ export function PlanSetupWizard({
           guard: generationGuardRef.current!
         });
         if (!result) return;
-        setDraft(result.draft.plan);
+        setDraft(applySetupMetadataToAiDraft(result.draft.plan, setup));
         setGeneratedExercises(result.draft.exercises);
       } else {
         const response = await fetch("/api/plan-drafts", {

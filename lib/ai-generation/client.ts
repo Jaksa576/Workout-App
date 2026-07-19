@@ -1,5 +1,6 @@
 import type { NormalizedGeneratedPlanDraft } from "@/lib/generated-plan-draft";
-import type { PlanSetupInput } from "@/lib/types";
+import { selectDefaultProgressionMode } from "@/lib/progression-mode";
+import type { PlanSetupInput, StructuredPlanInput } from "@/lib/types";
 import { isPlanSetupInput } from "@/lib/validation";
 
 export type ClientPlanGenerationErrorCode =
@@ -47,6 +48,18 @@ export function isPlanDraftGenerationDisabled({
   generationError: AiGenerationErrorPresentation | null;
 }) {
   return generating || (isDirectAi && generationError?.retryAllowed === false);
+}
+
+export function applySetupMetadataToAiDraft(
+  plan: StructuredPlanInput,
+  setup: PlanSetupInput
+): StructuredPlanInput {
+  return {
+    ...plan,
+    goalType: setup.goalType,
+    progressionMode:
+      setup.progressionModeOverride ?? selectDefaultProgressionMode(setup.goalType)
+  };
 }
 
 const errorPresentations: Record<ClientPlanGenerationErrorCode, AiGenerationErrorPresentation> = {

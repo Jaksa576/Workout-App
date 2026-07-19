@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  applySetupMetadataToAiDraft,
   AiGenerationAttemptGuard,
   getPlanCreationModeTransition,
   isPlanDraftGenerationDisabled,
@@ -35,6 +36,21 @@ const normalizedDraft = {
 };
 
 describe("AI generation client", () => {
+  it("preserves setup goal and deterministic progression metadata in the editor draft", () => {
+    expect(applySetupMetadataToAiDraft(normalizedDraft.plan, setup)).toMatchObject({
+      goalType: "strength",
+      progressionMode: "performance_based"
+    });
+    expect(applySetupMetadataToAiDraft(normalizedDraft.plan, {
+      ...setup,
+      goalType: "recovery",
+      progressionModeOverride: "hybrid"
+    })).toMatchObject({
+      goalType: "recovery",
+      progressionMode: "hybrid"
+    });
+  });
+
   it("clears a terminal AI error and enables guided generation without changing setup", () => {
     const generationError = mapAiPlanGenerationError("success_quota_reached");
     expect(isPlanDraftGenerationDisabled({

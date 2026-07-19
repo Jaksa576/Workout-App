@@ -15,7 +15,7 @@ Issue #65 connects `POST /api/ai/plan-drafts` to the existing `/plans/new` struc
 - Direct generation reuses the existing structured setup inputs and validates them before calling the endpoint.
 - Every intentional attempt receives one idempotency key; loading blocks duplicate click and keyboard activation.
 - All typed endpoint errors map to concise provider-neutral copy with useful non-AI and external-import fallbacks.
-- Successful drafts enter the existing review/editor labeled as AI-generated drafts.
+- Successful drafts enter the existing review/editor labeled as AI-generated drafts, carrying the selected setup goal and its explicit or deterministic default progression mode.
 - `matched`, `custom`, and `needs_review` exercise outcomes remain visible; unresolved review issues block save until matched, explicitly accepted as a valid reviewed custom exercise, or removed.
 - Explicit save continues through the existing structured persistence path and preserves prescriptions, tracking metadata, and deterministic phase progression.
 
@@ -27,7 +27,7 @@ Issue #65 connects `POST /api/ai/plan-drafts` to the existing `/plans/new` struc
 
 ## Validation Status
 
-On 2026-07-18, `.\scripts\validate.ps1` passed TypeScript, all 310 tests across 47 files, and the Next.js production build. Focused automated coverage uses mocked generation and does not call live Gemini.
+On 2026-07-18, `.\scripts\validate.ps1` passed TypeScript, all 311 tests across 47 files, and the Next.js production build. Focused automated coverage uses mocked generation and does not call live Gemini.
 
 Local browser QA confirmed the protected `/plans/new` route redirects unauthenticated users to a healthy login page with no console errors or framework error overlay. Authenticated mobile/desktop, keyboard, basic screen-reader, enabled/disabled, typed-error, review-blocking, no-persistence, and mocked generation-to-save browser QA remains required before rollout.
 

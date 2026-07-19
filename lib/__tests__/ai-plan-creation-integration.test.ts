@@ -16,7 +16,7 @@ describe("Issue #65 plan creation integration", () => {
   it("routes successful canonical drafts and exercise states into the existing editor", async () => {
     const wizard = await source("components/plan-setup-wizard.tsx");
     expect(wizard).toContain("requestAiPlanDraft");
-    expect(wizard).toContain("setDraft(result.draft.plan)");
+    expect(wizard).toContain("setDraft(applySetupMetadataToAiDraft(result.draft.plan, setup))");
     expect(wizard).toContain("setGeneratedExercises(result.draft.exercises)");
     expect(wizard).toContain("generatedExerciseReview={isDirectAi ? generatedExercises : undefined}");
     expect(wizard).toContain("AI-generated draft");
