@@ -8,6 +8,7 @@ import { exerciseCatalog, exerciseCategories, toPlanExercise } from "@/lib/exerc
 import { getExerciseSearchKeys, normalizeExerciseLookupKey, resolveExerciseIdentityByReviewedName } from "@/lib/exercise-identity";
 import { hasExerciseGuidance } from "@/lib/exercise-guidance";
 import { formatPhaseLabel } from "@/lib/plan-labels";
+import type { NormalizedGeneratedExercise } from "@/lib/generated-plan-draft";
 import type {
   AdvancementPreset,
   DeloadPreset,
@@ -100,6 +101,50 @@ function toggleListValue<T extends string>(values: T[], value: T) {
 function getWorkoutKey(phaseIndex: number, workoutIndex: number) {
   return `${phaseIndex}-${workoutIndex}`;
 }
+type GeneratedExerciseReviewByPath = Record<string, NormalizedGeneratedExercise>;
+
+function getGeneratedReviewKey(phaseIndex: number, workoutIndex: number, exerciseIndex: number) {
+  return `${phaseIndex}-${workoutIndex}-${exerciseIndex}`;
+}
+
+export function buildGeneratedExerciseReviewByPath(
+  plan: StructuredPlanInput | undefined,
+  outcomes: NormalizedGeneratedExercise[] | undefined
+) {
+  const result: GeneratedExerciseReviewByPath = {};
+  let outcomeIndex = 0;
+  plan?.phases.forEach((phase, phaseIndex) => {
+    phase.workouts.forEach((workout, workoutIndex) => {
+      workout.exercises.forEach((_, exerciseIndex) => {
+        const outcome = outcomes?.[outcomeIndex++];
+        if (outcome) result[getGeneratedReviewKey(phaseIndex, workoutIndex, exerciseIndex)] = outcome;
+      });
+    });
+  });
+  return result;
+}
+
+export function remapGeneratedReviewAfterDelete(
+  current: GeneratedExerciseReviewByPath,
+  target: { phaseIndex: number; workoutIndex?: number; exerciseIndex?: number }
+) {
+  const next: GeneratedExerciseReviewByPath = {};
+  for (const [key, outcome] of Object.entries(current)) {
+    let [phaseIndex, workoutIndex, exerciseIndex] = key.split("-").map(Number);
+    if (target.workoutIndex === undefined) {
+      if (phaseIndex === target.phaseIndex) continue;
+      if (phaseIndex > target.phaseIndex) phaseIndex -= 1;
+    } else if (target.exerciseIndex === undefined) {
+      if (phaseIndex === target.phaseIndex && workoutIndex === target.workoutIndex) continue;
+      if (phaseIndex === target.phaseIndex && workoutIndex > target.workoutIndex) workoutIndex -= 1;
+    } else if (phaseIndex === target.phaseIndex && workoutIndex === target.workoutIndex) {
+      if (exerciseIndex === target.exerciseIndex) continue;
+      if (exerciseIndex > target.exerciseIndex) exerciseIndex -= 1;
+    }
+    next[getGeneratedReviewKey(phaseIndex, workoutIndex, exerciseIndex)] = outcome;
+  }
+  return next;
+}
 
 function Field({
   label,
@@ -123,6 +168,7 @@ type PlanBuilderFormProps = {
   planId?: string;
   flow?: "create" | "edit-details" | "edit-setup";
   editingPlanName?: string;
+  generatedExerciseReview?: NormalizedGeneratedExercise[];
 };
 
 export function PlanBuilderForm({
@@ -131,7 +177,8 @@ export function PlanBuilderForm({
   setupContext = null,
   planId,
   flow = "create",
-  editingPlanName
+  editingPlanName,
+  generatedExerciseReview
 }: PlanBuilderFormProps) {
   const router = useRouter();
   const [stepIndex, setStepIndex] = useState(0);
@@ -155,9 +202,15 @@ export function PlanBuilderForm({
   );
   const [librarySearchByWorkout, setLibrarySearchByWorkout] = useState<Record<string, string>>({});
   const [libraryCategoryByWorkout, setLibraryCategoryByWorkout] = useState<Record<string, string>>({});
+  const [generatedReviewByExercise, setGeneratedReviewByExercise] = useState(
+    () => buildGeneratedExerciseReviewByPath(initialPlan, generatedExerciseReview)
+  );
   const [status, setStatus] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const currentStep = steps[stepIndex];
+  const reviewBlockingCount = Object.values(generatedReviewByExercise).filter(
+    (outcome) => outcome.status === "needs_review"
+  ).length;
   const planLabel = editingPlanName ?? name;
 
   const reviewNotice =
@@ -236,8 +289,10 @@ export function PlanBuilderForm({
   }
 
   function deletePhase(phaseIndex: number) {
-    setPhases((current) =>
-      current.length <= 1 ? current : current.filter((_, index) => index !== phaseIndex)
+    if (phases.length <= 1) return;
+    setPhases((current) => current.filter((_, index) => index !== phaseIndex));
+    setGeneratedReviewByExercise((current) =>
+      remapGeneratedReviewAfterDelete(current, { phaseIndex })
     );
   }
 
@@ -252,6 +307,9 @@ export function PlanBuilderForm({
       ...phase,
       workouts: phase.workouts.filter((_, index) => index !== workoutIndex)
     });
+    setGeneratedReviewByExercise((current) =>
+      remapGeneratedReviewAfterDelete(current, { phaseIndex, workoutIndex })
+    );
   }
 
   function deleteExercise(phaseIndex: number, workoutIndex: number, exerciseIndex: number) {
@@ -264,6 +322,37 @@ export function PlanBuilderForm({
     updateWorkout(phaseIndex, workoutIndex, {
       ...workout,
       exercises: workout.exercises.filter((_, index) => index !== exerciseIndex)
+    });
+    setGeneratedReviewByExercise((current) => remapGeneratedReviewAfterDelete(current, {
+      phaseIndex,
+      workoutIndex,
+      exerciseIndex
+    }));
+  }
+
+  function resolveGeneratedExerciseWithCatalog(
+    phaseIndex: number,
+    workoutIndex: number,
+    exerciseIndex: number,
+    catalogId: string
+  ) {
+    const catalogExercise = exerciseCatalog.find((exercise) => exercise.id === catalogId);
+    if (!catalogExercise) return;
+    const current = phases[phaseIndex].workouts[workoutIndex].exercises[exerciseIndex];
+    const catalogPlanExercise = toPlanExercise(catalogExercise);
+    updateExercise(phaseIndex, workoutIndex, exerciseIndex, {
+      ...catalogPlanExercise,
+      sets: current.sets,
+      reps: current.reps,
+      rest: current.rest,
+      coachingNote: current.coachingNote === "Resolve exercise identity before saving."
+        ? catalogPlanExercise.coachingNote
+        : current.coachingNote
+    });
+    setGeneratedReviewByExercise((review) => {
+      const next = { ...review };
+      delete next[getGeneratedReviewKey(phaseIndex, workoutIndex, exerciseIndex)];
+      return next;
     });
   }
 
@@ -311,6 +400,12 @@ export function PlanBuilderForm({
   }
 
   async function handleSubmit() {
+    if (reviewBlockingCount > 0) {
+      setStepIndex(steps.findIndex((step) => step.id === "review"));
+      setStatus("Resolve every flagged AI-generated exercise before saving.");
+      return;
+    }
+
     setSaving(true);
     setStatus(null);
 
@@ -496,6 +591,12 @@ export function PlanBuilderForm({
               {phase.workouts.map((workout, workoutIndex) => {
                 const workoutKey = getWorkoutKey(phaseIndex, workoutIndex);
                 const filteredExercises = getFilteredExercises(workoutKey);
+                const workoutHasReviewBlock = workout.exercises.some(
+                  (_, exerciseIndex) =>
+                    generatedReviewByExercise[
+                      getGeneratedReviewKey(phaseIndex, workoutIndex, exerciseIndex)
+                    ]?.status === "needs_review"
+                );
 
                 return (
                   <details key={workoutKey} className="surface-panel">
@@ -604,7 +705,11 @@ export function PlanBuilderForm({
                   </Field>
 
                   <div className="mt-5 space-y-3">
-                    {workout.exercises.map((exercise, exerciseIndex) => (
+                    {workout.exercises.map((exercise, exerciseIndex) => {
+                      const generatedReview = generatedReviewByExercise[
+                        getGeneratedReviewKey(phaseIndex, workoutIndex, exerciseIndex)
+                      ];
+                      return (
                       <details
                         key={exerciseIndex}
                         className="rounded-[20px] border border-border/70 bg-surface px-4 py-4"
@@ -620,14 +725,46 @@ export function PlanBuilderForm({
                                 {exercise.rest ? ` / Rest ${exercise.rest}` : ""}
                               </p>
                             </div>
-                            {exercise.videoUrl ? (
-                              <span className="rounded-full bg-surface-soft px-3 py-1.5 text-xs font-bold text-muted">
-                                Video
-                              </span>
-                            ) : null}
+                            <div className="flex flex-wrap gap-2">
+                              {generatedReview ? (
+                                <span className="rounded-full bg-surface-soft px-3 py-1.5 text-xs font-bold capitalize text-muted">
+                                  {generatedReview.status === "needs_review" ? "Needs review" : generatedReview.status}
+                                </span>
+                              ) : null}
+                              {exercise.videoUrl ? (
+                                <span className="rounded-full bg-surface-soft px-3 py-1.5 text-xs font-bold text-muted">
+                                  Video
+                                </span>
+                              ) : null}
+                            </div>
                           </div>
                         </summary>
                         <div className="mt-4 grid gap-3 md:grid-cols-4">
+                          {generatedReview?.status === "needs_review" ? (
+                            <div role="alert" className="rounded-[18px] border border-warning/30 bg-warning/10 p-4 md:col-span-4">
+                              <p className="text-sm font-semibold text-copy">Exercise identity needs review</p>
+                              <p className="mt-1 text-sm leading-6 text-muted">
+                                Choose the exact library exercise. Saving stays blocked until every flagged exercise is resolved or removed.
+                              </p>
+                              <label className="mt-3 block">
+                                <span className="sr-only">Resolve {exercise.name} with a library exercise</span>
+                                <select
+                                  defaultValue=""
+                                  onChange={(event) => {
+                                    if (event.target.value) resolveGeneratedExerciseWithCatalog(
+                                      phaseIndex, workoutIndex, exerciseIndex, event.target.value
+                                    );
+                                  }}
+                                  className="ui-input"
+                                >
+                                  <option value="" disabled>Choose exact exercise</option>
+                                  {exerciseCatalog.map((catalogExercise) => (
+                                    <option key={catalogExercise.id} value={catalogExercise.id}>{catalogExercise.name}</option>
+                                  ))}
+                                </select>
+                              </label>
+                            </div>
+                          ) : null}
                           <label className="block">
                           <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
                             Exercise
@@ -896,7 +1033,8 @@ export function PlanBuilderForm({
                         </button>
                         </div>
                       </details>
-                    ))}
+                      );
+                    })}
                     {workout.exercises.length <= 1 ? (
                       <p className="text-sm leading-6 text-muted">
                         A workout needs at least one exercise.
@@ -974,7 +1112,13 @@ export function PlanBuilderForm({
                                 workouts: [...phase.workouts, structuredClone(workout)]
                               })
                             }
-                            className="ui-button-secondary"
+                            disabled={workoutHasReviewBlock}
+                            title={
+                              workoutHasReviewBlock
+                                ? "Resolve flagged AI-generated exercises before duplicating this workout."
+                                : undefined
+                            }
+                            className="ui-button-secondary disabled:opacity-45"
                           >
                             Duplicate workout
                           </button>
@@ -1092,6 +1236,13 @@ export function PlanBuilderForm({
               {reviewNotice}
             </div>
           ) : null}
+          {reviewBlockingCount > 0 ? (
+            <div id="generated-review-blocking" role="alert" className="rounded-[24px] border border-warning/30 bg-warning/10 p-4 text-sm leading-6 text-muted sm:rounded-[28px]">
+              <span className="font-semibold text-copy">Save blocked.</span>{" "}
+              Resolve {reviewBlockingCount} AI-generated exercise {reviewBlockingCount === 1 ? "issue" : "issues"}
+              in the Workouts step, or remove the flagged exercises.
+            </div>
+          ) : null}
           <div className="surface-panel">
             <p className="ui-eyebrow">Plan</p>
             <h3 className="mt-2 text-xl font-semibold text-copy">{name}</h3>
@@ -1108,7 +1259,7 @@ export function PlanBuilderForm({
               </p>
             </div>
           ))}
-          {status ? <p className="text-sm leading-6 text-muted">{status}</p> : null}
+          {status ? <p role="status" className="text-sm leading-6 text-muted">{status}</p> : null}
         </div>
       ) : null}
 
@@ -1126,7 +1277,8 @@ export function PlanBuilderForm({
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={saving}
+              disabled={saving || reviewBlockingCount > 0}
+              aria-describedby={reviewBlockingCount > 0 ? "generated-review-blocking" : undefined}
               className="ui-button-primary disabled:opacity-60"
             >
               {saving ? "Saving..." : submitLabel}

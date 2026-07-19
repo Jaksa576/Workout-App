@@ -1,40 +1,52 @@
 # Current Task
+
 ## Current Priority
 
-GitHub Issue #81 - **Fix AI quota completion and Gemini 3.5 draft compatibility** - is the active implementation target.
+GitHub Issue #65 - **Integrate direct AI generation into plan creation** - is the active implementation target.
 
-This is a post-merge follow-up to merged PR #80 and closed Issue #64. The authenticated route, UTC quota table, service-role-only RPCs, RLS, idempotency, and tests are complete on `main`. The original Issue #64 migration has been applied to hosted Supabase and is immutable.
+Issue #81 and merged PR #82 are complete on `main`. The hosted additive quota migration, read-only verification, Gemini 3.5 Flash configuration, and controlled authenticated smoke test are complete, so the Issue #65 readiness gate is satisfied.
 
-The follow-up fixes the unresolved PR #80 Codex finding: a valid provider result could be reclassified as `provider_failure` when persisting `succeeded` failed or returned an uncertain result. Production QA also established that Gemini 2.5 Flash is unavailable to the configured new project, Gemini 3.5 Flash reaches the provider, and the current canonical normalization returns `invalid_generated_plan`.
+Issue #65 connects `POST /api/ai/plan-drafts` to the existing `/plans/new` structured setup and routes successful canonical drafts into the existing `PlanBuilderForm` review/editor. Generation remains in-memory only. Explicit save continues through `/api/plans` and `createStructuredPlanForUser`; no plan, phase, workout, exercise, session, result, or progression record is written during generation, back, cancel, or navigation before save.
 
-Issue #81 adds conservative `indeterminate_success` accounting, explicit provider-versus-completion error boundaries, safe invalid-draft codes and normalized paths, a Gemini 3.5 default, closer structured-output alignment, and catalog-first video ownership. Production generation remains disabled. No plan, workout, exercise, session, result, or progression records are written.
+## Implemented Scope
+
+- Direct **Create with AI** is recommended only when server-side generation configuration is operational.
+- Guided Setup, Manual Builder, and external AI import remain visible and functional, including when direct generation is unavailable.
+- Direct generation reuses the existing structured setup inputs and validates them before calling the endpoint.
+- Every intentional attempt receives one idempotency key; loading blocks duplicate click and keyboard activation.
+- All typed endpoint errors map to concise provider-neutral copy with useful non-AI and external-import fallbacks.
+- Successful drafts enter the existing review/editor labeled as AI-generated drafts.
+- `matched`, `custom`, and `needs_review` exercise outcomes remain visible; unresolved review issues block the existing save action until resolved or removed.
+- Explicit save continues through the existing structured persistence path and preserves prescriptions, tracking metadata, and deterministic phase progression.
 
 ## Immediate Next Action
 
-1. Review and merge the Issue #81 follow-up pull request.
-2. Keep Production `AI_GENERATION_ENABLED=false`.
-3. Apply only `supabase/migrations/20260719011847_issue81_ai_quota_indeterminate_success.sql`.
-4. Run the original Issue #64 verification and `supabase/verification/issue-81-ai-quota-indeterminate-success-readonly.sql`.
-5. Confirm Vercel Production uses `GEMINI_MODEL=gemini-3.5-flash` and redeploy disabled.
-6. Wait for the UTC reset or use an approved test user for one controlled smoke test, then disable generation again.
+1. Review and merge the Issue #65 pull request after checks pass.
+2. Complete authenticated mobile and desktop QA with mocked enabled, disabled, typed-error, review-blocking, and generation-to-save flows. The local unauthenticated route/login health check is complete; an authenticated local browser session was unavailable, so the full mocked browser pass remains.
+3. Keep production rollout feature-gated. Enable direct generation only after the Issue #65 pull request is merged and deployment QA passes; disabling it must leave Guided Setup, Manual Builder, and external AI import usable.
 
-Hosted application of the follow-up migration remains pending. Issue #65 remains blocked until this patch is merged, migrated, verified, and smoke-tested.
+## Validation Status
 
-## Issue #81 Validation Expectations
+On 2026-07-18, `.\scripts\validate.ps1` passed TypeScript, all 305 tests across 46 files, and the Next.js production build. Focused automated coverage uses mocked generation and does not call live Gemini.
 
-Run focused mocked orchestration, quota, Gemini adapter, generated-plan, route, original Issue #64 SQL, and Issue #81 SQL tests. Do not use live Gemini requests. Validate the additive migration and both read-only verification files in a local or disposable Supabase environment, then run:
+Local browser QA confirmed the protected `/plans/new` route redirects unauthenticated users to a healthy login page with no console errors or framework error overlay. Authenticated mobile/desktop, keyboard, basic screen-reader, enabled/disabled, typed-error, review-blocking, no-persistence, and mocked generation-to-save browser QA remains required before rollout.
+
+## Validation Expectations
+
+Focused tests cover operational and unavailable entry states, setup validation and payload, idempotency and duplicate-submit protection, accessible loading status, typed error mapping, successful draft routing, `needs_review` save blocking, no-persistence back/cancel behavior, explicit structured save, and non-AI creation regressions.
+
+Run:
 
 ```powershell
 .\scripts\validate.ps1
 .\scripts\verify-branch-pushed.ps1
 ```
 
-Safe diagnostics contain only model, provider-neutral stage, allowlisted error or issue codes, normalized field paths, and aggregate counts. They never contain prompts, setup answers, provider bodies, generated content, exercise names, coaching text, URLs, keys, emails, or user identifiers.
-
+Manual QA must cover mobile and desktop, keyboard and basic screen-reader behavior, direct AI enabled and disabled states, typed failure fallbacks, one successful mocked generation-to-save flow, and confirmation that generation/back/cancel persist nothing.
 
 ## Completed Dependency State
 
 - Issue #62 completed the provider-neutral generated-plan contract, canonical normalizer, deterministic catalog resolution, and review-before-save boundary.
 - Issue #63 and merged PR #79 completed the disabled-by-default server-only Gemini adapter.
 - Issue #64 and merged PR #80 completed the authenticated route, operational quota storage, RLS, service-role RPCs, and idempotent orchestration baseline.
-- Issue #65 remains outside this patch and blocked on the Issue #81 merge, hosted additive migration, committed verification, and controlled smoke test.
+- Issue #81 and merged PR #82 completed conservative success accounting and Gemini 3.5 draft compatibility; the hosted migration, verification, and smoke test are complete.

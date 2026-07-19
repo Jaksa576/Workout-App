@@ -3,6 +3,7 @@ import { SectionCard } from "@/components/section-card";
 import { SurfaceCard } from "@/components/surface-card";
 import { requireUser } from "@/lib/auth";
 import { getProfile } from "@/lib/data";
+import { getAiGenerationConfiguration } from "@/lib/ai-generation/config";
 
 export default async function NewPlanPage({
   searchParams
@@ -11,12 +12,17 @@ export default async function NewPlanPage({
 }) {
   await requireUser();
   const [profile, params] = await Promise.all([getProfile(), searchParams]);
+  const aiGenerationOperational = getAiGenerationConfiguration().status === "ready";
   const initialMode =
     params.mode === "manual"
       ? "manual"
-      : params.mode === "ai"
-        ? "ai"
-        : "guided";
+      : params.mode === "guided"
+        ? "guided"
+        : params.mode === "ai" || params.mode === "ai-import"
+          ? "ai-import"
+          : aiGenerationOperational
+            ? "direct-ai"
+            : "guided";
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -36,16 +42,15 @@ export default async function NewPlanPage({
           <p className="ui-eyebrow">Flow</p>
           <div className="mt-4 space-y-3 text-sm leading-6 text-muted">
             <p>
-              <span className="font-semibold text-copy">Guided setup</span> is the default path
-              for templates.
+              <span className="font-semibold text-copy">Create with AI</span> is recommended
+              when direct generation is available.
             </p>
             <p>
-              <span className="font-semibold text-copy">Draft with AI</span> uses your own
-              external assistant.
+              <span className="font-semibold text-copy">Guided setup</span> creates a
+              deterministic template without AI.
             </p>
             <p>
-              <span className="font-semibold text-copy">Manual builder</span> remains available
-              for known plans.
+              Manual Builder and external AI import remain available.
             </p>
           </div>
         </SurfaceCard>
@@ -56,7 +61,11 @@ export default async function NewPlanPage({
         eyebrow="Plan setup"
         description="Guided, AI-assisted, and manual plans all move through review before save."
       >
-        <PlanSetupWizard profile={profile} initialMode={initialMode} />
+        <PlanSetupWizard
+          profile={profile}
+          initialMode={initialMode}
+          aiGenerationOperational={aiGenerationOperational}
+        />
       </SectionCard>
     </div>
   );

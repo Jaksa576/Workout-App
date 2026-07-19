@@ -409,13 +409,13 @@ functions do not reference plan, phase, workout, exercise, session, or progressi
 tables. Explicit review followed by the existing structured save boundary remains
 the only plan-persistence path for Issue #65.
 
-Deployment order for the Issue #81 follow-up is fixed: keep Production disabled;
-merge the patch; apply only the additive indeterminate-success migration; run the
-original Issue #64 and new Issue #81 read-only verifications; confirm Vercel uses
-`GEMINI_MODEL=gemini-3.5-flash`; redeploy disabled; wait for the UTC reset or use
-an approved test user; run one controlled smoke test; then disable generation
-again. Issue #65 remains blocked until the patch is merged, migrated, verified,
-and smoke-tested.
+The Issue #81 deployment gate is complete: PR #82 is merged, the additive
+indeterminate-success migration and read-only verification are applied, Vercel
+uses `GEMINI_MODEL=gemini-3.5-flash`, and the controlled authenticated smoke test
+passed. Direct plan creation remains controlled by `AI_GENERATION_ENABLED`.
+When the configuration is not fully ready, `/plans/new` defaults to Guided Setup
+and keeps Manual Builder and external AI import available instead of presenting a
+dead end.
 
 ## UI And Theme Architecture
 
@@ -596,3 +596,11 @@ Canonical catalog names and reviewed aliases share one normalized namespace. A c
 Resolution outcomes are `matched`, `custom`, and `needs_review`. Matched exercises use catalog-owned identity, canonical name, tracking type, unilateral mode, units, labels, reusable guidance, safety/caution guidance, and reviewed YouTube URL. Generated output may retain plan-specific prescriptions, rest, tempo, plan-specific coaching, and video-search/review context, but it must not overwrite catalog-owned safety or media metadata. Custom exercises are allowed only when the provider supplies a valid prescription, compatible tracking metadata, supported/default unit consistency, required labels, guidance/coaching, an actual normalized YouTube video URL accepted by the shared exercise-video validator, and a precise video search query. Ambiguous or conflicting identity becomes an exercise-level `needs_review` outcome that can enter review but blocks save until resolved. Malformed hierarchy or prescription data is fatal and does not enter exercise resolution.
 
 The existing structured save boundary remains `/api/plans` or `/api/plans/[planId]` accepting `StructuredPlanInput`/`StructuredPlanSaveInput`, with persistence performed by `createStructuredPlanForUser` or `updateStructuredPlanForUser`. Generated normalization and review conversion intentionally stop before that boundary. Generated drafts use the same deterministic app-owned phase progression policy already used by imported AI drafts (`clean_sessions_in_window` with `{ sessions: 4, weeks: 2 }` and `pain_flags_in_window` with `{ painFlags: 2, days: 7 }`) unless a provider-neutral draft explicitly supplies supported progression fields; unsupported progression data must not be invented or silently persisted.
+
+Issue #65 connects the authenticated generation route to the existing
+`PlanSetupWizard` and passes successful normalized drafts plus exercise-resolution
+outcomes into the existing `PlanBuilderForm`. `matched`, `custom`, and
+`needs_review` states remain review-visible; unresolved `needs_review` outcomes
+disable the save action until the exercise is resolved to an exact catalog entry
+or removed. Generation, failure, back, cancel, and navigation before explicit save
+do not call `/api/plans` and do not create plan records.
