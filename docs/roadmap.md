@@ -36,23 +36,22 @@ Approved child-issue sequence after Issue #9 discovery:
 
 Issue #10 must land the committed Supabase migration, canonical schema update, generated-type update, RLS/index strategy, and preview QA handoff before broad UI replacement begins.
 
-## Queued Priority
+## Active Priority
 
 ### Issue #8 — Direct AI-guided plan creation
 
-Status: queued behind the foundational contract from Issue #6.
+Status: active through Issue #64; Issue #65 is gated on the committed quota migration being applied and verified.
 
-Issue #62 established the provider-neutral generated-draft contract and Issue #63 adds the first disabled-by-default server-only Gemini adapter. No public generation route, UI, persistence, or quota/event system is implemented yet.
+Issue #62 established the provider-neutral generated-draft contract and Issue #63/PR #79 completed the disabled-by-default server-only Gemini adapter. Issue #64 is the active authenticated quota/orchestration slice; Issue #65 remains blocked until its migration is applied and verified. No production plan-creation UI or generated-plan persistence is implemented yet.
 
 This work remains important, but the generated exercise prescription format must align with the tracking types, units, snapshots, unilateral conventions, and session-result model approved through Issue #6.
 
 When resumed, split it into reviewable child issues for:
 
 - AI-first feature-gated `/plans/new` shell
-- server-only provider adapter and configuration (Issue #63: Gemini adapter)
-- quota/event storage and RLS
-- authenticated generation with strict validation and typed errors
-- review/edit/save integration
+- server-only provider adapter and configuration (Issue #63/PR #79: complete)
+- quota/event storage, RLS, and authenticated generation (Issue #64: active)
+- review/edit/save integration (Issue #65: blocked on #64 migration verification)
 - privacy, failure-state, accessibility, and end-to-end QA
 
 ## Completed Foundations
@@ -152,4 +151,4 @@ LLMs must remain optional and must not replace deterministic progression, valida
 
 ### AI generated draft boundary
 
-Issue #62 is now the active bridge between the completed exercise-recording contract and future live provider integration. The generated draft contract, deterministic matcher, reviewed aliases, and review-before-save boundary land before Gemini adapter work (#63), ambiguity-resolution UI (#65), and broader catalog expansion (#69). Issue #69 materially expands catalog breadth and reviewed aliases without changing the matcher, so Issue #63 can proceed without waiting for exhaustive catalog coverage.
+Issue #62 completed the canonical draft and deterministic matcher, Issue #69 expanded reviewed catalog coverage, and Issue #63/PR #79 completed the server-only Gemini adapter. Issue #64 now owns authenticated atomic quota/orchestration. Issue #65 is next only after the #64 migration has been applied and verified; it will integrate review/edit/save without changing the no-persistence-before-review boundary.

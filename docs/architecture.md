@@ -334,6 +334,61 @@ Google Gemini API data-use, retention, pricing, and rate-limit documentation for
 the selected account/tier; free/no-billing availability must not override the
 application's input-privacy posture.
 
+### Authenticated AI generation quota and orchestration (Issue #64)
+
+`POST /api/ai/plan-drafts` is the authenticated orchestration boundary for direct
+provider generation. It reuses `getCurrentUser()` and the cookie-bound Supabase
+server client for identity, validates `PlanSetupInput`, validates server-only
+feature/provider/quota configuration, and only then reserves quota. The route is
+not imported by client components and returns either a normalized canonical
+`GeneratedPlanDraft` review payload or a stable provider-neutral typed error.
+
+Quota state lives in `public.ai_generation_attempts` as operational metadata only:
+authenticated owner ID, authoritative quota date, reserved/final status, optional
+safe idempotency identifier, and created/completed timestamps. RLS permits owners
+to read only their rows. Inserts and updates are unavailable to `anon` and
+`authenticated`; a dedicated server-only Supabase service-role client can invoke
+the reservation/completion RPCs after route authentication. Raw prompts, raw
+provider responses, setup text, API keys, provider error bodies, and generated
+plan contents are neither columns nor RPC arguments.
+
+The database owns the quota date. No durable authenticated IANA timezone is stored
+in `profiles`; the browser timezone cookie is client-controlled and is not trusted
+for quota. Until a separately approved profile-timezone migration exists, the
+single authoritative fallback is the app's established safe timezone, UTC, and
+the RPC derives `(statement_timestamp() at time zone 'UTC')::date`.
+
+`reserve_ai_generation_attempt` takes a transaction advisory lock keyed by user
+and quota date, expires reservations older than two minutes, applies the configured
+limits, checks idempotency, and inserts `reserved` before provider invocation.
+Live reservations count against success capacity, so concurrent calls cannot
+reserve more potential successes than the success limit. Every reserved row counts
+as an attempt. `complete_ai_generation_attempt` atomically changes only an owned
+reserved row to `succeeded`, `provider_failure`, `timeout`, `rate_limited`,
+`invalid_output`, or `unsafe_input`. Blocked success/attempt checks and duplicate
+submissions do not create provider-attempt rows and never invoke Gemini.
+
+Defaults are one successful generation and three provider attempts per user per
+UTC day. `AI_GENERATION_DAILY_SUCCESS_LIMIT` and
+`AI_GENERATION_DAILY_ATTEMPT_LIMIT` are server-only, bounded positive integers;
+invalid values fail closed. Reservation/completion failure also fails closed and
+never returns a draft whose quota outcome was not recorded.
+
+Provider invocation occurs only after authentication, input/config validation,
+and committed reservation. Valid output still passes through Issue #62's canonical
+normalizer and deterministic catalog resolver. Success returns an in-memory review
+draft only. The route does not call `createStructuredPlanForUser` and the quota
+functions do not reference plan, phase, workout, exercise, session, or progression
+tables. Explicit review followed by the existing structured save boundary remains
+the only plan-persistence path for Issue #65.
+
+Deployment order is fixed: merge code/migration; apply the committed migration to
+the approved hosted environment; run the committed read-only verification; confirm
+Vercel Gemini, service-role, and quota variables; redeploy disabled; smoke-test the
+authenticated endpoint in a controlled environment; enable Preview only after
+migration verification; keep Production disabled until Issue #65 and full Preview
+QA complete.
+
 ## UI And Theme Architecture
 
 - Theme styling should prefer semantic tokens and shared primitives over hardcoded page-specific colors.

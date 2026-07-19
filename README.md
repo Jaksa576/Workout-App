@@ -89,13 +89,16 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 NEXT_PUBLIC_SITE_URL=https://workout-app-seven-delta.vercel.app
 ```
 
-Optional server-only Gemini plan generation (not wired to a public route or UI in
-this slice) additionally uses the following Vercel and local `.env.local`
+Optional authenticated Gemini plan generation (not wired to the production plan
+creation UI) additionally uses the following Vercel and local `.env.local`
 variables. Do not expose any of them as `NEXT_PUBLIC_*` values:
 
 ```
+SUPABASE_SERVICE_ROLE_KEY=
 AI_GENERATION_ENABLED=false
 AI_GENERATION_PROVIDER=gemini
+AI_GENERATION_DAILY_SUCCESS_LIMIT=1
+AI_GENERATION_DAILY_ATTEMPT_LIMIT=3
 GEMINI_MODEL=gemini-2.5-flash
 GEMINI_TIMEOUT_MS=12000
 GEMINI_MAX_INPUT_CHARS=4000
@@ -103,11 +106,21 @@ GEMINI_MAX_OUTPUT_TOKENS=4096
 GEMINI_API_KEY=
 ```
 
-Generation is disabled unless `AI_GENERATION_ENABLED=true`, the provider is
-`gemini`, all bounds are valid, and `GEMINI_API_KEY` is set. Configure a
-privacy-reviewed billing posture before enabling it: only minimized validated
-plan-setup context is sent to Gemini, and no prompt, response, key, or provider
-error body is logged or returned by this adapter.
+`SUPABASE_SERVICE_ROLE_KEY` is used only by the authenticated server route to
+call service-role-only quota RPCs; never expose or log it. Generation is disabled
+unless `AI_GENERATION_ENABLED=true`, the provider is `gemini`, all bounds and
+quotas are valid, and both server secrets are set. The default per-user UTC quota
+is one success and three provider attempts per day. Failed, timed-out,
+rate-limited, and invalid-output calls consume attempts but not successes.
+
+Before enabling Preview, merge the code and migration, run
+`npx supabase db push --linked --dry-run`, apply the reviewed migration with
+`npx supabase db push --linked`, then run
+`npx supabase db query --linked --file supabase/verification/issue-64-ai-generation-quota-readonly.sql --agent=no`.
+Redeploy with `AI_GENERATION_ENABLED=false`, smoke-test the authenticated endpoint,
+and only then enable Preview. Keep Production disabled through Issue #65 and full
+Preview QA. Only minimized validated plan-setup context is sent to Gemini; no
+prompt, response, key, provider error body, or generated plan is persisted.
 
 For local development, place them in `.env.local`.
 

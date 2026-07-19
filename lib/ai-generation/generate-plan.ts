@@ -27,6 +27,13 @@ function buildBoundedPrompt(input: PlanDraftInput, maxInputChars: number) {
   return prompt;
 }
 
+export function validatePlanDraftInputForGeneration(
+  input: PlanDraftInput,
+  maxInputChars: number,
+) {
+  buildBoundedPrompt(input, maxInputChars);
+}
+
 export async function generatePlanDraftForServer(
   input: PlanDraftInput,
   dependencies: { env?: EnvironmentValues; request?: GeminiRequest } = {},
