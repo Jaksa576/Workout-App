@@ -27,19 +27,18 @@ const exerciseSchema = {
   properties: {
     proposedCatalogId: {
       type: ["string", "null"],
-      minLength: 1,
       description: "Use only a known exact catalog ID; otherwise null.",
     },
-    name: { type: "string", minLength: 1 },
+    name: { type: "string" },
     prescription: {
       type: "object",
       additionalProperties: false,
       required: ["sets", "reps", "rest"],
       properties: {
         sets: { type: "integer", minimum: 1 },
-        reps: { type: "string", minLength: 1 },
-        rest: { type: "string", minLength: 1 },
-        tempo: { type: ["string", "null"], minLength: 1 },
+        reps: { type: "string" },
+        rest: { type: "string" },
+        tempo: { type: ["string", "null"] },
       },
     },
     trackingType: {
@@ -74,23 +73,20 @@ const exerciseSchema = {
     },
     primaryValueLabel: {
       type: ["string", "null"],
-      minLength: 1,
       description: "Short label for the primary metric, compatible with trackingType.",
     },
     secondaryValueLabel: {
       type: ["string", "null"],
-      minLength: 1,
       description: "Required for weight_reps and distance_duration; otherwise null when unused.",
     },
-    coachingNote: { type: "string", minLength: 1 },
-    safetyNotes: { type: ["string", "null"], minLength: 1 },
+    coachingNote: { type: "string" },
+    safetyNotes: { type: ["string", "null"] },
     videoUrl: {
       type: ["string", "null"],
       description: "Use null. Reviewed catalog metadata or later user review owns direct video URLs.",
     },
     videoSearchQuery: {
       type: "string",
-      minLength: 1,
       description: "Precise movement, equipment, stance, and variation search query.",
     },
   },
@@ -101,9 +97,9 @@ const workoutSchema = {
   additionalProperties: false,
   required: ["name", "focus", "summary", "scheduledDays", "exercises"],
   properties: {
-    name: { type: "string", minLength: 1 },
-    focus: { type: "string", minLength: 1 },
-    summary: { type: "string", minLength: 1 },
+    name: { type: "string" },
+    focus: { type: "string" },
+    summary: { type: "string" },
     scheduledDays: {
       type: "array",
       minItems: 1,
@@ -119,8 +115,8 @@ const generatedPlanSchema = {
   required: ["version", "name", "description", "weeklySchedule", "phases"],
   properties: {
     version: { type: "string", enum: ["generated-plan-draft-v1"] },
-    name: { type: "string", minLength: 1 },
-    description: { type: "string", minLength: 1 },
+    name: { type: "string" },
+    description: { type: "string" },
     weeklySchedule: {
       type: "array",
       minItems: 1,
@@ -134,7 +130,7 @@ const generatedPlanSchema = {
         additionalProperties: false,
         required: ["goal", "workouts"],
         properties: {
-          goal: { type: "string", minLength: 1 },
+          goal: { type: "string" },
           workouts: { type: "array", minItems: 1, items: workoutSchema },
         },
       },
@@ -142,7 +138,7 @@ const generatedPlanSchema = {
   },
 } as const;
 
-const SYSTEM_INSTRUCTION = `Return JSON only for generated-plan-draft-v1. Build at least one phase, workout, and exercise, with valid weekday values and positive prescription sets. Tracking types, units, display labels, and unilateral modes must be mutually compatible. Do not provide progression presets or settings; the application owns deterministic progression. Use proposedCatalogId only when confident it is an exact known catalog identity; otherwise use null. Catalog-matched exercises receive catalog-owned reviewed metadata and video. Set generated videoUrl to null and provide a precise videoSearchQuery instead; never invent a direct YouTube URL. Custom or unmatched exercises may require user review, and no generated exercise bypasses canonical validation or review-before-save. Use no markdown.`;
+const SYSTEM_INSTRUCTION = `Return JSON only for generated-plan-draft-v1. Build at least one phase, workout, and exercise, with valid weekday values and positive prescription sets. Use non-empty strings for every required textual field. Tracking types, units, display labels, and unilateral modes must be mutually compatible. Do not provide progression presets or settings; the application owns deterministic progression. Use proposedCatalogId only when confident it is an exact known catalog identity; otherwise use null. Catalog-matched exercises receive catalog-owned reviewed metadata and video. Set generated videoUrl to null and provide a precise videoSearchQuery instead; never invent a direct YouTube URL. Custom or unmatched exercises may require user review, and no generated exercise bypasses canonical validation or review-before-save. Use no markdown.`;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);

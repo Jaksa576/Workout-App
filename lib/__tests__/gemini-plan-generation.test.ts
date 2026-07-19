@@ -60,6 +60,7 @@ describe("server-only Gemini plan adapter", () => {
     expect(workoutSchema.minItems).toBe(1);
     expect(exerciseSchema.minItems).toBe(1);
     expect(prescription.properties.sets.minimum).toBe(1);
+    expect(JSON.stringify(schema)).not.toContain("minLength");
     expect(schema.properties.weeklySchedule.items.enum).toEqual([
       "sun", "mon", "tue", "wed", "thu", "fri", "sat",
     ]);
@@ -71,6 +72,7 @@ describe("server-only Gemini plan adapter", () => {
     ]);
 
     const systemInstruction = body.systemInstruction.parts[0].text as string;
+    expect(systemInstruction).toContain("Use non-empty strings");
     expect(systemInstruction).toContain("Catalog-matched exercises receive catalog-owned");
     expect(systemInstruction).toContain("Set generated videoUrl to null");
     expect(systemInstruction).toContain("never invent a direct YouTube URL");
