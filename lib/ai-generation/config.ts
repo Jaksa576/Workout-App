@@ -1,4 +1,4 @@
-export const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash";
+export const DEFAULT_GEMINI_MODEL = "gemini-3.5-flash";
 export const DEFAULT_DAILY_SUCCESS_LIMIT = 1;
 export const DEFAULT_DAILY_ATTEMPT_LIMIT = 3;
 

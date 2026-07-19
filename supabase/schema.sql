@@ -966,6 +966,7 @@ create table if not exists public.ai_generation_attempts (
     status in (
       'reserved',
       'succeeded',
+      'indeterminate_success',
       'provider_failure',
       'timeout',
       'rate_limited',
@@ -1046,10 +1047,10 @@ begin
     hashtextextended(p_user_id::text || ':' || v_quota_date::text, 0)
   );
 
-  -- A crashed request cannot reserve success capacity forever. The two-minute
-  -- lease exceeds the maximum configured provider timeout (60 seconds).
+  -- A stale reservation may represent provider work or a valid response whose
+  -- completion was interrupted, so it must conservatively consume capacity.
   update public.ai_generation_attempts as attempts
-  set status = 'provider_failure', completed_at = statement_timestamp()
+  set status = 'indeterminate_success', completed_at = statement_timestamp()
   where attempts.user_id = p_user_id
     and attempts.quota_date = v_quota_date
     and attempts.status = 'reserved'
@@ -1085,7 +1086,7 @@ begin
   from public.ai_generation_attempts as attempts
   where attempts.user_id = p_user_id
     and attempts.quota_date = v_quota_date
-    and attempts.status in ('reserved', 'succeeded');
+    and attempts.status in ('reserved', 'succeeded', 'indeterminate_success');
 
   if v_success_capacity >= p_success_limit then
     return query select 'success_quota_reached'::text, null::uuid, v_quota_date, null::text;
@@ -1124,6 +1125,7 @@ begin
   if p_user_id is null or p_attempt_id is null then raise exception 'attempt ownership is required'; end if;
   if p_outcome not in (
     'succeeded',
+    'indeterminate_success',
     'provider_failure',
     'timeout',
     'rate_limited',
@@ -1138,6 +1140,7 @@ begin
 
   if not found then raise exception 'attempt not found'; end if;
   if v_status = p_outcome then return true; end if;
+  if v_status = 'succeeded' and p_outcome = 'indeterminate_success' then return true; end if;
   if v_status <> 'reserved' then raise exception 'attempt already completed'; end if;
 
   update public.ai_generation_attempts

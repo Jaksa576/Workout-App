@@ -1,41 +1,40 @@
 # Current Task
-
 ## Current Priority
 
-GitHub Issue #64 — **Authenticated AI generation quota and orchestration** — is the active implementation target.
+GitHub Issue #81 - **Fix AI quota completion and Gemini 3.5 draft compatibility** - is the active implementation target.
 
-Issue #62 and its canonical provider-neutral generated draft, strict normalization, deterministic catalog resolution, and in-memory review boundary are complete. Issue #63 is complete through merged PR #79 (`3b3d249`): the Gemini adapter remains server-only, uses the approved `x-goog-api-key` header, and returns only normalized canonical drafts or typed provider-neutral errors.
+This is a post-merge follow-up to merged PR #80 and closed Issue #64. The authenticated route, UTC quota table, service-role-only RPCs, RLS, idempotency, and tests are complete on `main`. The original Issue #64 migration has been applied to hosted Supabase and is immutable.
 
-Issue #64 adds the authenticated `/api/ai/plan-drafts` boundary, server-configurable daily quota limits, additive operational attempt state, RLS, service-role-only atomic reservation/completion RPCs, idempotency, and safe provider-neutral outcomes. Generation still returns an in-memory review draft only and does not write plan, workout, exercise, session, or progression records.
+The follow-up fixes the unresolved PR #80 Codex finding: a valid provider result could be reclassified as `provider_failure` when persisting `succeeded` failed or returned an uncertain result. Production QA also established that Gemini 2.5 Flash is unavailable to the configured new project, Gemini 3.5 Flash reaches the provider, and the current canonical normalization returns `invalid_generated_plan`.
+
+Issue #81 adds conservative `indeterminate_success` accounting, explicit provider-versus-completion error boundaries, safe invalid-draft codes and normalized paths, a Gemini 3.5 default, closer structured-output alignment, and catalog-first video ownership. Production generation remains disabled. No plan, workout, exercise, session, result, or progression records are written.
 
 ## Immediate Next Action
 
-Review and merge the Issue #64 pull request. Then, with explicit product-owner/ChatGPT approval:
+1. Review and merge the Issue #81 follow-up pull request.
+2. Keep Production `AI_GENERATION_ENABLED=false`.
+3. Apply only `supabase/migrations/20260719011847_issue81_ai_quota_indeterminate_success.sql`.
+4. Run the original Issue #64 verification and `supabase/verification/issue-81-ai-quota-indeterminate-success-readonly.sql`.
+5. Confirm Vercel Production uses `GEMINI_MODEL=gemini-3.5-flash` and redeploy disabled.
+6. Wait for the UTC reset or use an approved test user for one controlled smoke test, then disable generation again.
 
-1. Confirm the target Supabase project and migration history with `npx supabase migration list --linked`.
-2. Preview pending changes with `npx supabase db push --linked --dry-run` and stop if anything beyond the reviewed committed chain is unexpected.
-3. Apply `supabase/migrations/20260718235045_issue64_ai_generation_quota.sql` with `npx supabase db push --linked`.
-4. Run `psql $env:SUPABASE_DB_URL -v ON_ERROR_STOP=1 -f .\supabase\verification\issue-64-ai-generation-quota-readonly.sql`.
-5. Confirm Vercel has `SUPABASE_SERVICE_ROLE_KEY`, Gemini configuration, and the two quota variables; redeploy with `AI_GENERATION_ENABLED=false`.
-6. Smoke-test the authenticated endpoint in a controlled environment, then enable Preview only after migration and verification succeed.
+Hosted application of the follow-up migration remains pending. Issue #65 remains blocked until this patch is merged, migrated, verified, and smoke-tested.
 
-Issue #65 remains blocked until Issue #64 is merged and its migration is applied and verified. Production must remain disabled until Issue #65 and full Preview QA are complete.
+## Issue #81 Validation Expectations
 
-## Validation Expectations
-
-Run focused mocked orchestration, route, provider, and migration-source tests, then:
+Run focused mocked orchestration, quota, Gemini adapter, generated-plan, route, original Issue #64 SQL, and Issue #81 SQL tests. Do not use live Gemini requests. Validate the additive migration and both read-only verification files in a local or disposable Supabase environment, then run:
 
 ```powershell
 .\scripts\validate.ps1
 .\scripts\verify-branch-pushed.ps1
 ```
 
-The standard suite must not require live Gemini access. Hosted Supabase changes require separate approval and are not performed by implementation agents.
+Safe diagnostics contain only model, provider-neutral stage, allowlisted error or issue codes, normalized field paths, and aggregate counts. They never contain prompts, setup answers, provider bodies, generated content, exercise names, coaching text, URLs, keys, emails, or user identifiers.
 
-## Durable Boundaries
 
-- Quota date is server-owned. No authenticated timezone is stored in Supabase today, so the authoritative fallback is UTC; the client timezone cookie is not trusted for quota enforcement.
-- One successful generation and three provider attempts per user per quota date are the defaults. Both are server-only environment settings and fail closed when invalid.
-- Reserved attempts count against both attempt usage and available success capacity, preventing simultaneous requests from exceeding configured limits.
-- Raw prompts, raw responses, API keys, provider error bodies, setup text, and generated plan contents are not persisted.
-- The structured plan-save route remains the only plan persistence boundary after explicit user review.
+## Completed Dependency State
+
+- Issue #62 completed the provider-neutral generated-plan contract, canonical normalizer, deterministic catalog resolution, and review-before-save boundary.
+- Issue #63 and merged PR #79 completed the disabled-by-default server-only Gemini adapter.
+- Issue #64 and merged PR #80 completed the authenticated route, operational quota storage, RLS, service-role RPCs, and idempotent orchestration baseline.
+- Issue #65 remains outside this patch and blocked on the Issue #81 merge, hosted additive migration, committed verification, and controlled smoke test.

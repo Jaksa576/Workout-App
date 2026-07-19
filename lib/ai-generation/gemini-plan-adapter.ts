@@ -4,32 +4,141 @@ import type { AiGenerationConfiguration } from "@/lib/ai-generation/config";
 
 export type GeminiRequest = (url: string, init: RequestInit) => Promise<Response>;
 
+const weekdays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
+
 const exerciseSchema = {
-  type: "object", required: ["name", "prescription", "trackingType", "unilateralMode", "supportedLoadUnits", "supportedDistanceUnits", "primaryValueLabel", "secondaryValueLabel", "coachingNote", "videoUrl", "videoSearchQuery"],
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "name",
+    "prescription",
+    "trackingType",
+    "unilateralMode",
+    "loadUnit",
+    "supportedLoadUnits",
+    "distanceUnit",
+    "supportedDistanceUnits",
+    "primaryValueLabel",
+    "secondaryValueLabel",
+    "coachingNote",
+    "videoUrl",
+    "videoSearchQuery",
+  ],
   properties: {
-    proposedCatalogId: { type: ["string", "null"] }, name: { type: "string" },
-    prescription: { type: "object", required: ["sets", "reps", "rest"], properties: { sets: { type: "integer" }, reps: { type: "string" }, rest: { type: "string" }, tempo: { type: ["string", "null"] } } },
-    trackingType: { type: "string", enum: ["weight_reps", "reps_only", "duration", "distance", "distance_duration", "completion"] },
-    unilateralMode: { type: "string", enum: ["bilateral", "same_each_side", "independent_sides"] },
-    loadUnit: { type: ["string", "null"], enum: ["lb", "kg", null] }, supportedLoadUnits: { type: "array", items: { type: "string", enum: ["lb", "kg"] } },
-    distanceUnit: { type: ["string", "null"], enum: ["mi", "km", "m", null] }, supportedDistanceUnits: { type: "array", items: { type: "string", enum: ["mi", "km", "m"] } },
-    primaryValueLabel: { type: ["string", "null"] }, secondaryValueLabel: { type: ["string", "null"] }, coachingNote: { type: "string" }, safetyNotes: { type: ["string", "null"] },
-    videoUrl: { type: ["string", "null"] }, videoSearchQuery: { type: ["string", "null"] },
+    proposedCatalogId: {
+      type: ["string", "null"],
+      description: "Use only a known exact catalog ID; otherwise null.",
+    },
+    name: { type: "string" },
+    prescription: {
+      type: "object",
+      additionalProperties: false,
+      required: ["sets", "reps", "rest"],
+      properties: {
+        sets: { type: "integer", minimum: 1 },
+        reps: { type: "string" },
+        rest: { type: "string" },
+        tempo: { type: ["string", "null"] },
+      },
+    },
+    trackingType: {
+      type: "string",
+      enum: ["weight_reps", "reps_only", "duration", "distance", "distance_duration", "completion"],
+      description: "Choose the metric shape actually prescribed for each set.",
+    },
+    unilateralMode: {
+      type: "string",
+      enum: ["bilateral", "same_each_side", "independent_sides"],
+      description: "bilateral is one shared result; same_each_side repeats one target per side; independent_sides records each side separately.",
+    },
+    loadUnit: {
+      type: ["string", "null"],
+      enum: ["lb", "kg", null],
+      description: "Required only for weight_reps and must appear in supportedLoadUnits.",
+    },
+    supportedLoadUnits: {
+      type: "array",
+      items: { type: "string", enum: ["lb", "kg"] },
+      description: "Use compatible load units for weight_reps; otherwise use an empty array.",
+    },
+    distanceUnit: {
+      type: ["string", "null"],
+      enum: ["mi", "km", "m", null],
+      description: "Required only for distance or distance_duration and must appear in supportedDistanceUnits.",
+    },
+    supportedDistanceUnits: {
+      type: "array",
+      items: { type: "string", enum: ["mi", "km", "m"] },
+      description: "Use compatible distance units for distance tracking; otherwise use an empty array.",
+    },
+    primaryValueLabel: {
+      type: ["string", "null"],
+      description: "Short label for the primary metric, compatible with trackingType.",
+    },
+    secondaryValueLabel: {
+      type: ["string", "null"],
+      description: "Required for weight_reps and distance_duration; otherwise null when unused.",
+    },
+    coachingNote: { type: "string" },
+    safetyNotes: { type: ["string", "null"] },
+    videoUrl: {
+      type: ["string", "null"],
+      description: "Use null. Reviewed catalog metadata or later user review owns direct video URLs.",
+    },
+    videoSearchQuery: {
+      type: "string",
+      description: "Precise movement, equipment, stance, and variation search query.",
+    },
+  },
+} as const;
+
+const workoutSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["name", "focus", "summary", "scheduledDays", "exercises"],
+  properties: {
+    name: { type: "string" },
+    focus: { type: "string" },
+    summary: { type: "string" },
+    scheduledDays: {
+      type: "array",
+      minItems: 1,
+      items: { type: "string", enum: weekdays },
+    },
+    exercises: { type: "array", minItems: 1, items: exerciseSchema },
   },
 } as const;
 
 const generatedPlanSchema = {
   type: "object",
+  additionalProperties: false,
   required: ["version", "name", "description", "weeklySchedule", "phases"],
   properties: {
     version: { type: "string", enum: ["generated-plan-draft-v1"] },
-    name: { type: "string" }, description: { type: "string" },
-    weeklySchedule: { type: "array", items: { type: "string" } },
-    phases: { type: "array", items: { type: "object", required: ["goal", "workouts"], properties: { goal: { type: "string" }, workouts: { type: "array", items: { type: "object", required: ["name", "focus", "summary", "scheduledDays", "exercises"], properties: { name: { type: "string" }, focus: { type: "string" }, summary: { type: "string" }, scheduledDays: { type: "array", items: { type: "string" } }, exercises: { type: "array", items: exerciseSchema } } } } } } },
+    name: { type: "string" },
+    description: { type: "string" },
+    weeklySchedule: {
+      type: "array",
+      minItems: 1,
+      items: { type: "string", enum: weekdays },
+    },
+    phases: {
+      type: "array",
+      minItems: 1,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["goal", "workouts"],
+        properties: {
+          goal: { type: "string" },
+          workouts: { type: "array", minItems: 1, items: workoutSchema },
+        },
+      },
+    },
   },
 } as const;
 
-const SYSTEM_INSTRUCTION = `Return JSON only. Create a generated-plan-draft-v1 plan. Every exercise needs name, prescription (positive integer sets, reps, rest), trackingType, unilateralMode, supported units and display labels, coachingNote or structured guidance, a precise YouTube search query, and a direct youtube.com or youtu.be video URL. proposedCatalogId is optional: include it only when certain; never invent it. Use no markdown.`;
+const SYSTEM_INSTRUCTION = `Return JSON only for generated-plan-draft-v1. Build at least one phase, workout, and exercise, with valid weekday values and positive prescription sets. Use non-empty strings for every required textual field. Tracking types, units, display labels, and unilateral modes must be mutually compatible. Do not provide progression presets or settings; the application owns deterministic progression. Use proposedCatalogId only when confident it is an exact known catalog identity; otherwise use null. Catalog-matched exercises receive catalog-owned reviewed metadata and video. Set generated videoUrl to null and provide a precise videoSearchQuery instead; never invent a direct YouTube URL. Custom or unmatched exercises may require user review, and no generated exercise bypasses canonical validation or review-before-save. Use no markdown.`;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);

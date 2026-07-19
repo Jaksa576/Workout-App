@@ -322,12 +322,15 @@ rate-limit, provider, unsafe-input, malformed-output, and canonical-validation
 failures to stable provider-neutral errors. Parsed output always flows through
 `normalizeGeneratedPlanDraft`, the existing deterministic catalog resolver, and
 strict structured-plan validation before it can be returned as an in-memory
-review draft. Catalog metadata and reviewed video precedence therefore remain
-unchanged; unmatched exercises must satisfy the complete custom-candidate
-contract, including a valid direct YouTube URL.
+review draft. Catalog matches own canonical metadata and reviewed video URLs.
+Gemini supplies `proposedCatalogId` only when confident, may return a null
+`videoUrl`, and must provide a precise `videoSearchQuery`; it is never required
+to fabricate a direct URL. Unmatched candidates enter review, and existing URL
+validation remains authoritative before save.
 
-The selected request target is `gemini-2.5-flash`, with a conservative 12-second
-timeout, 4,000-character input cap, and 4,096-output-token cap by default. The
+The selected request target is `gemini-3.5-flash`, with a conservative 12-second
+timeout, 4,000-character input cap, and 4,096-output-token cap by default. Gemini
+2.5 Flash is retained only as historical context for the July 2026 model migration. The
 adapter is deliberately replaceable and uses no Gemini types in core draft,
 review, UI, or persistence contracts. Enable it only after reviewing the current
 Google Gemini API data-use, retention, pricing, and rate-limit documentation for
@@ -359,35 +362,60 @@ single authoritative fallback is the app's established safe timezone, UTC, and
 the RPC derives `(statement_timestamp() at time zone 'UTC')::date`.
 
 `reserve_ai_generation_attempt` takes a transaction advisory lock keyed by user
-and quota date, expires reservations older than two minutes, applies the configured
-limits, checks idempotency, and inserts `reserved` before provider invocation.
-Live reservations count against success capacity, so concurrent calls cannot
-reserve more potential successes than the success limit. Every reserved row counts
-as an attempt. `complete_ai_generation_attempt` atomically changes only an owned
-reserved row to `succeeded`, `provider_failure`, `timeout`, `rate_limited`,
-`invalid_output`, or `unsafe_input`. Blocked success/attempt checks and duplicate
-submissions do not create provider-attempt rows and never invoke Gemini.
+and quota date, applies the configured limits, checks idempotency, and inserts
+`reserved` before provider invocation. `reserved`, `succeeded`, and
+`indeterminate_success` all count against success capacity, so concurrent,
+retried, and uncertain requests cannot exceed the configured success limit.
+Every reserved row counts as an attempt.
+
+A reservation older than two minutes is inherently ambiguous: the process may
+have crashed before provider invocation, after provider work, after receiving a
+valid result, or during completion persistence. Stale reservations therefore
+become the completed operational outcome `indeterminate_success` and continue
+consuming success capacity for the UTC day. The system deliberately prefers
+blocking further generation over duplicating paid or successful provider work.
 
 Defaults are one successful generation and three provider attempts per user per
 UTC day. `AI_GENERATION_DAILY_SUCCESS_LIMIT` and
 `AI_GENERATION_DAILY_ATTEMPT_LIMIT` are server-only, bounded positive integers;
-invalid values fail closed. Reservation/completion failure also fails closed and
-never returns a draft whose quota outcome was not recorded.
+invalid values fail closed. `complete_ai_generation_attempt` finalizes an owned
+reservation as `succeeded`, `indeterminate_success`, `provider_failure`,
+`timeout`, `rate_limited`, `invalid_output`, or `unsafe_input`. A
+compensating indeterminate completion never downgrades an already committed
+`succeeded` row. Blocked checks and duplicates create no attempt and invoke no
+provider.
+
+Provider execution and completion persistence use separate error boundaries.
 
 Provider invocation occurs only after authentication, input/config validation,
-and committed reservation. Valid output still passes through Issue #62's canonical
+and committed reservation. Provider errors receive their provider-neutral
+operational status. Once the
+provider returns a valid canonical draft, the server attempts only `succeeded`
+completion. If that write throws or is uncertain, the server attempts
+`indeterminate_success`, never records `provider_failure`, never returns the
+draft, and returns `orchestration_unavailable`. If the database remains
+unavailable, the row stays `reserved` until conservative stale finalization.
+
+Canonical rejection emits server-only structured diagnostics through a small
+injectable sink. The allowlist is model, provider-neutral stage, fatal validation
+codes, review-blocking issue codes, normalized field paths, and aggregate counts.
+Prompts, setup answers, generated text, exercise names, coaching text, URLs,
+provider bodies, keys, emails, and user identifiers are never logged or persisted.
+
+Valid output still passes through Issue #62's canonical
 normalizer and deterministic catalog resolver. Success returns an in-memory review
 draft only. The route does not call `createStructuredPlanForUser` and the quota
 functions do not reference plan, phase, workout, exercise, session, or progression
 tables. Explicit review followed by the existing structured save boundary remains
 the only plan-persistence path for Issue #65.
 
-Deployment order is fixed: merge code/migration; apply the committed migration to
-the approved hosted environment; run the committed read-only verification; confirm
-Vercel Gemini, service-role, and quota variables; redeploy disabled; smoke-test the
-authenticated endpoint in a controlled environment; enable Preview only after
-migration verification; keep Production disabled until Issue #65 and full Preview
-QA complete.
+Deployment order for the Issue #81 follow-up is fixed: keep Production disabled;
+merge the patch; apply only the additive indeterminate-success migration; run the
+original Issue #64 and new Issue #81 read-only verifications; confirm Vercel uses
+`GEMINI_MODEL=gemini-3.5-flash`; redeploy disabled; wait for the UTC reset or use
+an approved test user; run one controlled smoke test; then disable generation
+again. Issue #65 remains blocked until the patch is merged, migrated, verified,
+and smoke-tested.
 
 ## UI And Theme Architecture
 

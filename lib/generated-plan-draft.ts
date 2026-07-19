@@ -652,6 +652,34 @@ function validateDraftStructure(draft: GeneratedPlanDraft) {
             path: `phases.${pi}.workouts.${wi}.exercises.${ei}.prescription`,
           });
       });
+      (workout.exercises ?? []).forEach((exercise, ei) => {
+        if (
+          exercise &&
+          exercise.supportedLoadUnits !== undefined &&
+          (!Array.isArray(exercise.supportedLoadUnits) ||
+            !exercise.supportedLoadUnits.every(
+              (unit) => unit === "lb" || unit === "kg",
+            ))
+        )
+          fatalErrors.push({
+            code: "unsupported_tracking_metadata",
+            message: "Supported load units must use the canonical unit set.",
+            path: `phases.${pi}.workouts.${wi}.exercises.${ei}.supportedLoadUnits`,
+          });
+        if (
+          exercise &&
+          exercise.supportedDistanceUnits !== undefined &&
+          (!Array.isArray(exercise.supportedDistanceUnits) ||
+            !exercise.supportedDistanceUnits.every(
+              (unit) => unit === "mi" || unit === "km" || unit === "m",
+            ))
+        )
+          fatalErrors.push({
+            code: "unsupported_tracking_metadata",
+            message: "Supported distance units must use the canonical unit set.",
+            path: `phases.${pi}.workouts.${wi}.exercises.${ei}.supportedDistanceUnits`,
+          });
+      });
     });
   });
   return fatalErrors;

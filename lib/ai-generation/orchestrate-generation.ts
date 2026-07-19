@@ -130,14 +130,9 @@ export async function orchestrateAuthenticatedPlanGeneration(
     };
   }
 
+  let draft: NormalizedGeneratedPlanDraft;
   try {
-    const draft = await generate(input.draftInput, { env: dependencies.env });
-    await complete({
-      userId: input.userId,
-      attemptId: reservation.attemptId,
-      outcome: "succeeded",
-    });
-    return { ok: true, draft, quotaDate: reservation.quotaDate };
+    draft = await generate(input.draftInput, { env: dependencies.env });
   } catch (error) {
     const safeError = safeGenerationError(error);
     try {
@@ -155,4 +150,33 @@ export async function orchestrateAuthenticatedPlanGeneration(
     }
     return { ok: false, error: safeError, quotaDate: reservation.quotaDate };
   }
+
+  try {
+    await complete({
+      userId: input.userId,
+      attemptId: reservation.attemptId,
+      outcome: "succeeded",
+    });
+  } catch {
+    // The provider returned a valid canonical draft, but the succeeded write may
+    // or may not have committed. Never reclassify this as a provider failure and
+    // never return the draft without a capacity-safe persisted outcome.
+    try {
+      await complete({
+        userId: input.userId,
+        attemptId: reservation.attemptId,
+        outcome: "indeterminate_success",
+      });
+    } catch {
+      // Leave the reservation fail-closed. The database will conservatively
+      // finalize it as indeterminate_success when it becomes stale.
+    }
+    return {
+      ok: false,
+      error: new PlanGenerationError("orchestration_unavailable"),
+      quotaDate: reservation.quotaDate,
+    };
+  }
+
+  return { ok: true, draft, quotaDate: reservation.quotaDate };
 }
