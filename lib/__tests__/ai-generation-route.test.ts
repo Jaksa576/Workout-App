@@ -82,4 +82,29 @@ describe("authenticated AI plan draft route", () => {
       quotaDate: "2026-07-18",
     });
   });
+
+  it("never exposes internal invalid-draft diagnostics", async () => {
+    mocks.orchestrate.mockResolvedValue({
+      ok: false,
+      error: {
+        code: "orchestration_unavailable",
+        message: "AI plan generation is temporarily unavailable.",
+        diagnostic: {
+          model: "gemini-3.5-flash",
+          fatalValidationErrorCodes: ["invalid_plan_hierarchy"],
+        },
+      },
+      quotaDate: "2026-07-19",
+    });
+    const response = await post(setup);
+    const payload = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(payload).toEqual({
+      ok: false,
+      error: { code: "orchestration_unavailable", message: "AI plan generation is temporarily unavailable." },
+      quotaDate: "2026-07-19",
+    });
+    expect(JSON.stringify(payload)).not.toContain("diagnostic");
+  });
 });

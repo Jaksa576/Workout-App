@@ -40,9 +40,9 @@ Issue #10 must land the committed Supabase migration, canonical schema update, g
 
 ### Issue #8 — Direct AI-guided plan creation
 
-Status: active through Issue #64; Issue #65 is gated on the committed quota migration being applied and verified.
+Status: active through Issue #81; Issue #65 is gated on the follow-up quota migration being applied, verified, and smoke-tested.
 
-Issue #62 established the provider-neutral generated-draft contract and Issue #63/PR #79 completed the disabled-by-default server-only Gemini adapter. Issue #64 is the active authenticated quota/orchestration slice; Issue #65 remains blocked until its migration is applied and verified. No production plan-creation UI or generated-plan persistence is implemented yet.
+Issue #62 established the provider-neutral generated-draft contract, Issue #63/PR #79 completed the server-only Gemini adapter, and Issue #64/PR #80 completed authenticated quota/orchestration. Issue #81 is the post-merge quota-completion and Gemini 3.5 compatibility correction. Issue #65 remains blocked until Issue #81 is merged, migrated, verified, and smoke-tested. No production plan-creation UI or generated-plan persistence is implemented yet.
 
 This work remains important, but the generated exercise prescription format must align with the tracking types, units, snapshots, unilateral conventions, and session-result model approved through Issue #6.
 
@@ -50,8 +50,8 @@ When resumed, split it into reviewable child issues for:
 
 - AI-first feature-gated `/plans/new` shell
 - server-only provider adapter and configuration (Issue #63/PR #79: complete)
-- quota/event storage, RLS, and authenticated generation (Issue #64: active)
-- review/edit/save integration (Issue #65: blocked on #64 migration verification)
+- quota/event storage, RLS, and authenticated generation (Issue #64/PR #80: complete; Issue #81 follow-up active)
+- review/edit/save integration (Issue #65: blocked on Issue #81 deployment verification)
 - privacy, failure-state, accessibility, and end-to-end QA
 
 ## Completed Foundations
@@ -151,4 +151,4 @@ LLMs must remain optional and must not replace deterministic progression, valida
 
 ### AI generated draft boundary
 
-Issue #62 completed the canonical draft and deterministic matcher, Issue #69 expanded reviewed catalog coverage, and Issue #63/PR #79 completed the server-only Gemini adapter. Issue #64 now owns authenticated atomic quota/orchestration. Issue #65 is next only after the #64 migration has been applied and verified; it will integrate review/edit/save without changing the no-persistence-before-review boundary.
+Issue #62 completed the canonical draft and deterministic matcher, Issue #69 expanded reviewed catalog coverage, Issue #63/PR #79 completed the server-only Gemini adapter, and Issue #64/PR #80 completed authenticated atomic quota/orchestration. Issue #81 now owns the fail-closed completion correction and Gemini 3.5 compatibility. Issue #65 is next only after Issue #81 is merged, migrated, verified, and smoke-tested; it will integrate review/edit/save without changing the no-persistence-before-review boundary.

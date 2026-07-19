@@ -99,7 +99,7 @@ AI_GENERATION_ENABLED=false
 AI_GENERATION_PROVIDER=gemini
 AI_GENERATION_DAILY_SUCCESS_LIMIT=1
 AI_GENERATION_DAILY_ATTEMPT_LIMIT=3
-GEMINI_MODEL=gemini-2.5-flash
+GEMINI_MODEL=gemini-3.5-flash
 GEMINI_TIMEOUT_MS=12000
 GEMINI_MAX_INPUT_CHARS=4000
 GEMINI_MAX_OUTPUT_TOKENS=4096
@@ -112,15 +112,19 @@ unless `AI_GENERATION_ENABLED=true`, the provider is `gemini`, all bounds and
 quotas are valid, and both server secrets are set. The default per-user UTC quota
 is one success and three provider attempts per day. Failed, timed-out,
 rate-limited, and invalid-output calls consume attempts but not successes.
+Reserved, succeeded, and indeterminate-success attempts consume success capacity;
+stale or uncertain reservations fail closed for the UTC day.
 
-Before enabling Preview, merge the code and migration, run
-`npx supabase db push --linked --dry-run`, apply the reviewed migration with
-`npx supabase db push --linked`, then run
-`psql $env:SUPABASE_DB_URL -v ON_ERROR_STOP=1 -f .\supabase\verification\issue-64-ai-generation-quota-readonly.sql`.
-Redeploy with `AI_GENERATION_ENABLED=false`, smoke-test the authenticated endpoint,
-and only then enable Preview. Keep Production disabled through Issue #65 and full
-Preview QA. Only minimized validated plan-setup context is sent to Gemini; no
-prompt, response, key, provider error body, or generated plan is persisted.
+Keep Production `AI_GENERATION_ENABLED=false` while deploying Issue #81. After
+merge, preview the linked migration history, apply only
+`supabase/migrations/20260719011847_issue81_ai_quota_indeterminate_success.sql`,
+and run both the original Issue #64 read-only verification and
+`supabase/verification/issue-81-ai-quota-indeterminate-success-readonly.sql`.
+Confirm Production uses `GEMINI_MODEL=gemini-3.5-flash`, then redeploy disabled.
+Use an approved test user or wait for the UTC reset before one controlled smoke
+test, and disable generation again until Issue #65 is ready. Only minimized
+validated plan-setup context is sent to Gemini; no prompt, response, key,
+provider error body, diagnostic content, or generated plan is persisted.
 
 For local development, place them in `.env.local`.
 

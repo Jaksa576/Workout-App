@@ -66,7 +66,7 @@ begin
 
   if lower(pg_get_functiondef(v_reserve)) not like '%pg_advisory_xact_lock%' or
      lower(pg_get_functiondef(v_reserve)) not like '%at time zone ''utc''%' or
-     lower(pg_get_functiondef(v_reserve)) not like '%status in (''reserved'', ''succeeded'')%' then
+     lower(pg_get_functiondef(v_reserve)) not like '%status in (''reserved'', ''succeeded''%' then
     raise exception 'reservation function is missing atomic, UTC-date, or success-capacity behavior';
   end if;
 

@@ -9,6 +9,7 @@ export type AiGenerationReservationDecision =
 
 export type AiGenerationAttemptOutcome =
   | "succeeded"
+  | "indeterminate_success"
   | "provider_failure"
   | "timeout"
   | "rate_limited"

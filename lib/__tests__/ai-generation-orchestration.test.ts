@@ -11,7 +11,7 @@ const env = {
   AI_GENERATION_ENABLED: "true",
   AI_GENERATION_PROVIDER: "gemini",
   GEMINI_API_KEY: "test-key",
-  GEMINI_MODEL: "gemini-2.5-flash",
+  GEMINI_MODEL: "gemini-3.5-flash",
   GEMINI_TIMEOUT_MS: "20",
   GEMINI_MAX_INPUT_CHARS: "4000",
   GEMINI_MAX_OUTPUT_TOKENS: "1024",
@@ -73,7 +73,7 @@ function createQuotaState() {
       : undefined;
     if (duplicate) return reservation("duplicate_request", duplicate.id);
     if (attempts.length >= attemptLimit) return reservation("attempt_limit_reached", null);
-    if (attempts.filter((attempt) => attempt.status === "reserved" || attempt.status === "succeeded").length >= successLimit) {
+    if (attempts.filter((attempt) => attempt.status === "reserved" || attempt.status === "succeeded" || attempt.status === "indeterminate_success").length >= successLimit) {
       return reservation("success_quota_reached", null);
     }
     const id = `attempt-${attempts.length + 1}`;
@@ -89,7 +89,10 @@ function createQuotaState() {
     outcome: AiGenerationAttemptOutcome;
   }) => {
     const attempt = attempts.find((candidate) => candidate.id === attemptId);
-    if (!attempt || attempt.status !== "reserved") throw new Error("invalid completion");
+    if (!attempt) throw new Error("invalid completion");
+    if (attempt.status === outcome) return;
+    if (attempt.status === "succeeded" && outcome === "indeterminate_success") return;
+    if (attempt.status !== "reserved") throw new Error("invalid completion");
     attempt.status = outcome;
   });
   return { attempts, reserveAttempt, completeAttempt };
@@ -222,6 +225,62 @@ describe("authenticated AI generation orchestration", () => {
     expect(generate).toHaveBeenCalledTimes(1);
   });
 
+  it.each(["before persistence", "after commit"] as const)(
+    "fails closed when succeeded completion errors %s",
+    async (failurePoint) => {
+      const quota = createQuotaState();
+      const persistedComplete = quota.completeAttempt;
+      let successCompletion = true;
+      const completeAttempt = vi.fn(async (
+        completion: Parameters<typeof persistedComplete>[0],
+      ) => {
+        if (completion.outcome === "succeeded" && successCompletion) {
+          successCompletion = false;
+          if (failurePoint === "after commit") await persistedComplete(completion);
+          throw new Error("uncertain completion");
+        }
+        await persistedComplete(completion);
+      });
+      const generate = vi.fn().mockResolvedValue(draft);
+
+      const result = await call({
+        reserveAttempt: quota.reserveAttempt,
+        completeAttempt,
+        generate,
+      }, "uncertain-request");
+      const retry = await call({
+        reserveAttempt: quota.reserveAttempt,
+        completeAttempt,
+        generate,
+      }, "new-request");
+
+      expect(result).toMatchObject({
+        ok: false,
+        error: { code: "orchestration_unavailable" },
+      });
+      expect(result).not.toHaveProperty("draft");
+      expect(completeAttempt).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ outcome: "succeeded" }),
+      );
+      expect(completeAttempt).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ outcome: "indeterminate_success" }),
+      );
+      expect(completeAttempt).not.toHaveBeenCalledWith(
+        expect.objectContaining({ outcome: "provider_failure" }),
+      );
+      expect(quota.attempts[0].status).toBe(
+        failurePoint === "after commit" ? "succeeded" : "indeterminate_success",
+      );
+      expect(retry).toMatchObject({
+        ok: false,
+        error: { code: "success_quota_reached" },
+      });
+      expect(generate).toHaveBeenCalledTimes(1);
+    },
+  );
+
   it("fails closed when reservation or completion state cannot be persisted", async () => {
     const generate = vi.fn().mockResolvedValue(draft);
     const reservationFailure = await call({
@@ -237,5 +296,25 @@ describe("authenticated AI generation orchestration", () => {
     expect(reservationFailure).toMatchObject({ ok: false, error: { code: "orchestration_unavailable" } });
     expect(completionFailure).toMatchObject({ ok: false, error: { code: "orchestration_unavailable" } });
     expect(JSON.stringify(completionFailure)).not.toContain("database detail");
+  });
+
+  it("fails closed when a provider-failure completion cannot persist", async () => {
+    const completeAttempt = vi.fn().mockRejectedValue(new Error("database detail"));
+    const result = await call({
+      reserveAttempt: vi.fn().mockResolvedValue(reservation()),
+      completeAttempt,
+      generate: vi.fn().mockRejectedValue(
+        new PlanGenerationError("provider_unavailable"),
+      ),
+    });
+
+    expect(result).toMatchObject({
+      ok: false,
+      error: { code: "orchestration_unavailable" },
+    });
+    expect(completeAttempt).toHaveBeenCalledOnce();
+    expect(completeAttempt).toHaveBeenCalledWith(
+      expect.objectContaining({ outcome: "provider_failure" }),
+    );
   });
 });

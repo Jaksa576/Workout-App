@@ -1,7 +1,8 @@
 import { getAiGenerationConfiguration, type EnvironmentValues } from "@/lib/ai-generation/config";
 import { PlanGenerationError } from "@/lib/ai-generation/errors";
+import { emitInvalidDraftDiagnostic, type InvalidDraftDiagnosticSink } from "@/lib/ai-generation/diagnostics";
 import { generateGeminiPlanDraft, type GeminiRequest } from "@/lib/ai-generation/gemini-plan-adapter";
-import { normalizeGeneratedPlanDraft, type NormalizedGeneratedPlanDraft } from "@/lib/generated-plan-draft";
+import { normalizeGeneratedPlanDraft, type FatalGeneratedDraftError, type GeneratedPlanDraft, type NormalizedGeneratedPlanDraft } from "@/lib/generated-plan-draft";
 import { isPlanSetupInput } from "@/lib/validation";
 import type { PlanDraftInput } from "@/lib/types";
 
@@ -33,10 +34,31 @@ export function validatePlanDraftInputForGeneration(
 ) {
   buildBoundedPrompt(input, maxInputChars);
 }
+function invalidDraftDiagnostic(draft: GeneratedPlanDraft, model: string, fatalErrors: Array<Pick<FatalGeneratedDraftError, "code" | "path"> | { code: "normalization_exception"; path: null }>) {
+  const phases = Array.isArray(draft.phases) ? draft.phases : [];
+  let workouts = 0;
+  let exercises = 0;
+  for (const phase of phases) {
+    const phaseWorkouts = Array.isArray(phase?.workouts) ? phase.workouts : [];
+    workouts += phaseWorkouts.length;
+    for (const workout of phaseWorkouts) {
+      exercises += Array.isArray(workout?.exercises) ? workout.exercises.length : 0;
+    }
+  }
+  return {
+    model,
+    stage: "canonical_validation" as const,
+    fatalValidationErrorCodes: [...new Set(fatalErrors.map((error) => error.code))],
+    reviewBlockingIssueCodes: [],
+    normalizedFieldPaths: fatalErrors.flatMap((error) => error.path === null ? [] : [error.path]),
+    counts: { fatalValidationErrors: fatalErrors.length, reviewBlockingIssues: 0, phases: phases.length, workouts, exercises },
+  };
+}
+
 
 export async function generatePlanDraftForServer(
   input: PlanDraftInput,
-  dependencies: { env?: EnvironmentValues; request?: GeminiRequest } = {},
+  dependencies: { env?: EnvironmentValues; request?: GeminiRequest; diagnosticSink?: InvalidDraftDiagnosticSink } = {},
 ): Promise<NormalizedGeneratedPlanDraft> {
   const configuration = getAiGenerationConfiguration(dependencies.env);
   if (configuration.status === "disabled") throw new PlanGenerationError("generation_disabled");
@@ -46,10 +68,13 @@ export async function generatePlanDraftForServer(
   let normalized: ReturnType<typeof normalizeGeneratedPlanDraft>;
   try {
     normalized = normalizeGeneratedPlanDraft(draft);
-  } catch (error) {
-    if (error instanceof PlanGenerationError) throw error;
+  } catch {
+    emitInvalidDraftDiagnostic(invalidDraftDiagnostic(draft, configuration.model, [{ code: "normalization_exception", path: null }]), dependencies.diagnosticSink);
     throw new PlanGenerationError("invalid_generated_plan");
   }
-  if ("fatalErrors" in normalized) throw new PlanGenerationError("invalid_generated_plan");
+  if ("fatalErrors" in normalized) {
+    emitInvalidDraftDiagnostic(invalidDraftDiagnostic(draft, configuration.model, normalized.fatalErrors), dependencies.diagnosticSink);
+    throw new PlanGenerationError("invalid_generated_plan");
+  }
   return normalized;
 }
