@@ -15,7 +15,7 @@ Review and merge the Issue #64 pull request. Then, with explicit product-owner/C
 1. Confirm the target Supabase project and migration history with `npx supabase migration list --linked`.
 2. Preview pending changes with `npx supabase db push --linked --dry-run` and stop if anything beyond the reviewed committed chain is unexpected.
 3. Apply `supabase/migrations/20260718235045_issue64_ai_generation_quota.sql` with `npx supabase db push --linked`.
-4. Run `npx supabase db query --linked --file supabase/verification/issue-64-ai-generation-quota-readonly.sql --agent=no`.
+4. Run `psql $env:SUPABASE_DB_URL -v ON_ERROR_STOP=1 -f .\supabase\verification\issue-64-ai-generation-quota-readonly.sql`.
 5. Confirm Vercel has `SUPABASE_SERVICE_ROLE_KEY`, Gemini configuration, and the two quota variables; redeploy with `AI_GENERATION_ENABLED=false`.
 6. Smoke-test the authenticated endpoint in a controlled environment, then enable Preview only after migration and verification succeed.
 

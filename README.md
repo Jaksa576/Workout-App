@@ -116,7 +116,7 @@ rate-limited, and invalid-output calls consume attempts but not successes.
 Before enabling Preview, merge the code and migration, run
 `npx supabase db push --linked --dry-run`, apply the reviewed migration with
 `npx supabase db push --linked`, then run
-`npx supabase db query --linked --file supabase/verification/issue-64-ai-generation-quota-readonly.sql --agent=no`.
+`psql $env:SUPABASE_DB_URL -v ON_ERROR_STOP=1 -f .\supabase\verification\issue-64-ai-generation-quota-readonly.sql`.
 Redeploy with `AI_GENERATION_ENABLED=false`, smoke-test the authenticated endpoint,
 and only then enable Preview. Keep Production disabled through Issue #65 and full
 Preview QA. Only minimized validated plan-setup context is sent to Gemini; no
