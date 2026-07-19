@@ -1,6 +1,10 @@
 export const DEFAULT_GEMINI_MODEL = "gemini-3.5-flash";
 export const DEFAULT_DAILY_SUCCESS_LIMIT = 1;
 export const DEFAULT_DAILY_ATTEMPT_LIMIT = 3;
+export const DEFAULT_GEMINI_TIMEOUT_MS = 150_000;
+export const MAX_GEMINI_TIMEOUT_MS = 240_000;
+export const DEFAULT_GEMINI_MAX_OUTPUT_TOKENS = 16_384;
+export const MAX_GEMINI_MAX_OUTPUT_TOKENS = 32_768;
 
 export type AiGenerationConfiguration =
   | { status: "disabled" }
@@ -38,9 +42,17 @@ export function getAiGenerationConfiguration(
   if (env.AI_GENERATION_PROVIDER !== "gemini") return { status: "invalid" };
 
   const model = (env.GEMINI_MODEL ?? DEFAULT_GEMINI_MODEL).trim();
-  const timeoutMs = boundedPositiveInteger(env.GEMINI_TIMEOUT_MS, 12_000, 60_000);
+  const timeoutMs = boundedPositiveInteger(
+    env.GEMINI_TIMEOUT_MS,
+    DEFAULT_GEMINI_TIMEOUT_MS,
+    MAX_GEMINI_TIMEOUT_MS,
+  );
   const maxInputChars = boundedPositiveInteger(env.GEMINI_MAX_INPUT_CHARS, 4_000, 12_000);
-  const maxOutputTokens = boundedPositiveInteger(env.GEMINI_MAX_OUTPUT_TOKENS, 4_096, 8_192);
+  const maxOutputTokens = boundedPositiveInteger(
+    env.GEMINI_MAX_OUTPUT_TOKENS,
+    DEFAULT_GEMINI_MAX_OUTPUT_TOKENS,
+    MAX_GEMINI_MAX_OUTPUT_TOKENS,
+  );
   const dailySuccessLimit = boundedPositiveInteger(
     env.AI_GENERATION_DAILY_SUCCESS_LIMIT,
     DEFAULT_DAILY_SUCCESS_LIMIT,

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import fixture from "@/lib/__fixtures__/gemini-plan-response.json";
-import { DEFAULT_GEMINI_MODEL, getAiGenerationConfiguration } from "@/lib/ai-generation/config";
+import { DEFAULT_GEMINI_MAX_OUTPUT_TOKENS, DEFAULT_GEMINI_MODEL, DEFAULT_GEMINI_TIMEOUT_MS, MAX_GEMINI_MAX_OUTPUT_TOKENS, MAX_GEMINI_TIMEOUT_MS, getAiGenerationConfiguration } from "@/lib/ai-generation/config";
 import { PlanGenerationError } from "@/lib/ai-generation/errors";
 import { generatePlanDraftForServer } from "@/lib/ai-generation/generate-plan";
 import type { ProviderExerciseCandidate } from "@/lib/generated-plan-draft";
@@ -17,6 +17,37 @@ const draft = (candidate = exercise) => ({ version: "generated-plan-draft-v1", n
 const responseFor = (value: unknown, status = 200) => new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(value) }] } }] }), { status, headers: { "content-type": "application/json" } });
 
 describe("server-only Gemini plan adapter", () => {
+  it("uses the large-plan defaults and fails closed above their accepted limits", () => {
+    expect(DEFAULT_GEMINI_TIMEOUT_MS).toBe(150_000);
+    expect(MAX_GEMINI_TIMEOUT_MS).toBe(240_000);
+    expect(DEFAULT_GEMINI_MAX_OUTPUT_TOKENS).toBe(16_384);
+    expect(MAX_GEMINI_MAX_OUTPUT_TOKENS).toBe(32_768);
+
+    expect(getAiGenerationConfiguration({
+      ...env,
+      GEMINI_TIMEOUT_MS: undefined,
+      GEMINI_MAX_OUTPUT_TOKENS: undefined
+    })).toMatchObject({
+      status: "ready",
+      timeoutMs: 150_000,
+      maxOutputTokens: 16_384
+    });
+    expect(getAiGenerationConfiguration({ ...env, GEMINI_TIMEOUT_MS: "240000" })).toMatchObject({
+      status: "ready",
+      timeoutMs: 240_000
+    });
+    expect(getAiGenerationConfiguration({ ...env, GEMINI_TIMEOUT_MS: "240001" })).toEqual({
+      status: "invalid"
+    });
+    expect(getAiGenerationConfiguration({ ...env, GEMINI_MAX_OUTPUT_TOKENS: "32768" })).toMatchObject({
+      status: "ready",
+      maxOutputTokens: 32_768
+    });
+    expect(getAiGenerationConfiguration({ ...env, GEMINI_MAX_OUTPUT_TOKENS: "32769" })).toEqual({
+      status: "invalid"
+    });
+  });
+
   it("keeps the representative provider-response fixture structurally usable", async () => {
     const result = await generatePlanDraftForServer(input, { env, request: vi.fn().mockResolvedValue(responseFor(fixture)) });
     expect(result.exercises[0]).toMatchObject({ status: "matched", exercise: { sourceExerciseId: "romanian-deadlift" } });
@@ -156,6 +187,25 @@ describe("server-only Gemini plan adapter", () => {
     const serialized = JSON.stringify(diagnosticSink.mock.calls[0][0]);
     for (const sensitive of [exercise.name, exercise.coachingNote, input.setup.objectiveSummary, env.GEMINI_API_KEY]) {
       expect(serialized).not.toContain(sensitive);
+    }
+  });
+
+  it("allows a request beyond the old twelve-second limit to complete", async () => {
+    vi.useFakeTimers();
+    try {
+      const slowRequest = vi.fn(() => new Promise<Response>((resolve) => {
+        setTimeout(() => resolve(responseFor(draft())), 12_001);
+      }));
+      const pending = generatePlanDraftForServer(input, {
+        env: { ...env, GEMINI_TIMEOUT_MS: "150000" },
+        request: slowRequest
+      });
+      await vi.advanceTimersByTimeAsync(12_001);
+      await expect(pending).resolves.toMatchObject({
+        plan: { name: "Strength" }
+      });
+    } finally {
+      vi.useRealTimers();
     }
   });
 

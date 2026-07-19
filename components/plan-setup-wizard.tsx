@@ -1,8 +1,23 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AiPlanDraftWizard } from "@/components/ai-plan-draft-wizard";
 import { PlanBuilderForm } from "@/components/plan-builder-form";
+import {
+  applySetupMetadataToAiDraft,
+  AiGenerationAttemptGuard,
+  getPlanCreationModeTransition,
+  isPlanDraftGenerationDisabled,
+  requestAiPlanDraft,
+  validateAiGenerationSetup,
+  type AiGenerationErrorPresentation,
+  type PlanCreationMode
+} from "@/lib/ai-generation/client";
+import {
+  attachGenerationNavigationWarning,
+  getGenerationWaitState
+} from "@/lib/ai-generation/generation-wait-state";
+import type { NormalizedGeneratedExercise } from "@/lib/generated-plan-draft";
 import {
   buildDefaultPlanSetup,
   getDefaultPlanSplit,
@@ -20,11 +35,9 @@ import type {
 } from "@/lib/types";
 
 type WizardStep = "goal" | "details" | "generate" | "review";
-type PlanMode = "guided" | "manual" | "ai";
-
 type PlanSetupWizardProps = {
   profile: Profile | null;
-  initialMode?: PlanMode;
+  initialMode?: PlanCreationMode;
   initialSetup?: PlanSetupInput;
   editingPlan?: {
     id: string;
@@ -33,6 +46,7 @@ type PlanSetupWizardProps = {
   setupContextNotices?: string[];
   setupContextMissingFields?: string[];
   allowManualMode?: boolean;
+  aiGenerationOperational?: boolean;
 };
 
 const steps: Array<{ id: WizardStep; label: string }> = [
@@ -132,22 +146,66 @@ export function PlanSetupWizard({
   editingPlan,
   setupContextNotices = [],
   setupContextMissingFields = [],
-  allowManualMode = true
+  allowManualMode = true,
+  aiGenerationOperational = false
 }: PlanSetupWizardProps) {
-  const [mode, setMode] = useState<PlanMode>(initialMode);
+  const [mode, setMode] = useState<PlanCreationMode>(initialMode);
   const [stepIndex, setStepIndex] = useState(0);
   const [setup, setSetup] = useState<PlanSetupInput>(
     () => initialSetup ?? buildDefaultPlanSetup(profile)
   );
   const [draft, setDraft] = useState<StructuredPlanInput | null>(null);
+  const [draftSetup, setDraftSetup] = useState<PlanSetupInput | null>(null);
   const [draftKey, setDraftKey] = useState(0);
+  const [generatedExercises, setGeneratedExercises] = useState<NormalizedGeneratedExercise[]>([]);
+  const generationGuardRef = useRef<AiGenerationAttemptGuard | null>(null);
+  generationGuardRef.current ??= new AiGenerationAttemptGuard();
   const [generating, setGenerating] = useState(false);
-  const [generationError, setGenerationError] = useState<string | null>(null);
+  const [generationElapsedMs, setGenerationElapsedMs] = useState(0);
+  const [generationError, setGenerationError] = useState<
+    (AiGenerationErrorPresentation & { code?: string }) | null
+  >(null);
+
+  useEffect(() => {
+    if (!generating) {
+      setGenerationElapsedMs(0);
+      return;
+    }
+
+    const startedAt = Date.now();
+    const updateElapsed = () => setGenerationElapsedMs(Date.now() - startedAt);
+    updateElapsed();
+    const interval = window.setInterval(updateElapsed, 1_000);
+    return () => window.clearInterval(interval);
+  }, [generating]);
+
+  useEffect(() => {
+    if (!generating) return;
+    return attachGenerationNavigationWarning(window);
+  }, [generating]);
+
+  function changeMode(nextMode: PlanCreationMode) {
+    if (generating) return;
+    const transition = getPlanCreationModeTransition(nextMode);
+    setMode(transition.mode);
+    setGenerationError(transition.generationError);
+    if (transition.clearGeneratedExerciseReview) {
+      setGeneratedExercises([]);
+    }
+    if (transition.clearGeneratedDraft) {
+      setDraft(null);
+      setDraftSetup(null);
+      setStepIndex((current) => Math.min(current, 2));
+    }
+  }
+
   const step = steps[stepIndex];
   const effectiveMode = allowManualMode ? mode : "guided";
   const isEditing = Boolean(editingPlan);
 
   const selectedGoal = goalOptions.find((option) => option.value === setup.goalType);
+  const isDirectAi = effectiveMode === "direct-ai" && aiGenerationOperational;
+  const generationWaitState = getGenerationWaitState(generationElapsedMs);
   const defaultProgressionMode = useMemo(
     () => selectDefaultProgressionMode(setup.goalType),
     [setup.goalType]
@@ -176,31 +234,64 @@ export function PlanSetupWizard({
   }
 
   async function generateDraft() {
+    if (generating) return;
+    const validationErrors = validateAiGenerationSetup(setup);
+    if (validationErrors.length) {
+      setGenerationError({
+        title: "Check your setup",
+        message: validationErrors.join(" "),
+        retryAllowed: true
+      });
+      return;
+    }
+
     setGenerating(true);
     setGenerationError(null);
 
     try {
-      const response = await fetch("/api/plan-drafts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(setup)
-      });
-      const result = (await response.json()) as {
-        draft?: StructuredPlanInput;
-        error?: string;
-      };
+      if (isDirectAi) {
+        const result = await requestAiPlanDraft({
+          setup,
+          guard: generationGuardRef.current!
+        });
+        if (!result) return;
+        setDraft(applySetupMetadataToAiDraft(result.draft.plan, setup));
+        setDraftSetup(setup);
+        setGeneratedExercises(result.draft.exercises);
+      } else {
+        const response = await fetch("/api/plan-drafts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(setup)
+        });
+        const result = (await response.json()) as {
+          draft?: StructuredPlanInput;
+          error?: string;
+        };
 
-      if (!response.ok || !result.draft) {
-        throw new Error(result.error ?? "Unable to generate plan draft.");
+        if (!response.ok || !result.draft) {
+          throw new Error(result.error ?? "Unable to generate plan draft.");
+        }
+        setDraft(result.draft);
+        setDraftSetup(setup);
+        setGeneratedExercises([]);
       }
 
-      setDraft(result.draft);
       setDraftKey((current) => current + 1);
       setStepIndex(3);
     } catch (error) {
-      setGenerationError(
-        error instanceof Error ? error.message : "Unable to generate plan draft."
-      );
+      const presentation = (
+        error as Error & { presentation?: AiGenerationErrorPresentation & { code?: string } }
+      ).presentation;
+      setGenerationError(presentation ?? {
+        title: isDirectAi ? "Unable to generate a draft" : "Unable to create a template draft",
+        message: isDirectAi
+          ? "Nothing was saved. Try again or continue with another creation method."
+          : error instanceof Error
+            ? error.message
+            : "Nothing was saved. Try again.",
+        retryAllowed: true
+      });
     } finally {
       setGenerating(false);
     }
@@ -215,20 +306,29 @@ export function PlanSetupWizard({
             Build the structure yourself. This path is still here for advanced edits or plans
             you already have in mind.
           </p>
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <button
               type="button"
-              onClick={() => setMode("guided")}
+              onClick={() => changeMode("guided")} disabled={generating}
               className="ui-button-secondary"
             >
               Use Guided Setup
             </button>
+            {aiGenerationOperational ? (
+              <button
+                type="button"
+                onClick={() => changeMode("direct-ai")} disabled={generating}
+                className="ui-button-secondary"
+              >
+                Create with AI
+              </button>
+            ) : null}
             <button
               type="button"
-              onClick={() => setMode("ai")}
+              onClick={() => changeMode("ai-import")} disabled={generating}
               className="ui-button-secondary"
             >
-              Draft with AI
+              External AI Import
             </button>
           </div>
         </div>
@@ -237,29 +337,38 @@ export function PlanSetupWizard({
     );
   }
 
-  if (effectiveMode === "ai") {
+  if (effectiveMode === "ai-import") {
     return (
       <div className="space-y-6">
         <div className="surface-panel flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-sm font-semibold text-copy">Draft with AI</p>
+            <p className="text-sm font-semibold text-copy">External AI import</p>
             <p className="mt-1 text-sm leading-6 text-muted">
               Use your own external AI assistant as an optional drafting helper, then review and
               edit the imported plan before saving it in the app.
             </p>
           </div>
-          <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <button
               type="button"
-              onClick={() => setMode("guided")}
+              onClick={() => changeMode("guided")} disabled={generating}
               className="ui-button-secondary"
             >
               Guided Setup
             </button>
+            {aiGenerationOperational ? (
+              <button
+                type="button"
+                onClick={() => changeMode("direct-ai")} disabled={generating}
+                className="ui-button-secondary"
+              >
+                Create with AI
+              </button>
+            ) : null}
             {allowManualMode ? (
               <button
                 type="button"
-                onClick={() => setMode("manual")}
+                onClick={() => changeMode("manual")} disabled={generating}
                 className="ui-button-secondary"
               >
                 Manual Builder
@@ -280,33 +389,44 @@ export function PlanSetupWizard({
       <div className="surface-panel flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="ui-eyebrow">Current path</p>
-          <p className="mt-2 text-lg font-semibold text-copy">Guided setup</p>
+          <p className="mt-2 text-lg font-semibold text-copy">
+            {isDirectAi ? "Create with AI" : "Guided setup"}
+          </p>
           <p className="mt-1 text-sm leading-6 text-muted">
             {isEditing
               ? "Update this plan's setup inputs, regenerate a draft, then review before saving."
-              : "Answer a few plan-specific questions, generate a draft, then edit before saving."}
+              : isDirectAi
+                ? "Complete the familiar setup, generate a canonical draft, then review before saving."
+                : "Create a deterministic template draft, then edit it before saving."}
           </p>
         </div>
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <button
-            type="button"
-            onClick={() => setMode("ai")}
-            className="ui-button-secondary"
-          >
-            Draft with AI
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          {isDirectAi ? (
+            <button type="button" onClick={() => changeMode("guided")} disabled={generating} className="ui-button-secondary">
+              Guided Setup
+            </button>
+          ) : aiGenerationOperational ? (
+            <button type="button" onClick={() => changeMode("direct-ai")} disabled={generating} className="ui-button-primary">
+              Create with AI
+            </button>
+          ) : null}
+          <button type="button" onClick={() => changeMode("ai-import")} disabled={generating} className="ui-button-secondary">
+            External AI Import
           </button>
           {allowManualMode ? (
-            <button
-              type="button"
-              onClick={() => setMode("manual")}
-              className="ui-button-secondary"
-            >
+            <button type="button" onClick={() => changeMode("manual")} disabled={generating} className="ui-button-secondary">
               Manual Builder
             </button>
           ) : null}
         </div>
       </div>
 
+      {!aiGenerationOperational && !isEditing ? (
+        <div className="rounded-[24px] border border-warning/25 bg-warning/10 p-4 text-sm leading-6 text-muted sm:rounded-[28px]">
+          <span className="font-semibold text-copy">Create with AI is unavailable right now.</span>{" "}
+          Guided Setup, Manual Builder, and external AI import remain available.
+        </div>
+      ) : null}
       <div className="grid gap-3 md:grid-cols-3">
         {[
           {
@@ -315,7 +435,9 @@ export function PlanSetupWizard({
           },
           {
             title: "Draft",
-            body: "Generate a structured template draft without changing profile or auth state."
+            body: isDirectAi
+              ? "Generate a canonical AI draft without saving a plan."
+              : "Generate a deterministic template draft without changing profile or auth state."
           },
           {
             title: "Review",
@@ -356,7 +478,8 @@ export function PlanSetupWizard({
         </div>
       ) : null}
 
-      <div className="surface-panel-muted space-y-3 p-3">
+      <fieldset disabled={generating} className="contents">
+    <div className="surface-panel-muted space-y-3 p-3">
         <div className="flex items-center justify-between gap-3">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
             Step {stepIndex + 1} of {steps.length}
@@ -369,7 +492,7 @@ export function PlanSetupWizard({
             key={item.id}
             type="button"
             onClick={() => setStepIndex(index)}
-            disabled={index === 3 && !draft}
+            disabled={generating || (index === 3 && !draft)}
             className={`ui-step-chip ${
               step.id === item.id
                 ? "ui-step-chip-active"
@@ -615,10 +738,48 @@ export function PlanSetupWizard({
               </p>
             </div>
           </div>
+            {isDirectAi ? (
+              <div className="mt-4 rounded-[20px] border border-border bg-surface-soft p-4 text-sm leading-6 text-muted">
+                AI creates a limited-use draft for you to review and edit before saving. Do not
+                enter sensitive medical details. Ask a clinician about pain, symptoms, injury
+                uncertainty, or other medical concerns.
+              </div>
+            ) : null}
 
-          {generationError ? (
-            <div className="rounded-[24px] border border-accent/25 bg-accent/10 p-4 text-sm leading-6 text-muted sm:rounded-[28px]">
-              {generationError}
+          {generating ? (
+            <div role="status" aria-live="polite" aria-atomic="true" className="rounded-[24px] border border-accent/25 bg-accent/10 p-4 text-sm leading-6 text-muted sm:rounded-[28px]">
+              <div className="flex items-start gap-3">
+                <span aria-hidden="true" className="mt-1 inline-flex h-5 w-5 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+                <div>
+                  <p className="font-semibold text-copy">Creating your draft</p>
+                  <p className="mt-1 text-muted">{generationWaitState.activityMessage}</p>
+                  <p className="mt-2 text-muted">Elapsed: {generationWaitState.elapsedLabel}. Nothing has been saved yet.</p>
+                  {generationWaitState.showLongRunningGuidance ? (
+                    <p className="mt-2 text-muted">Detailed plans can take one or two minutes. Keep this page open while we prepare your draft.</p>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          ) : generationError ? (
+            <div role="alert" className="rounded-[24px] border border-accent/25 bg-accent/10 p-4 text-sm leading-6 text-muted sm:rounded-[28px]">
+              <p className="font-semibold text-copy">{generationError.title}</p>
+              <p className="mt-2">{generationError.message}</p>
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                {generationError.signInRequired ? (
+                  <a href="/" className="ui-button-secondary">Sign in again</a>
+                ) : null}
+                <button type="button" onClick={() => changeMode("guided")} disabled={generating} className="ui-button-secondary">
+                  Guided Setup
+                </button>
+                <button type="button" onClick={() => changeMode("ai-import")} disabled={generating} className="ui-button-secondary">
+                  External AI Import
+                </button>
+                {allowManualMode ? (
+                  <button type="button" onClick={() => changeMode("manual")} disabled={generating} className="ui-button-secondary">
+                    Manual Builder
+                  </button>
+                ) : null}
+              </div>
             </div>
           ) : null}
 
@@ -628,19 +789,20 @@ export function PlanSetupWizard({
       {step.id === "review" ? (
         <div className="space-y-5">
           <div className="surface-panel">
-            <p className="text-sm font-semibold text-copy">Review and edit before saving</p>
+            <p className="text-sm font-semibold text-copy">{isDirectAi ? "AI-generated draft" : "Review and edit before saving"}</p>
             <p className="mt-2 text-sm leading-6 text-muted">
               {isEditing
                 ? `You are reviewing a regenerated version of ${editingPlan?.name ?? "this plan"}. Make any changes, then save when it looks right.`
-                : "This is the same review path future draft sources can use. Make any changes, then save when the structure looks right."}
+                : "Review and edit every level of this draft. Nothing is saved until you explicitly choose Save."}
             </p>
           </div>
           {draft ? (
             <PlanBuilderForm
               key={draftKey}
               initialPlan={draft}
+              generatedExerciseReview={isDirectAi ? generatedExercises : undefined}
               submitLabel={isEditing ? "Save regenerated plan" : "Save Generated Plan"}
-              setupContext={setup}
+              setupContext={draftSetup ?? setup}
               planId={editingPlan?.id}
               flow={isEditing ? "edit-setup" : "create"}
               editingPlanName={editingPlan?.name}
@@ -658,7 +820,7 @@ export function PlanSetupWizard({
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:flex-wrap">
           <button
             type="button"
-            disabled={stepIndex === 0}
+            disabled={generating || stepIndex === 0}
             onClick={() => setStepIndex((index) => Math.max(0, index - 1))}
             className="ui-button-secondary disabled:opacity-40"
           >
@@ -668,23 +830,36 @@ export function PlanSetupWizard({
           <button
             type="button"
             onClick={generateDraft}
-            disabled={generating}
+            disabled={isPlanDraftGenerationDisabled({
+              generating,
+              isDirectAi,
+              generationError
+            })}
             className="ui-button-primary disabled:opacity-60"
           >
-            {generating ? "Generating..." : "Generate Draft"}
+            {generating
+              ? "Generating..."
+              : isDirectAi && generationError?.retryAllowed === false
+                ? "Generation unavailable"
+                : isDirectAi
+                  ? "Generate AI Draft"
+                  : "Generate Draft"}
           </button>
         ) : (
           <button
             type="button"
             onClick={() => setStepIndex((index) => Math.min(steps.length - 1, index + 1))}
-            className="ui-button-primary"
+            disabled={generating}
+            className="ui-button-primary disabled:opacity-60"
           >
             Continue
           </button>
         )}
+
         </div>
         </div>
       ) : null}
+    </fieldset>
     </div>
   );
 }

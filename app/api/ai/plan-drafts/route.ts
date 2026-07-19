@@ -9,6 +9,7 @@ import type { PlanGenerationErrorCode } from "@/lib/ai-generation/errors";
 import { isPlanSetupInput, normalizeWeekdays } from "@/lib/validation";
 
 export const runtime = "nodejs";
+export const maxDuration = 300;
 
 const requestIdentifierPattern = /^[A-Za-z0-9._:-]{1,128}$/;
 
