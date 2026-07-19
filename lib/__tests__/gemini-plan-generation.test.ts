@@ -12,7 +12,7 @@ const env = {
   GEMINI_TIMEOUT_MS: "20", GEMINI_MAX_INPUT_CHARS: "4000", GEMINI_MAX_OUTPUT_TOKENS: "1024",
 };
 const input = { setup: { goalType: "strength" as const, objectiveSummary: "Get stronger", daysPerWeek: 1, sessionMinutes: 45, weeklySchedule: ["mon" as const], preferredSplit: "full_body" as const, focusAreas: ["squat"], currentConstraints: [] } };
-const exercise: ProviderExerciseCandidate = { name: "Custom prowler march", prescription: { sets: 3, reps: "30 sec", rest: "60 sec" }, trackingType: "duration", unilateralMode: "bilateral", supportedLoadUnits: [], supportedDistanceUnits: [], primaryValueLabel: "Duration", secondaryValueLabel: null, coachingNote: "Move smoothly.", videoUrl: "https://youtu.be/dQw4w9WgXcQ", videoSearchQuery: "custom prowler march exercise demo" };
+const exercise: ProviderExerciseCandidate = { name: "Custom prowler march", prescription: { sets: 3, reps: "30 sec", rest: "60 sec" }, trackingType: "duration", unilateralMode: "bilateral", loadUnit: null, supportedLoadUnits: [], distanceUnit: null, supportedDistanceUnits: [], primaryValueLabel: "Duration", secondaryValueLabel: null, coachingNote: "Move smoothly.", videoUrl: null, videoSearchQuery: "custom prowler march exercise demo" };
 const draft = (candidate = exercise) => ({ version: "generated-plan-draft-v1", name: "Strength", description: "Review me", weeklySchedule: ["mon"], phases: [{ goal: "Build", workouts: [{ name: "Day one", focus: "Strength", summary: "Full body", scheduledDays: ["mon"], exercises: [candidate] }] }] });
 const responseFor = (value: unknown, status = 200) => new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(value) }] } }] }), { status, headers: { "content-type": "application/json" } });
 
@@ -53,10 +53,14 @@ describe("server-only Gemini plan adapter", () => {
     expect(result.exercises[0]).toMatchObject({ status: "matched", exercise: { sourceExerciseId: "romanian-deadlift" } });
   });
 
-  it("uses bounded structured output then canonical normalization for a valid custom exercise", async () => {
+  it("uses bounded structured output then canonical normalization for an exercise without a provider catalog ID", async () => {
     const request = vi.fn().mockResolvedValue(responseFor(draft()));
     const result = await generatePlanDraftForServer(input, { env, request });
-    expect(result.exercises[0]).toMatchObject({ status: "custom" });
+    expect(result.exercises[0]).toMatchObject({
+      status: "needs_review",
+      provenance: { kind: "custom_candidate" },
+      issues: [expect.objectContaining({ field: "videoUrl" })],
+    });
     const [, init] = request.mock.calls[0];
     expect(init.body).toContain("responseJsonSchema");
     expect(init.body).toContain("maxOutputTokens");
@@ -98,20 +102,21 @@ describe("server-only Gemini plan adapter", () => {
     expect(workoutSchema.items.properties.scheduledDays.items.enum).toEqual(
       schema.properties.weeklySchedule.items.enum,
     );
-    expect(exerciseSchema.items.properties.videoUrl.type).toEqual([
-      "string", "null",
-    ]);
+    expect(exerciseSchema.items.properties).not.toHaveProperty("proposedCatalogId");
+    expect(exerciseSchema.items.properties.videoUrl.type).toBe("null");
+    expect(exerciseSchema.items.required).toContain("videoSearchQuery");
 
     const systemInstruction = body.systemInstruction.parts[0].text as string;
-    expect(systemInstruction).toContain("Use non-empty strings");
-    expect(systemInstruction).toContain("Catalog-matched exercises receive catalog-owned");
-    expect(systemInstruction).toContain("Set generated videoUrl to null");
-    expect(systemInstruction).toContain("never invent a direct YouTube URL");
-    expect(systemInstruction).not.toContain("needs a direct");
-    expect(systemInstruction).not.toContain("provide a direct YouTube URL");
+    expect(systemInstruction).toContain("expert evidence-informed training-program designer");
+    expect(systemInstruction).toContain("one phase or multiple phases");
+    expect(systemInstruction).toContain("The application owns deterministic progression and readiness-based adaptation.");
+    expect(systemInstruction).toContain("Do not provide or invent direct video URLs.");
+    expect(systemInstruction).toContain("Use no markdown or commentary outside the JSON.");
+    expect(systemInstruction).not.toContain("proposedCatalogId");
+    expect(systemInstruction).not.toContain("catalog identity");
   });
 
-  it("allows a null generated video URL to enter review without weakening save validation", async () => {
+  it("keeps a null generated video URL in the review flow without weakening save validation", async () => {
     const result = await generatePlanDraftForServer(input, {
       env,
       request: vi.fn().mockResolvedValue(responseFor(draft({ ...exercise, videoUrl: null }))),
@@ -131,10 +136,19 @@ describe("server-only Gemini plan adapter", () => {
     expect(new Headers(init.headers).get("x-goog-api-key")).toBe(env.GEMINI_API_KEY);
   });
 
-  it("preserves catalog metadata precedence and reviewed alias resolution", async () => {
-    const catalog: ProviderExerciseCandidate = { ...exercise, name: "Barbell RDL", proposedCatalogId: "romanian-deadlift", videoUrl: "not a url", trackingType: "duration" };
+  it("resolves Gemini exercise names through the app-owned reviewed alias matcher", async () => {
+    const catalog: ProviderExerciseCandidate = { ...exercise, name: "Barbell RDL", trackingType: "duration" };
     const result = await generatePlanDraftForServer(input, { env, request: vi.fn().mockResolvedValue(responseFor(draft(catalog))) });
     expect(result.exercises[0]).toMatchObject({ status: "matched", exercise: { sourceExerciseId: "romanian-deadlift", trackingType: "weight_reps", videoUrl: "https://www.youtube.com/watch?v=JCXUYuzwNrM" } });
+  });
+
+  it("accepts valid one-phase and multi-phase Gemini drafts", async () => {
+    const multiPhase = draft();
+    multiPhase.phases.push({ ...multiPhase.phases[0], goal: "Build capacity" });
+    await expect(generatePlanDraftForServer(input, {
+      env,
+      request: vi.fn().mockResolvedValue(responseFor(multiPhase)),
+    })).resolves.toMatchObject({ plan: { phases: [{}, {}] } });
   });
 
   it.each([
@@ -152,6 +166,19 @@ describe("server-only Gemini plan adapter", () => {
     await expect(generatePlanDraftForServer(input, { env, request: vi.fn().mockResolvedValue(responseFor({ no: "draft" })) })).rejects.toMatchObject({ code: "malformed_provider_output" });
     await expect(generatePlanDraftForServer(input, { env, request: vi.fn().mockResolvedValue(responseFor(draft({ ...exercise, prescription: { sets: 0, reps: "8", rest: "60 sec" } })) ) })).rejects.toMatchObject({ code: "invalid_generated_plan" });
     await expect(generatePlanDraftForServer({ setup: { ...input.setup, objectiveSummary: "x".repeat(241) } }, { env })).rejects.toMatchObject({ code: "unsafe_input" });
+  });
+
+  it("rejects provider catalog IDs, direct video URLs, and missing video queries provider-neutrally", async () => {
+    for (const candidate of [
+      { ...exercise, proposedCatalogId: "romanian-deadlift" },
+      { ...exercise, videoUrl: "https://youtu.be/dQw4w9WgXcQ" },
+      { ...exercise, videoSearchQuery: "" },
+    ]) {
+      await expect(generatePlanDraftForServer(input, {
+        env,
+        request: vi.fn().mockResolvedValue(responseFor(draft(candidate))),
+      })).rejects.toMatchObject({ code: "malformed_provider_output" });
+    }
   });
 
   it("maps malformed exercise metadata to a typed invalid-generated-plan error", async () => {

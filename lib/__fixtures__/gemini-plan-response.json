@@ -3,5 +3,5 @@
   "name": "Representative Gemini strength draft",
   "description": "A bounded structured-response fixture.",
   "weeklySchedule": ["mon"],
-  "phases": [{"goal":"Build strength","workouts":[{"name":"Day one","focus":"Strength","summary":"Full body","scheduledDays":["mon"],"exercises":[{"proposedCatalogId":"romanian-deadlift","name":"Barbell RDL","prescription":{"sets":3,"reps":"8","rest":"90 sec"},"trackingType":"weight_reps","unilateralMode":"bilateral","supportedLoadUnits":["lb","kg"],"supportedDistanceUnits":[],"primaryValueLabel":"Weight","secondaryValueLabel":"Reps","coachingNote":"Brace before each rep.","videoUrl":"https://www.youtube.com/watch?v=JCXUYuzwNrM","videoSearchQuery":"barbell Romanian deadlift exercise demo"}]}]}]
+  "phases": [{"goal":"Build strength","workouts":[{"name":"Day one","focus":"Strength","summary":"Full body","scheduledDays":["mon"],"exercises":[{"name":"Barbell RDL","prescription":{"sets":3,"reps":"8","rest":"90 sec"},"trackingType":"weight_reps","unilateralMode":"bilateral","loadUnit":"lb","supportedLoadUnits":["lb","kg"],"distanceUnit":null,"supportedDistanceUnits":[],"primaryValueLabel":"Weight","secondaryValueLabel":"Reps","coachingNote":"Brace before each rep.","videoUrl":null,"videoSearchQuery":"barbell Romanian deadlift exercise demo"}]}]}]
 }
