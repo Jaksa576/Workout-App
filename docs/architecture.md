@@ -31,6 +31,23 @@ Boundary rules:
 - `/workout` is the authenticated workout details and selection surface: it may recover a local active draft, but it must not render the active checklist, check-in, saved execution UI, or broad execution shell. Fresh recovered drafts on `/workout` are resume-only and hand off to `/workout/active`.
 - `/workout/active` is the authenticated active execution surface: the normal Dashboard, Plans, Workout, and Settings shell navigation is hidden; Start and Resume land there; leaving without finishing preserves the Issue #11 local draft; explicit Discard clears only that local draft and returns to `/workout?workoutId=<id>`.
 
+## Navigation Attention Contract (Issue #48)
+
+The small client-side `lib/navigation-attention.ts` contract coordinates new
+workflow destinations and explicit element targets. It deliberately keeps
+scrolling and focus separate: callers request positioning for a target, then
+may opt into programmatic focus only for a meaningful non-input heading or
+landmark. Focus uses `preventScroll`, so it cannot undo positioning or open a
+mobile keyboard.
+
+Targets use local `scroll-mt-*` spacing when sticky UI could obscure them.
+Requested smooth positioning respects `prefers-reduced-motion`; all other
+navigation attention is immediate. This is not an app-wide scroll-restoration
+system: Next.js routing and browser Back/Forward restoration remain untouched.
+Dialog focus traps/restoration and intentional selected-card positioning are
+separate mechanisms and must remain so unless a later scoped issue changes
+them.
+
 ## Data Model
 
 The core database/app model is:

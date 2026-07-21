@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { directNavigationAttention } from "@/lib/navigation-attention";
 import type { Route } from "next";
 import { shouldPersistActiveWorkoutDraft } from "@/lib/active-workout-lifecycle";
 import { activeWorkoutAutoStartRestDefault } from "@/lib/active-workout-rest";
@@ -862,6 +863,8 @@ export function WorkoutFlow({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [discardDialogOpen, setDiscardDialogOpen] = useState(false);
   const settingsTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const checkInHeadingRef = useRef<HTMLHeadingElement | null>(null);
+  const savedHeadingRef = useRef<HTMLHeadingElement | null>(null);
   const workoutCardRefs = useRef<Record<string, HTMLElement | null>>({});
   const completedFeedbackEvents = useRef(new Set<string>());
   const { unlockAudio, playCompletionCue, closeAudio } =
@@ -991,6 +994,22 @@ export function WorkoutFlow({
       setStep("idle");
     }
   }, [mode, userId, workouts]);
+
+  useEffect(() => {
+    if (step !== "check-in") return;
+    const frame = window.requestAnimationFrame(() => {
+      directNavigationAttention(checkInHeadingRef.current, { focus: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [step]);
+
+  useEffect(() => {
+    if (step !== "saved") return;
+    const frame = window.requestAnimationFrame(() => {
+      directNavigationAttention(savedHeadingRef.current, { focus: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [step]);
 
   useEffect(() => {
     if (isActiveMode) {
@@ -1329,7 +1348,6 @@ export function WorkoutFlow({
     setCurrentRestExerciseId(null);
     setStep("check-in");
     setStatus(null);
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }
 
   function handleBackToWorkout() {
@@ -1396,7 +1414,6 @@ export function WorkoutFlow({
       );
       setActiveDraft(null);
       setStep("saved");
-      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
       setNotes("");
       startTransition(() => router.refresh());
     } catch (error) {
@@ -1645,7 +1662,11 @@ export function WorkoutFlow({
           {step === "check-in" ? (
             <div className="surface-card p-5 sm:p-6">
               <p className="ui-eyebrow">Finish workout</p>
-              <h1 className="mt-2 text-2xl font-black text-copy">
+              <h1
+                ref={checkInHeadingRef}
+                tabIndex={-1}
+                className="scroll-mt-6 mt-2 text-2xl font-black text-copy"
+              >
                 {workout.name}
               </h1>
               <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -1776,7 +1797,11 @@ export function WorkoutFlow({
           {step === "saved" && savedSession ? (
             <div className="surface-card p-5">
               <p className="ui-eyebrow">Saved</p>
-              <h1 className="mt-2 text-2xl font-black text-copy">
+              <h1
+                ref={savedHeadingRef}
+                tabIndex={-1}
+                className="scroll-mt-6 mt-2 text-2xl font-black text-copy"
+              >
                 {savedSession.workoutName}
               </h1>
               <p className="mt-2 text-sm leading-6 text-muted">

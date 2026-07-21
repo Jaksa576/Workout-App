@@ -20,6 +20,7 @@ import {
   validateAiPlanPromptInput
 } from "@/lib/plan-drafting/ai-draft-import";
 import { getDefaultSchedule } from "@/lib/plan-setup-context";
+import { directNavigationAttention } from "@/lib/navigation-attention";
 import type {
   AiPlanPromptInput,
   PlanSetupInput,
@@ -155,7 +156,7 @@ export function AiPlanDraftWizard({
     null
   );
   const [draftKey, setDraftKey] = useState(0);
-  const stepTopRef = useRef<HTMLDivElement | null>(null);
+  const stepHeadingRef = useRef<HTMLHeadingElement | null>(null);
   const hasMountedRef = useRef(false);
 
   const step = steps[stepIndex];
@@ -173,7 +174,7 @@ export function AiPlanDraftWizard({
     }
 
     window.requestAnimationFrame(() => {
-      stepTopRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
+      directNavigationAttention(stepHeadingRef.current, { focus: true, behavior: "smooth" });
     });
   }, [stepIndex]);
 
@@ -240,7 +241,7 @@ export function AiPlanDraftWizard({
   }
 
   return (
-    <div ref={stepTopRef} className="scroll-mt-4 space-y-6">
+    <div className="space-y-6">
       <div className="surface-panel-muted space-y-3 p-3">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
@@ -273,7 +274,7 @@ export function AiPlanDraftWizard({
       {step.id === "goal" ? (
         <div className="space-y-5">
           <div>
-            <h2 className="font-display text-2xl text-copy sm:text-3xl">What should the draft focus on?</h2>
+            <h2 ref={stepHeadingRef} tabIndex={-1} className="scroll-mt-6 font-display text-2xl text-copy sm:text-3xl">What should the draft focus on?</h2>
             <p className="mt-2 text-sm leading-6 text-muted">
               Pick the main goal for this plan.
             </p>
@@ -307,7 +308,7 @@ export function AiPlanDraftWizard({
       {step.id === "schedule" ? (
         <div className="space-y-5">
           <div>
-            <h2 className="font-display text-2xl text-copy sm:text-3xl">When will this plan fit?</h2>
+            <h2 ref={stepHeadingRef} tabIndex={-1} className="scroll-mt-6 font-display text-2xl text-copy sm:text-3xl">When will this plan fit?</h2>
             <p className="mt-2 text-sm leading-6 text-muted">
               Choose the weekly rhythm the external draft should respect.
             </p>
@@ -392,7 +393,7 @@ export function AiPlanDraftWizard({
       {step.id === "context" ? (
         <div className="space-y-5">
           <div>
-            <h2 className="font-display text-2xl text-copy sm:text-3xl">What should the assistant know?</h2>
+            <h2 ref={stepHeadingRef} tabIndex={-1} className="scroll-mt-6 font-display text-2xl text-copy sm:text-3xl">What should the assistant know?</h2>
             <p className="mt-2 text-sm leading-6 text-muted">
               Add the required drafting context.
             </p>
@@ -484,7 +485,7 @@ export function AiPlanDraftWizard({
       {step.id === "optional" ? (
         <div className="space-y-5">
           <div>
-            <h2 className="font-display text-2xl text-copy sm:text-3xl">Any preferences to include?</h2>
+            <h2 ref={stepHeadingRef} tabIndex={-1} className="scroll-mt-6 font-display text-2xl text-copy sm:text-3xl">Any preferences to include?</h2>
             <p className="mt-2 text-sm leading-6 text-muted">
               These are optional. Leave anything blank if it does not matter for this draft.
             </p>
@@ -607,7 +608,7 @@ export function AiPlanDraftWizard({
         <div className="space-y-5">
           <div className="surface-panel">
             <p className="ui-eyebrow">Draft with AI</p>
-            <h2 className="mt-2 font-display text-2xl text-copy sm:text-3xl">
+            <h2 ref={stepHeadingRef} tabIndex={-1} className="scroll-mt-6 mt-2 font-display text-2xl text-copy sm:text-3xl">
               Copy the prompt into an external AI tool
             </h2>
             <p className="mt-3 text-sm leading-6 text-muted">
