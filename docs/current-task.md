@@ -15,6 +15,9 @@ transitions, without app-wide scroll restoration.
   confirmation to position and focus their headings.
 - Migrated the external AI plan-draft wizard's step transition from
   unconditional smooth scrolling to the shared contract.
+- Patched the Import and Review wizard steps with their own focusable primary
+  headings, so all seven steps have exactly one sticky-header-safe navigation
+  attention target without focusing the import textarea.
 - Preserved Next.js/browser history behavior, existing dialog focus management,
   and selected-workout-card explicit positioning.
 
@@ -28,7 +31,8 @@ Run:
 ```
 
 Focused coverage must verify destination positioning, heading focus,
-reduced-motion behavior, explicit target support, and avoidance of input focus.
+reduced-motion behavior, explicit target support, avoidance of input focus, and
+an intended attention destination for each of the seven AI wizard steps.
 
 ## Deferred Work
 

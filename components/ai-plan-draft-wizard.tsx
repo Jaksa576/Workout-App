@@ -695,7 +695,13 @@ export function AiPlanDraftWizard({
       {step.id === "import" ? (
         <div className="space-y-5">
           <div className="surface-panel">
-            <p className="text-sm font-semibold text-copy">Paste the transfer block</p>
+            <h2
+              ref={stepHeadingRef}
+              tabIndex={-1}
+              className="scroll-mt-6 text-sm font-semibold text-copy"
+            >
+              Paste the transfer block
+            </h2>
             <p className="mt-2 text-sm leading-6 text-muted">
               Paste the fenced block that starts with{" "}
               <span className="font-mono text-copy">```adaptive-training-plan</span>. If your
@@ -733,7 +739,13 @@ export function AiPlanDraftWizard({
       {step.id === "review" ? (
         <div className="space-y-5">
           <div className="surface-panel">
-            <p className="text-sm font-semibold text-copy">Review and edit before saving</p>
+            <h2
+              ref={stepHeadingRef}
+              tabIndex={-1}
+              className="scroll-mt-6 text-sm font-semibold text-copy"
+            >
+              Review and edit before saving
+            </h2>
             <p className="mt-2 text-sm leading-6 text-muted">
               The imported markdown is no longer the source of truth here. Review the converted
               plan, including any AI coaching notes or video links, make any changes you want,
