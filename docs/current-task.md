@@ -2,41 +2,26 @@
 
 ## Current Priority
 
-Post-Issue #65 Gemini instruction-contract follow-up is the active implementation target. Issue #65 is closed and its pull request is complete.
-
-Issue #81 and merged PR #82 are complete on `main`. The hosted additive quota migration, read-only verification, Gemini 3.5 Flash configuration, and controlled authenticated smoke test are complete, so the Issue #65 readiness gate is satisfied.
-
-This focused follow-up replaces the Gemini system instruction with the approved program-design guidance and removes provider-supplied catalog IDs from the Gemini response schema. Gemini-generated exercises continue through the existing application-owned deterministic name matcher and review-before-save flow. Generation remains in-memory only. Explicit save continues through `/api/plans` and `createStructuredPlanForUser`; no plan, phase, workout, exercise, session, result, or progression record is written during generation, back, cancel, or navigation before save.
+Implement the first bounded foundation slice of GitHub Issue #48: predictable
+navigation attention for the highest-value workout and plan-creation workflow
+transitions, without app-wide scroll restoration.
 
 ## Implemented Scope
 
-- Direct **Create with AI** is recommended only when server-side generation configuration is operational.
-- Guided Setup, Manual Builder, and external AI import remain visible and functional, including when direct generation is unavailable.
-- Direct generation reuses the existing structured setup inputs and validates them before calling the endpoint.
-- Every intentional attempt receives one idempotency key; a visible elapsed-time generation state blocks duplicate click and keyboard activation, warns before unload or same-origin shell navigation while active, and never presents partial plan content.
-- All typed endpoint errors map to concise provider-neutral copy with useful non-AI and external-import fallbacks.
-- Successful drafts enter the existing review/editor labeled as AI-generated drafts, carrying the selected setup goal and its explicit or deterministic default progression mode.
-- `matched`, `custom`, and `needs_review` exercise outcomes remain visible; unresolved review issues block save until matched, explicitly accepted as a valid reviewed custom exercise, or removed.
-- Explicit save continues through the existing structured persistence path and preserves prescriptions, tracking metadata, and deterministic phase progression.
-- PR #83 increases direct-generation defaults to a 150-second provider timeout and 16,384 output tokens; server configuration fails closed above 240 seconds or 32,768 tokens, and the 300-second route duration requires Vercel Fluid Compute.
-- Gemini now receives the approved concise instruction, cannot return `proposedCatalogId`, must return `videoUrl: null`, and must provide a precise `videoSearchQuery`. The shared normalized draft field remains for compatible non-Gemini import and review flows.
-
-## Immediate Next Action
-
-1. Review and merge the focused Gemini instruction-contract follow-up after checks pass.
-2. Complete authenticated mobile and desktop QA with small and large multi-phase drafts, waits beyond 12 and 45 seconds, unload warning, typed timeout, review blocking, and generation-to-save flows. Record duration and approximate response size. The local unauthenticated route/login health check is complete; an authenticated local browser session was unavailable, so the full mocked browser pass remains.
-3. Confirm Fluid Compute is enabled for Preview and Production before enabling the 300-second generation route.
-4. Keep production rollout feature-gated. Disabling direct generation must leave Guided Setup, Manual Builder, and external AI import usable.
-
-## Validation Status
-
-On 2026-07-19, `.\scripts\validate.ps1` passed TypeScript, all 317 tests across 48 files, and the Next.js production build. Focused automated coverage uses mocked generation and does not call live Gemini.
-
-Local browser QA confirmed the protected `/plans/new` route redirects unauthenticated users to a healthy login page with no console errors or framework error overlay. Authenticated mobile/desktop, keyboard, basic screen-reader, enabled/disabled, typed-error, review-blocking, no-persistence, and mocked generation-to-save browser QA remains required before rollout.
+- Added the small typed `lib/navigation-attention.ts` contract for destination
+  positioning, optional non-input focus, explicit targets, and
+  reduced-motion-aware smooth scrolling.
+- Migrated active workout → Finish/check-in and Finish/check-in → saved
+  confirmation to position and focus their headings.
+- Migrated the external AI plan-draft wizard's step transition from
+  unconditional smooth scrolling to the shared contract.
+- Patched the Import and Review wizard steps with their own focusable primary
+  headings, so all seven steps have exactly one sticky-header-safe navigation
+  attention target without focusing the import textarea.
+- Preserved Next.js/browser history behavior, existing dialog focus management,
+  and selected-workout-card explicit positioning.
 
 ## Validation Expectations
-
-Focused tests cover operational and unavailable entry states, setup validation and payload, idempotency and duplicate-submit protection, accessible loading status, typed error mapping, successful draft routing, `needs_review` save blocking, no-persistence back/cancel behavior, explicit structured save, and non-AI creation regressions.
 
 Run:
 
@@ -45,11 +30,14 @@ Run:
 .\scripts\verify-branch-pushed.ps1
 ```
 
-Manual QA must cover mobile and desktop, keyboard and basic screen-reader behavior, direct AI enabled and disabled states, typed failure fallbacks, one successful mocked generation-to-save flow, and confirmation that generation/back/cancel persist nothing.
+Focused coverage must verify destination positioning, heading focus,
+reduced-motion behavior, explicit target support, avoidance of input focus, and
+an intended attention destination for each of the seven AI wizard steps.
 
-## Completed Dependency State
+## Deferred Work
 
-- Issue #62 completed the provider-neutral generated-plan contract, canonical normalizer, deterministic catalog resolution, and review-before-save boundary.
-- Issue #63 and merged PR #79 completed the disabled-by-default server-only Gemini adapter.
-- Issue #64 and merged PR #80 completed the authenticated route, operational quota storage, RLS, service-role RPCs, and idempotent orchestration baseline.
-- Issue #81 and merged PR #82 completed conservative success accounting and Gemini 3.5 draft compatibility; the hosted migration, verification, and smoke test are complete.
+- List/detail back-position restoration and browser Back/Forward policy.
+- Route-level adoption outside the involved workout flow and external AI plan
+  draft wizard.
+- Broader route-entry focus conventions, if later issue scope proves them
+  necessary.

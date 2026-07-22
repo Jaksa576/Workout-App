@@ -83,11 +83,14 @@ describe("workout flow lifecycle source guards", () => {
     );
   });
 
-  it("moves terminal active-workout views to the top without focus changes", () => {
-    expect(
-      source.split('window.scrollTo({ top: 0, left: 0, behavior: "auto" })')
-        .length - 1,
-    ).toBeGreaterThanOrEqual(2);
+  it("uses shared navigation attention for terminal active-workout views", () => {
+    expect(source).toContain("directNavigationAttention(checkInHeadingRef.current");
+    expect(source).toContain("directNavigationAttention(savedHeadingRef.current");
+    expect(source).not.toContain("window.scrollTo({ top: 0, left: 0, behavior: \"auto\" })");
+  });
+
+  it("preserves selected-workout card targeting as an explicit selection behavior", () => {
+    expect(source).toContain('card.scrollIntoView({ block: "nearest" })');
   });
 
   it("hides the active sticky header and rest dock padding on finish", () => {
