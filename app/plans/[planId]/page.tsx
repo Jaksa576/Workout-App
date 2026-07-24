@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Route } from "next";
 import { ExerciseVideoLinkEditor } from "@/components/exercise-video-link-editor";
+import { PlanReturnLink } from "@/components/plan-return-link";
 import { PhaseProgressPanel } from "@/components/phase-progress-panel";
 import { PlanArchiveAction } from "@/components/plan-archive-action";
 import { PlanPhaseCard } from "@/components/plan-phase-card";
@@ -10,14 +11,18 @@ import { SurfaceCard } from "@/components/surface-card";
 import { WorkoutChecklist } from "@/components/workout-checklist";
 import { getPlanById, getWorkoutPageData } from "@/lib/data";
 import { formatPhaseLabel } from "@/lib/plan-labels";
+import { isPlansListOrigin } from "@/lib/plans-navigation";
 import type { WorkoutPlan, WorkoutTemplate } from "@/lib/types";
 
 export default async function PlanDetailPage({
-  params
+  params,
+  searchParams,
 }: {
   params: Promise<{ planId: string }>;
+  searchParams: Promise<{ from?: string | string[] }>;
 }) {
   const { planId } = await params;
+  const { from } = await searchParams;
   const [plan, workoutData] = await Promise.all([
     getPlanById(planId),
     getWorkoutPageData()
@@ -36,7 +41,7 @@ export default async function PlanDetailPage({
 
   return (
     <div className="space-y-5 sm:space-y-6">
-      <PlanDetailHero plan={plan} />
+      <PlanDetailHero plan={plan} fromPlans={isPlansListOrigin(from)} />
 
       <section className="grid gap-5 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
         <CurrentPhasePanel plan={plan} />
@@ -111,7 +116,7 @@ export default async function PlanDetailPage({
   );
 }
 
-function PlanDetailHero({ plan }: { plan: WorkoutPlan }) {
+function PlanDetailHero({ plan, fromPlans }: { plan: WorkoutPlan; fromPlans: boolean }) {
   return (
     <section className="overflow-hidden rounded-[30px] bg-hero p-5 text-white shadow-premium sm:rounded-[36px] sm:p-7">
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-end">
@@ -133,12 +138,7 @@ function PlanDetailHero({ plan }: { plan: WorkoutPlan }) {
             >
               Edit details
             </Link>
-            <Link
-              href="/plans"
-              className="rounded-full border border-white/20 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-hero"
-            >
-              Back to plans
-            </Link>
+            <PlanReturnLink fromPlans={fromPlans} />
           </div>
         </div>
 
