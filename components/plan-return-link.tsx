@@ -6,10 +6,11 @@ import { useRouter } from "next/navigation";
 import { returnToPlans } from "@/lib/plans-navigation";
 
 type PlanReturnLinkProps = {
+  planId: string;
   fromPlans: boolean;
 };
 
-export function PlanReturnLink({ fromPlans }: PlanReturnLinkProps) {
+export function PlanReturnLink({ planId, fromPlans }: PlanReturnLinkProps) {
   const router = useRouter();
   const isNavigatingRef = useRef(false);
 
@@ -21,7 +22,7 @@ export function PlanReturnLink({ fromPlans }: PlanReturnLinkProps) {
 
     isNavigatingRef.current = true;
     event.preventDefault();
-    returnToPlans(router, fromPlans);
+    returnToPlans(router, planId, fromPlans);
   }
 
   return (

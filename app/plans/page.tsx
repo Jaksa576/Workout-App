@@ -1,12 +1,11 @@
 import Link from "next/link";
-import type { Route } from "next";
 import clsx from "clsx";
 import { ProgressBadge } from "@/components/progress-badge";
+import { PlanDetailLink } from "@/components/plans-detail-link";
 import { SurfaceCard } from "@/components/surface-card";
 import { PlanListActions } from "@/components/plan-list-actions";
 import { getPlans } from "@/lib/data";
 import { formatPhaseLabel } from "@/lib/plan-labels";
-import { getPlanDetailHref } from "@/lib/plans-navigation";
 import type { WorkoutPlan } from "@/lib/types";
 
 export default async function PlansPage() {
@@ -124,12 +123,12 @@ function ActivePlanSpotlight({ plan }: { plan: WorkoutPlan }) {
             </h2>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">{plan.description}</p>
           </div>
-          <Link
-            href={getPlanDetailHref(plan.id) as Route}
+          <PlanDetailLink
+            planId={plan.id}
             className="ui-button-primary inline-flex shrink-0 justify-center"
           >
             Open active plan
-          </Link>
+          </PlanDetailLink>
         </div>
       </SurfaceCard>
 
@@ -175,12 +174,12 @@ function PlanSummaryCard({ plan }: { plan: WorkoutPlan }) {
         </div>
 
         <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <Link
-            href={getPlanDetailHref(plan.id) as Route}
+          <PlanDetailLink
+            planId={plan.id}
             className="ui-button-secondary inline-flex justify-center"
           >
             View plan
-          </Link>
+          </PlanDetailLink>
           <PlanListActions
             planId={plan.id}
             isActive={plan.isActive}

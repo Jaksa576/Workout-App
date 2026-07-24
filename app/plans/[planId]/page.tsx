@@ -138,7 +138,7 @@ function PlanDetailHero({ plan, fromPlans }: { plan: WorkoutPlan; fromPlans: boo
             >
               Edit details
             </Link>
-            <PlanReturnLink fromPlans={fromPlans} />
+            <PlanReturnLink planId={plan.id} fromPlans={fromPlans} />
           </div>
         </div>
 

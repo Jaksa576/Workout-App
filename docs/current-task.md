@@ -27,9 +27,12 @@ position storage or an app-wide history policy.
 ## Active Slice
 
 - Plan-list detail links carry an explicit `from=plans` origin marker.
-- The plan detail return control uses browser history only for that explicit
-  list origin; direct and non-plans detail entries fall back safely to
-  `/plans`.
+- A tab-scoped `sessionStorage` marker now proves an ordinary same-tab
+  `/plans` → detail transition before the return control uses browser history;
+  copied, bookmarked, new-tab, direct, mismatched, and malformed entries fall
+  back safely to `/plans`.
+- The marker is consumed before history traversal, preserving native
+  Back/Forward behavior without authorizing a second unrelated return.
 - Manual authenticated mobile and desktop restoration QA remains required
   before merge. It must verify deep-list return, active-plan return,
   Back/Forward, direct-entry fallback, Dashboard-origin fallback, and archive
