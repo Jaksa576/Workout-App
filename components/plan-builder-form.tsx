@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
 import type { ReactNode } from "react";
@@ -8,6 +8,11 @@ import { exerciseCatalog, exerciseCategories, toPlanExercise } from "@/lib/exerc
 import { getExerciseSearchKeys, normalizeExerciseLookupKey, resolveExerciseIdentityByReviewedName } from "@/lib/exercise-identity";
 import { hasExerciseGuidance } from "@/lib/exercise-guidance";
 import { formatPhaseLabel } from "@/lib/plan-labels";
+import {
+  getPlanBuilderValidationAttentionItems,
+  type ValidationAttentionItem
+} from "@/lib/plan-builder-validation";
+import { directNavigationAttention } from "@/lib/navigation-attention";
 import {
   canReviewGeneratedExerciseAsCustom,
   reviewGeneratedExerciseAsCustom,
@@ -174,9 +179,19 @@ export function PlanBuilderForm({
   );
   const [status, setStatus] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [validationItems, setValidationItems] = useState<ValidationAttentionItem[]>([]);
+  const [validationAttempt, setValidationAttempt] = useState(0);
+  const validationSummaryRef = useRef<HTMLDivElement>(null);
   const currentStep = steps[stepIndex];
   const reviewBlockingCount = countGeneratedReviewBlockers(generatedReviewByExercise);
   const planLabel = editingPlanName ?? name;
+  const isManualBuilder = creationSource === "manual" && !planId;
+
+  useEffect(() => {
+    if (validationAttempt > 0 && validationItems.length > 0) {
+      directNavigationAttention(validationSummaryRef.current, { focus: true });
+    }
+  }, [validationAttempt, validationItems]);
 
   const reviewNotice =
     flow === "edit-details"
@@ -398,9 +413,6 @@ export function PlanBuilderForm({
       return;
     }
 
-    setSaving(true);
-    setStatus(null);
-
     const payload: StructuredPlanInput = {
       version: "structured-v1",
       name,
@@ -411,6 +423,19 @@ export function PlanBuilderForm({
       weeklySchedule,
       phases
     };
+    const nextValidationItems = isManualBuilder
+      ? getPlanBuilderValidationAttentionItems(payload)
+      : [];
+
+    if (nextValidationItems.length > 0) {
+      setValidationItems(nextValidationItems);
+      setValidationAttempt((attempt) => attempt + 1);
+      setStatus(null);
+      return;
+    }
+
+    setSaving(true);
+    setStatus(null);
     const requestBody = setupContext ? { plan: payload, setupContext } : payload;
     const endpoint = planId ? `/api/plans/${planId}` : "/api/plans";
     const method = planId ? "PATCH" : "POST";
@@ -438,6 +463,26 @@ export function PlanBuilderForm({
 
   return (
     <div className="space-y-6">
+      {validationItems.length > 0 ? (
+        <div
+          ref={validationSummaryRef}
+          id="plan-builder-validation-summary"
+          tabIndex={-1}
+          role="alert"
+          aria-labelledby="plan-builder-validation-heading"
+          className="scroll-mt-6 rounded-[24px] border border-warning/30 bg-warning/10 p-4 text-sm leading-6 text-muted sm:rounded-[28px]"
+        >
+          <h2 id="plan-builder-validation-heading" className="font-semibold text-copy">
+            Review the required fields
+          </h2>
+          <p className="mt-1">
+            {validationItems.length} {validationItems.length === 1 ? "issue needs" : "issues need"} your attention before this plan can be saved.
+          </p>
+          <ul className="mt-3 list-disc space-y-1 pl-5">
+            {validationItems.map((item) => <li key={item.key}>{item.label}</li>)}
+          </ul>
+        </div>
+      ) : null}
       <div className="surface-panel-muted space-y-3 p-3">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
