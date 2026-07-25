@@ -185,7 +185,6 @@ export function PlanBuilderForm({
   const currentStep = steps[stepIndex];
   const reviewBlockingCount = countGeneratedReviewBlockers(generatedReviewByExercise);
   const planLabel = editingPlanName ?? name;
-  const isManualBuilder = creationSource === "manual" && !planId;
 
   useEffect(() => {
     if (validationAttempt > 0 && validationItems.length > 0) {
@@ -423,9 +422,9 @@ export function PlanBuilderForm({
       weeklySchedule,
       phases
     };
-    const nextValidationItems = isManualBuilder
-      ? getPlanBuilderValidationAttentionItems(payload)
-      : [];
+    // Every PlanBuilderForm instance edits the same structured-plan contract.
+    // Creation source is metadata, not a reason to bypass client-side attention.
+    const nextValidationItems = getPlanBuilderValidationAttentionItems(payload);
 
     if (nextValidationItems.length > 0) {
       setValidationItems(nextValidationItems);

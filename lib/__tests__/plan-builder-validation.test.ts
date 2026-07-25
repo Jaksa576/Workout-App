@@ -10,7 +10,7 @@ function plan(overrides: Partial<StructuredPlanInput> = {}): StructuredPlanInput
   };
 }
 
-describe("manual plan builder validation attention", () => {
+describe("structured plan builder validation attention", () => {
   it("builds concise stable summary data from the structured save rules in predictable hierarchy order", () => {
     const value = plan({ name: "", phases: [{ ...plan().phases[0], goal: "", workouts: [{ ...plan().phases[0].workouts[0], name: "", exercises: [{ ...plan().phases[0].workouts[0].exercises[0], name: "", sets: 0, reps: "", rest: "", videoUrl: "https://example.com/not-youtube" }] }] }] });
     expect(getPlanBuilderValidationAttentionItems(value)).toMatchObject([
@@ -24,4 +24,13 @@ describe("manual plan builder validation attention", () => {
     expect(getPlanBuilderValidationAttentionItems(invalid)).toEqual([{ key: "plan-name", label: "Add a plan name" }]);
     expect(getPlanBuilderValidationAttentionItems(plan({ name: "A name a person typed" }))).toEqual([]);
   });
+
+  it.each(["manual", "llm_draft", "ai_import"] as const)(
+    "validates %s plan content without treating creation source as eligibility",
+    (creationSource) => {
+      expect(getPlanBuilderValidationAttentionItems(plan({ name: "", creationSource }))).toEqual([
+        { key: "plan-name", label: "Add a plan name" }
+      ]);
+    }
+  );
 });
