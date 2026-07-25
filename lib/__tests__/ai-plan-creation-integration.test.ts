@@ -47,7 +47,9 @@ describe("Issue #65 plan creation integration", () => {
     expect(builder).toContain("countGeneratedReviewBlockers");
     expect(builder).toContain("disabled={saving || reviewBlockingCount > 0}");
     expect(builder).toContain("disabled={workoutHasReviewBlock}");
-    expect(builder).toMatch(/return;\r?\n\s+}\r?\n\r?\n\s+setSaving\(true\)/);
+    expect(builder).toMatch(
+      /return;\r?\n\s+}\r?\n\r?\n\s+setValidationItems\(\[\]\);\r?\n\s+setSaving\(true\)/
+    );
     expect(builder).toContain('const endpoint = planId ? `/api/plans/${planId}` : "/api/plans"');
     expect(builder).toContain("onClick={handleSubmit}");
     expect(builder).not.toContain("/api/ai/plan-drafts");

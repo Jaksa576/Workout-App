@@ -434,6 +434,7 @@ export function PlanBuilderForm({
       return;
     }
 
+    setValidationItems([]);
     setSaving(true);
     setStatus(null);
     const requestBody = setupContext ? { plan: payload, setupContext } : payload;
