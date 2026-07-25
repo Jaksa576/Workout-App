@@ -2,9 +2,9 @@
 
 ## Current Priority
 
-Implement the bounded plans return-navigation portion of GitHub Issue #48
-Slice 2 for the `/plans` → `/plans/[planId]` flow, without custom scroll
-position storage or an app-wide history policy.
+Implement GitHub Issue #48 Slice 3A: validation attention in the manual
+plan builder, using the shared navigation-attention contract without creating
+an app-wide form-validation or scrolling system.
 
 ## Implemented Scope
 
@@ -23,20 +23,18 @@ position storage or an app-wide history policy.
 - PR #86 is complete. The exercise-library candidate was rejected because it
   is not route-backed and therefore cannot use a list/detail browser-return
   flow.
+- PR #88 and Issue #48 Slice 2 are complete. Manual QA confirmed native
+  plans-list return behavior.
 
 ## Active Slice
 
-- Plan-list detail links carry an explicit `from=plans` origin marker.
-- A tab-scoped `sessionStorage` marker now proves an ordinary same-tab
-  `/plans` → detail transition before the return control uses browser history;
-  copied, bookmarked, new-tab, direct, mismatched, and malformed entries fall
-  back safely to `/plans`.
-- The marker is consumed before history traversal, preserving native
-  Back/Forward behavior without authorizing a second unrelated return.
-- Manual authenticated mobile and desktop restoration QA remains required
-  before merge. It must verify deep-list return, active-plan return,
-  Back/Forward, direct-entry fallback, Dashboard-origin fallback, and archive
-  redirect behavior.
+- On an invalid manual-builder save, render a concise, focusable validation
+  summary near the form top from the existing structured-plan rules.
+- After the summary renders, position and focus it through
+  `lib/navigation-attention.ts`; do not focus an input or move focus while a
+  person is editing fields.
+- Keep the existing save path, entered values, generated-exercise inline
+  review errors, and valid-save behavior unchanged.
 
 ## Validation Expectations
 
@@ -53,9 +51,5 @@ an intended attention destination for each of the seven AI wizard steps.
 
 ## Deferred Work
 
-- Custom list-position or selected-item restoration if the native-history
-  return patch proves insufficient after authenticated QA.
-- Route-level adoption outside the involved workout flow and external AI plan
-  draft wizard.
-- Broader route-entry focus conventions, if later issue scope proves them
-  necessary.
+- Remaining navigation anchors, settings, and route adoption pending a
+  post-slice inventory.
