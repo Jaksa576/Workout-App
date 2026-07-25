@@ -8,7 +8,7 @@ const submitHandler = source.slice(
   source.indexOf("\n  return (", submitHandlerStart)
 );
 
-describe("manual plan builder validation attention wiring", () => {
+describe("structured plan builder validation attention wiring", () => {
   it("positions and focuses only a rendered invalid-submit summary through the shared contract", () => {
     expect(source).toContain("directNavigationAttention(validationSummaryRef.current, { focus: true })");
     expect(source).toContain('tabIndex={-1}');
@@ -20,7 +20,15 @@ describe("manual plan builder validation attention wiring", () => {
   it("does not introduce input focus or smooth scrolling and keeps valid saves on the existing request path", () => {
     expect(source).not.toContain("validationSummaryRef.current.focus");
     expect(source).not.toContain('behavior: "smooth"');
-    expect(source).toContain('const response = await fetch(endpoint');
+    expect(submitHandler).toContain('const endpoint = planId ? `/api/plans/${planId}` : "/api/plans"');
+    expect(submitHandler).toContain('const method = planId ? "PATCH" : "POST"');
+    expect(submitHandler).toContain('const response = await fetch(endpoint');
+  });
+
+  it("uses the same validation lifecycle for creation and every structured-plan edit source", () => {
+    expect(submitHandler).toContain("getPlanBuilderValidationAttentionItems(payload)");
+    expect(submitHandler).not.toContain('creationSource === "manual"');
+    expect(submitHandler).not.toContain("isManualBuilder");
   });
 
   it("replaces invalid summaries and clears them on the valid path before saving", () => {

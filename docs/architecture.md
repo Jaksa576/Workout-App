@@ -48,6 +48,16 @@ Dialog focus traps/restoration and intentional selected-card positioning are
 separate mechanisms and must remain so unless a later scoped issue changes
 them.
 
+Substantial structured-plan creation and editing share one validation-attention
+lifecycle in `PlanBuilderForm`, independent of whether content was entered
+manually, generated, imported, or regenerated. An invalid submit derives a
+current concise summary from the existing structured-plan rules, renders it,
+then positions and focuses that non-input landmark. Ordinary editing does not
+move attention; a valid attempt clears the summary before continuing through
+the existing POST or PATCH boundary. Inline review blockers and API errors stay
+separate from this client-validation summary. Short forms and dialogs do not
+inherit global behavior.
+
 ## Data Model
 
 The core database/app model is:

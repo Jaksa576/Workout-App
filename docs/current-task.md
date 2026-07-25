@@ -2,9 +2,9 @@
 
 ## Current Priority
 
-Implement GitHub Issue #48 Slice 3A: validation attention in the manual
-plan builder, using the shared navigation-attention contract without creating
-an app-wide form-validation or scrolling system.
+Issue #48 Slice 3B implements consistent validation attention for every
+creation and edit mode of the structured `PlanBuilderForm`, using the proven
+PR #89 pattern. PR #89 and Slice 3A are complete.
 
 ## Implemented Scope
 
@@ -26,15 +26,51 @@ an app-wide form-validation or scrolling system.
 - PR #88 and Issue #48 Slice 2 are complete. Manual QA confirmed native
   plans-list return behavior.
 
-## Active Slice
+## Slice 3B Form Inventory
 
-- On an invalid manual-builder save, render a concise, focusable validation
-  summary near the form top from the existing structured-plan rules.
-- After the summary renders, position and focus it through
-  `lib/navigation-attention.ts`; do not focus an input or move focus while a
-  person is editing fields.
-- Keep the existing save path, entered values, generated-exercise inline
-  review errors, and valid-save behavior unchanged.
+### Adopted
+
+- `/plans/new` and `/plans/[planId]/edit` / `edit-setup` through
+  `PlanBuilderForm`: very long, client-validated structured plan creation and
+  editing whose hierarchy errors can be far above the save action. Creation
+  already had the PR #89 summary for manual plans; Slice 3B removes creation
+  source as an eligibility gate so manual, guided, generated, imported, and
+  regenerated structured plans use one summary and attention lifecycle. POST
+  `/api/plans` and PATCH `/api/plans/[planId]` remain unchanged.
+
+### Already Acceptable
+
+- `/plans/new` guided/direct-AI setup through `PlanSetupWizard`: a stepped
+  flow with validation feedback at the current generation action; its final
+  substantial review editor is `PlanBuilderForm` and therefore adopted above.
+- `/onboarding` through `OnboardingFlow`: a stepped flow that keeps the active
+  step and its controls together; final server/API failures render at the
+  current action rather than masquerading as client field summaries.
+- `/workout/active` through `WorkoutFlow`: workout entry is intentionally one
+  long execution surface, but final check-in values have valid defaults and
+  browser date constraints; save failures remain API status feedback at the
+  submit action. Existing step-transition heading attention is retained.
+
+### Not Needed
+
+- `LoginForm`: short authentication form with browser-native input validation.
+- `CheckInForm`: compact legacy check-in with valid defaults and a native date
+  constraint; it has no distributed client-validation error model.
+- Exercise video editing, plan archive/management, list actions, and workout
+  settings: short dialogs or local controls whose errors remain visible. Their
+  focus traps and restoration remain unchanged.
+
+### Follow-up
+
+- `ProfileSettingsForm` is visually long, but validation is currently
+  server-owned by `/api/profile` with no client field-error model. Adding a
+  current-error converter would change validation architecture rather than
+  merely attention behavior, so it is deliberately unchanged in this slice.
+
+No other clear adoption candidate was found. Issue #48 can close after Slice
+3B once mobile and assistive-technology QA confirms the structured plan create
+and edit paths; any future client-validation design for profile settings should
+be separately scoped.
 
 ## Validation Expectations
 
@@ -45,11 +81,14 @@ Run:
 .\scripts\verify-branch-pushed.ps1
 ```
 
-Focused coverage must verify destination positioning, heading focus,
-reduced-motion behavior, explicit target support, avoidance of input focus, and
-an intended attention destination for each of the seven AI wizard steps.
+Focused coverage verifies creation-source-independent structured-plan
+validation, partial correction, summary clearing before POST/PATCH, preserved
+request paths, no input focus, and separation of API failures from stale client
+summaries. Run mobile manual QA for manual and generated/imported plan editing,
+including partial correction, failed PATCH, keyboard navigation, announcement,
+and reduced motion.
 
 ## Deferred Work
 
-- Remaining navigation anchors, settings, and route adoption pending a
-  post-slice inventory.
+- Profile-settings client validation and attention, only under a separately
+  scoped issue if field-specific client validation is introduced.
