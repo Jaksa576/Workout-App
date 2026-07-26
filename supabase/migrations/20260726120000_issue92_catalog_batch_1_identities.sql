@@ -38,7 +38,6 @@ begin
   ) expected(id, normalized_lookup_key)
   join public.exercise_identities existing
     on existing.normalized_lookup_key = expected.normalized_lookup_key
-   and existing.owner_scope = 'system'
    and existing.active
    and existing.id <> expected.id
   limit 1;

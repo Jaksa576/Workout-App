@@ -99,6 +99,12 @@ describe("Issue #92 catalog identity parity", () => {
     );
     expect(migration).toContain("canonical-name collision");
     expect(migration).toContain("reviewed-alias collision");
+    expect(migration).toMatch(
+      /existing\.normalized_lookup_key = expected\.normalized_lookup_key\s+and existing\.active\s+and existing\.id <> expected\.id/,
+    );
+    expect(migration).not.toMatch(
+      /existing\.normalized_lookup_key = expected\.normalized_lookup_key\s+and existing\.owner_scope = 'system'/,
+    );
     expect(migration).not.toMatch(
       /\b(delete|truncate|drop|alter|create|merge)\b/i,
     );
@@ -113,6 +119,12 @@ describe("Issue #92 catalog identity parity", () => {
     expect(verification).toContain("canonical_name_collisions");
     expect(verification).toContain("reviewed_alias_collisions");
     expect(verification).toContain("unexpected_user_ownership");
+    expect(verification).toMatch(
+      /where i\.active and i\.id <> e\.id\s+union all/,
+    );
+    expect(verification).not.toMatch(
+      /canonical_name_collisions'[\s\S]*?where i\.owner_scope = 'system'/,
+    );
     expect(verification).not.toMatch(
       /\b(insert|update|delete|alter|create table|drop|truncate|merge)\b/i,
     );

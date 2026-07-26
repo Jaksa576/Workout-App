@@ -16,7 +16,7 @@ where i.id is null or i.owner_scope <> 'system' or not i.active or i.superseded_
 union all
 select 'canonical_name_collisions', count(*)
 from expected e join public.exercise_identities i on i.normalized_lookup_key = e.normalized_lookup_key
-where i.owner_scope = 'system' and i.active and i.id <> e.id
+where i.active and i.id <> e.id
 union all
 select 'reviewed_alias_collisions', count(*)
 from expected e join public.exercise_aliases a on a.normalized_lookup_key = e.normalized_lookup_key
