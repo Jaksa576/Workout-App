@@ -165,6 +165,16 @@ const unsafeWriteTables = [
   "workout_sessions",
 ];
 
+const issue92Ids = new Set([
+  "incline-barbell-bench-press",
+  "chin-up",
+  "t-bar-row",
+  "close-grip-barbell-bench-press",
+  "barbell-shrug",
+  "ez-bar-curl",
+  "chest-dip",
+]);
+
 describe("Issue #40 exercise identity SQL", () => {
   it("preserves the original Issue #40 system identity seed without Issue #69 additions", () => {
     const seededIds = new Set(identityRows.map((row) => row.id));
@@ -371,7 +381,7 @@ describe("Issue #69 exercise catalog expansion SQL", () => {
   const historicalIds = new Set(identityRows.map((row) => row.id));
   const issue69Ids = exerciseCatalog
     .map((exercise) => exercise.id)
-    .filter((id) => !historicalIds.has(id));
+    .filter((id) => !historicalIds.has(id) && !issue92Ids.has(id));
 
   it("restores the historical identity migration to the pre-Issue #69 contents", () => {
     const preIssue69Migration = execFileSync(
@@ -395,19 +405,21 @@ describe("Issue #69 exercise catalog expansion SQL", () => {
     );
 
     expect(issue69Ids).toHaveLength(47);
-    expect(issue69IdentityRows).toHaveLength(exerciseCatalog.length);
+    expect(issue69IdentityRows).toHaveLength(exerciseCatalog.length - issue92Ids.size);
     expect(rowsById.size).toBe(issue69IdentityRows.length);
     expect(duplicates(issue69IdentityRows.map((row) => row.id))).toEqual([]);
     expectSameSet(
       issue69IdentityRows.map((row) => row.id),
-      exerciseCatalog.map((exercise) => exercise.id),
+      exerciseCatalog
+        .map((exercise) => exercise.id)
+        .filter((id) => !issue92Ids.has(id)),
     );
 
     for (const row of issue69IdentityRows) {
       expect(catalogById.has(row.id)).toBe(true);
     }
 
-    for (const exercise of exerciseCatalog) {
+    for (const exercise of exerciseCatalog.filter((item) => !issue92Ids.has(item.id))) {
       const row = rowsById.get(exercise.id);
       expect(row).toBeDefined();
       if (
@@ -547,7 +559,9 @@ describe("Issue #69 exercise catalog expansion SQL", () => {
 
     expectSameSet(
       [...new Set(verificationIdentityIds)],
-      exerciseCatalog.map((exercise) => exercise.id),
+      exerciseCatalog
+        .map((exercise) => exercise.id)
+        .filter((id) => !issue92Ids.has(id)),
     );
     expectSameSet(
       [...new Set(verificationAliasRows.map(rowKey))],
