@@ -20,7 +20,10 @@ const issue69PrerequisiteMigration = readFileSync(
   issue69PrerequisiteMigrationPath,
   "utf8",
 );
-const issue69Migration = readFileSync(issue69DomainCleanupMigrationPath, "utf8");
+const issue69Migration = readFileSync(
+  issue69DomainCleanupMigrationPath,
+  "utf8",
+);
 const schema = readFileSync("supabase/schema.sql", "utf8");
 const verification = readFileSync(
   "supabase/verification/issue-40-exercise-identity-readonly.sql",
@@ -41,7 +44,6 @@ const identityRows = Array.from(
   normalizedKey: match[3],
   movementPattern: match[4],
 }));
-
 
 const prerequisiteIdentityRows = Array.from(
   issue69PrerequisiteMigration.matchAll(
@@ -174,6 +176,44 @@ const issue92Ids = new Set([
   "ez-bar-curl",
   "chest-dip",
 ]);
+const issue98Ids = new Set([
+  "cable-crunch",
+  "machine-abdominal-crunch",
+  "reverse-crunch",
+  "hanging-knee-raise",
+  "hanging-straight-leg-raise",
+  "captains-chair-knee-raise",
+  "ab-wheel-rollout",
+  "stability-ball-rollout",
+  "stability-ball-stir-the-pot",
+  "short-lever-copenhagen-plank",
+  "long-lever-copenhagen-plank",
+  "side-plank-cable-row",
+  "landmine-rotation",
+  "double-front-rack-carry",
+  "single-arm-front-rack-carry",
+  "bear-hug-sandbag-carry",
+  "zercher-carry",
+  "trap-bar-carry",
+  "single-arm-waiter-carry",
+  "standing-cable-hip-adduction",
+  "side-lying-hip-adduction",
+  "slider-adductor-slide-out",
+  "single-arm-kettlebell-clean",
+  "double-kettlebell-clean",
+  "single-arm-kettlebell-snatch",
+  "turkish-get-up",
+  "barbell-power-clean",
+  "hang-power-clean",
+  "barbell-clean-pull",
+  "barbell-high-pull",
+  "dumbbell-hang-power-clean",
+  "jump-rope",
+  "ski-ergometer",
+  "battle-rope-alternating-waves",
+  "battle-rope-slams",
+  "hand-over-hand-sled-pull",
+]);
 
 describe("Issue #40 exercise identity SQL", () => {
   it("preserves the original Issue #40 system identity seed without Issue #69 additions", () => {
@@ -288,11 +328,15 @@ describe("Issue #40 exercise identity SQL", () => {
 });
 
 describe("PR #77 half-kneeling hip flexor prerequisite SQL", () => {
-  const prerequisiteFilename = issue69PrerequisiteMigrationPath.split("/").at(-1) ?? "";
-  const domainCleanupFilename = issue69DomainCleanupMigrationPath.split("/").at(-1) ?? "";
+  const prerequisiteFilename =
+    issue69PrerequisiteMigrationPath.split("/").at(-1) ?? "";
+  const domainCleanupFilename =
+    issue69DomainCleanupMigrationPath.split("/").at(-1) ?? "";
 
   it("sorts before the merged PR #77 domain cleanup migration", () => {
-    expect(prerequisiteFilename.localeCompare(domainCleanupFilename)).toBeLessThan(0);
+    expect(
+      prerequisiteFilename.localeCompare(domainCleanupFilename),
+    ).toBeLessThan(0);
   });
 
   it("seeds only the half-kneeling hip flexor identity in exact catalog parity", () => {
@@ -328,7 +372,9 @@ describe("PR #77 half-kneeling hip flexor prerequisite SQL", () => {
   it("updates only system-owned rows and refuses conflicting user-owned identities", () => {
     expect(issue69PrerequisiteMigration).toContain("owner_scope <> 'system'");
     expect(issue69PrerequisiteMigration).toContain("raise exception");
-    expect(issue69PrerequisiteMigration).toContain("on conflict (id) do update");
+    expect(issue69PrerequisiteMigration).toContain(
+      "on conflict (id) do update",
+    );
     expect(issue69PrerequisiteMigration).toContain(
       "where public.exercise_identities.owner_scope = 'system'",
     );
@@ -363,13 +409,18 @@ describe("PR #77 half-kneeling hip flexor prerequisite SQL", () => {
     expect(prerequisiteIdentityRows.map((row) => row.id)).toEqual([
       "half-kneeling-hip-flexor-stretch",
     ]);
-    expect(prerequisiteFilename.localeCompare(domainCleanupFilename)).toBeLessThan(0);
+    expect(
+      prerequisiteFilename.localeCompare(domainCleanupFilename),
+    ).toBeLessThan(0);
   });
 
   it("leaves the merged PR #77 migration byte-for-byte unchanged", () => {
     const mergedPr77Migration = execFileSync(
       "git",
-      ["show", `5c54f78d2391a80f4306be864c70acc1ec674b6e:${issue69DomainCleanupMigrationPath}`],
+      [
+        "show",
+        `5c54f78d2391a80f4306be864c70acc1ec674b6e:${issue69DomainCleanupMigrationPath}`,
+      ],
       { encoding: "utf8" },
     );
 
@@ -381,7 +432,10 @@ describe("Issue #69 exercise catalog expansion SQL", () => {
   const historicalIds = new Set(identityRows.map((row) => row.id));
   const issue69Ids = exerciseCatalog
     .map((exercise) => exercise.id)
-    .filter((id) => !historicalIds.has(id) && !issue92Ids.has(id));
+    .filter(
+      (id) =>
+        !historicalIds.has(id) && !issue92Ids.has(id) && !issue98Ids.has(id),
+    );
 
   it("restores the historical identity migration to the pre-Issue #69 contents", () => {
     const preIssue69Migration = execFileSync(
@@ -405,21 +459,25 @@ describe("Issue #69 exercise catalog expansion SQL", () => {
     );
 
     expect(issue69Ids).toHaveLength(47);
-    expect(issue69IdentityRows).toHaveLength(exerciseCatalog.length - issue92Ids.size);
+    expect(issue69IdentityRows).toHaveLength(
+      exerciseCatalog.length - issue92Ids.size - issue98Ids.size,
+    );
     expect(rowsById.size).toBe(issue69IdentityRows.length);
     expect(duplicates(issue69IdentityRows.map((row) => row.id))).toEqual([]);
     expectSameSet(
       issue69IdentityRows.map((row) => row.id),
       exerciseCatalog
         .map((exercise) => exercise.id)
-        .filter((id) => !issue92Ids.has(id)),
+        .filter((id) => !issue92Ids.has(id) && !issue98Ids.has(id)),
     );
 
     for (const row of issue69IdentityRows) {
       expect(catalogById.has(row.id)).toBe(true);
     }
 
-    for (const exercise of exerciseCatalog.filter((item) => !issue92Ids.has(item.id))) {
+    for (const exercise of exerciseCatalog.filter(
+      (item) => !issue92Ids.has(item.id) && !issue98Ids.has(item.id),
+    )) {
       const row = rowsById.get(exercise.id);
       expect(row).toBeDefined();
       if (
@@ -561,7 +619,7 @@ describe("Issue #69 exercise catalog expansion SQL", () => {
       [...new Set(verificationIdentityIds)],
       exerciseCatalog
         .map((exercise) => exercise.id)
-        .filter((id) => !issue92Ids.has(id)),
+        .filter((id) => !issue92Ids.has(id) && !issue98Ids.has(id)),
     );
     expectSameSet(
       [...new Set(verificationAliasRows.map(rowKey))],
