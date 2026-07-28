@@ -1,0 +1,5025 @@
+{
+  "manifestVersion": 1,
+  "purpose": "Temporary implementation input for the next reviewed 100-exercise catalog expansion.",
+  "authoringDecisions": {
+    "canonicalRuntimeSourceRemains": "lib/exercise-library.ts",
+    "manifestIsTemporary": true,
+    "videoPolicy": "No URL is considered reviewed. All videoUrl values are null and must remain blank unless separately human-reviewed.",
+    "aliasPolicy": "Do not create aliases automatically. Add only explicit, unambiguous aliases approved during implementation review.",
+    "collisionPolicy": "Stop on canonical ID, normalized canonical name, or reviewed alias collision. Include user-owned normalized-name collisions.",
+    "databasePolicy": "Generate a new additive, idempotent, system-only migration with exact TypeScript-to-SQL parity and read-only verification."
+  },
+  "summary": {
+    "count": 100,
+    "sections": {
+      "arms_shoulders": 14,
+      "calf_running_athletic": 8,
+      "core_carries": 10,
+      "hinge_posterior_chain": 14,
+      "lunge_unilateral": 10,
+      "squat_knee_dominant": 12,
+      "upper_pull": 16,
+      "upper_push": 16
+    },
+    "videoUrlsReviewed": 0,
+    "videoUrlsBlank": 100
+  },
+  "exercises": [
+    {
+      "section": "squat_knee_dominant",
+      "id": "heels-elevated-goblet-squat",
+      "name": "Heels-elevated goblet squat",
+      "category": "strength",
+      "movementPattern": "squat",
+      "equipmentTags": [
+        "Dumbbells",
+        "Kettlebell",
+        "Wedge"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "knee",
+        "back"
+      ],
+      "traitTags": [
+        "bilateral",
+        "loaded",
+        "quad_focus"
+      ],
+      "preferenceTags": [
+        "dumbbells",
+        "kettlebell",
+        "quads",
+        "squat"
+      ],
+      "sets": 3,
+      "reps": "8-12",
+      "rest": "90 sec",
+      "coachingNote": "Keep the heels supported, hold the weight close, and use a depth you can control.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "squat_knee_dominant",
+      "id": "safety-bar-squat",
+      "name": "Safety-bar squat",
+      "category": "strength",
+      "movementPattern": "squat",
+      "equipmentTags": [
+        "Safety squat bar"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "knee",
+        "back",
+        "loaded_spine"
+      ],
+      "traitTags": [
+        "bilateral",
+        "higher_load"
+      ],
+      "preferenceTags": [
+        "barbell",
+        "lower body",
+        "squat",
+        "strength"
+      ],
+      "sets": 4,
+      "reps": "4-8",
+      "rest": "2-3 min",
+      "coachingNote": "Brace before each rep, keep the handles steady, and drive up without letting the torso collapse.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "squat_knee_dominant",
+      "id": "low-bar-back-squat",
+      "name": "Low-bar back squat",
+      "category": "strength",
+      "movementPattern": "squat",
+      "equipmentTags": [
+        "Barbell"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "knee",
+        "back",
+        "loaded_spine"
+      ],
+      "traitTags": [
+        "bilateral",
+        "higher_load",
+        "hip_dominant"
+      ],
+      "preferenceTags": [
+        "barbell",
+        "lower body",
+        "squat",
+        "strength"
+      ],
+      "sets": 4,
+      "reps": "3-6",
+      "rest": "2-3 min",
+      "coachingNote": "Set the bar securely across the rear shoulders, brace hard, and keep the bar over midfoot.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "squat_knee_dominant",
+      "id": "high-bar-back-squat",
+      "name": "High-bar back squat",
+      "category": "strength",
+      "movementPattern": "squat",
+      "equipmentTags": [
+        "Barbell"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "knee",
+        "back",
+        "loaded_spine"
+      ],
+      "traitTags": [
+        "bilateral",
+        "higher_load",
+        "upright_torso"
+      ],
+      "preferenceTags": [
+        "barbell",
+        "lower body",
+        "squat",
+        "quads"
+      ],
+      "sets": 4,
+      "reps": "4-8",
+      "rest": "2-3 min",
+      "coachingNote": "Keep the bar high on the upper back, brace, and sit between the hips with the knees tracking over the toes.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "squat_knee_dominant",
+      "id": "paused-back-squat",
+      "name": "Paused barbell back squat",
+      "category": "strength",
+      "movementPattern": "squat",
+      "equipmentTags": [
+        "Barbell"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "knee",
+        "back",
+        "loaded_spine"
+      ],
+      "traitTags": [
+        "bilateral",
+        "higher_load",
+        "tempo"
+      ],
+      "preferenceTags": [
+        "barbell",
+        "lower body",
+        "squat",
+        "strength"
+      ],
+      "sets": 4,
+      "reps": "3-5",
+      "rest": "2-3 min",
+      "coachingNote": "Pause under control at the bottom without relaxing, then drive up while maintaining your brace.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "squat_knee_dominant",
+      "id": "tempo-goblet-squat",
+      "name": "Tempo goblet squat",
+      "category": "strength",
+      "movementPattern": "squat",
+      "equipmentTags": [
+        "Dumbbells",
+        "Kettlebell"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "knee",
+        "back"
+      ],
+      "traitTags": [
+        "bilateral",
+        "loaded",
+        "tempo"
+      ],
+      "preferenceTags": [
+        "dumbbells",
+        "kettlebell",
+        "lower body",
+        "squat"
+      ],
+      "sets": 3,
+      "reps": "6-10",
+      "rest": "90 sec",
+      "coachingNote": "Lower for three seconds, stay balanced over the whole foot, and stand without bouncing.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "squat_knee_dominant",
+      "id": "belt-squat",
+      "name": "Belt squat",
+      "category": "strength",
+      "movementPattern": "squat",
+      "equipmentTags": [
+        "Belt squat machine"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "knee"
+      ],
+      "traitTags": [
+        "bilateral",
+        "machine",
+        "reduced_spinal_load"
+      ],
+      "preferenceTags": [
+        "machine",
+        "lower body",
+        "squat",
+        "quads"
+      ],
+      "sets": 3,
+      "reps": "8-12",
+      "rest": "90-120 sec",
+      "coachingNote": "Stay tall, keep the feet planted, and squat through a comfortable range without letting the knees cave.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "squat_knee_dominant",
+      "id": "pendulum-squat",
+      "name": "Pendulum squat",
+      "category": "strength",
+      "movementPattern": "squat",
+      "equipmentTags": [
+        "Machine"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "knee",
+        "back"
+      ],
+      "traitTags": [
+        "bilateral",
+        "machine",
+        "quad_focus"
+      ],
+      "preferenceTags": [
+        "machine",
+        "lower body",
+        "squat",
+        "quads"
+      ],
+      "sets": 3,
+      "reps": "8-12",
+      "rest": "90-120 sec",
+      "coachingNote": "Keep your back supported, lower smoothly, and drive through the platform without locking the knees forcefully.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "squat_knee_dominant",
+      "id": "smith-machine-squat",
+      "name": "Smith-machine squat",
+      "category": "strength",
+      "movementPattern": "squat",
+      "equipmentTags": [
+        "Smith machine"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "knee",
+        "back",
+        "loaded_spine"
+      ],
+      "traitTags": [
+        "bilateral",
+        "machine",
+        "loaded"
+      ],
+      "preferenceTags": [
+        "machine",
+        "lower body",
+        "squat",
+        "quads"
+      ],
+      "sets": 3,
+      "reps": "8-12",
+      "rest": "90-120 sec",
+      "coachingNote": "Set your feet so the fixed bar path feels balanced and use a controlled depth.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "squat_knee_dominant",
+      "id": "landmine-squat",
+      "name": "Landmine squat",
+      "category": "strength",
+      "movementPattern": "squat",
+      "equipmentTags": [
+        "Barbell",
+        "Landmine"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "knee",
+        "back"
+      ],
+      "traitTags": [
+        "bilateral",
+        "loaded",
+        "front_loaded"
+      ],
+      "preferenceTags": [
+        "barbell",
+        "landmine",
+        "lower body",
+        "squat"
+      ],
+      "sets": 3,
+      "reps": "8-12",
+      "rest": "90 sec",
+      "coachingNote": "Hold the bar close to the chest, sit down between the hips, and keep the whole foot grounded.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "squat_knee_dominant",
+      "id": "sissy-squat",
+      "name": "Supported sissy squat",
+      "category": "strength",
+      "movementPattern": "squat",
+      "equipmentTags": [
+        "Bodyweight",
+        "Support"
+      ],
+      "goalTags": [
+        "hypertrophy",
+        "general_fitness",
+        "strength"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "knee"
+      ],
+      "traitTags": [
+        "bilateral",
+        "bodyweight",
+        "quad_focus"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "quads",
+        "squat"
+      ],
+      "sets": 3,
+      "reps": "8-12",
+      "rest": "75 sec",
+      "coachingNote": "Use support for balance, keep the hips extended, and only descend through a knee range that feels controlled.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "reps_only",
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null
+      }
+    },
+    {
+      "section": "squat_knee_dominant",
+      "id": "wall-sit",
+      "name": "Wall sit",
+      "category": "strength",
+      "movementPattern": "squat",
+      "equipmentTags": [
+        "Bodyweight",
+        "Wall"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "consistency"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "knee"
+      ],
+      "traitTags": [
+        "bilateral",
+        "isometric",
+        "low_setup"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "quads",
+        "home"
+      ],
+      "sets": 3,
+      "reps": "30-45 sec",
+      "rest": "60 sec",
+      "coachingNote": "Keep your back against the wall, feet planted, and hold a knee angle you can maintain without pain.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "duration",
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null
+      }
+    },
+    {
+      "section": "hinge_posterior_chain",
+      "id": "sumo-deadlift",
+      "name": "Sumo deadlift",
+      "category": "strength",
+      "movementPattern": "hinge",
+      "equipmentTags": [
+        "Barbell"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "back",
+        "hamstring",
+        "loaded_spine"
+      ],
+      "traitTags": [
+        "bilateral",
+        "higher_load",
+        "wide_stance"
+      ],
+      "preferenceTags": [
+        "barbell",
+        "hinge",
+        "posterior chain",
+        "strength"
+      ],
+      "sets": 3,
+      "reps": "3-6",
+      "rest": "2-3 min",
+      "coachingNote": "Set a comfortable wide stance, brace, and push the floor away while keeping the bar close.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "hinge_posterior_chain",
+      "id": "rack-pull",
+      "name": "Barbell rack pull",
+      "category": "strength",
+      "movementPattern": "hinge",
+      "equipmentTags": [
+        "Barbell",
+        "Power rack"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "back",
+        "loaded_spine"
+      ],
+      "traitTags": [
+        "bilateral",
+        "higher_load",
+        "partial_range"
+      ],
+      "preferenceTags": [
+        "barbell",
+        "hinge",
+        "back",
+        "strength"
+      ],
+      "sets": 3,
+      "reps": "4-6",
+      "rest": "2-3 min",
+      "coachingNote": "Start the bar below the knee, brace before pulling, and finish tall without leaning back.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "hinge_posterior_chain",
+      "id": "block-pull",
+      "name": "Barbell block pull",
+      "category": "strength",
+      "movementPattern": "hinge",
+      "equipmentTags": [
+        "Barbell",
+        "Blocks"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "back",
+        "loaded_spine"
+      ],
+      "traitTags": [
+        "bilateral",
+        "higher_load",
+        "partial_range"
+      ],
+      "preferenceTags": [
+        "barbell",
+        "hinge",
+        "posterior chain",
+        "strength"
+      ],
+      "sets": 3,
+      "reps": "4-6",
+      "rest": "2-3 min",
+      "coachingNote": "Set the bar on stable blocks, keep it close, and stand by driving through the floor.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "hinge_posterior_chain",
+      "id": "deficit-deadlift",
+      "name": "Deficit conventional deadlift",
+      "category": "strength",
+      "movementPattern": "hinge",
+      "equipmentTags": [
+        "Barbell",
+        "Platform"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "back",
+        "hamstring",
+        "loaded_spine"
+      ],
+      "traitTags": [
+        "bilateral",
+        "higher_load",
+        "extended_range"
+      ],
+      "preferenceTags": [
+        "barbell",
+        "hinge",
+        "posterior chain",
+        "strength"
+      ],
+      "sets": 3,
+      "reps": "3-5",
+      "rest": "2-3 min",
+      "coachingNote": "Use a small stable platform, keep the bar close, and stop if the added range disrupts your position.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "hinge_posterior_chain",
+      "id": "barbell-good-morning",
+      "name": "Barbell good morning",
+      "category": "strength",
+      "movementPattern": "hinge",
+      "equipmentTags": [
+        "Barbell"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "back",
+        "hamstring",
+        "loaded_spine"
+      ],
+      "traitTags": [
+        "bilateral",
+        "loaded",
+        "posterior_chain"
+      ],
+      "preferenceTags": [
+        "barbell",
+        "hinge",
+        "hamstrings",
+        "strength"
+      ],
+      "sets": 3,
+      "reps": "6-10",
+      "rest": "2 min",
+      "coachingNote": "Keep a soft knee bend, hinge the hips back, and stop before the torso position changes.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "hinge_posterior_chain",
+      "id": "cable-pull-through",
+      "name": "Cable pull-through",
+      "category": "strength",
+      "movementPattern": "hinge",
+      "equipmentTags": [
+        "Cable",
+        "Rope attachment"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "back",
+        "hamstring"
+      ],
+      "traitTags": [
+        "bilateral",
+        "loaded",
+        "posterior_chain"
+      ],
+      "preferenceTags": [
+        "cable",
+        "hinge",
+        "glutes",
+        "hypertrophy"
+      ],
+      "sets": 3,
+      "reps": "10-15",
+      "rest": "75 sec",
+      "coachingNote": "Step forward for tension, hinge back, and finish by extending the hips without leaning backward.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "hinge_posterior_chain",
+      "id": "kettlebell-swing",
+      "name": "Two-hand kettlebell swing",
+      "category": "athletic",
+      "movementPattern": "power",
+      "equipmentTags": [
+        "Kettlebell"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "back",
+        "hamstring"
+      ],
+      "traitTags": [
+        "bilateral",
+        "ballistic",
+        "hip_power"
+      ],
+      "preferenceTags": [
+        "kettlebell",
+        "power",
+        "posterior chain",
+        "conditioning"
+      ],
+      "sets": 4,
+      "reps": "10-15",
+      "rest": "60-90 sec",
+      "coachingNote": "Hike the bell back, snap the hips, and let the arms guide rather than lift the bell.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "hinge_posterior_chain",
+      "id": "single-leg-romanian-deadlift",
+      "name": "Single-leg dumbbell Romanian deadlift",
+      "category": "strength",
+      "movementPattern": "hinge",
+      "equipmentTags": [
+        "Dumbbells"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "back",
+        "hamstring",
+        "ankle"
+      ],
+      "traitTags": [
+        "unilateral",
+        "loaded",
+        "balance"
+      ],
+      "preferenceTags": [
+        "dumbbells",
+        "hinge",
+        "hamstrings",
+        "single leg"
+      ],
+      "sets": 3,
+      "reps": "8-10 each side",
+      "rest": "90 sec",
+      "coachingNote": "Keep the hips square, reach the free leg back, and stop when you can no longer control the pelvis.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "same_each_side",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "hinge_posterior_chain",
+      "id": "kickstand-romanian-deadlift",
+      "name": "Kickstand dumbbell Romanian deadlift",
+      "category": "strength",
+      "movementPattern": "hinge",
+      "equipmentTags": [
+        "Dumbbells"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "back",
+        "hamstring"
+      ],
+      "traitTags": [
+        "unilateral",
+        "loaded",
+        "supported"
+      ],
+      "preferenceTags": [
+        "dumbbells",
+        "hinge",
+        "hamstrings",
+        "glutes"
+      ],
+      "sets": 3,
+      "reps": "8-12 each side",
+      "rest": "90 sec",
+      "coachingNote": "Keep most of your weight on the front leg and use the rear foot only for balance.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "same_each_side",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "hinge_posterior_chain",
+      "id": "dumbbell-hip-thrust",
+      "name": "Dumbbell hip thrust",
+      "category": "strength",
+      "movementPattern": "hinge",
+      "equipmentTags": [
+        "Dumbbells",
+        "Bench"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "back"
+      ],
+      "traitTags": [
+        "bilateral",
+        "loaded",
+        "glute_focus"
+      ],
+      "preferenceTags": [
+        "dumbbells",
+        "glutes",
+        "posterior chain",
+        "hypertrophy"
+      ],
+      "sets": 3,
+      "reps": "10-15",
+      "rest": "75 sec",
+      "coachingNote": "Place the dumbbell securely across the hips, keep the ribs down, and pause at the top.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "hinge_posterior_chain",
+      "id": "single-leg-hip-thrust",
+      "name": "Single-leg hip thrust",
+      "category": "strength",
+      "movementPattern": "hinge",
+      "equipmentTags": [
+        "Bodyweight",
+        "Bench"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "consistency"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "back"
+      ],
+      "traitTags": [
+        "unilateral",
+        "bodyweight",
+        "glute_focus"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "glutes",
+        "single leg"
+      ],
+      "sets": 3,
+      "reps": "8-12 each side",
+      "rest": "75 sec",
+      "coachingNote": "Keep the pelvis level, drive through the working foot, and stop before the low back takes over.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "reps_only",
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null
+      }
+    },
+    {
+      "section": "hinge_posterior_chain",
+      "id": "frog-pump",
+      "name": "Frog pump",
+      "category": "strength",
+      "movementPattern": "hinge",
+      "equipmentTags": [
+        "Bodyweight",
+        "Bands"
+      ],
+      "goalTags": [
+        "hypertrophy",
+        "general_fitness",
+        "strength"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [],
+      "traitTags": [
+        "bilateral",
+        "low_load",
+        "glute_focus"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "bands",
+        "glutes",
+        "home"
+      ],
+      "sets": 3,
+      "reps": "15-25",
+      "rest": "45 sec",
+      "coachingNote": "Press the soles together, keep the ribs down, and squeeze the glutes without arching the back.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "reps_only",
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null
+      }
+    },
+    {
+      "section": "hinge_posterior_chain",
+      "id": "nordic-hamstring-curl",
+      "name": "Nordic hamstring curl",
+      "category": "strength",
+      "movementPattern": "hinge",
+      "equipmentTags": [
+        "Bodyweight",
+        "Partner",
+        "Anchor"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "hamstring",
+        "knee"
+      ],
+      "traitTags": [
+        "bilateral",
+        "bodyweight",
+        "eccentric"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "hamstrings",
+        "sport performance"
+      ],
+      "sets": 3,
+      "reps": "4-8",
+      "rest": "2 min",
+      "coachingNote": "Keep the hips extended and lower only as far as you can control before using the hands for assistance.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "reps_only",
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null
+      }
+    },
+    {
+      "section": "hinge_posterior_chain",
+      "id": "slider-leg-curl",
+      "name": "Slider leg curl",
+      "category": "strength",
+      "movementPattern": "hinge",
+      "equipmentTags": [
+        "Bodyweight",
+        "Sliders"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "consistency"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "hamstring",
+        "back"
+      ],
+      "traitTags": [
+        "bilateral",
+        "bodyweight",
+        "posterior_chain"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "hamstrings",
+        "home"
+      ],
+      "sets": 3,
+      "reps": "8-12",
+      "rest": "75 sec",
+      "coachingNote": "Keep the hips lifted, slide the heels away slowly, and pull them back without losing pelvic control.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "reps_only",
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null
+      }
+    },
+    {
+      "section": "lunge_unilateral",
+      "id": "barbell-reverse-lunge",
+      "name": "Barbell reverse lunge",
+      "category": "strength",
+      "movementPattern": "lunge",
+      "equipmentTags": [
+        "Barbell"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "knee",
+        "back",
+        "loaded_spine"
+      ],
+      "traitTags": [
+        "unilateral",
+        "loaded",
+        "lower_body"
+      ],
+      "preferenceTags": [
+        "barbell",
+        "lunge",
+        "single leg",
+        "strength"
+      ],
+      "sets": 3,
+      "reps": "6-8 each side",
+      "rest": "2 min",
+      "coachingNote": "Step back softly, keep the front foot planted, and maintain a stable torso under the bar.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "same_each_side",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "lunge_unilateral",
+      "id": "front-foot-elevated-split-squat",
+      "name": "Front-foot-elevated split squat",
+      "category": "strength",
+      "movementPattern": "lunge",
+      "equipmentTags": [
+        "Dumbbells",
+        "Platform"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "knee"
+      ],
+      "traitTags": [
+        "unilateral",
+        "loaded",
+        "extended_range"
+      ],
+      "preferenceTags": [
+        "dumbbells",
+        "lunge",
+        "single leg",
+        "glutes"
+      ],
+      "sets": 3,
+      "reps": "8-10 each side",
+      "rest": "90 sec",
+      "coachingNote": "Use a low platform, keep the front foot grounded, and descend only through a range you can control.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "same_each_side",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "lunge_unilateral",
+      "id": "barbell-split-squat",
+      "name": "Barbell split squat",
+      "category": "strength",
+      "movementPattern": "lunge",
+      "equipmentTags": [
+        "Barbell"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "knee",
+        "back",
+        "loaded_spine"
+      ],
+      "traitTags": [
+        "unilateral",
+        "loaded",
+        "lower_body"
+      ],
+      "preferenceTags": [
+        "barbell",
+        "lunge",
+        "single leg",
+        "strength"
+      ],
+      "sets": 3,
+      "reps": "6-8 each side",
+      "rest": "2 min",
+      "coachingNote": "Set a stable split stance, lower straight down, and keep the front knee tracking over the foot.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "same_each_side",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "lunge_unilateral",
+      "id": "smith-machine-split-squat",
+      "name": "Smith-machine split squat",
+      "category": "strength",
+      "movementPattern": "lunge",
+      "equipmentTags": [
+        "Smith machine"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "knee",
+        "back"
+      ],
+      "traitTags": [
+        "unilateral",
+        "machine",
+        "loaded"
+      ],
+      "preferenceTags": [
+        "machine",
+        "lunge",
+        "single leg",
+        "quads"
+      ],
+      "sets": 3,
+      "reps": "8-12 each side",
+      "rest": "90 sec",
+      "coachingNote": "Position the feet for a balanced fixed bar path and lower under control.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "same_each_side",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "lunge_unilateral",
+      "id": "step-down",
+      "name": "Lateral step-down",
+      "category": "strength",
+      "movementPattern": "lunge",
+      "equipmentTags": [
+        "Bodyweight",
+        "Step"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "knee",
+        "ankle"
+      ],
+      "traitTags": [
+        "unilateral",
+        "bodyweight",
+        "control"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "single leg",
+        "knee control",
+        "running prep"
+      ],
+      "sets": 3,
+      "reps": "6-10 each side",
+      "rest": "60 sec",
+      "coachingNote": "Lower the free heel toward the floor while keeping the stance knee aligned over the foot.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "reps_only",
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null
+      }
+    },
+    {
+      "section": "lunge_unilateral",
+      "id": "single-leg-leg-press",
+      "name": "Single-leg leg press",
+      "category": "strength",
+      "movementPattern": "lunge",
+      "equipmentTags": [
+        "Machine"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "knee",
+        "back"
+      ],
+      "traitTags": [
+        "unilateral",
+        "machine",
+        "loaded"
+      ],
+      "preferenceTags": [
+        "machine",
+        "single leg",
+        "quads",
+        "glutes"
+      ],
+      "sets": 3,
+      "reps": "8-12 each side",
+      "rest": "90 sec",
+      "coachingNote": "Keep the hips supported and press through a controlled range without locking the knee forcefully.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "same_each_side",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "lunge_unilateral",
+      "id": "cable-reverse-lunge",
+      "name": "Cable reverse lunge",
+      "category": "strength",
+      "movementPattern": "lunge",
+      "equipmentTags": [
+        "Cable"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "knee"
+      ],
+      "traitTags": [
+        "unilateral",
+        "loaded",
+        "constant_tension"
+      ],
+      "preferenceTags": [
+        "cable",
+        "lunge",
+        "single leg",
+        "glutes"
+      ],
+      "sets": 3,
+      "reps": "8-12 each side",
+      "rest": "90 sec",
+      "coachingNote": "Hold the cable close, step back under control, and drive through the front foot.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "same_each_side",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "lunge_unilateral",
+      "id": "landmine-reverse-lunge",
+      "name": "Landmine reverse lunge",
+      "category": "strength",
+      "movementPattern": "lunge",
+      "equipmentTags": [
+        "Barbell",
+        "Landmine"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "knee",
+        "back"
+      ],
+      "traitTags": [
+        "unilateral",
+        "loaded",
+        "front_loaded"
+      ],
+      "preferenceTags": [
+        "barbell",
+        "landmine",
+        "lunge",
+        "single leg"
+      ],
+      "sets": 3,
+      "reps": "8-10 each side",
+      "rest": "90 sec",
+      "coachingNote": "Keep the landmine close to the chest, step back softly, and stay balanced over the front foot.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "same_each_side",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "lunge_unilateral",
+      "id": "lateral-step-up",
+      "name": "Lateral step-up",
+      "category": "strength",
+      "movementPattern": "lunge",
+      "equipmentTags": [
+        "Bodyweight",
+        "Dumbbells",
+        "Bench"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "knee",
+        "ankle"
+      ],
+      "traitTags": [
+        "unilateral",
+        "lateral",
+        "lower_body"
+      ],
+      "preferenceTags": [
+        "dumbbells",
+        "single leg",
+        "lateral",
+        "glutes"
+      ],
+      "sets": 3,
+      "reps": "8 each side",
+      "rest": "75 sec",
+      "coachingNote": "Stand beside a low step, drive through the elevated foot, and control the descent.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "same_each_side",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "lunge_unilateral",
+      "id": "pistol-squat-to-box",
+      "name": "Pistol squat to box",
+      "category": "strength",
+      "movementPattern": "squat",
+      "equipmentTags": [
+        "Bodyweight",
+        "Bench"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "knee",
+        "ankle"
+      ],
+      "traitTags": [
+        "unilateral",
+        "bodyweight",
+        "balance"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "single leg",
+        "squat",
+        "control"
+      ],
+      "sets": 3,
+      "reps": "4-8 each side",
+      "rest": "90 sec",
+      "coachingNote": "Reach the hips toward a high box, keep the stance foot grounded, and use a height that preserves control.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "reps_only",
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null
+      }
+    },
+    {
+      "section": "upper_push",
+      "id": "decline-barbell-bench-press",
+      "name": "Decline barbell bench press",
+      "category": "strength",
+      "movementPattern": "push",
+      "equipmentTags": [
+        "Barbell",
+        "Decline bench"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "loaded",
+        "decline"
+      ],
+      "preferenceTags": [
+        "barbell",
+        "bench",
+        "chest",
+        "push"
+      ],
+      "sets": 3,
+      "reps": "6-10",
+      "rest": "2 min",
+      "coachingNote": "Secure the legs, lower the bar toward the lower chest with control, and press evenly.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "upper_push",
+      "id": "decline-dumbbell-bench-press",
+      "name": "Decline dumbbell bench press",
+      "category": "strength",
+      "movementPattern": "push",
+      "equipmentTags": [
+        "Dumbbells",
+        "Decline bench"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "loaded",
+        "decline"
+      ],
+      "preferenceTags": [
+        "dumbbells",
+        "bench",
+        "chest",
+        "push"
+      ],
+      "sets": 3,
+      "reps": "8-12",
+      "rest": "90 sec",
+      "coachingNote": "Keep the shoulders set, lower the dumbbells through a comfortable range, and press smoothly.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "upper_push",
+      "id": "neutral-grip-dumbbell-bench-press",
+      "name": "Neutral-grip dumbbell bench press",
+      "category": "strength",
+      "movementPattern": "push",
+      "equipmentTags": [
+        "Dumbbells",
+        "Bench"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "loaded",
+        "neutral_grip"
+      ],
+      "preferenceTags": [
+        "dumbbells",
+        "bench",
+        "chest",
+        "push"
+      ],
+      "sets": 3,
+      "reps": "8-12",
+      "rest": "90 sec",
+      "coachingNote": "Keep the palms facing each other, elbows close to the torso, and lower with control.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "upper_push",
+      "id": "alternating-dumbbell-bench-press",
+      "name": "Alternating dumbbell bench press",
+      "category": "strength",
+      "movementPattern": "push",
+      "equipmentTags": [
+        "Dumbbells",
+        "Bench"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "loaded",
+        "alternating"
+      ],
+      "preferenceTags": [
+        "dumbbells",
+        "bench",
+        "chest",
+        "push",
+        "core"
+      ],
+      "sets": 3,
+      "reps": "6-10 each side",
+      "rest": "90 sec",
+      "coachingNote": "Hold one dumbbell steady while pressing the other and keep the torso from rotating.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "independent_sides",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "upper_push",
+      "id": "paused-barbell-bench-press",
+      "name": "Paused barbell bench press",
+      "category": "strength",
+      "movementPattern": "push",
+      "equipmentTags": [
+        "Barbell",
+        "Bench"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "higher_load",
+        "tempo"
+      ],
+      "preferenceTags": [
+        "barbell",
+        "bench",
+        "chest",
+        "strength"
+      ],
+      "sets": 4,
+      "reps": "3-6",
+      "rest": "2-3 min",
+      "coachingNote": "Pause the bar lightly on the chest without relaxing, then press while maintaining your setup.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "upper_push",
+      "id": "tempo-push-up",
+      "name": "Tempo push-up",
+      "category": "strength",
+      "movementPattern": "push",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "consistency"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "bodyweight",
+        "tempo"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "push",
+        "chest",
+        "home"
+      ],
+      "sets": 3,
+      "reps": "6-12",
+      "rest": "75 sec",
+      "coachingNote": "Lower for three seconds, keep a straight body line, and press without losing trunk position.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "reps_only",
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null
+      }
+    },
+    {
+      "section": "upper_push",
+      "id": "deficit-push-up",
+      "name": "Deficit push-up",
+      "category": "strength",
+      "movementPattern": "push",
+      "equipmentTags": [
+        "Bodyweight",
+        "Push-up handles"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "consistency"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "bodyweight",
+        "extended_range"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "push",
+        "chest",
+        "home"
+      ],
+      "sets": 3,
+      "reps": "6-12",
+      "rest": "90 sec",
+      "coachingNote": "Use stable handles, lower only through a comfortable shoulder range, and keep the body rigid.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "reps_only",
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null
+      }
+    },
+    {
+      "section": "upper_push",
+      "id": "diamond-push-up",
+      "name": "Diamond push-up",
+      "category": "strength",
+      "movementPattern": "push",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "consistency"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "bodyweight",
+        "triceps_focus"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "push",
+        "triceps",
+        "home"
+      ],
+      "sets": 3,
+      "reps": "6-12",
+      "rest": "75 sec",
+      "coachingNote": "Place the hands close without forcing the wrists, keep the elbows controlled, and maintain a strong plank.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "reps_only",
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null
+      }
+    },
+    {
+      "section": "upper_push",
+      "id": "ring-push-up",
+      "name": "Ring push-up",
+      "category": "strength",
+      "movementPattern": "push",
+      "equipmentTags": [
+        "Gymnastic rings"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "bodyweight",
+        "unstable"
+      ],
+      "preferenceTags": [
+        "rings",
+        "bodyweight",
+        "push",
+        "chest"
+      ],
+      "sets": 3,
+      "reps": "6-12",
+      "rest": "90 sec",
+      "coachingNote": "Keep the rings steady, maintain a rigid body line, and use a height that allows controlled reps.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "reps_only",
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null
+      }
+    },
+    {
+      "section": "upper_push",
+      "id": "pike-push-up",
+      "name": "Pike push-up",
+      "category": "strength",
+      "movementPattern": "push",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "consistency"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder",
+        "overhead"
+      ],
+      "traitTags": [
+        "upper_body",
+        "bodyweight",
+        "vertical_push"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "push",
+        "shoulders",
+        "home"
+      ],
+      "sets": 3,
+      "reps": "6-10",
+      "rest": "90 sec",
+      "coachingNote": "Lift the hips, lower the head between the hands, and press without letting the elbows flare excessively.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "reps_only",
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null
+      }
+    },
+    {
+      "section": "upper_push",
+      "id": "wall-assisted-handstand-push-up",
+      "name": "Wall-assisted handstand push-up",
+      "category": "strength",
+      "movementPattern": "push",
+      "equipmentTags": [
+        "Bodyweight",
+        "Wall"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "shoulder",
+        "overhead"
+      ],
+      "traitTags": [
+        "upper_body",
+        "bodyweight",
+        "vertical_push"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "push",
+        "shoulders",
+        "gymnastics"
+      ],
+      "sets": 4,
+      "reps": "3-8",
+      "rest": "2 min",
+      "coachingNote": "Use the wall for balance, lower through a controlled range, and stop before the neck or shoulder position changes.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "reps_only",
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null
+      }
+    },
+    {
+      "section": "upper_push",
+      "id": "landmine-press",
+      "name": "Standing two-hand landmine press",
+      "category": "strength",
+      "movementPattern": "push",
+      "equipmentTags": [
+        "Barbell",
+        "Landmine"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "loaded",
+        "angled_press"
+      ],
+      "preferenceTags": [
+        "barbell",
+        "landmine",
+        "push",
+        "shoulders"
+      ],
+      "sets": 3,
+      "reps": "8-12",
+      "rest": "90 sec",
+      "coachingNote": "Hold the bar near the chest, brace, and press up and forward without leaning back.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "upper_push",
+      "id": "half-kneeling-single-arm-landmine-press",
+      "name": "Half-kneeling single-arm landmine press",
+      "category": "strength",
+      "movementPattern": "push",
+      "equipmentTags": [
+        "Barbell",
+        "Landmine"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "loaded",
+        "angled_press",
+        "unilateral"
+      ],
+      "preferenceTags": [
+        "barbell",
+        "landmine",
+        "push",
+        "shoulders",
+        "core"
+      ],
+      "sets": 3,
+      "reps": "8-10 each side",
+      "rest": "90 sec",
+      "coachingNote": "Squeeze the down-side glute, keep the ribs stacked, and press the bar without rotating.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "same_each_side",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "upper_push",
+      "id": "arnold-press",
+      "name": "Arnold press",
+      "category": "strength",
+      "movementPattern": "push",
+      "equipmentTags": [
+        "Dumbbells"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder",
+        "overhead"
+      ],
+      "traitTags": [
+        "upper_body",
+        "loaded",
+        "vertical_push"
+      ],
+      "preferenceTags": [
+        "dumbbells",
+        "push",
+        "shoulders",
+        "hypertrophy"
+      ],
+      "sets": 3,
+      "reps": "8-12",
+      "rest": "90 sec",
+      "coachingNote": "Rotate smoothly as you press and use a range that keeps the shoulder comfortable.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "upper_push",
+      "id": "machine-shoulder-press",
+      "name": "Machine shoulder press",
+      "category": "strength",
+      "movementPattern": "push",
+      "equipmentTags": [
+        "Machine"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder",
+        "overhead"
+      ],
+      "traitTags": [
+        "upper_body",
+        "machine",
+        "vertical_push"
+      ],
+      "preferenceTags": [
+        "machine",
+        "push",
+        "shoulders",
+        "hypertrophy"
+      ],
+      "sets": 3,
+      "reps": "8-12",
+      "rest": "90 sec",
+      "coachingNote": "Set the seat so the handles begin near shoulder height and press without shrugging.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "upper_push",
+      "id": "single-arm-cable-chest-press",
+      "name": "Single-arm cable chest press",
+      "category": "strength",
+      "movementPattern": "push",
+      "equipmentTags": [
+        "Cable"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "loaded",
+        "unilateral",
+        "anti_rotation"
+      ],
+      "preferenceTags": [
+        "cable",
+        "push",
+        "chest",
+        "core"
+      ],
+      "sets": 3,
+      "reps": "8-12 each side",
+      "rest": "75 sec",
+      "coachingNote": "Stand in a stable split stance, press straight ahead, and resist torso rotation.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "same_each_side",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "upper_pull",
+      "id": "neutral-grip-pull-up",
+      "name": "Neutral-grip pull-up",
+      "category": "strength",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Pull-up bar",
+        "Neutral-grip handles"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "bodyweight",
+        "vertical_pull",
+        "neutral_grip"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "pull",
+        "back",
+        "pull-up bar"
+      ],
+      "sets": 3,
+      "reps": "3-8",
+      "rest": "2 min",
+      "coachingNote": "Start from a controlled hang, pull the chest toward the handles, and lower without swinging.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "reps_only",
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null
+      }
+    },
+    {
+      "section": "upper_pull",
+      "id": "wide-grip-pull-up",
+      "name": "Wide-grip pull-up",
+      "category": "strength",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Pull-up bar"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "bodyweight",
+        "vertical_pull",
+        "wide_grip"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "pull",
+        "back",
+        "pull-up bar"
+      ],
+      "sets": 3,
+      "reps": "3-8",
+      "rest": "2 min",
+      "coachingNote": "Use only a moderately wide grip, pull without kipping, and stop before the shoulder position becomes uncomfortable.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "reps_only",
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null
+      }
+    },
+    {
+      "section": "upper_pull",
+      "id": "eccentric-pull-up",
+      "name": "Eccentric pull-up",
+      "category": "strength",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Pull-up bar",
+        "Bench"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "consistency"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "bodyweight",
+        "vertical_pull",
+        "eccentric"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "pull",
+        "back",
+        "pull-up progression"
+      ],
+      "sets": 3,
+      "reps": "3-5",
+      "rest": "90 sec",
+      "coachingNote": "Step to the top position and lower for three to five seconds without dropping.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "reps_only",
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null
+      }
+    },
+    {
+      "section": "upper_pull",
+      "id": "straight-arm-cable-pulldown",
+      "name": "Straight-arm cable pulldown",
+      "category": "strength",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Cable",
+        "Bar attachment"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "loaded",
+        "vertical_pull",
+        "lat_focus"
+      ],
+      "preferenceTags": [
+        "cable",
+        "pull",
+        "back",
+        "lats"
+      ],
+      "sets": 3,
+      "reps": "10-15",
+      "rest": "60-90 sec",
+      "coachingNote": "Keep a soft elbow bend, pull the bar toward the thighs, and avoid leaning to create momentum.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "upper_pull",
+      "id": "single-arm-lat-pulldown",
+      "name": "Single-arm lat pulldown",
+      "category": "strength",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Cable"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "loaded",
+        "vertical_pull",
+        "unilateral"
+      ],
+      "preferenceTags": [
+        "cable",
+        "pull",
+        "back",
+        "lats"
+      ],
+      "sets": 3,
+      "reps": "8-12 each side",
+      "rest": "90 sec",
+      "coachingNote": "Keep the torso tall, pull the elbow toward the hip, and control the return.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "same_each_side",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "upper_pull",
+      "id": "half-kneeling-lat-pulldown",
+      "name": "Half-kneeling lat pulldown",
+      "category": "strength",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Cable"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "loaded",
+        "vertical_pull",
+        "core"
+      ],
+      "preferenceTags": [
+        "cable",
+        "pull",
+        "back",
+        "lats"
+      ],
+      "sets": 3,
+      "reps": "8-12",
+      "rest": "90 sec",
+      "coachingNote": "Stay tall in the half-kneeling stance and pull without arching the low back.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "upper_pull",
+      "id": "close-grip-lat-pulldown",
+      "name": "Close-grip neutral lat pulldown",
+      "category": "strength",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Cable",
+        "Neutral-grip handle"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "machine",
+        "vertical_pull",
+        "neutral_grip"
+      ],
+      "preferenceTags": [
+        "cable",
+        "machine",
+        "pull",
+        "back"
+      ],
+      "sets": 3,
+      "reps": "8-12",
+      "rest": "90 sec",
+      "coachingNote": "Pull the handle toward the upper chest and keep the torso from rocking.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "upper_pull",
+      "id": "machine-high-row",
+      "name": "Machine high row",
+      "category": "strength",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Machine"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "machine",
+        "diagonal_pull"
+      ],
+      "preferenceTags": [
+        "machine",
+        "pull",
+        "back",
+        "hypertrophy"
+      ],
+      "sets": 3,
+      "reps": "8-12",
+      "rest": "90 sec",
+      "coachingNote": "Keep the chest supported and drive the elbows down and back without shrugging.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "upper_pull",
+      "id": "seal-row",
+      "name": "Barbell seal row",
+      "category": "strength",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Barbell",
+        "Bench"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "loaded",
+        "horizontal_pull",
+        "chest_supported"
+      ],
+      "preferenceTags": [
+        "barbell",
+        "bench",
+        "pull",
+        "back"
+      ],
+      "sets": 3,
+      "reps": "6-10",
+      "rest": "2 min",
+      "coachingNote": "Lie securely on the bench, row the bar toward the lower chest, and lower without bouncing.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "upper_pull",
+      "id": "single-arm-cable-row",
+      "name": "Single-arm seated cable row",
+      "category": "strength",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Cable"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder",
+        "back"
+      ],
+      "traitTags": [
+        "upper_body",
+        "loaded",
+        "horizontal_pull",
+        "unilateral"
+      ],
+      "preferenceTags": [
+        "cable",
+        "pull",
+        "back",
+        "single arm"
+      ],
+      "sets": 3,
+      "reps": "8-12 each side",
+      "rest": "90 sec",
+      "coachingNote": "Sit tall, pull the handle toward the ribs, and resist rotating the torso.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "same_each_side",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "upper_pull",
+      "id": "meadows-row",
+      "name": "Meadows row",
+      "category": "strength",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Barbell",
+        "Landmine"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "shoulder",
+        "back"
+      ],
+      "traitTags": [
+        "upper_body",
+        "loaded",
+        "horizontal_pull",
+        "unilateral"
+      ],
+      "preferenceTags": [
+        "barbell",
+        "landmine",
+        "pull",
+        "back"
+      ],
+      "sets": 3,
+      "reps": "8-12 each side",
+      "rest": "90 sec",
+      "coachingNote": "Brace the free hand, keep the torso stable, and row the bar end toward the hip.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "same_each_side",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "upper_pull",
+      "id": "inverted-row",
+      "name": "Barbell inverted row",
+      "category": "strength",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Barbell",
+        "Power rack"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "consistency"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "bodyweight",
+        "horizontal_pull"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "pull",
+        "back",
+        "home"
+      ],
+      "sets": 3,
+      "reps": "6-12",
+      "rest": "90 sec",
+      "coachingNote": "Keep the body in a straight line and pull the chest toward the bar without shrugging.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "reps_only",
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null
+      }
+    },
+    {
+      "section": "upper_pull",
+      "id": "ring-row",
+      "name": "Ring row",
+      "category": "strength",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Gymnastic rings"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "consistency"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "bodyweight",
+        "horizontal_pull"
+      ],
+      "preferenceTags": [
+        "rings",
+        "bodyweight",
+        "pull",
+        "back"
+      ],
+      "sets": 3,
+      "reps": "8-15",
+      "rest": "75 sec",
+      "coachingNote": "Keep the rings steady, maintain a straight body line, and pull the hands toward the ribs.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "reps_only",
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null
+      }
+    },
+    {
+      "section": "upper_pull",
+      "id": "cable-rear-delt-row",
+      "name": "Cable rear-delt row",
+      "category": "strength",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Cable",
+        "Rope attachment"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "loaded",
+        "horizontal_pull",
+        "rear_delt_focus"
+      ],
+      "preferenceTags": [
+        "cable",
+        "pull",
+        "rear delts",
+        "upper back"
+      ],
+      "sets": 3,
+      "reps": "10-15",
+      "rest": "60-90 sec",
+      "coachingNote": "Pull the rope toward the upper chest with the elbows out and keep the shoulders relaxed.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "upper_pull",
+      "id": "dumbbell-pullover",
+      "name": "Dumbbell pullover",
+      "category": "strength",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Dumbbells",
+        "Bench"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder",
+        "overhead"
+      ],
+      "traitTags": [
+        "upper_body",
+        "loaded",
+        "lat_focus"
+      ],
+      "preferenceTags": [
+        "dumbbells",
+        "bench",
+        "pull",
+        "lats"
+      ],
+      "sets": 3,
+      "reps": "8-12",
+      "rest": "90 sec",
+      "coachingNote": "Keep the ribs controlled, lower the dumbbell only through a comfortable shoulder range, and pull it back over the chest.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "upper_pull",
+      "id": "machine-pullover",
+      "name": "Machine pullover",
+      "category": "strength",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Machine"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder",
+        "overhead"
+      ],
+      "traitTags": [
+        "upper_body",
+        "machine",
+        "lat_focus"
+      ],
+      "preferenceTags": [
+        "machine",
+        "pull",
+        "lats",
+        "hypertrophy"
+      ],
+      "sets": 3,
+      "reps": "10-15",
+      "rest": "75 sec",
+      "coachingNote": "Set the seat for a comfortable shoulder path and drive the pads down without arching the back.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "arms_shoulders",
+      "id": "ez-bar-preacher-curl",
+      "name": "EZ-bar preacher curl",
+      "category": "strength",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "EZ bar",
+        "Preacher bench"
+      ],
+      "goalTags": [
+        "hypertrophy",
+        "general_fitness",
+        "strength"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [],
+      "traitTags": [
+        "upper_body",
+        "loaded",
+        "accessory"
+      ],
+      "preferenceTags": [
+        "ez bar",
+        "biceps",
+        "arms",
+        "hypertrophy"
+      ],
+      "sets": 3,
+      "reps": "8-12",
+      "rest": "60-90 sec",
+      "coachingNote": "Keep the upper arms supported, curl without lifting the shoulders, and lower under control.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "arms_shoulders",
+      "id": "incline-dumbbell-curl",
+      "name": "Incline dumbbell curl",
+      "category": "strength",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Dumbbells",
+        "Bench"
+      ],
+      "goalTags": [
+        "hypertrophy",
+        "general_fitness",
+        "strength"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "loaded",
+        "accessory"
+      ],
+      "preferenceTags": [
+        "dumbbells",
+        "biceps",
+        "arms",
+        "hypertrophy"
+      ],
+      "sets": 3,
+      "reps": "8-12",
+      "rest": "60-90 sec",
+      "coachingNote": "Let the arms hang naturally, keep the shoulders back, and curl without moving the upper arms.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "arms_shoulders",
+      "id": "concentration-curl",
+      "name": "Concentration curl",
+      "category": "strength",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Dumbbells",
+        "Bench"
+      ],
+      "goalTags": [
+        "hypertrophy",
+        "general_fitness",
+        "strength"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [],
+      "traitTags": [
+        "upper_body",
+        "loaded",
+        "accessory",
+        "unilateral"
+      ],
+      "preferenceTags": [
+        "dumbbells",
+        "biceps",
+        "arms",
+        "hypertrophy"
+      ],
+      "sets": 3,
+      "reps": "10-15 each side",
+      "rest": "60 sec",
+      "coachingNote": "Brace the upper arm against the inner thigh and curl without swinging.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "same_each_side",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "arms_shoulders",
+      "id": "standing-cable-curl",
+      "name": "Standing cable curl",
+      "category": "strength",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Cable",
+        "Bar attachment"
+      ],
+      "goalTags": [
+        "hypertrophy",
+        "general_fitness",
+        "strength"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [],
+      "traitTags": [
+        "upper_body",
+        "loaded",
+        "accessory"
+      ],
+      "preferenceTags": [
+        "cable",
+        "biceps",
+        "arms",
+        "hypertrophy"
+      ],
+      "sets": 3,
+      "reps": "10-15",
+      "rest": "60 sec",
+      "coachingNote": "Stand tall, keep the elbows near the sides, and curl through a controlled range.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "arms_shoulders",
+      "id": "ez-bar-reverse-curl",
+      "name": "EZ-bar reverse curl",
+      "category": "strength",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "EZ bar"
+      ],
+      "goalTags": [
+        "hypertrophy",
+        "general_fitness",
+        "strength"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [],
+      "traitTags": [
+        "upper_body",
+        "loaded",
+        "accessory",
+        "forearm_focus"
+      ],
+      "preferenceTags": [
+        "ez bar",
+        "forearms",
+        "biceps",
+        "arms"
+      ],
+      "sets": 3,
+      "reps": "10-15",
+      "rest": "60-90 sec",
+      "coachingNote": "Use an overhand grip, keep the wrists neutral, and curl without swinging.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "arms_shoulders",
+      "id": "spider-curl",
+      "name": "Dumbbell spider curl",
+      "category": "strength",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Dumbbells",
+        "Bench"
+      ],
+      "goalTags": [
+        "hypertrophy",
+        "general_fitness",
+        "strength"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [],
+      "traitTags": [
+        "upper_body",
+        "loaded",
+        "accessory"
+      ],
+      "preferenceTags": [
+        "dumbbells",
+        "biceps",
+        "arms",
+        "hypertrophy"
+      ],
+      "sets": 3,
+      "reps": "10-15",
+      "rest": "60 sec",
+      "coachingNote": "Lie chest-down on an incline bench, keep the upper arms still, and curl smoothly.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "arms_shoulders",
+      "id": "bayesian-cable-curl",
+      "name": "Bayesian cable curl",
+      "category": "strength",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Cable"
+      ],
+      "goalTags": [
+        "hypertrophy",
+        "general_fitness",
+        "strength"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "loaded",
+        "accessory",
+        "unilateral"
+      ],
+      "preferenceTags": [
+        "cable",
+        "biceps",
+        "arms",
+        "hypertrophy"
+      ],
+      "sets": 3,
+      "reps": "10-15 each side",
+      "rest": "60 sec",
+      "coachingNote": "Stand slightly ahead of the cable, keep the upper arm behind the torso, and curl without moving the shoulder.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "same_each_side",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "arms_shoulders",
+      "id": "bench-dip",
+      "name": "Bench dip",
+      "category": "strength",
+      "movementPattern": "push",
+      "equipmentTags": [
+        "Bodyweight",
+        "Bench"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "consistency"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "bodyweight",
+        "triceps_focus"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "triceps",
+        "arms",
+        "home"
+      ],
+      "sets": 3,
+      "reps": "8-15",
+      "rest": "75 sec",
+      "coachingNote": "Keep the hips close to the bench and use only a shoulder range that feels comfortable.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "reps_only",
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null
+      }
+    },
+    {
+      "section": "arms_shoulders",
+      "id": "ez-bar-skull-crusher",
+      "name": "EZ-bar skull crusher",
+      "category": "strength",
+      "movementPattern": "push",
+      "equipmentTags": [
+        "EZ bar",
+        "Bench"
+      ],
+      "goalTags": [
+        "hypertrophy",
+        "general_fitness",
+        "strength"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "loaded",
+        "accessory",
+        "triceps_focus"
+      ],
+      "preferenceTags": [
+        "ez bar",
+        "triceps",
+        "arms",
+        "hypertrophy"
+      ],
+      "sets": 3,
+      "reps": "8-12",
+      "rest": "75 sec",
+      "coachingNote": "Keep the upper arms steady, lower the bar behind the forehead, and extend the elbows smoothly.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "arms_shoulders",
+      "id": "seated-dumbbell-overhead-triceps-extension",
+      "name": "Seated dumbbell overhead triceps extension",
+      "category": "strength",
+      "movementPattern": "push",
+      "equipmentTags": [
+        "Dumbbells",
+        "Bench"
+      ],
+      "goalTags": [
+        "hypertrophy",
+        "general_fitness",
+        "strength"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder",
+        "overhead"
+      ],
+      "traitTags": [
+        "upper_body",
+        "loaded",
+        "accessory",
+        "triceps_focus"
+      ],
+      "preferenceTags": [
+        "dumbbells",
+        "triceps",
+        "arms",
+        "hypertrophy"
+      ],
+      "sets": 3,
+      "reps": "10-15",
+      "rest": "60-90 sec",
+      "coachingNote": "Keep the ribs down, point the elbows forward, and use a comfortable overhead range.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "arms_shoulders",
+      "id": "single-arm-cable-triceps-kickback",
+      "name": "Single-arm cable triceps kickback",
+      "category": "strength",
+      "movementPattern": "push",
+      "equipmentTags": [
+        "Cable"
+      ],
+      "goalTags": [
+        "hypertrophy",
+        "general_fitness",
+        "strength"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "loaded",
+        "accessory",
+        "unilateral"
+      ],
+      "preferenceTags": [
+        "cable",
+        "triceps",
+        "arms",
+        "hypertrophy"
+      ],
+      "sets": 3,
+      "reps": "10-15 each side",
+      "rest": "60 sec",
+      "coachingNote": "Hinge slightly, keep the upper arm still, and extend the elbow without rotating the torso.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "same_each_side",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "arms_shoulders",
+      "id": "dumbbell-front-raise",
+      "name": "Dumbbell front raise",
+      "category": "strength",
+      "movementPattern": "push",
+      "equipmentTags": [
+        "Dumbbells"
+      ],
+      "goalTags": [
+        "hypertrophy",
+        "general_fitness",
+        "strength"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "loaded",
+        "accessory"
+      ],
+      "preferenceTags": [
+        "dumbbells",
+        "shoulders",
+        "hypertrophy"
+      ],
+      "sets": 3,
+      "reps": "10-15",
+      "rest": "60 sec",
+      "coachingNote": "Raise the dumbbells only to a comfortable height and lower without swinging.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "arms_shoulders",
+      "id": "rear-delt-machine-fly",
+      "name": "Rear-delt machine fly",
+      "category": "strength",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Machine"
+      ],
+      "goalTags": [
+        "hypertrophy",
+        "general_fitness",
+        "strength"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "machine",
+        "accessory",
+        "rear_delt_focus"
+      ],
+      "preferenceTags": [
+        "machine",
+        "rear delts",
+        "upper back",
+        "hypertrophy"
+      ],
+      "sets": 3,
+      "reps": "12-15",
+      "rest": "60 sec",
+      "coachingNote": "Set the seat so the handles align with the shoulders and open the arms without shrugging.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "arms_shoulders",
+      "id": "cable-upright-row",
+      "name": "Cable upright row",
+      "category": "strength",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Cable",
+        "Rope attachment"
+      ],
+      "goalTags": [
+        "hypertrophy",
+        "general_fitness",
+        "strength"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "upper_body",
+        "loaded",
+        "accessory"
+      ],
+      "preferenceTags": [
+        "cable",
+        "shoulders",
+        "traps",
+        "hypertrophy"
+      ],
+      "sets": 3,
+      "reps": "10-15",
+      "rest": "60-90 sec",
+      "coachingNote": "Use a rope or comfortable grip, pull only to a pain-free height, and keep the shoulders relaxed.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "core_carries",
+      "id": "rkc-plank",
+      "name": "RKC plank",
+      "category": "core",
+      "movementPattern": "core",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "core",
+        "isometric",
+        "high_tension"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "core",
+        "home"
+      ],
+      "sets": 3,
+      "reps": "15-30 sec",
+      "rest": "45 sec",
+      "coachingNote": "Squeeze the glutes, pull the elbows toward the toes, and keep a straight line without holding your breath.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "duration",
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null
+      }
+    },
+    {
+      "section": "core_carries",
+      "id": "long-lever-plank",
+      "name": "Long-lever plank",
+      "category": "core",
+      "movementPattern": "core",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "shoulder",
+        "back"
+      ],
+      "traitTags": [
+        "core",
+        "isometric",
+        "anti_extension"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "core",
+        "home"
+      ],
+      "sets": 3,
+      "reps": "15-30 sec",
+      "rest": "45 sec",
+      "coachingNote": "Place the elbows slightly ahead of the shoulders and hold without letting the low back sag.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "duration",
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null
+      }
+    },
+    {
+      "section": "core_carries",
+      "id": "hollow-body-hold",
+      "name": "Hollow-body hold",
+      "category": "core",
+      "movementPattern": "core",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "back"
+      ],
+      "traitTags": [
+        "core",
+        "isometric",
+        "anti_extension"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "core",
+        "gymnastics"
+      ],
+      "sets": 3,
+      "reps": "15-30 sec",
+      "rest": "45 sec",
+      "coachingNote": "Press the low back gently into the floor and shorten the lever if you cannot maintain contact.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "duration",
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null
+      }
+    },
+    {
+      "section": "core_carries",
+      "id": "bear-plank",
+      "name": "Bear plank",
+      "category": "core",
+      "movementPattern": "core",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "strength",
+        "hypertrophy",
+        "consistency"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder",
+        "knee"
+      ],
+      "traitTags": [
+        "core",
+        "isometric",
+        "quadruped"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "core",
+        "home"
+      ],
+      "sets": 3,
+      "reps": "20-30 sec",
+      "rest": "45 sec",
+      "coachingNote": "Hover the knees just above the floor, keep the back flat, and breathe without shifting.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "duration",
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null
+      }
+    },
+    {
+      "section": "core_carries",
+      "id": "pallof-press",
+      "name": "Standing Pallof press",
+      "category": "core",
+      "movementPattern": "core",
+      "equipmentTags": [
+        "Cable",
+        "Bands"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [],
+      "traitTags": [
+        "core",
+        "anti_rotation",
+        "loaded"
+      ],
+      "preferenceTags": [
+        "cable",
+        "bands",
+        "core",
+        "anti rotation"
+      ],
+      "sets": 3,
+      "reps": "8-12 each side",
+      "rest": "60 sec",
+      "coachingNote": "Stand square to the anchor, press the hands forward, and resist being pulled into rotation.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "same_each_side",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "core_carries",
+      "id": "half-kneeling-pallof-press",
+      "name": "Half-kneeling Pallof press",
+      "category": "core",
+      "movementPattern": "core",
+      "equipmentTags": [
+        "Cable",
+        "Bands"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [],
+      "traitTags": [
+        "core",
+        "anti_rotation",
+        "loaded",
+        "kneeling"
+      ],
+      "preferenceTags": [
+        "cable",
+        "bands",
+        "core",
+        "anti rotation"
+      ],
+      "sets": 3,
+      "reps": "8-12 each side",
+      "rest": "60 sec",
+      "coachingNote": "Squeeze the down-side glute, keep the ribs stacked, and press without rotating.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "same_each_side",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "core_carries",
+      "id": "cable-chop",
+      "name": "Standing cable chop",
+      "category": "core",
+      "movementPattern": "core",
+      "equipmentTags": [
+        "Cable"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "back",
+        "shoulder"
+      ],
+      "traitTags": [
+        "core",
+        "rotation",
+        "loaded"
+      ],
+      "preferenceTags": [
+        "cable",
+        "core",
+        "rotation",
+        "sport"
+      ],
+      "sets": 3,
+      "reps": "8-12 each side",
+      "rest": "60 sec",
+      "coachingNote": "Rotate through the upper body and hips together while keeping the movement controlled.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "same_each_side",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "core_carries",
+      "id": "suitcase-carry",
+      "name": "Suitcase carry",
+      "category": "strength",
+      "movementPattern": "carry",
+      "equipmentTags": [
+        "Dumbbells",
+        "Kettlebell"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "back"
+      ],
+      "traitTags": [
+        "loaded",
+        "core",
+        "grip",
+        "unilateral"
+      ],
+      "preferenceTags": [
+        "dumbbells",
+        "kettlebell",
+        "carry",
+        "core"
+      ],
+      "sets": 3,
+      "reps": "20-30 steps each side",
+      "rest": "75 sec",
+      "coachingNote": "Walk tall with one weight at your side and resist leaning toward or away from it.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "same_each_side",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Steps"
+      }
+    },
+    {
+      "section": "core_carries",
+      "id": "overhead-carry",
+      "name": "Single-arm overhead carry",
+      "category": "strength",
+      "movementPattern": "carry",
+      "equipmentTags": [
+        "Dumbbells",
+        "Kettlebell"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "shoulder",
+        "overhead",
+        "back"
+      ],
+      "traitTags": [
+        "loaded",
+        "core",
+        "grip",
+        "unilateral",
+        "overhead"
+      ],
+      "preferenceTags": [
+        "dumbbells",
+        "kettlebell",
+        "carry",
+        "shoulders"
+      ],
+      "sets": 3,
+      "reps": "15-25 steps each side",
+      "rest": "90 sec",
+      "coachingNote": "Lock the weight in a stable overhead position, keep the ribs down, and walk without leaning.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "same_each_side",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Steps"
+      }
+    },
+    {
+      "section": "core_carries",
+      "id": "dead-bug-pullover",
+      "name": "Dead bug with dumbbell pullover",
+      "category": "core",
+      "movementPattern": "core",
+      "equipmentTags": [
+        "Dumbbells"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder",
+        "back"
+      ],
+      "traitTags": [
+        "core",
+        "anti_extension",
+        "loaded"
+      ],
+      "preferenceTags": [
+        "dumbbells",
+        "core",
+        "dead bug"
+      ],
+      "sets": 3,
+      "reps": "6-10",
+      "rest": "60 sec",
+      "coachingNote": "Keep the low back anchored while moving the dumbbell overhead only as far as you can control.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "calf_running_athletic",
+      "id": "single-leg-calf-raise",
+      "name": "Single-leg calf raise",
+      "category": "running_prep",
+      "movementPattern": "calf",
+      "equipmentTags": [
+        "Bodyweight",
+        "Dumbbells",
+        "Step"
+      ],
+      "goalTags": [
+        "running",
+        "general_fitness",
+        "hypertrophy"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "ankle"
+      ],
+      "traitTags": [
+        "unilateral",
+        "lower_body",
+        "running_support"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "dumbbells",
+        "calves",
+        "running prep"
+      ],
+      "sets": 3,
+      "reps": "10-15 each side",
+      "rest": "60 sec",
+      "coachingNote": "Use support for balance, rise fully through the ball of the foot, and lower slowly.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "same_each_side",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "calf_running_athletic",
+      "id": "standing-machine-calf-raise",
+      "name": "Standing machine calf raise",
+      "category": "strength",
+      "movementPattern": "calf",
+      "equipmentTags": [
+        "Machine"
+      ],
+      "goalTags": [
+        "hypertrophy",
+        "general_fitness",
+        "strength"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "ankle",
+        "loaded_spine"
+      ],
+      "traitTags": [
+        "bilateral",
+        "machine",
+        "lower_body"
+      ],
+      "preferenceTags": [
+        "machine",
+        "calves",
+        "hypertrophy"
+      ],
+      "sets": 3,
+      "reps": "10-15",
+      "rest": "60-90 sec",
+      "coachingNote": "Keep the knees softly extended, rise under control, and pause before lowering.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "calf_running_athletic",
+      "id": "donkey-calf-raise",
+      "name": "Donkey calf raise",
+      "category": "strength",
+      "movementPattern": "calf",
+      "equipmentTags": [
+        "Machine"
+      ],
+      "goalTags": [
+        "hypertrophy",
+        "general_fitness",
+        "strength"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "ankle",
+        "back"
+      ],
+      "traitTags": [
+        "bilateral",
+        "machine",
+        "lower_body"
+      ],
+      "preferenceTags": [
+        "machine",
+        "calves",
+        "hypertrophy"
+      ],
+      "sets": 3,
+      "reps": "10-15",
+      "rest": "60-90 sec",
+      "coachingNote": "Keep the hips supported, move through the ankle, and control the stretch at the bottom.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "calf_running_athletic",
+      "id": "seated-tibialis-raise",
+      "name": "Seated tibialis raise",
+      "category": "running_prep",
+      "movementPattern": "calf",
+      "equipmentTags": [
+        "Tibialis machine"
+      ],
+      "goalTags": [
+        "running",
+        "general_fitness",
+        "recovery"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "ankle"
+      ],
+      "traitTags": [
+        "bilateral",
+        "machine",
+        "running_support"
+      ],
+      "preferenceTags": [
+        "machine",
+        "shin",
+        "running prep"
+      ],
+      "sets": 3,
+      "reps": "12-20",
+      "rest": "45-60 sec",
+      "coachingNote": "Keep the heels planted and lift the toes toward the shins without bouncing.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Reps"
+      }
+    },
+    {
+      "section": "calf_running_athletic",
+      "id": "pogo-hop",
+      "name": "Pogo hop",
+      "category": "athletic",
+      "movementPattern": "power",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "ankle",
+        "knee",
+        "impact"
+      ],
+      "traitTags": [
+        "bilateral",
+        "power",
+        "elastic",
+        "running_support"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "jumping",
+        "running prep",
+        "power"
+      ],
+      "sets": 3,
+      "reps": "15-25",
+      "rest": "60 sec",
+      "coachingNote": "Stay tall, use quick ankle-driven contacts, and keep the hops low and quiet.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "reps_only",
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null
+      }
+    },
+    {
+      "section": "calf_running_athletic",
+      "id": "box-jump",
+      "name": "Box jump",
+      "category": "athletic",
+      "movementPattern": "power",
+      "equipmentTags": [
+        "Bodyweight",
+        "Plyo box"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "knee",
+        "ankle",
+        "impact"
+      ],
+      "traitTags": [
+        "bilateral",
+        "power",
+        "jumping"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "jumping",
+        "power",
+        "sport"
+      ],
+      "sets": 4,
+      "reps": "3-5",
+      "rest": "90 sec",
+      "coachingNote": "Choose a box you can land on softly, jump with intent, and step down between reps.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "reps_only",
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null
+      }
+    },
+    {
+      "section": "calf_running_athletic",
+      "id": "standing-broad-jump",
+      "name": "Standing broad jump",
+      "category": "athletic",
+      "movementPattern": "power",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "knee",
+        "ankle",
+        "impact"
+      ],
+      "traitTags": [
+        "bilateral",
+        "power",
+        "jumping"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "jumping",
+        "power",
+        "sport"
+      ],
+      "sets": 4,
+      "reps": "3-5",
+      "rest": "90 sec",
+      "coachingNote": "Swing the arms, jump forward with intent, and land softly with the knees tracking over the feet.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "reps_only",
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null
+      }
+    },
+    {
+      "section": "calf_running_athletic",
+      "id": "sled-push",
+      "name": "Sled push",
+      "category": "athletic",
+      "movementPattern": "power",
+      "equipmentTags": [
+        "Sled"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "knee",
+        "ankle"
+      ],
+      "traitTags": [
+        "loaded",
+        "conditioning",
+        "lower_body"
+      ],
+      "preferenceTags": [
+        "sled",
+        "conditioning",
+        "lower body",
+        "sport"
+      ],
+      "sets": 4,
+      "reps": "15-25 m",
+      "rest": "90 sec",
+      "coachingNote": "Keep the torso braced, drive through the ground with short steps, and maintain steady pressure into the sled.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "trackingType": "weight_reps",
+        "unilateralMode": "bilateral",
+        "loadUnit": "lb",
+        "supportedLoadUnits": [
+          "lb",
+          "kg"
+        ],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Load",
+        "secondaryValueLabel": "Distance"
+      }
+    }
+  ]
+}

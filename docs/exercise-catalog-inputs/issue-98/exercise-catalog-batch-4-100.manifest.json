@@ -1,0 +1,4554 @@
+{
+  "manifestVersion": 1,
+  "batchNumber": 4,
+  "title": "Exercise Catalog Batch 4 \u2014 Mobility, Recovery, Conditioning, and Athletic Expansion",
+  "purpose": "Temporary implementation input for a reviewed catalog expansion. The runtime source of truth remains lib/exercise-library.ts.",
+  "authoringDecisions": {
+    "canonicalRuntimeSourceRemains": "lib/exercise-library.ts",
+    "manifestIsTemporary": true,
+    "contentDecisionOwner": "ChatGPT-authored manifest; Codex performs mechanical integration and validation only.",
+    "videoPolicy": "Every videoUrl is null and videoReviewStatus is not_reviewed. Do not research, guess, or add videos in this implementation.",
+    "aliasPolicy": "Do not generate aliases automatically. Add only explicit, unambiguous aliases separately approved by the product owner.",
+    "collisionPolicy": "Stop on canonical ID, normalized canonical name, reviewed alias, or user-owned normalized-name collision.",
+    "databasePolicy": "Generate a new additive, idempotent, system-only migration with exact TypeScript-to-SQL parity, protected-table tests, and read-only verification.",
+    "historicalMigrationPolicy": "Never edit a committed historical migration.",
+    "manifestDisposition": "Remove this temporary manifest before merge unless explicitly retained as an approved test fixture."
+  },
+  "summary": {
+    "count": 100,
+    "sections": {
+      "mobility_spine_shoulders": 20,
+      "mobility_hips_ankles": 20,
+      "recovery_activation": 20,
+      "cardio_conditioning": 20,
+      "athletic_power_agility": 20
+    },
+    "videoUrlsReviewed": 0,
+    "videoUrlsBlank": 100
+  },
+  "exercises": [
+    {
+      "section": "mobility_spine_shoulders",
+      "id": "cat-cow",
+      "name": "Cat-cow",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [],
+      "traitTags": [
+        "mobility",
+        "low_load",
+        "recovery"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility"
+      ],
+      "sets": 2,
+      "reps": "8-10",
+      "rest": "30 sec",
+      "coachingNote": "Move slowly between flexion and extension without forcing either end range.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "mobility_spine_shoulders",
+      "id": "childs-pose-lat-stretch",
+      "name": "Child's-pose lat stretch",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "mobility",
+        "low_load",
+        "upper_body"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility"
+      ],
+      "sets": 2,
+      "reps": "20-30 sec",
+      "rest": "30 sec",
+      "coachingNote": "Sit the hips back and reach the hands forward while breathing into the upper back.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null,
+        "trackingType": "duration"
+      }
+    },
+    {
+      "section": "mobility_spine_shoulders",
+      "id": "thread-the-needle",
+      "name": "Thread-the-needle rotation",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "mobility",
+        "low_load",
+        "recovery"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility"
+      ],
+      "sets": 2,
+      "reps": "6 each side",
+      "rest": "30 sec",
+      "coachingNote": "Slide one arm under the body and rotate only through a comfortable upper-back range.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "mobility_spine_shoulders",
+      "id": "quadruped-thoracic-rotation",
+      "name": "Quadruped thoracic rotation",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [],
+      "traitTags": [
+        "mobility",
+        "low_load",
+        "upper_body"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility"
+      ],
+      "sets": 2,
+      "reps": "6 each side",
+      "rest": "30 sec",
+      "coachingNote": "Keep the hips steady and rotate the upper back without forcing the neck.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "mobility_spine_shoulders",
+      "id": "bench-thoracic-extension",
+      "name": "Bench thoracic extension",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bench"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "mobility",
+        "low_load",
+        "upper_body"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility"
+      ],
+      "sets": 2,
+      "reps": "8",
+      "rest": "30 sec",
+      "coachingNote": "Rest the elbows on the bench and sink the chest gently while keeping the ribs controlled.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "mobility_spine_shoulders",
+      "id": "wall-slide",
+      "name": "Wall slide",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight",
+        "Wall"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "shoulder",
+        "overhead"
+      ],
+      "traitTags": [
+        "mobility",
+        "low_load",
+        "upper_body"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility"
+      ],
+      "sets": 2,
+      "reps": "8-12",
+      "rest": "30 sec",
+      "coachingNote": "Keep the ribs down and slide the arms upward only as far as you can maintain wall contact.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "mobility_spine_shoulders",
+      "id": "foam-roller-wall-slide",
+      "name": "Foam-roller wall slide",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Foam roller",
+        "Wall"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "shoulder",
+        "overhead"
+      ],
+      "traitTags": [
+        "mobility",
+        "low_load",
+        "upper_body"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility"
+      ],
+      "sets": 2,
+      "reps": "8-12",
+      "rest": "30 sec",
+      "coachingNote": "Press lightly into the roller and slide upward without shrugging.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "mobility_spine_shoulders",
+      "id": "band-shoulder-pass-through",
+      "name": "Band shoulder pass-through",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bands"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "shoulder",
+        "overhead"
+      ],
+      "traitTags": [
+        "mobility",
+        "low_load",
+        "upper_body"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility"
+      ],
+      "sets": 2,
+      "reps": "8-12",
+      "rest": "30 sec",
+      "coachingNote": "Use a wide grip and move the band overhead only through a smooth pain-free range.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "mobility_spine_shoulders",
+      "id": "scapular-wall-clock",
+      "name": "Scapular wall clock",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Mini band",
+        "Wall"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "mobility",
+        "low_load",
+        "upper_body"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility"
+      ],
+      "sets": 2,
+      "reps": "5 each direction",
+      "rest": "30 sec",
+      "coachingNote": "Keep light band tension and move one hand around the clock without shrugging.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "mobility_spine_shoulders",
+      "id": "serratus-wall-slide",
+      "name": "Serratus wall slide",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Foam roller",
+        "Mini band",
+        "Wall"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "shoulder",
+        "overhead"
+      ],
+      "traitTags": [
+        "mobility",
+        "low_load",
+        "upper_body"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility"
+      ],
+      "sets": 2,
+      "reps": "8-12",
+      "rest": "30 sec",
+      "coachingNote": "Press gently into the roller and slide upward while keeping the shoulder blades controlled.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "mobility_spine_shoulders",
+      "id": "doorway-pec-stretch",
+      "name": "Doorway chest stretch",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Doorway"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "mobility",
+        "low_load",
+        "upper_body"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility"
+      ],
+      "sets": 2,
+      "reps": "20-30 sec each side",
+      "rest": "30 sec",
+      "coachingNote": "Place the forearm on the doorway and turn away gently without forcing the shoulder.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null,
+        "trackingType": "duration"
+      }
+    },
+    {
+      "section": "mobility_spine_shoulders",
+      "id": "cross-body-shoulder-stretch",
+      "name": "Cross-body shoulder stretch",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "mobility",
+        "low_load",
+        "upper_body"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility"
+      ],
+      "sets": 2,
+      "reps": "20-30 sec each side",
+      "rest": "30 sec",
+      "coachingNote": "Draw the arm across the chest and keep the shoulder relaxed.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null,
+        "trackingType": "duration"
+      }
+    },
+    {
+      "section": "mobility_spine_shoulders",
+      "id": "sleeper-stretch",
+      "name": "Side-lying sleeper stretch",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "mobility",
+        "low_load",
+        "recovery"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility"
+      ],
+      "sets": 2,
+      "reps": "20 sec each side",
+      "rest": "30 sec",
+      "coachingNote": "Lie on the side with the shoulder supported and apply only gentle pressure.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null,
+        "trackingType": "duration"
+      }
+    },
+    {
+      "section": "mobility_spine_shoulders",
+      "id": "quadruped-wrist-extension-rock",
+      "name": "Quadruped wrist extension rock",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [],
+      "traitTags": [
+        "mobility",
+        "low_load",
+        "recovery"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility"
+      ],
+      "sets": 2,
+      "reps": "8-10",
+      "rest": "30 sec",
+      "coachingNote": "Keep the palms down and rock back only through a comfortable wrist range.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "mobility_spine_shoulders",
+      "id": "quadruped-wrist-flexion-rock",
+      "name": "Quadruped wrist flexion rock",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [],
+      "traitTags": [
+        "mobility",
+        "low_load",
+        "recovery"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility"
+      ],
+      "sets": 2,
+      "reps": "8-10",
+      "rest": "30 sec",
+      "coachingNote": "Place the backs of the hands down gently and shift only as far as comfortable.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "mobility_spine_shoulders",
+      "id": "gentle-neck-rotation",
+      "name": "Gentle neck rotation",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [],
+      "traitTags": [
+        "mobility",
+        "low_load",
+        "recovery"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility"
+      ],
+      "sets": 2,
+      "reps": "5 each side",
+      "rest": "30 sec",
+      "coachingNote": "Turn the head slowly without lifting the chin or pushing into discomfort.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "mobility_spine_shoulders",
+      "id": "gentle-neck-side-bend",
+      "name": "Gentle neck side bend",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [],
+      "traitTags": [
+        "mobility",
+        "low_load",
+        "recovery"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility"
+      ],
+      "sets": 2,
+      "reps": "5 each side",
+      "rest": "30 sec",
+      "coachingNote": "Bring one ear toward the shoulder slowly while keeping both shoulders relaxed.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "mobility_spine_shoulders",
+      "id": "supine-breathing-ninety-ninety",
+      "name": "90/90 supine breathing",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight",
+        "Bench"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [],
+      "traitTags": [
+        "mobility",
+        "low_load",
+        "recovery"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility"
+      ],
+      "sets": 3,
+      "reps": "5 breaths",
+      "rest": "30 sec",
+      "coachingNote": "Rest the feet on a bench, exhale fully, and breathe quietly into the sides and back of the ribs.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null,
+        "trackingType": "duration"
+      }
+    },
+    {
+      "section": "mobility_spine_shoulders",
+      "id": "crocodile-breathing",
+      "name": "Crocodile breathing",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [],
+      "traitTags": [
+        "mobility",
+        "low_load",
+        "recovery"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility"
+      ],
+      "sets": 3,
+      "reps": "5 breaths",
+      "rest": "30 sec",
+      "coachingNote": "Lie face-down and breathe gently into the abdomen and lower ribs.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null,
+        "trackingType": "duration"
+      }
+    },
+    {
+      "section": "mobility_spine_shoulders",
+      "id": "supported-deep-squat-breathing",
+      "name": "Supported deep-squat breathing",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight",
+        "Support"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "knee",
+        "ankle",
+        "back"
+      ],
+      "traitTags": [
+        "mobility",
+        "low_load",
+        "recovery"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility"
+      ],
+      "sets": 2,
+      "reps": "5 breaths",
+      "rest": "30 sec",
+      "coachingNote": "Hold stable support, sit into a comfortable squat, and breathe without forcing depth.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null,
+        "trackingType": "duration"
+      }
+    },
+    {
+      "section": "mobility_hips_ankles",
+      "id": "ninety-ninety-hip-switch",
+      "name": "90/90 hip switch",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "knee"
+      ],
+      "traitTags": [
+        "mobility",
+        "lower_body",
+        "low_load"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility",
+        "hips"
+      ],
+      "sets": 2,
+      "reps": "6-10",
+      "rest": "30 sec",
+      "coachingNote": "Move between both hip positions slowly and use the hands for support if needed.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "mobility_hips_ankles",
+      "id": "ninety-ninety-forward-fold",
+      "name": "90/90 hip forward fold",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "knee"
+      ],
+      "traitTags": [
+        "mobility",
+        "lower_body",
+        "low_load"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility",
+        "hips"
+      ],
+      "sets": 2,
+      "reps": "20 sec each side",
+      "rest": "30 sec",
+      "coachingNote": "Hinge forward over the front shin while keeping the spine long.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null,
+        "trackingType": "duration"
+      }
+    },
+    {
+      "section": "mobility_hips_ankles",
+      "id": "shin-box-get-up",
+      "name": "Shin-box get-up",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "knee",
+        "ankle"
+      ],
+      "traitTags": [
+        "mobility",
+        "lower_body",
+        "low_load"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility",
+        "hips"
+      ],
+      "sets": 2,
+      "reps": "5 each side",
+      "rest": "45 sec",
+      "coachingNote": "Move from the shin-box position to standing with control and use support if needed.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "mobility_hips_ankles",
+      "id": "adductor-rock-back",
+      "name": "Quadruped adductor rock-back",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "knee"
+      ],
+      "traitTags": [
+        "mobility",
+        "lower_body",
+        "low_load"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility",
+        "hips"
+      ],
+      "sets": 2,
+      "reps": "8 each side",
+      "rest": "30 sec",
+      "coachingNote": "Extend one leg to the side and rock the hips back without rounding the low back.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "mobility_hips_ankles",
+      "id": "frog-stretch-rock",
+      "name": "Frog stretch rock-back",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight",
+        "Mat"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "knee"
+      ],
+      "traitTags": [
+        "mobility",
+        "lower_body",
+        "low_load"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility",
+        "hips"
+      ],
+      "sets": 2,
+      "reps": "8",
+      "rest": "30 sec",
+      "coachingNote": "Set the knees wide on padding and rock back only through a comfortable range.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "mobility_hips_ankles",
+      "id": "half-kneeling-adductor-mobilization",
+      "name": "Half-kneeling adductor mobilization",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "knee"
+      ],
+      "traitTags": [
+        "mobility",
+        "lower_body",
+        "low_load"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility",
+        "hips"
+      ],
+      "sets": 2,
+      "reps": "8 each side",
+      "rest": "30 sec",
+      "coachingNote": "Extend one leg to the side and shift the hips back while keeping the foot planted.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "mobility_hips_ankles",
+      "id": "supported-pigeon-stretch",
+      "name": "Supported pigeon stretch",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight",
+        "Bench"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "knee"
+      ],
+      "traitTags": [
+        "mobility",
+        "lower_body",
+        "low_load"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility",
+        "hips"
+      ],
+      "sets": 2,
+      "reps": "20-30 sec each side",
+      "rest": "30 sec",
+      "coachingNote": "Use a bench or high surface and settle into the hip only as far as comfortable.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null,
+        "trackingType": "duration"
+      }
+    },
+    {
+      "section": "mobility_hips_ankles",
+      "id": "supine-figure-four-stretch",
+      "name": "Supine figure-four stretch",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "knee"
+      ],
+      "traitTags": [
+        "mobility",
+        "lower_body",
+        "low_load"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility",
+        "hips"
+      ],
+      "sets": 2,
+      "reps": "20-30 sec each side",
+      "rest": "30 sec",
+      "coachingNote": "Cross one ankle over the opposite thigh and draw the legs toward you gently.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null,
+        "trackingType": "duration"
+      }
+    },
+    {
+      "section": "mobility_hips_ankles",
+      "id": "supine-hamstring-floss",
+      "name": "Supine hamstring floss",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight",
+        "Strap"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "hamstring"
+      ],
+      "traitTags": [
+        "mobility",
+        "lower_body",
+        "low_load"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility",
+        "hips"
+      ],
+      "sets": 2,
+      "reps": "8-10 each side",
+      "rest": "30 sec",
+      "coachingNote": "Support the thigh and slowly straighten and bend the knee without forcing a stretch.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "mobility_hips_ankles",
+      "id": "active-straight-leg-raise",
+      "name": "Active straight-leg raise",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "hamstring",
+        "back"
+      ],
+      "traitTags": [
+        "mobility",
+        "lower_body",
+        "low_load"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility",
+        "hips"
+      ],
+      "sets": 2,
+      "reps": "8 each side",
+      "rest": "30 sec",
+      "coachingNote": "Keep the opposite leg long and lift the working leg without the pelvis rolling.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "mobility_hips_ankles",
+      "id": "standing-hamstring-sweep",
+      "name": "Standing hamstring sweep",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "hamstring"
+      ],
+      "traitTags": [
+        "mobility",
+        "lower_body",
+        "low_load"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility",
+        "hips"
+      ],
+      "sets": 2,
+      "reps": "8 each side",
+      "rest": "30 sec",
+      "coachingNote": "Place one heel forward and sweep the hands toward the foot while hinging gently.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "mobility_hips_ankles",
+      "id": "worlds-greatest-stretch",
+      "name": "World's greatest stretch",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "knee",
+        "ankle",
+        "hamstring"
+      ],
+      "traitTags": [
+        "mobility",
+        "lower_body",
+        "low_load"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility",
+        "hips"
+      ],
+      "sets": 2,
+      "reps": "4 each side",
+      "rest": "30 sec",
+      "coachingNote": "Step into a long lunge, place the hand down, and rotate through the upper back.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "mobility_hips_ankles",
+      "id": "dynamic-half-kneeling-hip-flexor-rock",
+      "name": "Dynamic half-kneeling hip-flexor rock",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "knee"
+      ],
+      "traitTags": [
+        "mobility",
+        "lower_body",
+        "low_load"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility",
+        "hips"
+      ],
+      "sets": 2,
+      "reps": "8 each side",
+      "rest": "30 sec",
+      "coachingNote": "Keep the pelvis gently tucked and rock forward without arching the low back.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "mobility_hips_ankles",
+      "id": "couch-stretch",
+      "name": "Couch stretch",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight",
+        "Bench"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "knee"
+      ],
+      "traitTags": [
+        "mobility",
+        "lower_body",
+        "low_load"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility",
+        "hips"
+      ],
+      "sets": 2,
+      "reps": "20-30 sec each side",
+      "rest": "30 sec",
+      "coachingNote": "Support the rear foot on a bench and keep the torso tall without forcing the knee.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null,
+        "trackingType": "duration"
+      }
+    },
+    {
+      "section": "mobility_hips_ankles",
+      "id": "standing-quadriceps-stretch",
+      "name": "Standing quadriceps stretch",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight",
+        "Support"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "knee"
+      ],
+      "traitTags": [
+        "mobility",
+        "lower_body",
+        "low_load"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility",
+        "hips"
+      ],
+      "sets": 2,
+      "reps": "20-30 sec each side",
+      "rest": "30 sec",
+      "coachingNote": "Hold support, draw the heel toward the glute, and keep the knees close.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null,
+        "trackingType": "duration"
+      }
+    },
+    {
+      "section": "mobility_hips_ankles",
+      "id": "straight-knee-calf-stretch",
+      "name": "Straight-knee calf stretch",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight",
+        "Wall"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "ankle"
+      ],
+      "traitTags": [
+        "mobility",
+        "lower_body",
+        "low_load"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility",
+        "ankle"
+      ],
+      "sets": 2,
+      "reps": "20-30 sec each side",
+      "rest": "30 sec",
+      "coachingNote": "Keep the rear knee straight and heel down while leaning toward the wall.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null,
+        "trackingType": "duration"
+      }
+    },
+    {
+      "section": "mobility_hips_ankles",
+      "id": "bent-knee-soleus-stretch",
+      "name": "Bent-knee soleus stretch",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight",
+        "Wall"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "ankle"
+      ],
+      "traitTags": [
+        "mobility",
+        "lower_body",
+        "low_load"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility",
+        "hips"
+      ],
+      "sets": 2,
+      "reps": "20-30 sec each side",
+      "rest": "30 sec",
+      "coachingNote": "Bend the rear knee while keeping the heel down and move forward gently.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null,
+        "trackingType": "duration"
+      }
+    },
+    {
+      "section": "mobility_hips_ankles",
+      "id": "ankle-inversion-eversion-control",
+      "name": "Ankle inversion and eversion control",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "ankle"
+      ],
+      "traitTags": [
+        "mobility",
+        "lower_body",
+        "low_load"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility",
+        "ankle"
+      ],
+      "sets": 2,
+      "reps": "8 each direction",
+      "rest": "30 sec",
+      "coachingNote": "Move the foot inward and outward slowly without moving the knee.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "mobility_hips_ankles",
+      "id": "controlled-ankle-circles",
+      "name": "Controlled ankle circles",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "ankle"
+      ],
+      "traitTags": [
+        "mobility",
+        "lower_body",
+        "low_load"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility",
+        "ankle"
+      ],
+      "sets": 2,
+      "reps": "5 each direction",
+      "rest": "30 sec",
+      "coachingNote": "Draw slow circles through the largest comfortable range without moving the leg.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "mobility_hips_ankles",
+      "id": "toe-yoga",
+      "name": "Toe yoga",
+      "category": "mobility",
+      "movementPattern": "mobility",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "ankle"
+      ],
+      "traitTags": [
+        "mobility",
+        "lower_body",
+        "low_load"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "mobility",
+        "ankle"
+      ],
+      "sets": 2,
+      "reps": "8-10",
+      "rest": "30 sec",
+      "coachingNote": "Alternate lifting the big toe and the smaller toes while keeping the foot relaxed.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "recovery_activation",
+      "id": "standing-band-external-rotation",
+      "name": "Standing band external rotation",
+      "category": "recovery",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Bands"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "low_load",
+        "control",
+        "bilateral"
+      ],
+      "preferenceTags": [
+        "bands",
+        "recovery",
+        "activation"
+      ],
+      "sets": 3,
+      "reps": "12-15",
+      "rest": "45 sec",
+      "coachingNote": "Keep the elbow by the side and rotate the forearm outward without moving the upper arm.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "recovery_activation",
+      "id": "side-lying-dumbbell-external-rotation",
+      "name": "Side-lying dumbbell external rotation",
+      "category": "recovery",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Dumbbells"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "low_load",
+        "control",
+        "unilateral"
+      ],
+      "preferenceTags": [
+        "dumbbells",
+        "recovery",
+        "activation"
+      ],
+      "sets": 3,
+      "reps": "10-15 each side",
+      "rest": "45 sec",
+      "coachingNote": "Keep the elbow against the torso and rotate slowly through a comfortable range.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "recovery_activation",
+      "id": "standing-band-internal-rotation",
+      "name": "Standing band internal rotation",
+      "category": "recovery",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Bands"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "low_load",
+        "control",
+        "bilateral"
+      ],
+      "preferenceTags": [
+        "bands",
+        "recovery",
+        "activation"
+      ],
+      "sets": 3,
+      "reps": "12-15",
+      "rest": "45 sec",
+      "coachingNote": "Keep the upper arm still and rotate the forearm inward without twisting the torso.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "recovery_activation",
+      "id": "scapular-push-up",
+      "name": "Scapular push-up",
+      "category": "recovery",
+      "movementPattern": "push",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "low_load",
+        "control",
+        "bilateral"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "recovery",
+        "activation"
+      ],
+      "sets": 3,
+      "reps": "8-15",
+      "rest": "45 sec",
+      "coachingNote": "Keep the elbows straight and let the shoulder blades move around the rib cage.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "recovery_activation",
+      "id": "quadruped-scapular-push-up",
+      "name": "Quadruped scapular push-up",
+      "category": "recovery",
+      "movementPattern": "push",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "low_load",
+        "control",
+        "bilateral"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "recovery",
+        "activation"
+      ],
+      "sets": 3,
+      "reps": "10-15",
+      "rest": "45 sec",
+      "coachingNote": "Keep the elbows straight and move the chest gently between and away from the floor.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "recovery_activation",
+      "id": "band-pull-apart",
+      "name": "Band pull-apart",
+      "category": "recovery",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Bands"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "low_load",
+        "control",
+        "bilateral"
+      ],
+      "preferenceTags": [
+        "bands",
+        "recovery",
+        "activation"
+      ],
+      "sets": 3,
+      "reps": "12-20",
+      "rest": "45 sec",
+      "coachingNote": "Keep the ribs down and pull the band apart without shrugging.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "recovery_activation",
+      "id": "band-no-money-drill",
+      "name": "Band no-money drill",
+      "category": "recovery",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Bands"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "low_load",
+        "control",
+        "bilateral"
+      ],
+      "preferenceTags": [
+        "bands",
+        "recovery",
+        "activation"
+      ],
+      "sets": 3,
+      "reps": "12-15",
+      "rest": "45 sec",
+      "coachingNote": "Keep the elbows at the sides and rotate the hands outward without arching the back.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "recovery_activation",
+      "id": "supine-serratus-punch",
+      "name": "Supine serratus punch",
+      "category": "recovery",
+      "movementPattern": "push",
+      "equipmentTags": [
+        "Dumbbells"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "low_load",
+        "control",
+        "bilateral"
+      ],
+      "preferenceTags": [
+        "dumbbells",
+        "recovery",
+        "activation"
+      ],
+      "sets": 3,
+      "reps": "12-15",
+      "rest": "45 sec",
+      "coachingNote": "Keep the elbow straight and reach the shoulder blade upward without lifting the head.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "recovery_activation",
+      "id": "prone-t-raise",
+      "name": "Prone T-raise",
+      "category": "recovery",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Bodyweight",
+        "Bench"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "low_load",
+        "control",
+        "bilateral"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "recovery",
+        "activation"
+      ],
+      "sets": 3,
+      "reps": "10-15",
+      "rest": "45 sec",
+      "coachingNote": "Raise the arms out to the sides with the thumbs up and keep the neck relaxed.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "recovery_activation",
+      "id": "prone-w-raise",
+      "name": "Prone W-raise",
+      "category": "recovery",
+      "movementPattern": "pull",
+      "equipmentTags": [
+        "Bodyweight",
+        "Bench"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "low_load",
+        "control",
+        "bilateral"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "recovery",
+        "activation"
+      ],
+      "sets": 3,
+      "reps": "10-15",
+      "rest": "45 sec",
+      "coachingNote": "Bend the elbows into a W and lift the arms without shrugging.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "recovery_activation",
+      "id": "band-terminal-knee-extension",
+      "name": "Band terminal knee extension",
+      "category": "recovery",
+      "movementPattern": "squat",
+      "equipmentTags": [
+        "Bands"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "knee"
+      ],
+      "traitTags": [
+        "low_load",
+        "control",
+        "unilateral"
+      ],
+      "preferenceTags": [
+        "bands",
+        "recovery",
+        "activation"
+      ],
+      "sets": 3,
+      "reps": "12-20 each side",
+      "rest": "45 sec",
+      "coachingNote": "Anchor the band behind the knee and straighten the leg fully without shifting the hips.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "recovery_activation",
+      "id": "short-arc-quadriceps-extension",
+      "name": "Short-arc quadriceps extension",
+      "category": "recovery",
+      "movementPattern": "squat",
+      "equipmentTags": [
+        "Bodyweight",
+        "Bolster"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "knee"
+      ],
+      "traitTags": [
+        "low_load",
+        "control",
+        "unilateral"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "recovery",
+        "activation"
+      ],
+      "sets": 3,
+      "reps": "12-20 each side",
+      "rest": "45 sec",
+      "coachingNote": "Support the knee over a bolster and straighten the leg without lifting the thigh.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "recovery_activation",
+      "id": "supine-straight-leg-raise",
+      "name": "Supine straight-leg raise",
+      "category": "recovery",
+      "movementPattern": "lunge",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "knee",
+        "back"
+      ],
+      "traitTags": [
+        "low_load",
+        "control",
+        "unilateral"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "recovery",
+        "activation"
+      ],
+      "sets": 3,
+      "reps": "10-15 each side",
+      "rest": "45 sec",
+      "coachingNote": "Keep the working knee straight and lift the leg without arching the low back.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "recovery_activation",
+      "id": "side-lying-hip-abduction",
+      "name": "Side-lying hip abduction",
+      "category": "recovery",
+      "movementPattern": "lateral",
+      "equipmentTags": [
+        "Bodyweight",
+        "Mini band"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [],
+      "traitTags": [
+        "low_load",
+        "control",
+        "unilateral"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "recovery",
+        "activation"
+      ],
+      "sets": 3,
+      "reps": "12-20 each side",
+      "rest": "45 sec",
+      "coachingNote": "Keep the pelvis stacked and lift the top leg without rolling backward.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "recovery_activation",
+      "id": "clamshell",
+      "name": "Clamshell",
+      "category": "recovery",
+      "movementPattern": "lateral",
+      "equipmentTags": [
+        "Bodyweight",
+        "Mini band"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [],
+      "traitTags": [
+        "low_load",
+        "control",
+        "unilateral"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "recovery",
+        "activation"
+      ],
+      "sets": 3,
+      "reps": "12-20 each side",
+      "rest": "45 sec",
+      "coachingNote": "Keep the feet together and open the top knee without rolling the pelvis.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "recovery_activation",
+      "id": "standing-band-hip-abduction",
+      "name": "Standing band hip abduction",
+      "category": "recovery",
+      "movementPattern": "lateral",
+      "equipmentTags": [
+        "Bands"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [],
+      "traitTags": [
+        "low_load",
+        "control",
+        "unilateral"
+      ],
+      "preferenceTags": [
+        "bands",
+        "recovery",
+        "activation"
+      ],
+      "sets": 3,
+      "reps": "12-20 each side",
+      "rest": "45 sec",
+      "coachingNote": "Hold support and move the leg out to the side without leaning.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "recovery_activation",
+      "id": "mini-band-monster-walk",
+      "name": "Mini-band monster walk",
+      "category": "recovery",
+      "movementPattern": "lateral",
+      "equipmentTags": [
+        "Mini band"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "knee"
+      ],
+      "traitTags": [
+        "low_load",
+        "control",
+        "bilateral"
+      ],
+      "preferenceTags": [
+        "mini band",
+        "recovery",
+        "activation"
+      ],
+      "sets": 3,
+      "reps": "8-12 steps each direction",
+      "rest": "45 sec",
+      "coachingNote": "Keep light band tension, take controlled diagonal steps, and keep the knees aligned.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "recovery_activation",
+      "id": "lateral-mini-band-walk",
+      "name": "Lateral mini-band walk",
+      "category": "recovery",
+      "movementPattern": "lateral",
+      "equipmentTags": [
+        "Mini band"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "knee"
+      ],
+      "traitTags": [
+        "low_load",
+        "control",
+        "bilateral"
+      ],
+      "preferenceTags": [
+        "mini band",
+        "recovery",
+        "activation"
+      ],
+      "sets": 3,
+      "reps": "8-12 steps each direction",
+      "rest": "45 sec",
+      "coachingNote": "Stay level through the hips and take small side steps without letting the knees cave.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "recovery_activation",
+      "id": "single-leg-balance",
+      "name": "Single-leg balance",
+      "category": "recovery",
+      "movementPattern": "lateral",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "ankle"
+      ],
+      "traitTags": [
+        "low_load",
+        "control",
+        "unilateral"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "recovery",
+        "activation"
+      ],
+      "sets": 3,
+      "reps": "20-30 sec each side",
+      "rest": "30 sec",
+      "coachingNote": "Stand tall near support and keep the foot tripod in contact with the floor.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null,
+        "trackingType": "duration"
+      }
+    },
+    {
+      "section": "recovery_activation",
+      "id": "single-leg-balance-reach",
+      "name": "Single-leg balance reach",
+      "category": "recovery",
+      "movementPattern": "lateral",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "recovery",
+        "consistency",
+        "general_fitness"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "ankle",
+        "knee"
+      ],
+      "traitTags": [
+        "low_load",
+        "control",
+        "unilateral"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "recovery",
+        "activation"
+      ],
+      "sets": 3,
+      "reps": "5 reaches each side",
+      "rest": "45 sec",
+      "coachingNote": "Balance on one leg and reach the free foot in several directions without losing knee alignment.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "cardio_conditioning",
+      "id": "treadmill-walk",
+      "name": "Treadmill walk",
+      "category": "cardio",
+      "movementPattern": "walk",
+      "equipmentTags": [
+        "Treadmill"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "consistency",
+        "recovery"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [],
+      "traitTags": [
+        "cardio",
+        "continuous"
+      ],
+      "preferenceTags": [
+        "treadmill",
+        "cardio"
+      ],
+      "sets": 1,
+      "reps": "15-30 min",
+      "rest": "As needed",
+      "coachingNote": "Walk at a sustainable pace and use incline only if it remains comfortable.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": "mi",
+        "supportedDistanceUnits": [
+          "m",
+          "km",
+          "mi"
+        ],
+        "primaryValueLabel": "Distance",
+        "secondaryValueLabel": "Duration",
+        "trackingType": "distance_duration"
+      }
+    },
+    {
+      "section": "cardio_conditioning",
+      "id": "incline-treadmill-walk",
+      "name": "Incline treadmill walk",
+      "category": "cardio",
+      "movementPattern": "walk",
+      "equipmentTags": [
+        "Treadmill"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "consistency",
+        "recovery"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "ankle"
+      ],
+      "traitTags": [
+        "cardio",
+        "continuous"
+      ],
+      "preferenceTags": [
+        "treadmill",
+        "cardio"
+      ],
+      "sets": 1,
+      "reps": "10-25 min",
+      "rest": "As needed",
+      "coachingNote": "Use a modest incline, stay tall, and keep the effort conversational.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": "mi",
+        "supportedDistanceUnits": [
+          "m",
+          "km",
+          "mi"
+        ],
+        "primaryValueLabel": "Distance",
+        "secondaryValueLabel": "Duration",
+        "trackingType": "distance_duration"
+      }
+    },
+    {
+      "section": "cardio_conditioning",
+      "id": "stationary-bike",
+      "name": "Stationary bike",
+      "category": "cardio",
+      "movementPattern": "run",
+      "equipmentTags": [
+        "Stationary bike"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "consistency",
+        "recovery"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "knee"
+      ],
+      "traitTags": [
+        "cardio",
+        "continuous"
+      ],
+      "preferenceTags": [
+        "stationary bike",
+        "cardio"
+      ],
+      "sets": 1,
+      "reps": "15-30 min",
+      "rest": "As needed",
+      "coachingNote": "Choose a comfortable seat height and pedal at an easy-to-moderate effort.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null,
+        "trackingType": "duration"
+      }
+    },
+    {
+      "section": "cardio_conditioning",
+      "id": "recumbent-bike",
+      "name": "Recumbent bike",
+      "category": "cardio",
+      "movementPattern": "run",
+      "equipmentTags": [
+        "Recumbent bike"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "consistency",
+        "recovery"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "knee"
+      ],
+      "traitTags": [
+        "cardio",
+        "continuous"
+      ],
+      "preferenceTags": [
+        "recumbent bike",
+        "cardio"
+      ],
+      "sets": 1,
+      "reps": "15-30 min",
+      "rest": "As needed",
+      "coachingNote": "Keep the back supported and pedal smoothly without reaching at the bottom.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null,
+        "trackingType": "duration"
+      }
+    },
+    {
+      "section": "cardio_conditioning",
+      "id": "easy-air-bike-ride",
+      "name": "Easy air-bike ride",
+      "category": "cardio",
+      "movementPattern": "run",
+      "equipmentTags": [
+        "Air bike"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "consistency",
+        "recovery"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "shoulder",
+        "knee"
+      ],
+      "traitTags": [
+        "cardio",
+        "continuous"
+      ],
+      "preferenceTags": [
+        "air bike",
+        "cardio"
+      ],
+      "sets": 1,
+      "reps": "10-20 min",
+      "rest": "As needed",
+      "coachingNote": "Use a steady pace that lets you breathe comfortably and maintain smooth arm action.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null,
+        "trackingType": "duration"
+      }
+    },
+    {
+      "section": "cardio_conditioning",
+      "id": "easy-rowing-ergometer",
+      "name": "Easy rowing ergometer",
+      "category": "cardio",
+      "movementPattern": "run",
+      "equipmentTags": [
+        "Rowing machine"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "consistency",
+        "recovery"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "back",
+        "knee"
+      ],
+      "traitTags": [
+        "cardio",
+        "continuous"
+      ],
+      "preferenceTags": [
+        "rowing machine",
+        "cardio"
+      ],
+      "sets": 1,
+      "reps": "10-20 min",
+      "rest": "As needed",
+      "coachingNote": "Drive with the legs, keep the handle path smooth, and use a conversational effort.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null,
+        "trackingType": "duration"
+      }
+    },
+    {
+      "section": "cardio_conditioning",
+      "id": "easy-elliptical",
+      "name": "Easy elliptical",
+      "category": "cardio",
+      "movementPattern": "run",
+      "equipmentTags": [
+        "Elliptical"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "consistency",
+        "recovery"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "knee",
+        "ankle"
+      ],
+      "traitTags": [
+        "cardio",
+        "continuous"
+      ],
+      "preferenceTags": [
+        "elliptical",
+        "cardio"
+      ],
+      "sets": 1,
+      "reps": "15-30 min",
+      "rest": "As needed",
+      "coachingNote": "Use a smooth stride and keep the effort easy enough to sustain.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null,
+        "trackingType": "duration"
+      }
+    },
+    {
+      "section": "cardio_conditioning",
+      "id": "easy-stair-climber",
+      "name": "Easy stair climber",
+      "category": "cardio",
+      "movementPattern": "walk",
+      "equipmentTags": [
+        "Stair climber"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "consistency",
+        "recovery"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "knee",
+        "ankle"
+      ],
+      "traitTags": [
+        "cardio",
+        "continuous"
+      ],
+      "preferenceTags": [
+        "stair climber",
+        "cardio"
+      ],
+      "sets": 1,
+      "reps": "10-20 min",
+      "rest": "As needed",
+      "coachingNote": "Stand tall, use the rails lightly, and keep a steady step rhythm.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null,
+        "trackingType": "duration"
+      }
+    },
+    {
+      "section": "cardio_conditioning",
+      "id": "pool-walking",
+      "name": "Pool walking",
+      "category": "cardio",
+      "movementPattern": "walk",
+      "equipmentTags": [
+        "Pool"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "consistency",
+        "recovery"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [],
+      "traitTags": [
+        "cardio",
+        "continuous"
+      ],
+      "preferenceTags": [
+        "pool",
+        "cardio"
+      ],
+      "sets": 1,
+      "reps": "10-20 min",
+      "rest": "As needed",
+      "coachingNote": "Walk through chest- or waist-deep water at a relaxed steady pace.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null,
+        "trackingType": "duration"
+      }
+    },
+    {
+      "section": "cardio_conditioning",
+      "id": "easy-continuous-swimming",
+      "name": "Easy continuous swimming",
+      "category": "cardio",
+      "movementPattern": "run",
+      "equipmentTags": [
+        "Pool"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "consistency",
+        "recovery"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "cardio",
+        "continuous"
+      ],
+      "preferenceTags": [
+        "pool",
+        "cardio"
+      ],
+      "sets": 1,
+      "reps": "10-20 min",
+      "rest": "As needed",
+      "coachingNote": "Use a comfortable stroke and stop before technique or shoulder comfort declines.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null,
+        "trackingType": "duration"
+      }
+    },
+    {
+      "section": "cardio_conditioning",
+      "id": "stationary-bike-intervals",
+      "name": "Stationary-bike intervals",
+      "category": "cardio",
+      "movementPattern": "run",
+      "equipmentTags": [
+        "Stationary bike"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "consistency",
+        "recovery"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "knee"
+      ],
+      "traitTags": [
+        "cardio",
+        "interval"
+      ],
+      "preferenceTags": [
+        "stationary bike",
+        "cardio"
+      ],
+      "sets": 6,
+      "reps": "1 min moderate / 1 min easy",
+      "rest": "Easy pedaling",
+      "coachingNote": "Keep the work intervals controlled and recover fully enough to repeat the same output.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null,
+        "trackingType": "duration"
+      }
+    },
+    {
+      "section": "cardio_conditioning",
+      "id": "air-bike-intervals",
+      "name": "Air-bike intervals",
+      "category": "cardio",
+      "movementPattern": "run",
+      "equipmentTags": [
+        "Air bike"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "consistency",
+        "recovery"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder",
+        "knee"
+      ],
+      "traitTags": [
+        "cardio",
+        "interval"
+      ],
+      "preferenceTags": [
+        "air bike",
+        "cardio"
+      ],
+      "sets": 8,
+      "reps": "20 sec moderate / 70 sec easy",
+      "rest": "Easy pedaling",
+      "coachingNote": "Keep the work bouts strong but repeatable rather than sprinting all-out.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null,
+        "trackingType": "duration"
+      }
+    },
+    {
+      "section": "cardio_conditioning",
+      "id": "rowing-machine-intervals",
+      "name": "Rowing-machine intervals",
+      "category": "cardio",
+      "movementPattern": "run",
+      "equipmentTags": [
+        "Rowing machine"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "consistency",
+        "recovery"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "back",
+        "knee"
+      ],
+      "traitTags": [
+        "cardio",
+        "interval"
+      ],
+      "preferenceTags": [
+        "rowing machine",
+        "cardio"
+      ],
+      "sets": 6,
+      "reps": "1 min moderate / 1 min easy",
+      "rest": "Easy rowing",
+      "coachingNote": "Maintain consistent stroke mechanics during every work interval.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null,
+        "trackingType": "duration"
+      }
+    },
+    {
+      "section": "cardio_conditioning",
+      "id": "elliptical-intervals",
+      "name": "Elliptical intervals",
+      "category": "cardio",
+      "movementPattern": "run",
+      "equipmentTags": [
+        "Elliptical"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "consistency",
+        "recovery"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "knee",
+        "ankle"
+      ],
+      "traitTags": [
+        "cardio",
+        "interval"
+      ],
+      "preferenceTags": [
+        "elliptical",
+        "cardio"
+      ],
+      "sets": 6,
+      "reps": "1 min moderate / 1 min easy",
+      "rest": "Easy pace",
+      "coachingNote": "Increase effort without losing a smooth stride or gripping the handles tightly.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null,
+        "trackingType": "duration"
+      }
+    },
+    {
+      "section": "cardio_conditioning",
+      "id": "stair-climber-intervals",
+      "name": "Stair-climber intervals",
+      "category": "cardio",
+      "movementPattern": "walk",
+      "equipmentTags": [
+        "Stair climber"
+      ],
+      "goalTags": [
+        "general_fitness",
+        "consistency",
+        "recovery"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "knee",
+        "ankle"
+      ],
+      "traitTags": [
+        "cardio",
+        "interval"
+      ],
+      "preferenceTags": [
+        "stair climber",
+        "cardio"
+      ],
+      "sets": 6,
+      "reps": "45 sec moderate / 75 sec easy",
+      "rest": "Easy stepping",
+      "coachingNote": "Keep the torso tall and choose a step rate you can repeat consistently.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null,
+        "trackingType": "duration"
+      }
+    },
+    {
+      "section": "cardio_conditioning",
+      "id": "tempo-run",
+      "name": "Tempo run",
+      "category": "cardio",
+      "movementPattern": "run",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "running",
+        "general_fitness",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "impact",
+        "knee",
+        "ankle",
+        "hamstring"
+      ],
+      "traitTags": [
+        "cardio",
+        "continuous"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "cardio"
+      ],
+      "sets": 1,
+      "reps": "15-25 min",
+      "rest": "As needed",
+      "coachingNote": "Run at a controlled comfortably hard pace that remains steady throughout.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": "mi",
+        "supportedDistanceUnits": [
+          "m",
+          "km",
+          "mi"
+        ],
+        "primaryValueLabel": "Distance",
+        "secondaryValueLabel": "Duration",
+        "trackingType": "distance_duration"
+      }
+    },
+    {
+      "section": "cardio_conditioning",
+      "id": "long-easy-run",
+      "name": "Long easy run",
+      "category": "cardio",
+      "movementPattern": "run",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "running",
+        "general_fitness",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "impact",
+        "knee",
+        "ankle"
+      ],
+      "traitTags": [
+        "cardio",
+        "continuous"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "cardio"
+      ],
+      "sets": 1,
+      "reps": "30-60 min",
+      "rest": "As needed",
+      "coachingNote": "Stay conversational and keep the pace conservative from the start.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": "mi",
+        "supportedDistanceUnits": [
+          "m",
+          "km",
+          "mi"
+        ],
+        "primaryValueLabel": "Distance",
+        "secondaryValueLabel": "Duration",
+        "trackingType": "distance_duration"
+      }
+    },
+    {
+      "section": "cardio_conditioning",
+      "id": "controlled-hill-repeats",
+      "name": "Controlled hill repeats",
+      "category": "cardio",
+      "movementPattern": "run",
+      "equipmentTags": [
+        "Bodyweight",
+        "Hill"
+      ],
+      "goalTags": [
+        "running",
+        "general_fitness",
+        "sport_performance"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "impact",
+        "knee",
+        "ankle",
+        "hamstring"
+      ],
+      "traitTags": [
+        "cardio",
+        "interval"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "cardio"
+      ],
+      "sets": 6,
+      "reps": "20-30 sec uphill",
+      "rest": "Walk down",
+      "coachingNote": "Run uphill with controlled power and recover fully while walking down.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Duration",
+        "secondaryValueLabel": null,
+        "trackingType": "duration"
+      }
+    },
+    {
+      "section": "cardio_conditioning",
+      "id": "fartlek-run",
+      "name": "Fartlek run",
+      "category": "cardio",
+      "movementPattern": "run",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "running",
+        "general_fitness",
+        "sport_performance"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "impact",
+        "knee",
+        "ankle"
+      ],
+      "traitTags": [
+        "cardio",
+        "continuous"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "cardio"
+      ],
+      "sets": 1,
+      "reps": "20-30 min",
+      "rest": "Easy running",
+      "coachingNote": "Alternate relaxed faster segments with easy running while keeping the session controlled.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": "mi",
+        "supportedDistanceUnits": [
+          "m",
+          "km",
+          "mi"
+        ],
+        "primaryValueLabel": "Distance",
+        "secondaryValueLabel": "Duration",
+        "trackingType": "distance_duration"
+      }
+    },
+    {
+      "section": "cardio_conditioning",
+      "id": "recovery-jog",
+      "name": "Recovery jog",
+      "category": "cardio",
+      "movementPattern": "run",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "running",
+        "general_fitness",
+        "sport_performance"
+      ],
+      "difficultyTier": "intro",
+      "cautionTags": [
+        "impact",
+        "knee",
+        "ankle"
+      ],
+      "traitTags": [
+        "cardio",
+        "continuous"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "cardio"
+      ],
+      "sets": 1,
+      "reps": "10-20 min",
+      "rest": "As needed",
+      "coachingNote": "Keep the pace very easy and stop if the run does not feel restorative.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": "mi",
+        "supportedDistanceUnits": [
+          "m",
+          "km",
+          "mi"
+        ],
+        "primaryValueLabel": "Distance",
+        "secondaryValueLabel": "Duration",
+        "trackingType": "distance_duration"
+      }
+    },
+    {
+      "section": "athletic_power_agility",
+      "id": "medicine-ball-chest-pass",
+      "name": "Medicine-ball chest pass",
+      "category": "athletic",
+      "movementPattern": "power",
+      "equipmentTags": [
+        "Medicine ball",
+        "Wall"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "power",
+        "bilateral"
+      ],
+      "preferenceTags": [
+        "medicine ball",
+        "sport",
+        "power"
+      ],
+      "sets": 4,
+      "reps": "5",
+      "rest": "60 sec",
+      "coachingNote": "Throw the ball forcefully from the chest and catch or retrieve it under control.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "athletic_power_agility",
+      "id": "medicine-ball-overhead-throw",
+      "name": "Medicine-ball overhead throw",
+      "category": "athletic",
+      "movementPattern": "power",
+      "equipmentTags": [
+        "Medicine ball",
+        "Wall"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder",
+        "overhead",
+        "back"
+      ],
+      "traitTags": [
+        "power",
+        "bilateral"
+      ],
+      "preferenceTags": [
+        "medicine ball",
+        "sport",
+        "power"
+      ],
+      "sets": 4,
+      "reps": "5",
+      "rest": "75 sec",
+      "coachingNote": "Brace, extend through the hips and arms, and release without overextending the back.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "athletic_power_agility",
+      "id": "medicine-ball-slam",
+      "name": "Medicine-ball slam",
+      "category": "athletic",
+      "movementPattern": "power",
+      "equipmentTags": [
+        "Medicine ball"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder",
+        "overhead",
+        "back"
+      ],
+      "traitTags": [
+        "power",
+        "bilateral"
+      ],
+      "preferenceTags": [
+        "medicine ball",
+        "sport",
+        "power"
+      ],
+      "sets": 4,
+      "reps": "6-10",
+      "rest": "60 sec",
+      "coachingNote": "Reach tall, brace, and drive the ball down using the trunk and hips.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "athletic_power_agility",
+      "id": "rotational-medicine-ball-throw",
+      "name": "Rotational medicine-ball wall throw",
+      "category": "athletic",
+      "movementPattern": "power",
+      "equipmentTags": [
+        "Medicine ball",
+        "Wall"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "back",
+        "shoulder"
+      ],
+      "traitTags": [
+        "power",
+        "unilateral"
+      ],
+      "preferenceTags": [
+        "medicine ball",
+        "sport",
+        "power"
+      ],
+      "sets": 4,
+      "reps": "5 each side",
+      "rest": "75 sec",
+      "coachingNote": "Rotate through the hips and trunk together and throw without losing balance.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "athletic_power_agility",
+      "id": "medicine-ball-shot-put-throw",
+      "name": "Medicine-ball shot-put throw",
+      "category": "athletic",
+      "movementPattern": "power",
+      "equipmentTags": [
+        "Medicine ball",
+        "Wall"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "shoulder"
+      ],
+      "traitTags": [
+        "power",
+        "unilateral"
+      ],
+      "preferenceTags": [
+        "medicine ball",
+        "sport",
+        "power"
+      ],
+      "sets": 4,
+      "reps": "5 each side",
+      "rest": "75 sec",
+      "coachingNote": "Load the rear hip and drive the ball forward without letting the shoulder lead alone.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "athletic_power_agility",
+      "id": "bodyweight-squat-jump",
+      "name": "Bodyweight squat jump",
+      "category": "athletic",
+      "movementPattern": "power",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "knee",
+        "ankle",
+        "impact"
+      ],
+      "traitTags": [
+        "power",
+        "bilateral"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "sport",
+        "power"
+      ],
+      "sets": 4,
+      "reps": "4-6",
+      "rest": "75 sec",
+      "coachingNote": "Dip into a shallow squat, jump with intent, and land softly before resetting.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "athletic_power_agility",
+      "id": "countermovement-jump",
+      "name": "Countermovement jump",
+      "category": "athletic",
+      "movementPattern": "power",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "knee",
+        "ankle",
+        "impact"
+      ],
+      "traitTags": [
+        "power",
+        "bilateral"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "sport",
+        "power"
+      ],
+      "sets": 4,
+      "reps": "3-5",
+      "rest": "90 sec",
+      "coachingNote": "Use a quick dip and arm swing, jump vertically, and land in a stable position.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "athletic_power_agility",
+      "id": "tuck-jump",
+      "name": "Tuck jump",
+      "category": "athletic",
+      "movementPattern": "power",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "knee",
+        "ankle",
+        "impact"
+      ],
+      "traitTags": [
+        "power",
+        "bilateral"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "sport",
+        "power"
+      ],
+      "sets": 3,
+      "reps": "3-5",
+      "rest": "90 sec",
+      "coachingNote": "Jump vertically, bring the knees up without collapsing the torso, and land softly.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "athletic_power_agility",
+      "id": "split-jump",
+      "name": "Split jump",
+      "category": "athletic",
+      "movementPattern": "power",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "knee",
+        "ankle",
+        "impact"
+      ],
+      "traitTags": [
+        "power",
+        "unilateral"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "sport",
+        "power"
+      ],
+      "sets": 3,
+      "reps": "4 each side",
+      "rest": "90 sec",
+      "coachingNote": "Start in a split stance, jump and switch legs, and land with control.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "athletic_power_agility",
+      "id": "lateral-bound-and-stick",
+      "name": "Lateral bound and stick",
+      "category": "athletic",
+      "movementPattern": "power",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "knee",
+        "ankle",
+        "impact"
+      ],
+      "traitTags": [
+        "power",
+        "unilateral"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "sport",
+        "power"
+      ],
+      "sets": 3,
+      "reps": "4 each side",
+      "rest": "75 sec",
+      "coachingNote": "Jump sideways, land on one leg, and hold the landing before the next rep.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "athletic_power_agility",
+      "id": "single-leg-forward-hop-and-stick",
+      "name": "Single-leg forward hop and stick",
+      "category": "athletic",
+      "movementPattern": "power",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "knee",
+        "ankle",
+        "impact"
+      ],
+      "traitTags": [
+        "power",
+        "unilateral"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "sport",
+        "power"
+      ],
+      "sets": 3,
+      "reps": "4 each side",
+      "rest": "75 sec",
+      "coachingNote": "Hop forward on one leg and hold a quiet stable landing.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "athletic_power_agility",
+      "id": "single-leg-lateral-hop-and-stick",
+      "name": "Single-leg lateral hop and stick",
+      "category": "athletic",
+      "movementPattern": "power",
+      "equipmentTags": [
+        "Bodyweight"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "knee",
+        "ankle",
+        "impact"
+      ],
+      "traitTags": [
+        "power",
+        "unilateral"
+      ],
+      "preferenceTags": [
+        "bodyweight",
+        "sport",
+        "power"
+      ],
+      "sets": 3,
+      "reps": "4 each side",
+      "rest": "75 sec",
+      "coachingNote": "Hop sideways and stabilize the landing before repeating.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "same_each_side",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "athletic_power_agility",
+      "id": "depth-drop",
+      "name": "Depth drop",
+      "category": "athletic",
+      "movementPattern": "power",
+      "equipmentTags": [
+        "Plyo box"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "knee",
+        "ankle",
+        "impact"
+      ],
+      "traitTags": [
+        "power",
+        "bilateral"
+      ],
+      "preferenceTags": [
+        "plyo box",
+        "sport",
+        "power"
+      ],
+      "sets": 4,
+      "reps": "3",
+      "rest": "90 sec",
+      "coachingNote": "Step off a low box, land softly, and hold a balanced athletic position.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "athletic_power_agility",
+      "id": "depth-jump",
+      "name": "Depth jump",
+      "category": "athletic",
+      "movementPattern": "power",
+      "equipmentTags": [
+        "Plyo box"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "knee",
+        "ankle",
+        "impact"
+      ],
+      "traitTags": [
+        "power",
+        "bilateral"
+      ],
+      "preferenceTags": [
+        "plyo box",
+        "sport",
+        "power"
+      ],
+      "sets": 4,
+      "reps": "3",
+      "rest": "2 min",
+      "coachingNote": "Step off a low box, land briefly, and rebound upward while maintaining alignment.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "athletic_power_agility",
+      "id": "low-hurdle-hop",
+      "name": "Low hurdle hop",
+      "category": "athletic",
+      "movementPattern": "power",
+      "equipmentTags": [
+        "Hurdles"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "knee",
+        "ankle",
+        "impact"
+      ],
+      "traitTags": [
+        "power",
+        "bilateral"
+      ],
+      "preferenceTags": [
+        "hurdles",
+        "sport",
+        "power"
+      ],
+      "sets": 4,
+      "reps": "4-6",
+      "rest": "90 sec",
+      "coachingNote": "Use low hurdles, keep ground contacts quick, and stop if landings become noisy.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "athletic_power_agility",
+      "id": "lateral-low-hurdle-hop",
+      "name": "Lateral low-hurdle hop",
+      "category": "athletic",
+      "movementPattern": "power",
+      "equipmentTags": [
+        "Hurdles"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "knee",
+        "ankle",
+        "impact"
+      ],
+      "traitTags": [
+        "power",
+        "bilateral"
+      ],
+      "preferenceTags": [
+        "hurdles",
+        "sport",
+        "power"
+      ],
+      "sets": 4,
+      "reps": "4 each direction",
+      "rest": "90 sec",
+      "coachingNote": "Hop sideways over a low hurdle and keep each landing controlled.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    },
+    {
+      "section": "athletic_power_agility",
+      "id": "short-acceleration-drill",
+      "name": "Short acceleration drill",
+      "category": "athletic",
+      "movementPattern": "run",
+      "equipmentTags": [
+        "Cones"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "impact",
+        "knee",
+        "ankle",
+        "hamstring"
+      ],
+      "traitTags": [
+        "athletic",
+        "bilateral"
+      ],
+      "preferenceTags": [
+        "cones",
+        "sport",
+        "speed"
+      ],
+      "sets": 6,
+      "reps": "10-20 m",
+      "rest": "90 sec",
+      "coachingNote": "Build speed smoothly over a short distance and stop before technique deteriorates.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": "m",
+        "supportedDistanceUnits": [
+          "m",
+          "km",
+          "mi"
+        ],
+        "primaryValueLabel": "Distance",
+        "secondaryValueLabel": null,
+        "trackingType": "distance"
+      }
+    },
+    {
+      "section": "athletic_power_agility",
+      "id": "flying-sprint",
+      "name": "Flying sprint",
+      "category": "athletic",
+      "movementPattern": "run",
+      "equipmentTags": [
+        "Cones"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "impact",
+        "knee",
+        "ankle",
+        "hamstring"
+      ],
+      "traitTags": [
+        "athletic",
+        "bilateral"
+      ],
+      "preferenceTags": [
+        "cones",
+        "sport",
+        "speed"
+      ],
+      "sets": 4,
+      "reps": "20 m fast zone",
+      "rest": "2-3 min",
+      "coachingNote": "Use a gradual buildup, run the fast zone relaxed, and take full recovery.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": "m",
+        "supportedDistanceUnits": [
+          "m",
+          "km",
+          "mi"
+        ],
+        "primaryValueLabel": "Distance",
+        "secondaryValueLabel": null,
+        "trackingType": "distance"
+      }
+    },
+    {
+      "section": "athletic_power_agility",
+      "id": "linear-deceleration-drill",
+      "name": "Linear deceleration drill",
+      "category": "athletic",
+      "movementPattern": "run",
+      "equipmentTags": [
+        "Cones"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "foundation",
+      "cautionTags": [
+        "knee",
+        "ankle",
+        "impact"
+      ],
+      "traitTags": [
+        "athletic",
+        "bilateral"
+      ],
+      "preferenceTags": [
+        "cones",
+        "sport",
+        "speed"
+      ],
+      "sets": 5,
+      "reps": "10 m build + controlled stop",
+      "rest": "75 sec",
+      "coachingNote": "Build moderate speed and lower the center of mass gradually to stop under control.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": "m",
+        "supportedDistanceUnits": [
+          "m",
+          "km",
+          "mi"
+        ],
+        "primaryValueLabel": "Distance",
+        "secondaryValueLabel": null,
+        "trackingType": "distance"
+      }
+    },
+    {
+      "section": "athletic_power_agility",
+      "id": "five-ten-five-change-of-direction",
+      "name": "5-10-5 change-of-direction drill",
+      "category": "athletic",
+      "movementPattern": "lateral",
+      "equipmentTags": [
+        "Cones"
+      ],
+      "goalTags": [
+        "sport_performance",
+        "strength",
+        "general_fitness"
+      ],
+      "difficultyTier": "intermediate",
+      "cautionTags": [
+        "knee",
+        "ankle",
+        "impact"
+      ],
+      "traitTags": [
+        "athletic",
+        "bilateral"
+      ],
+      "preferenceTags": [
+        "cones",
+        "sport",
+        "speed"
+      ],
+      "sets": 4,
+      "reps": "1 rep each direction",
+      "rest": "2 min",
+      "coachingNote": "Stay low into each turn, plant under the body, and prioritize clean direction changes over speed.",
+      "videoUrl": null,
+      "videoReviewStatus": "not_reviewed",
+      "tracking": {
+        "unilateralMode": "bilateral",
+        "loadUnit": null,
+        "supportedLoadUnits": [],
+        "distanceUnit": null,
+        "supportedDistanceUnits": [],
+        "primaryValueLabel": "Reps",
+        "secondaryValueLabel": null,
+        "trackingType": "reps_only"
+      }
+    }
+  ]
+}

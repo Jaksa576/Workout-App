@@ -1,0 +1,26 @@
+{
+  "collection": "Exercise Catalog Expansion Manifests",
+  "totalNewExercises": 200,
+  "batches": [
+    {
+      "batch": 3,
+      "count": 100,
+      "title": "Exercise Catalog Batch 3 \u2014 Strength and Equipment Expansion",
+      "manifest": "exercise-catalog-batch-3-100.manifest.json",
+      "reviewCsv": "exercise-catalog-batch-3-100-review.csv"
+    },
+    {
+      "batch": 4,
+      "count": 100,
+      "title": "Exercise Catalog Batch 4 \u2014 Mobility, Recovery, Conditioning, and Athletic Expansion",
+      "manifest": "exercise-catalog-batch-4-100.manifest.json",
+      "reviewCsv": "exercise-catalog-batch-4-100-review.csv"
+    }
+  ],
+  "validation": {
+    "uniqueAcrossNewBatches": true,
+    "noIdOrNameCollisionsWithPriorAuthoredBatch": true,
+    "knownCurrentCatalogIdsExcluded": true,
+    "videoUrlsBlank": 200
+  }
+}
