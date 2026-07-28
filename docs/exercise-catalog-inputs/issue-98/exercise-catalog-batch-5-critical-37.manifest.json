@@ -35,16 +35,16 @@
     ]
   },
   "summary": {
-    "count": 37,
+    "count": 36,
     "sections": {
       "core_trunk": 13,
       "loaded_carries": 6,
-      "hip_adduction": 4,
+      "hip_adduction": 3,
       "power_skills": 9,
       "conditioning_modalities": 5
     },
     "videoUrlsReviewed": 0,
-    "videoUrlsBlank": 37
+    "videoUrlsBlank": 36
   },
   "exercises": [
     {
@@ -964,53 +964,6 @@
         "supportedDistanceUnits": [],
         "primaryValueLabel": "Load",
         "secondaryValueLabel": "Distance"
-      }
-    },
-    {
-      "section": "hip_adduction",
-      "id": "hip-adduction-machine",
-      "name": "Hip adduction machine",
-      "category": "strength",
-      "movementPattern": "lateral",
-      "equipmentTags": [
-        "Machine"
-      ],
-      "goalTags": [
-        "hypertrophy",
-        "general_fitness",
-        "strength"
-      ],
-      "difficultyTier": "intro",
-      "cautionTags": [],
-      "traitTags": [
-        "machine",
-        "accessory",
-        "adductor"
-      ],
-      "preferenceTags": [
-        "machine",
-        "adductors",
-        "hips",
-        "hypertrophy"
-      ],
-      "sets": 3,
-      "reps": "10-15",
-      "rest": "60 sec",
-      "coachingNote": "Sit securely and bring the pads together smoothly without bouncing.",
-      "videoUrl": null,
-      "videoReviewStatus": "not_reviewed",
-      "tracking": {
-        "trackingType": "weight_reps",
-        "unilateralMode": "bilateral",
-        "loadUnit": "lb",
-        "supportedLoadUnits": [
-          "lb",
-          "kg"
-        ],
-        "distanceUnit": null,
-        "supportedDistanceUnits": [],
-        "primaryValueLabel": "Load",
-        "secondaryValueLabel": "Reps"
       }
     },
     {
