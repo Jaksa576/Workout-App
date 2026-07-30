@@ -2,17 +2,18 @@
   "manifestVersion": 1,
   "batchNumber": 3,
   "title": "Exercise Catalog Batch 3 \u2014 Strength and Equipment Expansion",
-  "purpose": "Temporary implementation input for a reviewed catalog expansion. The runtime source of truth remains lib/exercise-library.ts.",
+  "purpose": "Retained non-runtime authoring and parity fixture. The canonical runtime source remains lib/exercise-library.ts, and runtime application code must not import or load this manifest.",
   "authoringDecisions": {
     "canonicalRuntimeSourceRemains": "lib/exercise-library.ts",
-    "manifestIsTemporary": true,
+    "manifestRole": "Retained non-runtime authoring and parity fixture.",
+    "runtimeLoadPolicy": "Runtime application code must not import or load this manifest.",
     "contentDecisionOwner": "ChatGPT-authored manifest; Codex performs mechanical integration and validation only.",
     "videoPolicy": "Every videoUrl is null and videoReviewStatus is not_reviewed. Do not research, guess, or add videos in this implementation.",
     "aliasPolicy": "Do not generate aliases automatically. Add only explicit, unambiguous aliases separately approved by the product owner.",
     "collisionPolicy": "Stop on canonical ID, normalized canonical name, reviewed alias, or user-owned normalized-name collision.",
     "databasePolicy": "Generate a new additive, idempotent, system-only migration with exact TypeScript-to-SQL parity, protected-table tests, and read-only verification.",
     "historicalMigrationPolicy": "Never edit a committed historical migration.",
-    "manifestDisposition": "Remove this temporary manifest before merge unless explicitly retained as an approved test fixture."
+    "manifestDisposition": "Retain this manifest as a non-runtime authoring and parity fixture; runtime application code must not import or load it."
   },
   "summary": {
     "count": 100,

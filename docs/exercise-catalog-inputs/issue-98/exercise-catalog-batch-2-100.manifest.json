@@ -1,9 +1,10 @@
 {
   "manifestVersion": 1,
-  "purpose": "Temporary implementation input for the next reviewed 100-exercise catalog expansion.",
+  "purpose": "Retained non-runtime authoring and parity fixture for the authoritative 95-exercise Batch 2 after approved duplicate removal. The canonical runtime source remains lib/exercise-library.ts, and runtime application code must not import or load this manifest.",
   "authoringDecisions": {
     "canonicalRuntimeSourceRemains": "lib/exercise-library.ts",
-    "manifestIsTemporary": true,
+    "manifestRole": "Retained non-runtime authoring and parity fixture.",
+    "runtimeLoadPolicy": "Runtime application code must not import or load this manifest.",
     "videoPolicy": "No URL is considered reviewed. All videoUrl values are null and must remain blank unless separately human-reviewed.",
     "aliasPolicy": "Do not create aliases automatically. Add only explicit, unambiguous aliases approved during implementation review.",
     "collisionPolicy": "Stop on canonical ID, normalized canonical name, or reviewed alias collision. Include user-owned normalized-name collisions.",

@@ -31,7 +31,17 @@ const paths = [2, 3, 4].map(
 const manifests = paths.map(
   (path) =>
     JSON.parse(readFileSync(path, "utf8")) as {
-      summary: { count: number; videoUrlsBlank: number };
+      purpose: string;
+      authoringDecisions: {
+        canonicalRuntimeSourceRemains: string;
+        manifestRole: string;
+        runtimeLoadPolicy: string;
+      };
+      summary: {
+        count: number;
+        sections: Record<string, number>;
+        videoUrlsBlank: number;
+      };
       exercises: ManifestExercise[];
     },
 );
@@ -66,6 +76,32 @@ function tuple(exercise: ManifestExercise) {
 }
 
 describe("Issue #98 Slice 2 retained catalog parity", () => {
+  it("retains explicit non-runtime authoring and parity metadata", () => {
+    for (const manifest of manifests) {
+      expect(manifest.authoringDecisions.canonicalRuntimeSourceRemains).toBe(
+        "lib/exercise-library.ts",
+      );
+      expect(manifest.authoringDecisions.manifestRole).toMatch(
+        /retained non-runtime authoring and parity fixture/i,
+      );
+      expect(manifest.authoringDecisions.runtimeLoadPolicy).toMatch(
+        /runtime application code must not import or load this manifest/i,
+      );
+      expect(
+        JSON.stringify({
+          purpose: manifest.purpose,
+          authoringDecisions: manifest.authoringDecisions,
+        }),
+      ).not.toMatch(/temporary/i);
+      expect(
+        Object.values(manifest.summary.sections).reduce(
+          (total, count) => total + count,
+          0,
+        ),
+      ).toBe(manifest.summary.count);
+    }
+  });
+
   it("retains exact 95/100/100 and combined uniqueness", () => {
     expect(manifests.map((m) => m.summary.count)).toEqual([95, 100, 100]);
     expect(manifests.map((m) => m.exercises.length)).toEqual([95, 100, 100]);
