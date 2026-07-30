@@ -42,6 +42,12 @@ const migrationPath =
 const verificationPath =
   "supabase/verification/issue-98-critical-36-readonly.sql";
 const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as {
+  purpose: string;
+  authoringDecisions: {
+    canonicalRuntimeSourceRemains: string;
+    manifestRole: string;
+    runtimeLoadPolicy: string;
+  };
   summary: {
     count: number;
     sections: Record<string, number>;
@@ -79,6 +85,30 @@ function expectedIdentityTuple(exercise: ManifestExercise) {
 }
 
 describe("Issue #98 Slice 1 critical catalog parity", () => {
+  it("retains explicit non-runtime authoring and parity metadata", () => {
+    expect(manifest.authoringDecisions.canonicalRuntimeSourceRemains).toBe(
+      "lib/exercise-library.ts",
+    );
+    expect(manifest.authoringDecisions.manifestRole).toMatch(
+      /retained non-runtime authoring and parity fixture/i,
+    );
+    expect(manifest.authoringDecisions.runtimeLoadPolicy).toMatch(
+      /runtime application code must not import or load this manifest/i,
+    );
+    expect(
+      JSON.stringify({
+        purpose: manifest.purpose,
+        authoringDecisions: manifest.authoringDecisions,
+      }),
+    ).not.toMatch(/temporary/i);
+    expect(
+      Object.values(manifest.summary.sections).reduce(
+        (total, count) => total + count,
+        0,
+      ),
+    ).toBe(manifest.summary.count);
+  });
+
   it("keeps exactly 36 unique corrected manifest rows", () => {
     expect(manifest.summary.count).toBe(36);
     expect(manifest.summary.sections.hip_adduction).toBe(3);

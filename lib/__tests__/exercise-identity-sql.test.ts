@@ -167,53 +167,36 @@ const unsafeWriteTables = [
   "workout_sessions",
 ];
 
-const issue92Ids = new Set([
-  "incline-barbell-bench-press",
-  "chin-up",
-  "t-bar-row",
-  "close-grip-barbell-bench-press",
-  "barbell-shrug",
-  "ez-bar-curl",
-  "chest-dip",
-]);
-const issue98Ids = new Set([
-  "cable-crunch",
-  "machine-abdominal-crunch",
-  "reverse-crunch",
-  "hanging-knee-raise",
-  "hanging-straight-leg-raise",
-  "captains-chair-knee-raise",
-  "ab-wheel-rollout",
-  "stability-ball-rollout",
-  "stability-ball-stir-the-pot",
-  "short-lever-copenhagen-plank",
-  "long-lever-copenhagen-plank",
-  "side-plank-cable-row",
-  "landmine-rotation",
-  "double-front-rack-carry",
-  "single-arm-front-rack-carry",
-  "bear-hug-sandbag-carry",
-  "zercher-carry",
-  "trap-bar-carry",
-  "single-arm-waiter-carry",
-  "standing-cable-hip-adduction",
-  "side-lying-hip-adduction",
-  "slider-adductor-slide-out",
-  "single-arm-kettlebell-clean",
-  "double-kettlebell-clean",
-  "single-arm-kettlebell-snatch",
-  "turkish-get-up",
-  "barbell-power-clean",
-  "hang-power-clean",
-  "barbell-clean-pull",
-  "barbell-high-pull",
-  "dumbbell-hang-power-clean",
-  "jump-rope",
-  "ski-ergometer",
-  "battle-rope-alternating-waves",
-  "battle-rope-slams",
-  "hand-over-hand-sled-pull",
-]);
+const additiveCatalogIdsFromMigration = (path: string) =>
+  new Set(
+    Array.from(
+      readFileSync(path, "utf8").matchAll(
+        /\('([^']+)','[^']+','[^']+','system',array\[/g,
+      ),
+      (match) => match[1],
+    ),
+  );
+
+// Additive catalog ownership is derived from each migration instead of a growing
+// hand-maintained exclusion list. Historical Issue #69 assertions remain unchanged.
+const issue92Ids = additiveCatalogIdsFromMigration(
+  "supabase/migrations/20260726120000_issue92_catalog_batch_1_identities.sql",
+);
+const issue98ManifestPaths = [
+  "docs/exercise-catalog-inputs/issue-98/exercise-catalog-batch-5-critical-37.manifest.json",
+  "docs/exercise-catalog-inputs/issue-98/exercise-catalog-batch-2-100.manifest.json",
+  "docs/exercise-catalog-inputs/issue-98/exercise-catalog-batch-3-100.manifest.json",
+  "docs/exercise-catalog-inputs/issue-98/exercise-catalog-batch-4-100.manifest.json",
+];
+const issue98Ids = new Set(
+  issue98ManifestPaths.flatMap((path) =>
+    (
+      JSON.parse(readFileSync(path, "utf8")) as {
+        exercises: Array<{ id: string }>;
+      }
+    ).exercises.map((exercise) => exercise.id),
+  ),
+);
 
 describe("Issue #40 exercise identity SQL", () => {
   it("preserves the original Issue #40 system identity seed without Issue #69 additions", () => {
